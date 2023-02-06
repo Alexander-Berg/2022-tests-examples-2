@@ -1,0 +1,66 @@
+INSERT INTO crm_admin.resolution
+(
+    experiment_id,
+    channel,
+    group_id,
+    group_name,
+    resolution,
+    resolution_datetime,
+    metrics_info,
+    statistics
+)
+VALUES
+(
+    'exp1',
+    'ch1',
+    '1_test',
+    'gr1',
+    true,
+    now(),
+    null,
+    null
+),
+(
+    'exp2',
+    'ch2',
+    '2_test',
+    'gr2',
+    false,
+    now(),
+    '{"field":"value"}',
+    null
+),
+(
+    'exp3',
+    'ch3',
+    '3_test',
+    'gr3',
+    false,
+    now(),
+    null,
+    '{"field":"value"}'
+),
+(
+    'exp4',
+    'ch4',
+    '4_test',
+    'gr4',
+    true,
+    now(),
+    '{"field":"value"}',
+    '{"field":"value"}'
+);
+
+
+INSERT INTO crm_admin.pushed_resolutions
+(
+    experiment_id,
+    group_name,
+    resolution
+)
+VALUES
+(
+    'ticket-1',
+    'group-1',
+    'approved'
+);

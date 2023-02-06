@@ -1,0 +1,152 @@
+server {
+    # SLB IP
+    listen 93.158.157.1:80 default_server;
+    listen [2a02:6b8:0:3400::1:1]:80 default_server;
+
+    # Server IP
+    listen [1::2:3:4]:8080 default_server;
+
+    return 404;
+}
+
+
+server {
+    # SLB IP
+    listen 93.158.157.1:443 default_server;
+    listen [2a02:6b8:0:3400::1:1]:443 default_server;
+
+    # Server IP
+    listen [1::2:3:4]:8443 default_server;
+
+    ssl on;
+    ssl_certificate certs/oauth-internal.crt;
+    ssl_certificate_key certs/oauth-internal.key;
+    ssl_ciphers kEECDH+AESGCM+AES128:kEECDH+AES128:kRSA+AESGCM+AES128:kRSA+AES128:DES-CBC3-SHA:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_session_cache shared:SSL:32m;
+    ssl_session_timeout 5m;
+    return 404;
+}
+
+
+server {
+    # SLB IP
+    listen 93.158.157.1:80;
+    listen [2a02:6b8:0:3400::1:1]:80;
+
+    # Server IP
+    listen [1::2:3:4]:8080;
+
+    server_name oauth-internal.yandex.ru;
+    set $global_request_id $request_id;
+    access_log /var/log/nginx/oauth.access.log oauth_api;
+    error_log /var/log/nginx/oauth.error.log warn;
+    if ($http_x_request_id) {
+        set $global_request_id $http_x_request_id;
+    }
+
+    keepalive_timeout 75;
+    root /srv;
+
+    location = /robots.txt {
+        root /var/lib/yandex/oauth-api;
+    }
+
+    location = /ping.html {
+        if (-f /usr/lib/yandex/oauth-api/oauth-api.down) {
+            return 521 "service.shut_down (nginx)";
+        }
+        proxy_pass http://127.0.0.1:8302/ping?check=db,blackbox;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location ~ ^/iface_api/\d+/client/(create|edit)$ {
+        client_max_body_size 10m;
+        proxy_pass http://127.0.0.1:8302;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8302;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+
+server {
+    # SLB IP
+    listen 93.158.157.1:443;
+    listen [2a02:6b8:0:3400::1:1]:443;
+
+    # Server IP
+    listen [1::2:3:4]:8443;
+
+    server_name oauth-internal.yandex.ru;
+
+    ssl on;
+    ssl_certificate certs/oauth-internal.crt;
+    ssl_certificate_key certs/oauth-internal.key;
+    ssl_ciphers kEECDH+AESGCM+AES128:kEECDH+AES128:kRSA+AESGCM+AES128:kRSA+AES128:DES-CBC3-SHA:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_session_cache shared:SSL:32m;
+    ssl_session_timeout 5m;
+
+    set $global_request_id $request_id;
+    access_log /var/log/nginx/oauth.access.log oauth_api;
+    error_log /var/log/nginx/oauth.error.log warn;
+    if ($http_x_request_id) {
+        set $global_request_id $http_x_request_id;
+    }
+
+    keepalive_timeout 75;
+    root /srv;
+
+    location = /robots.txt {
+        root /var/lib/yandex/oauth-api;
+    }
+
+    location = /ping.html {
+        if (-f /usr/lib/yandex/oauth-api/oauth-api.down) {
+            return 521 "service.shut_down (nginx)";
+        }
+        proxy_pass http://127.0.0.1:8302/ping?check=db,blackbox;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location ~ ^/iface_api/\d+/client/(create|edit)$ {
+        client_max_body_size 10m;
+        proxy_pass http://127.0.0.1:8302;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8302;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

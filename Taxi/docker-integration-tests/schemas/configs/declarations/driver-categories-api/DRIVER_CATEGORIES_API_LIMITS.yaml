@@ -1,0 +1,73 @@
+default:
+    __default__:
+        __default__:
+            min: 1
+            max: 100000
+description: Лимиты на отдельные поля отдельных ручек
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Handlers'
+    properties:
+        __default__:
+            $ref: '#/definitions/Handlers'
+    required:
+      - __default__
+    definitions:
+        Limits:
+            type: object
+            additionalProperties: false
+            properties:
+                min:
+                    type: integer
+                    format: int64
+                max:
+                    type: integer
+                    format: int64
+            required:
+              - min
+              - max
+        Handlers:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Limits'
+            properties:
+                __default__:
+                    $ref: '#/definitions/Limits'
+            required:
+              - __default__
+samples:
+  - __default__:
+        __default__:
+            min: 1
+            max: 100000
+  - __default__:
+        __default__:
+            min: 1
+            max: 100000
+    '/v1/drivers/categories/bulk':
+        __default__:
+            min: 1
+            max: 100000
+        drivers:
+            min: 1
+            max: 100000
+        cars:
+            min: 1
+            max: 10000
+        parks:
+            min: 1
+            max: 100
+invalid-samples:
+  - __default__:
+        __default__:
+            min: 1
+            max: 100000
+    '/v1/drivers/categories/bulk':
+        drivers:
+            max: 100000
+  - '/v1/drivers/categories/bulk':
+        drivers:
+            min: 1
+            max: 100000

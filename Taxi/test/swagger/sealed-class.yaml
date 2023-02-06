@@ -1,0 +1,78 @@
+openapi: 3.0.0
+info:
+  description: Test additional properties with all of
+  title: Test additional properties with all of
+  version: '1.0'
+
+paths:
+  /test/sealed/success:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_sealed
+      responses:
+        '200':
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResult'
+
+  /test/sealed/failure:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_sealed
+      responses:
+        '200':
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResult'
+
+components:
+  schemas:
+    BaseResult:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          enum:
+            - success
+            - failure
+      required:
+        - type
+
+    SuccessResult:
+      allOf:
+        - $ref: '#/components/schemas/BaseResult'
+        - type: object
+          properties:
+            payload:
+              type: string
+          required:
+            - payload
+
+    FailureResult:
+      allOf:
+        - $ref: '#/components/schemas/BaseResult'
+        - type: object
+          properties:
+            message:
+              type: string
+          required:
+            - message
+
+    CheckResult:
+      oneOf:
+        - $ref: '#/components/schemas/SuccessResult'
+        - $ref: '#/components/schemas/FailureResult'
+      discriminator:
+        propertyName: type
+        mapping:
+          success: SuccessResult
+          failure: FailureResult

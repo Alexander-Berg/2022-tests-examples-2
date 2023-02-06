@@ -1,0 +1,48 @@
+description: |
+    Настройки таймаутов PostreSQL для запросов из библиотки PGMQ.
+    Настройки задаются в первую очередь для сервиса, во вторую - для конкретной
+    задачи/обработчика запроса, в рамках которого производится запрос в PG.
+default:
+    __default__:
+        __default__:
+            execute_timeout: 500
+            statement_timeout: 500
+        'pgcleaning':
+            execute_timeout: 30000
+            statement_timeout: 30000
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/SettingsForService'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/SettingsForService'
+
+    definitions:
+        SettingsForHandler:
+            type: object
+            additionalProperties: false
+            required:
+              - execute_timeout
+              - statement_timeout
+            properties:
+                execute_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                statement_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+
+        SettingsForService:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/SettingsForHandler'
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/SettingsForHandler'
+

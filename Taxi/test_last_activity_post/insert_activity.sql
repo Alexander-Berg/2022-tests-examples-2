@@ -1,0 +1,7 @@
+-- initial factors
+INSERT INTO eats_partners.last_activity (partner_id, last_activity_at)
+VALUES
+(1, '2020-01-01T01:01:01.000+00:00'::TIMESTAMPTZ),
+(2, '2020-02-02T02:02:02.000+00:00'::TIMESTAMPTZ),
+(9000, '2020-03-03T03:03:03.000+00:00'::TIMESTAMPTZ),
+(9001, '2020-04-04T04:04:04.000+00:00'::TIMESTAMPTZ)

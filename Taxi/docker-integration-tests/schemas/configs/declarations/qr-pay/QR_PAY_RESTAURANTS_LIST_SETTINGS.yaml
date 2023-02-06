@@ -1,0 +1,63 @@
+description: Настройки для ручки /restaurants
+tags: [notfallback]
+maintainers: [alexey-kh]
+default: {'subtitle_1_template': '{restaurant_tag} · {restaurant_address}', 'address_distance_accuracy': 50,
+    'list_buttons': [{'title_key': 'qr_pay.restaurants.list_button_title', 'color': 'CCCCCC',
+            'use_gradient_style': true}], 'restaurant_buttons': [{'title_key': 'qr_pay.restaurants.ride_button_title',
+            'color': 'CCCCCC', 'use_gradient_style': false, 'deeplink_template': 'yandextaxi://route?start-lat={user_lat}&start-lon={user_lon}&end-lat={restaurant_lat}&end-lon={restaurant_lon}'}],
+    use_localizeaddress: true}
+schema:
+    type: object
+    properties:
+        subtitle_1_template:
+            type: string
+            description: Шаблон для поля subtitle_1
+        limit:
+            type: integer
+            minimum: 0
+            description: Ограниение на размер списка
+        address_distance_accuracy:
+            type: number
+            minimum: 0
+            description: Погрешность с которой берутся адреса из /localizeaddress
+        list_buttons:
+            type: array
+            items:
+                $ref: '#/definitions/ButtonSettings'
+            description: Настройки кнопок под списком ресторанов
+        restaurant_buttons:
+            type: array
+            items:
+                $ref: '#/definitions/ButtonSettings'
+            description: Настройки кнопок на карточке ресторана
+        use_localizeaddress:
+            type: boolean
+            description: Брать ли адрес из /localizeaddress (иначе из фоллбека)
+    required:
+      - subtitle_1_template
+      - address_distance_accuracy
+      - list_buttons
+      - use_localizeaddress
+    additionalProperties: false
+    definitions:
+        ButtonSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                title_key:
+                    type: string
+                    description: Танкерный ключ для подписи на кнопке
+                color:
+                    type: string
+                    example: "CCCCCC"
+                    description: Код цвета для кнопки
+                use_gradient_style:
+                    type: boolean
+                    description: Флаг рисовать градиент
+                deeplink_template:
+                    type: string
+                    description: Шаблон для диплинка
+            required:
+              - title_key
+              - color
+              - use_gradient_style

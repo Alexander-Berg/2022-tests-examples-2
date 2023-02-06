@@ -1,0 +1,27 @@
+// EFFICIENCYDEV-12845
+let seconds_in_week = 60 * 60 * 24 * 7;
+let seconds_in_12_hours = 60 * 60 * 12;
+let mps_to_kph_coeff = 3.6; // meters per second to kilometers to hour
+let min_speed_limit_kph = 10;
+
+let total_time = trip.time;
+if (total_time < 0) { // EFFICIENCYDEV-12966
+  return {
+    time = 0
+  };
+}
+if (total_time > seconds_in_week) {
+  return {
+    time = 0
+  };
+}
+if (total_time > seconds_in_12_hours) {
+  let total_distance = trip.distance;
+  let avg_speed_kph = total_distance / total_time * mps_to_kph_coeff;
+  if (avg_speed_kph < min_speed_limit_kph) {
+     return {
+        time = 0
+     };
+  }
+}
+return ride.price;

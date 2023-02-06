@@ -1,0 +1,90 @@
+id: api-proxy-lpm
+title: Используем ответ api-proxy-lpm
+
+source:
+    request:
+        method: post
+        body:
+            location: [1, 1]
+
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods:
+                  - available: true
+                    number: "****1111"
+                    system: visa
+                    availability:
+                        disabled_reason: ''
+                        available: true
+                    name: visa
+                    currency: RUR
+                    type: card
+                    id: valid_card_id
+                    bin: '4000000'
+                    card_bank: 'METABANK'
+                    card_country: 'USA'
+                  - avaliable: true
+                    number: "****1234"
+                    system: YandexBank
+                    availability:
+                        available: true
+                    currency: RUR
+                    name: Ya Bank
+                    id: card-1234
+                    bin: '6000000'
+                    is_yandex_card: true
+                merchant_id_list:
+                  - id1
+
+mocks:
+  - resource: api-proxy-list-payment-methods
+    response:
+        status-code: 200
+        body:
+            payment_methods:
+              - available: true
+                number: "****1111"
+                system: visa
+                availability:
+                    disabled_reason: ''
+                    available: true
+                name: visa
+                currency: RUR
+                type: card
+                id: valid_card_id
+                bin: '4000000'
+                card_bank: 'METABANK'
+                card_country: 'USA'
+              - avaliable: true
+                number: "****1234"
+                system: YandexBank
+                availability:
+                    available: true
+                currency: RUR
+                name: Ya Bank
+                id: card-1234
+                bin: '6000000'
+                is_yandex_card: true
+            merchant_id_list:
+              - id1
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                location: [1, 1]
+
+configs:
+    values:
+        grocery_payments_methods_lpm_enable:
+            enabled: false

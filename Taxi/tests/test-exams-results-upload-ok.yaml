@@ -1,0 +1,73 @@
+id: test-exams-results-upload-ok
+title: Тест для ручки exams-platform-v20-exams-results-upload (POST)
+source:
+    request:
+        method: post
+        headers:
+            Cookie: "Session_id=3:SESSION_ID"
+        query:
+            X-Ya-Request-Id: REQUEST_ID
+        body:
+            city: Moscow
+            center: Center
+            license: 12AA123456
+            course: ultima
+            result: 5
+            exam_date: "2022-07-01T12:00:01Z"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                id: TAXIEXAMS_ID1
+
+mocks:
+  - resource: taxi-exams-api-v20-exam-result
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                Cookie: "Session_id=3:SESSION_ID"
+            query:
+                X-Ya-Request-Id: REQUEST_ID
+            body:
+                city: Moscow
+                center: Center
+                license: 12AA123456
+                course: ultima
+                result: 5
+                exam_date: "2022-07-01T12:00:01Z"
+    response:
+        status-code: 200
+        body:
+            id: TAXIEXAMS_ID1
+
+  - resource: exams-platform-v20-exams-results-upload
+    expectations:
+        call-count: 1
+        request:
+            query:
+                X-Ya-Request-Id: REQUEST_ID
+            body:
+                city: Moscow
+                center: Center
+                license: 12AA123456
+                course: ultima
+                result: 5
+                exam_date: "2022-07-01T12:00:01Z"
+    response:
+        status-code: 200
+        body:
+            id: PLATFORM_ID1
+
+  - resource: exams-platform-v10-compare-responses
+    expectations:
+        call-count: 1
+        request:
+            body:
+                taxi-exams_response:
+                    id: TAXIEXAMS_ID1
+                exams-platform_response:
+                    id: PLATFORM_ID1
+    response:
+        status-code: 200
+        body: {}

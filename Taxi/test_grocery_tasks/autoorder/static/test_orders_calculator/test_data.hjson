@@ -1,0 +1,950 @@
+{
+    # ТЕСТИРОВАНИЕ ХРАНЕНИЯ
+    # на РЦ есть остаток, но его не хватает на обеспечение лавок
+    # все реальные поставки на лавки снабжаются из остатка на рц на 12ое
+    # нужно 7, есть только 3
+    # заказ на РЦ высчитывается исходя из теоретических поставок на лавки
+    'Hranenie1': {
+        'schedule_base': [
+            {
+                'supplier_id': 100000,
+                'store_id': 100,
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-13', '2020-02-15']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-16', '2020-02-20']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-14', '2020-02-16']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100000,
+                'store_id': 100,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 5.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 1,
+                'supply_date': '2020-02-16',
+                'rounded_order_from_dc': 2.0,
+            },
+            # должно было было привезтись 2,
+            # но остатков на РЦ до первой поставки на РЦ не хватило
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 1,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 1.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 1, 'qty': 3.0}],
+        'pim': [
+            {
+                'product_id': 1,
+                'shelf_life': 365,
+                'days_before_write_off': 3,
+                'quant': 1,
+            },
+        ],
+    },
+    # вывоз остатков РЦ на лавки с округлением вниз
+    # товар при прочих равных распределяется сначала
+    # на лавки с меньшим номером
+    'Hranenie2': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': [1111, 2222, 3333],
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-13', '2020-02-17']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-13', '2020-02-22']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 1.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 3333,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 12.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 1, 'qty': 17.0}],
+    },
+    'Hranenie_2postavki_na_odny_lavky': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 1,
+                'supply_date_lists': [
+                    ['2020-02-13', '2020-02-14', '2020-02-15'],
+                ],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 1,
+                'supply_date_lists': [['2020-02-16', '2020-02-18']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 1,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 1.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 1,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 1.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 1,
+                'supply_date': '2020-02-16',
+                'rounded_order_from_dc': 2.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 1, 'qty': 10.0}],
+        'pim': [{'product_id': 1, 'quant': 1}],
+    },
+    # ТЕСТИРОВАНИЕ ДОЛГА  PBL
+    # должны по-другому распределять
+    'PBL1': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': [5555, 6666, 7777, 8888],
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-17']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 5555,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 12.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 6666,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 8.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 8.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 8888,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 8.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 36.0}],
+        'pim': [
+            {
+                'product_id': 2,
+                'shelf_life': 365,
+                'days_before_write_off': 3,
+                'quant': 4,
+            },
+        ],
+    },
+    # максимальный период расчета долга
+    'PBL2': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 3333,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 3333,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 20.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 20.0}],
+    },
+    # перераспределение с долга PBL, округленного вниз на  PBL
+    #       долг PBL:     |+++++++[+/-]--------------|
+    #       PBL:          |-------[-/+]|
+    #       долг PBL:     |+++++++[+/-]|
+    #       PBL:          |-------[-/+]|
+    #       долг PBL:     |+|+++++[+/-]|
+    #       PBL:             |----|
+    #       долг PBL:     |++++|++[+/-]
+    #       PBL:                 |[-/+]|
+    'PBL3': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-29']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 1111,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-14', '2020-02-17']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-17']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 2222,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-17']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 3333,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 3333,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-14', '2020-02-16']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-15']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-16', '2020-02-17']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 1111,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 0.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 2222,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 24.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 2222,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 3333,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 7.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 3333,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 0.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 3.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-16',
+                'rounded_order_from_dc': 1.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 34.0}],
+    },
+    #       долг PBL:     |+++++|++++
+    #       долг PBL:     |++|+++++++
+    #            PBL:     |----------+++++|
+    'PBL4': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-03-12']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-03-16']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 22.0,
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 1111,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 12.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 6.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 34.0}],
+    },
+    #       долг PBL:     |++|++++
+    #       PBL:          |-|
+    'PBL5': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-15']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 4.0}],
+    },
+    #       долг PBL:     |++|++++
+    #       PBL:          |-------++|
+    'PBL6': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-18']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 1.0,
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 4.0}],
+    },
+    #       долг PBL:     |++|++++++++
+    #       PBL:             |-----|--++++|
+    'PBL7': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [
+                    ['2020-02-14', '2020-02-16', '2020-02-20'],
+                ],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 0.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-16',
+                'rounded_order_from_dc': 3.0,
+            },
+        ],
+    },
+    # сейчас работает неправильно
+    #       долг PBL:     |++|+++++
+    #       PBL:       |??---------|
+    'PBL8': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-14', '2020-02-15']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-18']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,  # 1.0,
+            },
+        ],
+    },
+    #       долг PBL:     |+++++-------|
+    #       PBL:       |++------++++|
+    'PBL9': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-14', '2020-02-20']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-19']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 2.0,
+            },
+        ],
+    },
+    #       долг PBL:     |+++|++++
+    #       PBL:       |++---------++++|
+    'PBL10': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-15', '2020-02-16']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-20']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-15',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 3.0,
+            },
+        ],
+    },
+    #       долг PBL:     |++++|+++++++++
+    #       PBL:                 |----|
+    'PBL11': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-14', '2020-02-16']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 0.0,
+            },
+        ],
+    },
+    #       долг PBL:     |++++|++++++
+    #       PBL:                 |----+++|
+    'PBL12': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-16', '2020-02-18']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-16',
+                'rounded_order_from_dc': 1.0,
+            },
+        ],
+    },
+    # долг PBL в прироритете, пока не вывезли все с РЦ,
+    # по PBL ничего не везем
+    #       долг PBL:          |+++++++++++----|
+    #       PBL:                  |----|
+    'PBL13': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-18']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-14', '2020-02-15']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-14',
+                'rounded_order_from_dc': 0.0,
+            },
+        ],
+    },
+    # Несмотря на то, что уже открылся заказ с внешнего поставщика,
+    # долг PBL везем приоритетом
+    #       долг PBL:          |+++++++++----------|
+    #       PBL:                    |----+++++|
+    'PBL14': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-19']],
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-15', '2020-02-18']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+            },
+            {
+                'supplier_id': 100000,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-15',
+                'rounded_order_from_dc': 1.0,
+            },
+        ],
+    },
+    # товар приходит на рц сегодня, потребности одинаковые
+    # распределяется по приоритету лавок [округление вниз]
+    'PBLdistribution1': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 8888,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+                'order_id': 'PBLdistribution1',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 8888,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 3.0,
+                'order_id': 'PBLdistribution1',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+                'order_id': '',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 8888,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+                'order_id': '',
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 7.0}],
+        'orders_to_redistribute': [
+            {
+                'order_id': 'PBLdistribution1',
+                'supplier_id': 100,
+                'product_id': 2,
+                'qty': 7.0,
+            },
+        ],
+    },
+    # товар приходит на рц сегодня, потребности разные
+    # распределяется по потребностям и приоритету лавок
+    'PBLdistribution2': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 7.0,
+                'order_id': 'PBLdistribution1',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 2.0,
+                'order_id': 'PBLdistribution1',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+                'order_id': '',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 0.0,
+                'order_id': '',
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 9.0}],
+        'orders_to_redistribute': [
+            {
+                'order_id': 'PBLdistribution1',
+                'supplier_id': 100,
+                'product_id': 2,
+                'qty': 9.0,
+            },
+        ],
+    },
+    # товар приходит на рц сегодня, потребности разные
+    # есть другие остатки [пока что без otw]
+    # распределяется по потребностям и приоритету лавок
+    'PBLdistribution3': {
+        'schedule_base': [
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date_lists': [['2020-02-13', '2020-02-14']],
+            },
+        ],
+        'expected_result': [
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 4.0,
+                'order_id': 'PBLdistribution1',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 1.0,
+                'order_id': 'PBLdistribution1',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 7777,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 3.0,
+                'order_id': '',
+            },
+            {
+                'supplier_id': 100,
+                'store_id': 9999,
+                'product_id': 2,
+                'supply_date': '2020-02-13',
+                'rounded_order_from_dc': 1.0,
+                'order_id': '',
+            },
+        ],
+        'stock': [{'store_id': 100, 'product_id': 2, 'qty': 9.0}],
+        'orders_to_redistribute': [
+            {
+                'order_id': 'PBLdistribution1',
+                'supplier_id': 100,
+                'product_id': 2,
+                'qty': 5.0,
+            },
+        ],
+    },
+}

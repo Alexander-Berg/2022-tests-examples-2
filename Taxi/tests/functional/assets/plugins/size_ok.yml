@@ -1,0 +1,56 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - size_ok:
+      width: 800
+      height: 600
+      description: Full notation
+  - _inner_test: [True, Passed full notation.]
+
+  - size_ok: [800, 600]
+  - _inner_test: [True, Passed short notation.]
+
+  - size_ok: [800, 600, Small screen.]
+  - _inner_test:
+      success: True
+      description: Small screen.
+      tap_description: Short form with desc.
+
+  - size_ok: [0, 600]
+  - _inner_test:
+      success: False
+      message: must be natural numbers
+      tap_description: Failed negative dimensions.
+
+  - size_ok: [-800, -600]
+  - _inner_test:
+      success: False
+      message: must be natural numbers
+      tap_description: Failed negative dimensions.
+
+  - size_ok: [1, 1]
+  - _inner_test: [True, Passed small dimensions.]
+
+  - size_ok: [2147483648, 2147483648]
+  - _inner_test:
+      success: False
+      message: must be natural numbers
+      tap_description: Passed too big dimensions.
+
+  - size_ok: [2147483648, 2147483648]  # 2**32, 2**32
+  - _inner_test:
+      success: False
+      message: must be natural numbers
+      tap_description: Failed with too big dimensions.
+
+  - size_ok: [524287, 524287]
+  - _inner_test: [True, Passed big dimensions.]

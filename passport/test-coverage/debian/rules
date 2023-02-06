@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+# yandex-debhelper
+include /usr/share/cdbs/1/rules/debhelper.mk
+
+# Ходим за нодой 0.10 туда, где она лежит
+PATH:=$(shell echo $$PATH):$(shell dpkg -L nodejs-6 | grep '\/bin\/node$$' | xargs dirname)
+
+pre-build::
+# Ходим за нодой 0.10 туда, где она лежит
+	export PATH=$(PATH)
+	NPMCACHE=y $(MAKE) pre-build
+
+make::
+	ENV=production NODE_ENV=production $(MAKE) server
+
+test::make
+	export PATH=$(PATH)
+	rm -rf ./configs/current
+	cp -r ./configs/production ./configs/current
+	NODE_ENV=development npm run-script coverage
+
+install/$(DEB_SOURCE_PACKAGE)::test
+	sed -i 's#SF:/tmp/buildd/yandex-passport-frontend-[^/]*/#SF:./#' ./coverage/lcov.info
+	rm -rf ./configs/current
+	# dh_install -p$(DEB_SOURCE_PACKAGE)
+	# dh_nodeubic --no-start -p$(DEB_SOURCE_PACKAGE)

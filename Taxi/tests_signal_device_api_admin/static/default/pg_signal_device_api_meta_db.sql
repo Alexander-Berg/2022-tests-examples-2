@@ -1,0 +1,545 @@
+SET TimeZone TO 'UTC';
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active,
+    group_id
+)
+VALUES
+(
+    'p1',
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE,
+    NULL
+),
+(
+    'park_id0',
+    2,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE,
+    NULL
+);
+
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at,
+    is_drive_device
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE
+), (
+    2,
+    NULL,
+    TRUE,
+    '4306de3dfd82406d81ea3c098c80e9ba',
+    'pub_key_2',
+    '351756051523999',
+    'a5:90:c5:98:95:48',
+    '78:ff:28:f2:69:b1',
+    NULL,
+    'AB12FE45DD',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    65536,
+    '{}',
+    2,
+    '2019-12-17T08:38:54',
+    '2019-12-17T08:38:54',
+    FALSE
+), (
+    3,
+    NULL,
+    TRUE,
+    '6b3b9123656f4a808ce3e7c52a0be835',
+    'pub_key_3',
+    NULL,
+    'ca:ff:4d:64:f2:79',
+    NULL,
+    '63:72:bf:26:5a:b3',
+    'FFEE33',
+    '2.01',
+    '7p117mV/CfzpOnevbsdfFC3g7nJ+dTliDx1QwMhOPBRCrLrSCMuUV6dLm+z2FchT',
+    '03Kl5ckWGKlUWmD4ZPq6dpVF5X5+oqycQgOJIZXfPg0=',
+    'RIVcPWACRArzJqxvXfm37l3HOaY41Ew3aIB4JhQYe/QQ+0XRWzsr9BNltXVHDhwUcgVLCmYBKn8PLvnqZg9V+A==',
+    256,
+    '{"foo":"bar"}',
+    NULL,
+    '2019-12-17T09:38:54',
+    '2019-12-17T09:38:54',
+    FALSE
+), (
+    4,
+    NULL,
+    FALSE,
+    '77748dae0a3244ebb9e1b8d244982c28',
+    'pub_key_4',
+    NULL,
+    '32:41:27:d5:fb:ed',
+    'fb:43:3c:cd:1e:8f',
+    '23:5f:72:1c:04:39',
+    'FFFDEAD4',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54',
+    FALSE
+), (
+    5,
+    NULL,
+    FALSE,
+    '12349fbd4c7767aef1a6c4a123456789',
+    'pub_key_5',
+    NULL,
+    '11:11:11:22:22:ff',
+    NULL,
+    NULL,
+    '1337587103',
+    'hw_5',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    65536,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54',
+    FALSE
+),
+(
+    6,
+    NULL,
+    TRUE,
+    '12349fbd4c7767578456c4a123456789',
+    'pub_key_6',
+    '190000862471854',
+    '12:41:27:d5:fb:ed',
+    NULL,
+    NULL,
+    'FFFFFF666',
+    '2.06',
+    '1ogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    '1XpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '1hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    NULL,
+    '2019-12-17T11:49:54',
+    '2019-12-17T12:50:54',
+    FALSE
+);
+
+INSERT INTO signal_device_api.statuses
+(
+    id,
+    cpu_temperature,
+    disk_bytes_free_space,
+    disk_bytes_total_space,
+    root_bytes_free_space,
+    root_bytes_total_space,
+    ram_bytes_free_space,
+    gps_position_lat,
+    gps_position_lon,
+    gnss_latitude,
+    gnss_longitude,
+    software_version,
+    uptime_ms,
+    sim_iccid,
+    sim_phone_number,
+    sim_imsi,
+    status_at,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    73.3242,
+    54.9885,
+    NULL,
+    NULL,
+    '2.31',
+    90555,
+    '89310410106543789301',
+    '+7 (913) 617-82-58',
+    '502130123456789',
+    '2020-01-23T15:44:02',
+    '2019-09-04T08:18:54',
+    '2020-01-23T15:44:30'
+),
+(
+    2,
+    77,
+    10000000000,
+    10000000001,
+    2000000000,
+    20000000000,
+    1000000,
+    NULL, -- inconsistent state
+    -118.243683,
+    NULL,
+    NULL,
+    '1.1',
+    600000,
+    '89658808121000111424',
+    '+7 (905) 663-92-51',
+    '502130123456789',
+    '2020-01-14T15:44:44',
+    '2019-09-04T09:00:00',
+    '2020-01-14T15:44:46'
+),
+(
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'sw_4',
+    20200000,
+    'iccid_4',
+    'phone_4',
+    'imsi_4',
+    '2020-01-01T01:01:01',
+    '2020-01-01T01:01:01',
+    '2020-01-01T01:01:01'
+),
+(
+    5,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'sw_5',
+    21474836471111,
+    'iccid_5',
+    'phone_5',
+    'imsi_5',
+    '2020-01-01T01:01:01',
+    '2020-01-01T01:01:01',
+    '2020-01-01T01:01:01'
+),
+(
+    6,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    NULL,
+    NULL,
+    73.3242,
+    54.9885,
+    '6.31',
+    90555,
+    '89310410106543789306',
+    '+7 (913) 617-82-56',
+    '502130123456789',
+    '2020-01-23T15:44:02',
+    '2019-12-17T14:18:54',
+    '2020-01-23T15:44:30'
+);
+
+INSERT INTO signal_device_api.devices_web_info
+(id, device_name, vehicle_plate_number, driver_name, partner_passport_uid, updated_at, created_at)
+VALUES
+(
+    1,
+    'SignalQ1_1',
+    'K 444 AB 55',
+    'Кеков Александр Валерьевич',
+    '54591353',
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC'),
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC')
+),
+(
+    2,
+    'custom%_name',
+    'K 123 KK 777',
+    NULL,
+    '54591353',
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC'),
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC')
+),
+(
+    3,
+    'signalq1_3',
+    NULL,
+    'Настенька',
+    '54591353',
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC'),
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC')
+),
+(
+    4,
+    '',
+    NULL,
+    NULL,
+    '121766829',
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC'),
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC')
+),
+(
+    6,
+    'signalq1_6',
+    'B 666 AB 52',
+    'не Кеков',
+    '54591353',
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC'),
+    (SELECT TIMESTAMP WITH TIME ZONE '01/01/1999 12:00:00+00' AT TIME ZONE 'UTC')
+);
+
+INSERT INTO signal_device_api.events
+(
+    id,
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    public_event_id,
+    event_at,
+    event_type,
+    gnss_latitude,
+    gnss_longitude,
+    gnss_speed_kmph,
+    gnss_accuracy_m,
+    gnss_direction_deg,
+    extra,
+    video_file_id,
+    photo_file_id,
+    park_id
+)
+VALUES
+(
+    1,
+    1,
+    '2020-02-27T13:00:00',
+    '2020-02-27T13:00:00',
+    '0ef0466e6e1331b3a7d35c585983076a',
+    '34b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    '2020-02-27T12:00:00',
+    'sleep',
+    54.99250000,
+    73.36861111,
+    34.437895,
+    0.61340,
+    245.895,
+    '1',
+    'video_id_ok',
+    NULL,
+    'p1'
+),
+(
+    2,
+    1,
+    '2020-02-27T13:02:00',
+    '2020-02-27T13:02:00',
+    '7faebfa97bfafe293023a41a49250ac3',
+    '44b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    '2020-02-27T12:02:00',
+    'fart',
+    54.94550000,
+    73.36822151,
+    89.437895,
+    NULL,
+    NULL,
+    '',
+    'video_id_not_uploaded_yet',
+    'photo_id_not_uploaded_yet',
+    'p1'
+),
+(
+    3,
+    2,
+    '2020-02-27T23:55:00',
+    '2020-02-27T23:55:00',
+    '5e94c0875963785801eed76c4322b394',
+    '54b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    '2020-02-26T23:55:00',
+    'sleep',
+    54.99550072,
+    72.94622044,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'photo_id_ok',
+    'p1'
+),
+(
+    4,
+    4,
+    '2020-02-26T23:57:00',
+    '2020-02-26T23:57:00',
+    'd58841a1f4b7816b84ccf4fcb7d886f7',
+    '64b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    '2020-02-26T23:57:00',
+    'driver_lost',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    5,
+    5,
+    '1999-12-31T23:59:59',
+    '1999-12-31T23:59:59',
+    '0a252859f6e1e3942eed9b5f16bd9bf5',
+    '74b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    '1999-12-31T23:59:59',
+    'distraction',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+);
+
+INSERT INTO signal_device_api.videos
+(
+    device_id,
+    file_id,
+    size_bytes,
+    started_at,
+    s3_path,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    'video_id_ok',
+    300,
+    current_timestamp,
+    'some/s3/path.mp4',
+    current_timestamp,
+    current_timestamp
+);
+
+INSERT INTO signal_device_api.photos
+(
+    device_id,
+    file_id,
+    size_bytes,
+    is_uploaded,
+    taken_at,
+    s3_path,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    2,
+    'photo_id_ok',
+    300,
+    TRUE,
+    current_timestamp,
+    'some/s3/path.jpg',
+    current_timestamp,
+    current_timestamp
+);
+
+
+INSERT INTO signal_device_api.events_comments
+(
+    id,
+    event_id,
+    "text",
+    created_at,
+    idempotency_token
+)
+VALUES
+(
+    '1',
+    '44b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    'privet!',
+    '2020-08-08 15:00:00 +00:00',
+    'xxx3x3133lllslslsl'
+),
+(
+    '2',
+    '44b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    'lol, kek, ti uvolen',
+    '2020-08-11 15:00:00 +00:00',
+    '999998sxxxxfd1521'
+);

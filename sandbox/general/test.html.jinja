@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{{ result.test }}</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://yastatic.net/bootstrap/3.3.1/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .lefted {
+            text-align: start !important;
+        }
+        td {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        iframe {
+            display: block;
+            border: none;
+            width: 50%;
+            height: 90vh;
+        }
+        @media (min-width: 900px) {
+            .modal-xl {
+                width: 90%;
+                max-width:2000px;
+            }
+        }
+        .glyphicon-refresh-animate {
+            -webkit-animation: spin2 .8s infinite linear;
+        }
+        @-webkit-keyframes spin2 {
+            from { -webkit-transform: rotate(0deg);}
+            to { -webkit-transform: rotate(360deg);}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html">Back to test results</a>
+        <table class="table table-hover table-bordered table-striped table-condensed">
+            <caption>{{ result.test }}</caption>
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td><b>Query and region</b></td>
+                    <td>
+                        <b>Side by side</b>
+                        <span class="glyphicon glyphicon-refresh glyphicon-refresh-animate" id="loading"></span>
+                    </td>
+                    <td colspan=3><b>First beta value</b></td>
+                    <td colspan=3><b>Second beta value</b></td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(result.data|length) %}
+                <tr
+                    {% set item = result.data[i] %}
+                    {% if item.first == item.second %} class=success {% endif %}
+                >
+                    <td>{{ loop.index }}</td>
+                    <td class="lefted">{{ item.query }}</td>
+                    <td>
+                    <button type="button" class="btn btn-default" disabled data-toggle="modal" data-target=".modallg{{i}}">
+                        SERPS
+                    </button>
+                    </td>
+                    <td>{{ item.first }}</td>
+                    <td><a class="btn btn-default" href="{{ item.first_beta }}" role="button">SERP</a></td>
+                    <td><a class="btn btn-default" href="{{ item.first_json }}" role="button">JSON</a></td>
+                    <td>{{ item.second }}</td>
+                    <td><a class="btn btn-default" href="{{ item.second_beta }}" role="button">SERP</a></td>
+                    <td><a class="btn btn-default" href="{{ item.second_json }}" role="button">JSON</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- Containers for side by side iframes. We have to store data in <a>, instead of just having <iframe>,
+            and create iframes on the fly with js because loading 1500*2 iframes (even with empty src)
+            in Chrome is extremely slow. -->
+        <div>
+            {% for i in range(result.data|length) %}
+                {% set item = result.data[i] %}
+                <div id="m{{i}}" class="modal modallg{{i}}" role="dialog" style="display: none;" aria-hidden="true">
+                  <div class="modal-dialog modal-xl" role="document">
+                    <div id="parent{{i}}" class="modal-content">
+                      <a id="a{{i}}l" href="{{ item.first_beta }}" style="background-color:white; float:left">
+                        {{ item.first_beta|truncate(70, True) }}
+                      </a>
+                      <a id="a{{i}}r" href="{{ item.second_beta }}" style="background-color:white; float:right">
+                        {{ item.second_beta|truncate(70, True) }}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+            {% endfor %}
+         </div>
+    </div>
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://yastatic.net/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://yastatic.net/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script>
+        for(var i = 0; i < {{result.data|length}}; i++){
+            $('#m' + i).on('show.bs.modal', function(e) {
+                sides = ["l", "r"]
+                idx = $(e.target).attr("id").substr(1)
+                parent = $('#parent' + idx)
+
+                if (parent.children().length == 2) {
+                    for (var side_idx in sides) {
+                        iframeid = 'i' + idx + sides[side_idx]
+                        parent.append('<iframe style="display:inline" id="' + iframeid + '"></iframe>')
+                        iframe = $('#' + iframeid)
+
+                        a_side = $('#a' + idx + sides[side_idx]);
+
+                        iframe.prop("src", a_side.attr("href"));
+                        iframe.prop("align", a_side.attr("align"));
+                    }
+                }
+            })
+        }
+        <!-- Enable side-by-side buttons after iframes set up -->
+        $('button').removeAttr('disabled');
+        $('#loading').remove()
+    </script>
+</body>
+</html>

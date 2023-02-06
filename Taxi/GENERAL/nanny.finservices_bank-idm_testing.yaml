@@ -1,0 +1,372 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: rtc
+    name: finservices_bank-idm_testing
+graphs:
+    bank-idm.fintech.tst.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Conflict
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/approve-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Выставляет approve от пользователя дернувшего ручку. Добавляет запись в таблицу аппрувов со статусом approved. Если список аппруверов пуст, то проверяем аппрув от ответственного за систему. Если все аппрувы набрались, то переводим роль в статус granted 
+              - Equals: {request_url: "/v1/approve-role"}
+              - Equals: {request_url: "/v1/approve-role/"}
+              - StartsWith: {request_url: "/v1/approve-role?"}
+              - StartsWith: {request_url: "/v1/approve-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой роли или пользователя
+              - 409 # Аппрув от данного пользователя уже получен
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/create-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Создает новую роль. Возможно создание вложенных ролей. Например, для системы А можно сразу создать роль A -> role1 -> leaf_role даже если роли role1 не было. Добавлять роли к концевой роли нельзя. То есть если в примере выше role1 уже сущещствовала и была листовой(is_leaf = true), то нужно сначала удалить role1 и дернуть /v1/create-role со slug-path = /role1/leaf_role 
+              - Equals: {request_url: "/v1/create-role"}
+              - Equals: {request_url: "/v1/create-role/"}
+              - StartsWith: {request_url: "/v1/create-role?"}
+              - StartsWith: {request_url: "/v1/create-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой системы или пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/create-system_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Создает новую систему
+              - Equals: {request_url: "/v1/create-system"}
+              - Equals: {request_url: "/v1/create-system/"}
+              - StartsWith: {request_url: "/v1/create-system?"}
+              - StartsWith: {request_url: "/v1/create-system/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Не найден ответственный для переданного responsible_users
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/create-user_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Создает пользователя или возвращает id пользователя, если он уже существует. Никаких проверок не делается. Предполагается, что ручка дергается из веб интерфейса после авторизации пользователя в банковском контуре. 
+              - Equals: {request_url: "/v1/create-user"}
+              - Equals: {request_url: "/v1/create-user/"}
+              - StartsWith: {request_url: "/v1/create-user?"}
+              - StartsWith: {request_url: "/v1/create-user/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/decline-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Выставляет статус declined от пользователя дернувшего ручку. Добавляет запись в таблицу аппрувов со статусом declined. 
+              - Equals: {request_url: "/v1/decline-role"}
+              - Equals: {request_url: "/v1/decline-role/"}
+              - StartsWith: {request_url: "/v1/decline-role?"}
+              - StartsWith: {request_url: "/v1/decline-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой роли или пользователя
+              - 409 # Аппрув от данного пользователя уже получен
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/deprive-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Отзывает роль от имени пользователя, дернувшего ручку. Проверяет права на отзыв роли, изменяет статус роли на deprived в таблице roles 
+              - Equals: {request_url: "/v1/deprive-role"}
+              - Equals: {request_url: "/v1/deprive-role/"}
+              - StartsWith: {request_url: "/v1/deprive-role?"}
+              - StartsWith: {request_url: "/v1/deprive-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой роли или пользователя
+              - 409 # Аппрув от данного пользователя уже получен
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/disable-system_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Проверяет имеет ли пользователь, сделавший запрос роль responsible для системы.  Если да, то выключает систему, меняет поле system_status, никакие записи физически не удаляются. Но на запрос получения ролей будет возвращаться пустой список. 
+              - Equals: {request_url: "/v1/disable-system"}
+              - Equals: {request_url: "/v1/disable-system/"}
+              - StartsWith: {request_url: "/v1/disable-system?"}
+              - StartsWith: {request_url: "/v1/disable-system/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой системы или пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/drop-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Удаляет узел роли и отзывает все выданные роли с данным узлом роли. В самой ручке выставляем у роль ноды статус deprived, при добавлении ролей смотрим на этот статус и не добавляем роль, если deprived и запускаем stq с CallLater и интервалом больше времени выполнения операции при добавлении роли 
+              - Equals: {request_url: "/v1/drop-role"}
+              - Equals: {request_url: "/v1/drop-role/"}
+              - StartsWith: {request_url: "/v1/drop-role?"}
+              - StartsWith: {request_url: "/v1/drop-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой системы или пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/actions_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/front/v1/actions"}
+              - Equals: {request_url: "/v1/front/v1/actions/"}
+              - StartsWith: {request_url: "/v1/front/v1/actions?"}
+              - StartsWith: {request_url: "/v1/front/v1/actions/?"}
+        Options:
+            CustomHttp:
+              - 400 # Не задан ни один параметр для поиска действий
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой системы или пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/approve-requests_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/front/v1/approve-requests"}
+              - Equals: {request_url: "/v1/front/v1/approve-requests/"}
+              - StartsWith: {request_url: "/v1/front/v1/approve-requests?"}
+              - StartsWith: {request_url: "/v1/front/v1/approve-requests/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такого пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/rolenode_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/front/v1/rolenode"}
+              - Equals: {request_url: "/v1/front/v1/rolenode/"}
+              - StartsWith: {request_url: "/v1/front/v1/rolenode?"}
+              - StartsWith: {request_url: "/v1/front/v1/rolenode/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой системы или узла роли
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/roles_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - StartsWith: {request_url: "/v1/front/v1/roles/"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой роли
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/suggest/roles_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/front/v1/suggest/roles"}
+              - Equals: {request_url: "/v1/front/v1/suggest/roles/"}
+              - StartsWith: {request_url: "/v1/front/v1/suggest/roles?"}
+              - StartsWith: {request_url: "/v1/front/v1/suggest/roles/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой системы
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/suggest/systems_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/front/v1/suggest/systems"}
+              - Equals: {request_url: "/v1/front/v1/suggest/systems/"}
+              - StartsWith: {request_url: "/v1/front/v1/suggest/systems?"}
+              - StartsWith: {request_url: "/v1/front/v1/suggest/systems/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/front/v1/systems_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - StartsWith: {request_url: "/v1/front/v1/systems/"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой системы
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/get-logins_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Выдает по роли (system_slug, slug_path) отсортированный список логинов пользователей, у которых эта роль в статусе granted
+              - Equals: {request_url: "/v1/get-logins"}
+              - Equals: {request_url: "/v1/get-logins/"}
+              - StartsWith: {request_url: "/v1/get-logins?"}
+              - StartsWith: {request_url: "/v1/get-logins/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой роли
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/get-user-roles_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Выдает список ролей пользователя фильтруя по парам (system_slug, slug_path)
+              - Equals: {request_url: "/v1/get-user-roles"}
+              - Equals: {request_url: "/v1/get-user-roles/"}
+              - StartsWith: {request_url: "/v1/get-user-roles?"}
+              - StartsWith: {request_url: "/v1/get-user-roles/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой роли или пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/request-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Запрашивает выдачу роли для пользователя. Добавляет запись в таблицу ролей со статусом requested 
+              - Equals: {request_url: "/v1/request-role"}
+              - Equals: {request_url: "/v1/request-role/"}
+              - StartsWith: {request_url: "/v1/request-role?"}
+              - StartsWith: {request_url: "/v1/request-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Нет такой системы или пользователя
+              - 409 # Роль уже находится в стасусе запрошена или выдана
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/restore-role_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Восстаналивает узел роли в статус enabled. 
+              - Equals: {request_url: "/v1/restore-role"}
+              - Equals: {request_url: "/v1/restore-role/"}
+              - StartsWith: {request_url: "/v1/restore-role?"}
+              - StartsWith: {request_url: "/v1/restore-role/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой системы или пользователя
+              - 429 # Too many requests
+
+    bank-idm.fintech.tst.yandex.net/v1/set-approvers_POST:
+        And:
+          - Equals: {http_host: "bank-idm.fintech.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Меняет список аппруверов узла роли на пришедший 
+              - Equals: {request_url: "/v1/set-approvers"}
+              - Equals: {request_url: "/v1/set-approvers/"}
+              - StartsWith: {request_url: "/v1/set-approvers?"}
+              - StartsWith: {request_url: "/v1/set-approvers/?"}
+        Options:
+            CustomHttp:
+              - 400 # Ошибка в данных пользователя
+              - 401 # Unauthorized
+              - 403 # Нет прав на требуемую операцию
+              - 404 # Нет такой системы или пользователя
+              - 429 # Too many requests
+

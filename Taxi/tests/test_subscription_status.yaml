@@ -1,0 +1,71 @@
+id: test_subscription_status
+title: Проверяем все варианты subscription_status и соответствующий текст из эксперимента
+
+parameters:
+  - case:
+      - expected_body: {"subscription_status": "inactive"}
+        source_response_body: {"is_subscribed": true, "subs_info": {"mod": {"value": 10,
+                    "repr": {"currency_code": "RUB", "amount": "10 RUB", "currency_sign": "$"}},
+                "goal": {"fund_id": "asd"}}}
+      - expected_body: {"title": "тест_4", "subscription_status": "can_subscribe",
+            "text": "текст_2"}
+        source_response_body: {"is_subscribed": false, "nonzero_donation_if_subscribes": true}
+      - expected_body: {"subscription_status": "inactive"}
+        source_response_body: {"is_subscribed": false}
+
+source:
+    request:
+        method: get
+        query:
+            longitude#string: 123.4
+            latitude#string: 234.5
+            currency#string: RUB
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaTaxi-User: personal_phone_id=personal_123,eats_user_id=eater_id1
+            X-Request-Application: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/case/expected_body
+
+mocks:
+  - resource: persey-payments-v1-charity-ride_donation-check
+    response:
+        status-code: 200
+        body#xget: /test-params/case/source_response_body
+    expectations:
+        call-count: 1
+        request:
+            query:
+                delivery_position_lon#string: 123.4
+                delivery_position_lat#string: 234.5
+                currency_code#string: RUB
+                brand#string: eats
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaTaxi-User: personal_phone_id=personal_123,eats_user_id=eater_id1
+                X-Request-Application: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2
+
+experiments:
+    values#object:
+      - key: eats_cart_persey
+        value:
+            enabled: true
+            amount_text: текст_1
+            subscribe_text: текст_2
+            title_with_subscribe: тест_3
+            title_without_subscribe: тест_4
+        enabled: true
+    expectations:
+        consumer: api-proxy/eats-persey
+        kwargs:
+          - key: device_id
+            type: string
+            value: SomeDevice
+          - key: eater_id
+            type: string
+            value: eater_id1
+          - key: personal_phone_id
+            type: string
+            value: personal_123

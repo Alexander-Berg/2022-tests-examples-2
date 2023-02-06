@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: logging
+  labels:
+    k8s-app: fluent-bit
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     info
+        Daemon        off
+        Parsers_File  parsers.conf
+        HTTP_Server   On
+        HTTP_Listen   0.0.0.0
+        HTTP_Port     2020
+
+    @INCLUDE input-kubernetes.conf
+    @INCLUDE filter-kubernetes.conf
+    @INCLUDE filter-nginx.conf
+    @INCLUDE output-ya-cloud-logging.conf
+
+  input-kubernetes.conf: |
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        Parser            docker
+
+    @INCLUDE /fluent-bit/etc/python/inputs.conf
+
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        Merge_Log           On
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude Off
+
+  filter-nginx.conf: |
+    [FILTER]
+        Name         parser
+        Match        kube.var.log.containers.front*
+        Key_Name     log
+        Parser       nginx
+        Preserve_Key true
+        Reserve_Data true
+    
+    [FILTER]
+        Name         parser
+        Match        kube.var.log.containers.instructor*
+        Key_Name     log
+        Parser       nginx
+        Preserve_Key true
+        Reserve_Data true
+    
+    @INCLUDE /fluent-bit/etc/python/filters.conf
+
+  output-ya-cloud-logging.conf: |
+    [OUTPUT]
+        Name            yc-logging
+        Match           kube.var.log.containers.front*
+        group_id        ${FRONT_GROUP_ID}
+        message_key     log
+        level_key       level
+        default_level   INFO
+        authorization   instance-service-account
+
+    [OUTPUT]
+        Name            yc-logging
+        Match           kube.var.log.containers.backoffice*
+        group_id        ${BACKOFFICE_GROUP_ID}
+        message_key     log
+        level_key       level
+        default_level   INFO
+        authorization   instance-service-account
+
+    [OUTPUT]
+        Name            yc-logging
+        Match           kube.var.log.containers.instructor*
+        group_id        ${INSTRUCTOR_GROUP_ID}
+        message_key     log
+        level_key       level
+        default_level   INFO
+        authorization   instance-service-account
+    
+    @INCLUDE /fluent-bit/etc/python/outputs.conf
+
+  parsers.conf: |
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+
+    [PARSER]
+        Name        nginx
+        Format      regex
+        Regex       ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key    time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    
+    @INCLUDE /fluent-bit/etc/python/parsers.conf

@@ -1,0 +1,54 @@
+/var/log/yandex/passport-takeout/statbox/*.log
+/var/log/yandex/passport-takeout/*.log
+/var/log/nginx/*.log
+/var/log/yandex/passport-tvm-keyring
+{
+	daily
+	rotate 5
+	compress
+	delaycompress
+	missingok
+	create 644 www-data www-data
+	sharedscripts
+	prerotate
+		/bin/sleep $[RANDOM % 1200]
+	endscript
+	postrotate
+		chmod 0000 /usr/lib/yandex/passport-takeout/ping.html
+		sleep 50
+
+		[ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
+		service yandex-passport-takeout-api restart || /bin/true > /dev/null
+
+		sleep 50
+		chmod 0644 /usr/lib/yandex/passport-takeout/ping.html
+	endscript
+}
+
+/var/log/yandex/logbroker-client/takeout-tasks/statbox/*.log
+/var/log/yandex/logbroker-client/takeout-tasks/*.log
+{
+    daily
+    rotate 15
+    compress
+    delaycompress
+    missingok
+    create 644 www-data www-data
+    sharedscripts
+    prerotate
+        /bin/sleep $[RANDOM % 3600]
+    endscript
+    postrotate
+        chmod 0000 /etc/yandex/logbroker-client/takeout-tasks/logrotate.ping
+
+        service yandex-passport-logbroker-client-takeout-tasks restart &> /dev/null
+        if [ -x /bin/systemctl ]; then
+            systemctl restart yandex-passport-xunistater@lbc-takeout-tasks &> /dev/null
+        else
+            service yandex-passport-xunistater restart lbc-takeout-tasks &> /dev/null
+        fi
+
+        /bin/sleep 60
+        chmod 0644 /etc/yandex/logbroker-client/takeout-tasks/logrotate.ping
+    endscript
+}

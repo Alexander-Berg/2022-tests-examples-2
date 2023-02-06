@@ -1,0 +1,81 @@
+id: cargo_corpcard
+title: Тест метода оплаты cargo-finance - cargocorp
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: corp
+                value:
+                    available_accounts: []
+                    payment_available: false
+              - key: card
+                value:
+                    payment_available: true
+                    available_cards: []
+                    unverified_cards: []
+              - key: cargocorp
+                value:
+                    available_clients:
+                      - id: 'cargocorp-xxx'
+                        display:
+                            type: 'cargocorp'
+
+
+mocks:
+  - resource: cargo-finance-payment-methods-v1
+    response:
+        status-code: 200
+        body:
+            methods:
+              - id: 'cargocorp-xxx'
+                display:
+                    type: 'cargocorp'
+              - id: 'other'
+                display:
+                    type: 'other'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: shared-internal-stats
+    response:
+        status-code: 500
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: personal-v1-available-accounts
+    response:
+        status-code: 500
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: cargo_finance_methods_enabled
+        value:
+            enabled: true
+        enabled: true
+
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: true

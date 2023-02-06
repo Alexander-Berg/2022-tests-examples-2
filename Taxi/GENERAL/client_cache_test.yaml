@@ -1,0 +1,34 @@
+swagger: '2.0'
+info:
+    description: Handlers for testing client caches of api-over-db services
+    title: Client cache tests
+    version: '1.0'
+produces:
+  - application/json
+host: example-replica.taxi.yandex.net
+x-taxi-client-qos:
+    taxi-config: EXAMPLE_REPLICA_CLIENT_QOS
+paths:
+    /v1/client-cache/test:
+        get:
+            description: Вернуть содержимое кеша
+            parameters:
+              - in: query
+                name: cache_name
+                required: true
+                description: название кеша
+                type: string
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            cache_content:
+                                type: object
+                                additionalProperties: true
+                                x-taxi-additional-properties-true-reason: >
+                                    содержимое кеша зависит от модели
+                '404':
+                    description: Cache not found or not implemented

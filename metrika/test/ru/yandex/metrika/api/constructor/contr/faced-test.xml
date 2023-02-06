@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="presetService" class="ru.yandex.metrika.api.constructor.presets.PresetService">
+        <property name="metaGenerator" ref="metaGenerator"/>
+        <property name="segmentTreeGenerator" ref="segmentTreeGenerator"/>
+        <property name="apiUtils" ref="apiUtils"/>
+        <property name="metricGroupsManager" ref="metricGroupsManager"/>
+    </bean>
+
+    <bean id="segmentTreeGenerator" class="ru.yandex.metrika.segments.core.meta.SegmentTreeGenerator">
+        <property name="metaGenerator" ref="metaGenerator"/>
+    </bean>
+
+
+    <bean id="metaGenerator" class="ru.yandex.metrika.segments.site.meta.ConstructorMetaGeneratorSite">
+        <constructor-arg index="0" ref="apiUtils"/>
+        <constructor-arg index="1" ref="tableSchemaSite"/>
+    </bean>
+
+    <bean id="apiUtils" class="ru.yandex.metrika.segments.core.ApiUtils" depends-on="chGlobalConfig">
+        <property name="config" ref="constructorApiConfig"/>
+        <property name="visitsCounterCached" ref="visitsCounterCached"/>
+        <property name="providersBundle" ref="providersBundle"/>
+        <property name="globalTemplate" ref="chGlobalTemplateSrc"/>
+        <property name="bundleFactory" ref="bundleFactory"/>
+    </bean>
+
+    <bean id="bundleFactory" class="ru.yandex.metrika.segments.site.bundles.CommonBundleFactory">
+    </bean>
+
+    <bean id="chGlobalConfig" class="ru.yandex.metrika.util.route.RouteLBConfigurerXml">
+        <property name="router" ref="chGlobalTemplateSrc"/>
+    </bean>
+
+    <bean id="chGlobalTemplateSrc" class="ru.yandex.metrika.util.route.ClickhouseRouterImplLB">
+        <property name="counterDao" ref="counterDao"/>
+        <property name="properties" ref="chGlobalTemplateSrcConnectionProperties"/>
+        <property name="factory" ref="httpTemplateFactory"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.dbclients.clickhouse.HttpTemplateFactory" id="httpTemplateFactory">
+
+    </bean>
+
+    <bean id="chGlobalTemplateSrcConnectionProperties" class="ru.yandex.metrika.dbclients.clickhouse.MetrikaClickHouseProperties">
+        <property name="maxThreads" value="4"/>
+        <property name="extremes" value="true"/>
+    </bean>
+
+    <bean id="constructorApiConfig" class="ru.yandex.metrika.segments.core.ApiUtilsConfig">
+    </bean>
+
+    <bean id="visitsCounterCached" class="ru.yandex.metrika.managers.VisitsCounterCachedImpl">
+        <property name="counterDao" ref="counterDao"/>
+    </bean>
+
+    <bean id="decoderBundle" class="ru.yandex.metrika.segments.site.decode.DecoderBundle">
+        <property name="decoderMap">
+            <map>
+                <entry key="TRAFFIC_SOURCE"         value-ref="tsDecoder"/>
+                <entry key="SEARCH_ENGINE"          value-ref="seDecoder"/>
+                <entry key="ADV_ENGINE"             value-ref="advDecoder"/>
+                <entry key="ADV_PLACE"              value-ref="advPlaceDecoder"/>
+                <entry key="SOCIAL_NETWORK"         value-ref="snDecoder"/>
+                <entry key="BROWSER"                value-ref="uaDecoder"/>
+                <entry key="GEO_COUNTRY"            value-ref="countryDecoder"/>
+                <entry key="GEO_REGION"             value-ref="regionDecoder"/>
+                <entry key="GEO_CITY"               value-ref="cityDecoder"/>
+                <entry key="OS"                     value-ref="osDecoder"/>
+                <entry key="OS_ROOT"                value-ref="osRootDecoder"/>
+                <entry key="MOBILE_DEVICE_BRAND"    value-ref="mbDecoder"/>
+                <entry key="INTERESTS"              value-ref="inDecoder"/>
+                <entry key="URL_CATEGORY"           value-ref="categoryDecoder"/>
+                <entry key="GEO_REGION_ID"          value-ref="regionIDDecoder"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="advDecoder" class="ru.yandex.metrika.locale.LocaleDecoderSimple">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="AdvEngines2"/>
+        <property name="descriptionColumnName" value="AdvEngine"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+        <property name="insertNull" value="true"/>
+    </bean>
+    <bean id="advPlaceDecoder" class="ru.yandex.metrika.locale.LocaleDecoderSimple">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="AdvPlaces"/>
+        <property name="descriptionColumnName" value="PlaceName"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+        <property name="insertNull" value="true"/>
+        <property name="idColumnName" value="AdvPlaceID"/>
+    </bean>
+    <bean id="tsDecoder" class="ru.yandex.metrika.locale.LocaleDecoderSimple">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="TraficSources"/>
+        <property name="descriptionColumnName" value="TraficSource"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+    </bean>
+    <bean id="seDecoder" class="ru.yandex.metrika.locale.LocaleDecoderSimple">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="SearchEngines"/>
+        <property name="descriptionColumnName" value="SearchEngine"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+        <property name="insertNull" value="true"/>
+    </bean>
+    <bean id="inDecoder" class="ru.yandex.metrika.locale.LocaleDecoderSimple">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="Interests"/>
+        <property name="descriptionColumnName" value="Interest"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+    </bean>
+    <bean id="categoryDecoder" class="ru.yandex.metrika.locale.LocaleDecoderCategories">
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+        <property name="convMain" ref="countersTemplate"/>
+    </bean>
+    <!--Decoders without localization-->
+    <bean id="snDecoder" class="ru.yandex.metrika.locale.NotALocaleDecoder">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="SocialNetworks"/>
+        <property name="descriptionColumnName" value="Name"/>
+    </bean>
+    <bean id="uaDecoder" class="ru.yandex.metrika.locale.NotALocaleDecoder">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="UserAgent"/>
+        <property name="descriptionColumnName" value="UserAgent"/>
+    </bean>
+    <bean id="osDecoder" class="ru.yandex.metrika.locale.NotALocaleDecoder">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="OS2"/>
+        <property name="descriptionColumnName" value="OS"/>
+    </bean>
+    <bean id="osRootDecoder" class="ru.yandex.metrika.locale.NotALocaleDecoder">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="OS2"/>
+        <property name="descriptionColumnName" value="OS"/>
+        <property name="whereString" value="Parent_Id IS NULL"/>
+    </bean>
+    <bean id="mbDecoder" class="ru.yandex.metrika.locale.NotALocaleDecoder">
+        <property name="template" ref="convMainJdbcTemplate"/>
+        <property name="tableName" value="MobilePhones"/>
+        <property name="descriptionColumnName" value="MobilePhone"/>
+    </bean>
+    <!--Region decoders-->
+    <bean id="countryDecoder" class="ru.yandex.metrika.locale.LocaleDecoderGeo">
+        <property name="regionType" value="COUNTRY"/>
+        <property name="localeGeobase" ref="localeGeobase"/>
+        <property name="geoBase" ref="geoBase"/>
+    </bean>
+    <bean id="regionDecoder" class="ru.yandex.metrika.locale.LocaleDecoderGeo">
+        <property name="regionType" value="FED_SUBJECT"/>
+        <property name="localeGeobase" ref="localeGeobase"/>
+        <property name="geoBase" ref="geoBase"/>
+    </bean>
+    <bean id="cityDecoder" class="ru.yandex.metrika.locale.LocaleDecoderGeo">
+        <property name="regionType" value="CITY"/>
+        <property name="localeGeobase" ref="localeGeobase"/>
+        <property name="geoBase" ref="geoBase"/>
+    </bean>
+    <bean id="regionIDDecoder" class="ru.yandex.metrika.locale.LocaleDecoderGeo">
+        <property name="localeGeobase" ref="localeGeobase"/>
+        <property name="geoBase" ref="geoBase"/>
+    </bean>
+
+    <!-- :::::::::::::::::: / Antlr decoder bundle :::::::::::::::::: -->
+
+    <bean id="localeDictionaries" class="ru.yandex.metrika.util.locale.LocaleDictionaries"/>
+    <bean id="localeGeobase" class="ru.yandex.metrika.locale.LocaleGeobase"/>
+
+    <bean class="ru.yandex.metrika.util.geobase.GeoBase" id="geoBase">
+    </bean>
+
+    <bean id="goalIdsDao" class="ru.yandex.metrika.managers.GoalIdsDaoImpl">
+        <property name="convMain" ref="convMainJdbcTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.managers.MirrorDaoImpl" id="mirrorDao">
+        <property name="countersTemplate" ref="countersTemplate"/>
+    </bean>
+
+    <bean id="mysql_counters"  factory-bean="convDataSourceFactory" factory-method="getDataSource">
+        <constructor-arg index="0" value="1"/>
+        <property name="user" value="root"/>
+        <property name="password" value="qwerty"/>
+        <property name="host" value="localhost"/>
+        <property name="port" value="3308"/>
+        <property name="db" value="conv_main_test"/>
+    </bean>
+    <bean id="convMainJdbcTemplate" factory-bean="convDataSourceFactory" factory-method="getTemplate">
+        <constructor-arg ref="mysql_counters"/>
+    </bean>
+
+    <bean id="counterDao" class="ru.yandex.metrika.util.route.layers.LayerDaoImpl">
+        <property name="jdbc" ref="countersTemplate"/>
+    </bean>
+
+    <bean id="mysql_counters1"  factory-bean="convDataSourceFactory" factory-method="getDataSource">
+        <constructor-arg index="0" value="4"/>
+        <property name="user" value="root"/>
+        <property name="password" value="qwerty"/>
+        <property name="host" value="localhost"/>
+        <property name="port" value="3308"/>
+        <property name="db" value="conv_main_test"/>
+    </bean>
+    <bean id="countersTemplate" factory-bean="convDataSourceFactory" factory-method="getTemplate" >
+        <constructor-arg ref="mysql_counters1"/>
+    </bean>
+    <bean class="ru.yandex.metrika.dbclients.mysql.DataSourceFactory" id="dataSourceFactory" >
+        <property name="props" >
+            <bean class="ru.yandex.metrika.dbclients.mysql.MySQLConnectionPropertiesBean" parent="daemonConnectionProperties">
+                <property name="sessionVariables" value="low_priority_updates=1"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean class="ru.yandex.metrika.dbclients.mysql.DataSourceFactory" id="convDataSourceFactory">
+        <property name="props" >
+            <bean class="ru.yandex.metrika.dbclients.mysql.MySQLConnectionPropertiesBean" parent="daemonConnectionProperties">
+                <property name="connectTimeout" value="5000"/>
+                <property name="initialTimeout" value="10"/>
+                <property name="characterEncoding" value="utf8"/>
+                <property name="connectionCollation" value="utf8_general_ci"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="daemonConnectionProperties" class="ru.yandex.metrika.dbclients.mysql.MySQLConnectionPropertiesBean">
+        <!-- Чтобы можно было слать пакеты запросов -->
+        <property name="allowMultiQueries" value="true"/>
+        <!-- INSERT INTO table(c1, c2) values (x1,y1); INSERT INTO table(c1, c2) values (x2,y2) => INSERT INTO table(c1, c2) values (x1,y1),(x2, y2) -->
+        <property name="rewriteBatchedStatements" value="false"/>
+        <!-- Запись логов JDBC в наши логи-->
+        <property name="logger" value="Slf4JLogger"/>
+        <!-- Типа мы сами все честно закрываем, не надо следить -->
+        <property name="dontTrackOpenResources" value="true"/>
+        <!-- Server prerared statements + MySQL = ЗЛО -->
+        <property name="useServerPrepStmts" value="false"/>
+        <!-- Чтобы знать источник проблем в лицо -->
+        <property name="dumpQueriesOnException" value="true"/>
+        <!-- Оптимизации чтобы не спрашивал у сервера лишнего -->
+        <property name="elideSetAutoCommits" value="true"/>
+        <property name="alwaysSendSetIsolation" value="false"/>
+        <property name="cacheServerConfiguration" value="true"/>
+        <!-- avoid 5.5 mysql fail -->
+        <property name="useDynamicCharsetInfo" value="false"/>
+        <!-- Don't parse and convert MySQL time in ResultSet.getString() -->
+        <property name="noDatetimeStringSync" value="true"/>
+        <property name="failOverReadOnly" value="false"/>
+        <property name="exceptionInterceptors" value="ru.yandex.metrika.util.io.MySQLExceptionInterceptor"/>
+        <property name="queriesBeforeRetryMaster" value="10000"/>
+        <property name="secondsBeforeRetryMaster" value="150"/>
+
+        <!-- Таймауты -->
+        <property name="socketTimeout" value="300000"/>
+        <property name="connectTimeout" value="5000"/>
+        <property name="initialTimeout" value="10"/>
+        <!-- Пробуем 2 раза до ошибки -->
+        <property name="retriesAllDown" value="2"/>
+
+        <!-- CONV-6142: disabled rollback on close -->
+        <property name="rollbackOnPooledClose" value="false"/>
+        <!-- Отладочные штуки -->
+        <!--<property name="explainSlowQueries" value="true"/>
+        <property name="profileSQL" value="true"/>-->
+    </bean>
+
+</beans>

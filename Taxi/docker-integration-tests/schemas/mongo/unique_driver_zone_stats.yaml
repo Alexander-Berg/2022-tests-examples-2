@@ -1,0 +1,69 @@
+settings:
+    collection: unique_driver_zone_stats
+    connection: noncritical
+    database: dbprocessing
+indexes:
+  - expireAfterSeconds: 2592000
+    key: md
+  - key:
+      - name: md
+        type: ascending
+      - name: nz
+        type: ascending
+      - name: udi
+        type: ascending
+      - name: tc
+        type: ascending
+    unique: true
+  - key:
+      - name: udi
+        type: ascending
+      - name: md
+        type: ascending
+wiki_info: |
+    #### unique_driver_zone_stats
+    *Назначение:* содержит информацию о числе поездок у водителей в зоне
+    ```python
+    {
+        # ссылка на unique_drivers._id
+        'udi': ObjectID(),
+
+        # категория тарифа
+        'tc': 'express|econom|...',
+
+        # полночь по местному времени для ci
+        'md': datetime.datetime(2016, 6, 30, 0, 0, 0),
+
+        # город
+        'nz': 'ekb',
+
+        # число заказов за день начиная с md
+        'no': 5,
+
+        # время обновления: naive utc
+        'u': datetime.datetime(2016, 6, 30, 1, 2, 5)
+
+        # id X последних заказов
+        # (служебное поле для идемпотентного увеличения числа заказов)
+        'o': ['0123456789abcdef'],
+
+        # проекция списка заказов
+        'shallow_order_list' : {
+
+            # id заказа
+            'order_id' : order_id
+
+            # время подачи заказа (request.due), naive utc
+            'due' : datetime.datetime.utcnow(),
+
+            # тип брендинга (стикер) - опционально
+            'has_sticker' : true,
+
+            # тип брендинга (лайтбокс) - опционально
+            'has_lightbox' : true,
+
+            # список геозон - опционально
+            'geoareas' : [],
+        },
+    }
+    ```

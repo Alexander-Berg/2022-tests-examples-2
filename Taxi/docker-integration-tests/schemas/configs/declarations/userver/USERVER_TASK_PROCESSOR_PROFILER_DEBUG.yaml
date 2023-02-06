@@ -1,0 +1,43 @@
+default:
+    main-task-processor:
+        enabled: false
+        # 2ms
+        execution-slice-threshold-us: 2000
+    fs-task-processor:
+        enabled: false
+        # 1sec
+        execution-slice-threshold-us: 1000000
+description: |
+    Настройки профайлера корутиновского движка в userver.
+    Ключ задает имя таск процессора, у разных таск процессоров настройки задаются независимо.
+tags:
+  - notfallback
+  - by-service
+maintainers:
+  - segoon
+  - antoshkka
+schema:
+    type: object
+    properties: {}
+    additionalProperties:
+        $ref: '#/definitions/TaskProcessorSettings'
+    definitions:
+        TaskProcessorSettings:
+            type: object
+            required:
+              - enabled
+              - execution-slice-threshold-us
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                    description: |
+                        включен ли профайлер для заданного TaskProcessor
+                execution-slice-threshold-us:
+                    type: integer
+                    description: |
+                        Порог времени выполнения 1 корутины на системном потоке без переключения.
+                        Если порог превышен, в лог пишется запись.
+                        Если время выполнения меньше порога, лог не пишется.
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::microseconds

@@ -1,0 +1,5 @@
+START TRANSACTION;
+
+ALTER TABLE task_manager.tasks ADD COLUMN continue_at INTEGER;
+
+COMMIT;

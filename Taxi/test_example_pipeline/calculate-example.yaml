@@ -1,0 +1,57 @@
+module: testsuite_single_pipelines_calculate_example
+operators:
+  - id: main
+    visibility: public
+    value#processing-single-pipeline:
+        scope: testsuite_single_pipelines
+        single_pipeline: calculate_example
+        stq-queue: testsuite_single_pipelines_calculate_example
+        pipeline:
+            shared-state-init:
+                name: Alex
+            stages:
+              - id: login-stage
+                handlers:
+                  - id: login-handler
+                    requests:
+                      - id: login-request
+                        resource: login-resource
+                        body:
+                            name#xget: /shared-state/name
+                    result:
+                        login#xget: /sources/login-request/response/body/login
+                    resources:
+                      - id: login-resource
+                        url: $login_resource
+                        method: post
+              - id: password-stage
+                handlers:
+                  - id: password-handler
+                    requests:
+                      - id: password-request
+                        resource: password-resource
+                        body:
+                            login#xget: /shared-state/login
+                    result:
+                        password#xget: /sources/password-request/response/body/password
+                    resources:
+                      - id: password-resource
+                        url: $password_resource
+                        method: post
+              - id: credential-stage
+                handlers:
+                  - id: credentials-handler
+                    requests:
+                      - id: credentials-request
+                        resource: credentials-resource
+                        body:
+                            credentials#concat-strings:
+                              - value#xget: /shared-state/login
+                              - value: ":"
+                              - value#xget: /shared-state/password
+                    result:
+                        status#xget: /sources/credentials-request/response/body/status
+                    resources:
+                      - id: credentials-resource
+                        url: $credentials_resource
+                        method: post

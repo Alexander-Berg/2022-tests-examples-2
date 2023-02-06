@@ -1,0 +1,27 @@
+cluster_name: test_cluster
+table:
+  cluster_name: distr_data_cluster
+  database: distr_data_db
+  table_name: distr_data_table
+  engine: ReplicatedCollapsingMergeTree
+  partition: toYYYYMM(date)
+  index_granularity: 8192
+  sign_column: sign
+  index_columns:
+    - date
+    - car_class
+distributed_table:
+  table_name: distr_data_table
+  database: test
+  engine: Distributed
+  sharding_key: intDiv(toUnixTimestamp(date), 60)
+columns:
+  date:
+    type: Date
+  city:
+    type: String
+    is_null: True
+  car_class:
+    type: String
+  sign:
+    type: Int8

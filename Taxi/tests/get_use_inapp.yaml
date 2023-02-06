@@ -1,0 +1,36 @@
+id: get_use_inapp
+title: GET Используем ответ /4.0/stories из inapp-communications
+
+source:
+    request:
+        method: get
+        query:
+            context: eats
+        headers:
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            Accept-Language: ru-RU
+            X-Remote-IP: 2.60.0.0
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+    expectations:
+        response:
+            status-code: 200
+            body:
+                stories:
+                  - id: id_inapp
+
+mocks:
+  - resource: inapp-communications-4.0-stories-get
+    response:
+        status-code: 200
+        body:
+            stories:
+              - id: id_inapp
+  - resource: taxi-stories-4.0-stories-get
+    response:
+        status-code: 500
+
+experiments:
+    values:
+        api_proxy_stories_use_inapp:
+            enabled: true

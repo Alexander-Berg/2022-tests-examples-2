@@ -1,0 +1,42 @@
+description: Настройки компонента PGMQ
+default:
+    __default__:
+        replication_enabled: false
+        message_ttl: 15
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+    definitions:
+        Settings:
+            type: object
+            required:
+              - replication_enabled
+            properties:
+                replication_enabled:
+                    description: Включает отсылку данных в сервис replication перед
+                        удалением
+                    type: boolean
+                replication_rule_name:
+                    description: Правило репликации из сервиса replication
+                    type: string
+                message_ttl:
+                    description: Время, после которого сообщение удаляется из очереди
+                        (секунды)
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                remove_messages_chunk_size:
+                    description: Размер чанка при удалении старых сообщений
+                    type: integer
+                    minimum: 0
+                replicate_messages_chunk_size:
+                    description: Размер чанка при отправке в сервис replication
+                    type: integer
+                    minimum: 0
+            additionalProperties: false

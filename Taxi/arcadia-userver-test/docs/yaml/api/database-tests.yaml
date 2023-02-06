@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+    title: Yandex Taxi arcadia-userver-test Service - database tests
+    description: handlers for testing database interaction
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: arcadia-userver-test.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: ARCADIA_USERVER_TEST_CLIENT_QOS
+
+paths:
+    /databases/postgres/insert:
+        post:
+            summary: Inserts an entry into the database
+            requestBody:
+                description: data to insert
+                required: true
+                content:
+                    text/plain:
+                        schema:
+                            type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OkayInsertResponse'
+
+    /databases/redis/value:
+        get:
+            summary: Get value by key
+            parameters:
+              - name: key
+                in: query
+                required: true
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OkayValueResponse'
+
+    /databases/mongo/value:
+        get:
+            summary: Get value by key
+            parameters:
+              - name: key
+                in: query
+                required: true
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OkayValueResponse'
+
+    /databases/clickhouse/value:
+        get:
+            summary: Get value by key
+            parameters:
+              - name: key
+                in: query
+                required: true
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OkayValueResponse'
+
+components:
+    schemas:
+        OkayInsertResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - entry_id
+            properties:
+                entry_id:
+                    type: integer
+                    format: int64
+
+        OkayValueResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - value
+            properties:
+                value:
+                    type: string

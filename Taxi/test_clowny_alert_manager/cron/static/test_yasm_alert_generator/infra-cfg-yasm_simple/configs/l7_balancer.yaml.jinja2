@@ -1,0 +1,110 @@
+{%- set balancers = [
+ {'host': 'taxi_metadata-storage_stable', 'prj': 'metadata-storage.taxi.yandex.net', 'ns': 'taxi.platform.prod'},
+ {'host': 'taxi_lbs-cloud-proxy_stable', 'prj': 'lbs-cloud-proxy.taxi.yandex.net', 'ns': 'taxi.platform.prod'},
+]
+%}
+
+{%- for attrs in balancers %}
+
+  {%- if attrs.get('http_5xx_enabled', True) or attrs.get('http_4xx_enabled', True) or attrs.get('http_timings_enabled', True) %}
+{{ attrs['host'] }}:
+    {%- if attrs.get('http_5xx_enabled', True) %}
+  # signal = all_rps > min_all_rps ? 5xx_rps / all_rps : 0
+  # warn|crit if all_rps > min_all_rps and 5xx_rps / all_rps > (warn|crit)_threshold
+  # default min_all_rps = 5, default warn_threshold = 10, default crit_threshold = 10
+  l7_balancer_http_5xx:
+    signals: {{ 'mul(or(perc(balancer_report-report-service_total-outgoing_5xx_summ, balancer_report-report-service_total-requests_summ), 0), div(sum(or(div(diff(div(balancer_report-report-service_total-requests_summ, normal()), {min_all_rps}), abs(diff(div(balancer_report-report-service_total-requests_summ, normal()), {min_all_rps}))), 0), 1), 2))'.format(min_all_rps=attrs.get('min_all_rps', 5)) }}
+    tags:
+      itype: balancer
+      ctype: prod
+      prj: {{ attrs['prj'] }}
+    mgroups:
+      - ASEARCH
+    settings:
+      type: thresh
+      warn: {{ attrs.get('warn_threshold', 10)}}
+      crit: {{ attrs.get('crit_threshold', 10)}}
+    juggler_check:
+      template: taxi_doesnt_care
+      namespace: {{ attrs['ns'] }}
+      reference_host: {{ attrs['host'] }}
+      meta:
+        urls:
+          -
+            url: https://wiki.yandex-team.ru/taxi/backend/hejmdal/monitoring-l7-balanserov/
+            type: wiki
+            title: Описание алерта на вики
+    {%- endif %}
+
+    {%- if attrs.get('http_4xx_enabled', True) %}
+  # doc on trend alerts: https://wiki.yandex-team.ru/golovan/userdocs/alerts/api/#formatydannyx
+  # signal = 4xx_rps > min_bad_rps ? 4xx_rps : min_bad_rps
+  # default min_bad_rps = 5
+  # warn|crit if min(signal) by window > 2 * median(signal) by interval
+  l7_balancer_http_4xx:
+    signals: {{ 'sum(mul(div(sum(or(div(diff(div(balancer_report-report-service_total-outgoing_4xx_summ, normal()), {min_bad_rps}), abs(diff(div(balancer_report-report-service_total-outgoing_4xx_summ, normal()), {min_bad_rps}))), 0), 1), 2), div(balancer_report-report-service_total-outgoing_4xx_summ, normal())), mul(diff(1, div(sum(or(div(diff(div(balancer_report-report-service_total-outgoing_4xx_summ, normal()), {min_bad_rps}), abs(diff(div(balancer_report-report-service_total-outgoing_4xx_summ, normal()), {min_bad_rps}))), 0), 1), 2)), {min_bad_rps}))'.format(min_bad_rps=attrs.get('min_bad_rps', 5)) }}
+    tags:
+      itype: balancer
+      ctype: prod
+      prj: {{ attrs['prj'] }}
+    mgroups:
+      - ASEARCH
+    settings:
+      type: trend_up
+      interval: 120
+      interval_modify:
+        type: quant
+        quant: 50
+        interval_end_offset: 900
+      value_modify:
+        type: min
+        window: 120
+      warn_perc: 100
+      crit_perc: 200
+    juggler_check:
+      template: taxi_doesnt_care
+      namespace: {{ attrs['ns'] }}
+      reference_host: {{ attrs['host'] }}
+      meta:
+        urls:
+          - url: https://wiki.yandex-team.ru/taxi/backend/hejmdal/monitoring-l7-balanserov/
+            type: wiki
+            title: Описание алерта на вики
+    {%- endif %}
+
+    {%- if attrs.get('http_timings_enabled', True) %}
+  # doc on trend alerts: https://wiki.yandex-team.ru/golovan/userdocs/alerts/api/#formatydannyx
+  # warn|crit if min(timings_p95) by window > 2 * median(timings_p95) by interval
+  l7_balancer_http_timings:
+    signals: or(quant(balancer_report-report-service_total-processing_time_hgram, 95), 0.001)
+    tags:
+      itype: balancer
+      ctype: prod
+      prj: {{ attrs['prj'] }}
+    mgroups:
+      - ASEARCH
+    settings:
+      type: trend_up
+      interval: 120
+      interval_modify:
+        type: quant
+        quant: 50
+        interval_end_offset: 900
+      value_modify:
+        type: min
+        window: 120
+      warn_perc: 100
+      crit_perc: 200
+    juggler_check:
+      template: taxi_doesnt_care
+      namespace: {{ attrs['ns'] }}
+      reference_host: {{ attrs['host'] }}
+      meta:
+        urls:
+          - url: https://wiki.yandex-team.ru/taxi/backend/hejmdal/monitoring-l7-balanserov/
+            type: wiki
+            title: Описание алерта на вики
+    {%- endif %}
+  {%- endif %}
+
+{%- endfor %}

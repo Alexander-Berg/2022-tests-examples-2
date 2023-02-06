@@ -1,0 +1,50 @@
+use_native_runner: True
+explicit_partitions_in_writer: True
+stat_socket: /tmp/logbroker-client-takeout-tasks-stat.sock
+
+lbc:
+  base:
+    client_id: passport/lbc-passport-takeout-tasks
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    partitions: 2
+    fixed_partitions: True
+    max_count: 1
+    handler_class: passport.backend.logbroker_client.takeout_tasks.handler.TakeoutTaskHandler
+    handler_args:
+      log_metrics: False
+      push_metrics_to_xunistater: True
+      message_class: passport.backend.core.protobuf.takeout.takeout_pb2.TakeoutRequest
+  per_host:
+    '^takeout-test-v1.passport.yandex.net$':
+      targets:
+        - host: vla.logbroker.yandex.net
+          topic: passport/passport-takeout-tasks-testing
+        - host: iva.logbroker.yandex.net
+          topic: passport/passport-takeout-tasks-testing
+    '^takeout-test-s1.passport.yandex.net$':
+      targets:
+        - host: sas.logbroker.yandex.net
+          topic: passport/passport-takeout-tasks-testing
+
+passport:
+  url: https://passport-test-internal.yandex.ru
+
+logpath: /var/log/yandex/logbroker-client/takeout-tasks/
+
+logbroker_writers:
+  takeout_tasks:
+    topic: passport/passport-takeout-tasks-testing
+    connect_timeout: 2.0
+
+s3:
+  endpoint: https://s3.mdst.yandex.net
+
+blackbox:
+  url: https://pass-test.yandex.ru/
+  timeout: 1
+  retries: 2
+  use_tvm: true
+  get_hidden_aliases: false

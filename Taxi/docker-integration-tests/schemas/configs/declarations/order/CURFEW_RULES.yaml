@@ -1,0 +1,101 @@
+description: |
+    Блокировка возможности сделать заказ. "Коменданский час".
+    См. wiki - https://wiki.yandex-team.ru/users/erakli00/curfew/
+wiki: https://wiki.yandex-team.ru/users/erakli00/curfew/
+tags: [notfallback]
+maintainers: [erakli00, rgnlax]
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/CurfewRule'
+
+    definitions:
+        CurfewRule:
+            type: object
+            additionalProperties: false
+            properties:
+                message_key:
+                    type: string
+                    description: |
+                        Танкерный ключ, который будет использоваться для
+                        сообщения о том, почему нет возможности сделать заказ.
+                enabled:
+                    type: boolean
+                countries:
+                    type: array
+                    items:
+                        type: string
+                        minItems: 1
+                zones:
+                    type: array
+                    items:
+                        type: string
+                        minItems: 1
+                tariffs:
+                    type: array
+                    items:
+                        type: string
+                        minItems: 1
+                intervals:
+                    type: array
+                    items:
+                        $ref: '#/definitions/CurfewInterval'
+                        minItems: 1
+            required:
+              - message_key
+              - enabled
+              - intervals
+
+        CurfewInterval:
+            type: object
+            description: |
+                Интервал времени (в течении дня), когда действует комендантский
+                час. Конец интервала может лежать после полуночи.
+
+                Может указываться для конкретных дней недели. В таком случае
+                интервал не может заканчиваться на следующий день. Такой
+                интервал будет проигнорирован, сообщение об ошибке будет
+                отражено в логе.
+            additionalProperties: false
+            properties:
+                from:
+                    $ref: '#/definitions/Time'
+                to:
+                    $ref: '#/definitions/Time'
+                weekdays:
+                    type: array
+                    items:
+                        $ref: '#/definitions/WeekDay'
+                        minItems: 1
+                    description: |
+                        Дни недели, когда действует данный интервал. Если
+                        не указаны, то интервал действует каждый день. Повторы
+                        отфильтровываются.
+                message_key:
+                    type: string
+                    description: |
+                        Опциональный танкерный ключ для переопределения базового
+                        ключа. Будет использован в сообщении, если заказ попал в
+                        данный временной интервал.
+            required:
+              - from
+              - to
+
+        Time:
+            type: string
+            description: "Время в формате HH:MM"
+            pattern: ^\d{2}:\d{2}$
+            example: "13:35"
+
+        WeekDay:
+            type: string
+            description: День недели
+            enum:
+              - mon
+              - tue
+              - wed
+              - thu
+              - fri
+              - sat
+              - sun
+default: []

@@ -1,0 +1,31 @@
+clownductor_config: taxi:driver-mode-index:testing
+
+http_hosts:
+  - driver-mode-index.taxi.tst.yandex.net
+layout:
+  - system:
+        collapsed: true
+  - rps_share
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: driver-mode-index-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - include:
+        collapsed: false
+        path: taxi_eff_http_summary.json
+        title: HTTP Clients destination summary
+        variables:
+          - cluster: testing_uservices
+          - uservice_name: driver-mode-index
+          - log_base: 2
+  - include:
+        path: taxi_driver-mode-index.json
+        title: index
+        variables:
+            cluster: testing_uservices
+  - http
+  - userver_common:
+        collapsed: true
+        uservice_name: driver-mode-index

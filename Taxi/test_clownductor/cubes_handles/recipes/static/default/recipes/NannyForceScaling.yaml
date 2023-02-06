@@ -1,0 +1,624 @@
+data:
+    name: NannyForceScaling
+    provider_name: clownductor
+    job_vars:
+      - nanny_name
+      - new_pod_count
+      - datacenters_count
+      - user
+      - branch_id
+      - service_id
+      - role_to_check
+      - use_active
+      - pod_naming_mode
+      - yp_quota_abc
+      - regions # = []
+      - use_append_pods
+      - comment
+      - branch_ids
+    stages:
+
+        # Collect primary info on pre and stable to start scaling
+      - name: GetPrestableForDiff
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+        output:
+            prestable_environment: prestable_environment
+            prestable_nanny_name: prestable_nanny_name
+            prestable_branch_id: prestable_branch_id
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            use_active: use_active
+        output:
+            pre_man_pod_ids: man
+            pre_vla_pod_ids: vla
+            pre_sas_pod_ids: sas
+            pre_man_region: man_region
+            pre_vla_region: vla_region
+            pre_sas_region: sas_region
+            pre_pod_ids_by_region: pod_ids_by_region
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            use_active: use_active
+        output:
+            man_pod_ids: man
+            vla_pod_ids: vla
+            sas_pod_ids: sas
+            man_region: man_region
+            vla_region: vla_region
+            sas_region: sas_region
+            pod_ids_by_region: pod_ids_by_region
+
+      - name: DetermineAmountOfInstances
+        provider_name: clownductor
+        input:
+            man_pod_ids: man_pod_ids
+            pre_man_pod_ids: pre_man_pod_ids
+            sas_pod_ids: sas_pod_ids
+            pre_sas_pod_ids: pre_sas_pod_ids
+            vla_pod_ids: vla_pod_ids
+            pre_vla_pod_ids: pre_vla_pod_ids
+            instances_count: new_pod_count
+            datacenters_count: datacenters_count
+        output:
+            man_instances: man_instances
+            vla_instances: vla_instances
+            sas_instances: sas_instances
+            pre_man_instances: pre_man_instances
+            pre_vla_instances: pre_vla_instances
+            pre_sas_instances: pre_sas_instances
+
+      - name: NannyGetAllRegionsPodsInfo
+        provider_name: clownductor
+        input:
+            man_pod_ids: man_pod_ids
+            vla_pod_ids: vla_pod_ids
+            sas_pod_ids: sas_pod_ids
+        output:
+            pod_info: pod_info
+
+        # Generate ticket text and create a new ticket
+      - name: NannyForceScalingTicketText
+        provider_name: clownductor
+        input:
+            new_pod_count: new_pod_count
+            nanny_name: nanny_name
+            branch_id: branch_id
+            user: user
+        output:
+            ticket_summary: summary_text
+            ticket_description: description_text
+
+      - name: StartrekCubeCreateTicket
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            ticket_summary: ticket_summary
+            ticket_description: ticket_description
+            user: user
+        output:
+            new_ticket: new_ticket
+
+      - name: NannyForceScalingCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            user: user
+        output:
+            start_comment: start_comment
+            end_comment: end_comment
+            comment_props: comment_props
+            key_phrase: key_phrase
+            rollback_comment: rollback_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: start_comment
+
+      - name: NannyForceScalingCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            user: user
+        output:
+            pre_start_comment: start_comment
+            pre_end_comment: end_comment
+            comment_props: comment_props
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_start_comment
+
+        # Start scaling instances
+      - name: CreateNewPodSetOrAllocateToExisted
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+        output:
+            create_sas_pod_set: create_sas_pod_set
+            create_man_pod_set: create_man_pod_set
+            create_vla_pod_set: create_vla_pod_set
+            allocate_sas_to_existed: allocate_sas_to_existed
+            allocate_man_to_existed: allocate_man_to_existed
+            allocate_vla_to_existed: allocate_vla_to_existed
+            create_pod_set_by_region: create_pod_set_by_region
+            allocate_pod_set_by_region: allocate_pod_set_by_region
+
+      - name: CreateNannyPodSet
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: man_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: man_instances
+            yp_quota_abc: yp_quota_abc
+            skip: allocate_man_to_existed
+        output:
+            new_man_pod_ids_create_pod_set: pod_ids
+
+      - name: CreateNannyPodSet
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: sas_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: sas_instances
+            yp_quota_abc: yp_quota_abc
+            skip: allocate_sas_to_existed
+        output:
+            new_sas_pod_ids_create_pod_set: pod_ids
+
+      - name: CreateNannyPodSet
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: vla_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: vla_instances
+            yp_quota_abc: yp_quota_abc
+            skip: allocate_vla_to_existed
+        output:
+            new_vla_pod_ids_create_pod_set: pod_ids
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: man_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: man_instances
+            skip: create_man_pod_set
+        output:
+            new_man_pod_ids_existed_pod_set: new_pod_ids
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: vla_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: vla_instances
+            skip: create_vla_pod_set
+        output:
+            new_vla_pod_ids_existed_pod_set: new_pod_ids
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: sas_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: sas_instances
+            skip: create_sas_pod_set
+        output:
+            new_sas_pod_ids_existed_pod_set: new_pod_ids
+
+      - name: UnitePodIds
+        provider_name: clownductor
+        input:
+            first_man_ids: new_man_pod_ids_create_pod_set
+            second_man_ids: new_man_pod_ids_existed_pod_set
+            first_sas_ids: new_sas_pod_ids_create_pod_set
+            second_sas_ids: new_sas_pod_ids_existed_pod_set
+            first_vla_ids: new_vla_pod_ids_create_pod_set
+            second_vla_ids: new_vla_pod_ids_existed_pod_set
+        output:
+            new_man_pod_ids: united_man_ids
+            new_sas_pod_ids: united_sas_ids
+            new_vla_pod_ids: united_vla_ids
+            pod_ids_by_region: pod_ids_by_region
+      - name: WaitPodsAllocateEnd
+        provider_name: clownductor
+        input:
+            sas_pods: new_sas_pod_ids
+            man_pods: new_man_pod_ids
+            vla_pods: new_vla_pod_ids
+
+        # Start deploying to new pods
+      - name: NannyCubeAddPodsToDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            regions: regions
+            vla_pods: new_vla_pod_ids
+            sas_pods: new_sas_pod_ids
+            man_pods: new_man_pod_ids
+            is_append: use_append_pods
+        output:
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeRemovePodsFromDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            vla_pods_ids_to_remove: vla_pod_ids
+            sas_pods_ids_to_remove: sas_pod_ids
+            man_pods_ids_to_remove: man_pod_ids
+            pod_ids_by_region: pod_ids_by_region
+        output:
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+        # Process balancer changes
+      - name: InternalGetNamespaces
+        provider_name: clowny-balancer
+        input:
+            service_id: service_id
+            branch_ids: branch_ids
+        output:
+            namespace_ids: namespace_ids
+
+      - name: AwacsWaitSyncBackends
+        provider_name: clowny-balancer
+        input:
+            namespace_ids: namespace_ids
+
+        # Finish scaling, inform user, wait for rollback
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_end_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: rollback_comment
+
+      - name: ApproveWaitForSpecifiedApproval
+        provider_name: clownductor
+        input:
+            role_to_check: role_to_check
+            service_id: service_id
+            st_key: new_ticket
+            key_phrase: key_phrase
+
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            use_active: use_active
+        output:
+            pre_man_pod_ids: man
+            pre_vla_pod_ids: vla
+            pre_sas_pod_ids: sas
+            pre_man_region: man_region
+            pre_vla_region: vla_region
+            pre_sas_region: sas_region
+            pre_pod_ids_by_region: pod_ids_by_region
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            use_active: use_active
+        output:
+            man_pod_ids: man
+            vla_pod_ids: vla
+            sas_pod_ids: sas
+            man_region: man_region
+            vla_region: vla_region
+            sas_region: sas_region
+            pod_ids_by_region: pod_ids_by_region
+
+      - name: DetermineAmountOfInstances
+        provider_name: clownductor
+        input:
+            man_pod_ids: man_pod_ids
+            pre_man_pod_ids: pre_man_pod_ids
+            sas_pod_ids: sas_pod_ids
+            pre_sas_pod_ids: pre_sas_pod_ids
+            vla_pod_ids: vla_pod_ids
+            pre_vla_pod_ids: pre_vla_pod_ids
+            instances_count: new_pod_count
+            datacenters_count: datacenters_count
+        output:
+            man_instances: man_instances
+            vla_instances: vla_instances
+            sas_instances: sas_instances
+            pre_man_instances: pre_man_instances
+            pre_vla_instances: pre_vla_instances
+            pre_sas_instances: pre_sas_instances
+
+      - name: NannyGetAllRegionsPodsInfo
+        provider_name: clownductor
+        input:
+            man_pod_ids: man_pod_ids
+            vla_pod_ids: vla_pod_ids
+            sas_pod_ids: sas_pod_ids
+        output:
+            pod_info: pod_info
+
+        # Generate ticket text and create a new ticket
+      - name: NannyForceScalingTicketText
+        provider_name: clownductor
+        input:
+            new_pod_count: new_pod_count
+            nanny_name: nanny_name
+            branch_id: branch_id
+            user: user
+        output:
+            ticket_summary: summary_text
+            ticket_description: description_text
+
+      - name: NannyForceScalingCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            user: user
+        output:
+            start_comment: start_comment
+            end_comment: end_comment
+            comment_props: comment_props
+            key_phrase: key_phrase
+            rollback_comment: rollback_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: start_comment
+
+      - name: NannyForceScalingCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            user: user
+        output:
+            pre_start_comment: start_comment
+            pre_end_comment: end_comment
+            comment_props: comment_props
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_start_comment
+
+        # Start scaling instances
+      - name: CreateNewPodSetOrAllocateToExisted
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+        output:
+            create_sas_pod_set: create_sas_pod_set
+            create_man_pod_set: create_man_pod_set
+            create_vla_pod_set: create_vla_pod_set
+            allocate_sas_to_existed: allocate_sas_to_existed
+            allocate_man_to_existed: allocate_man_to_existed
+            allocate_vla_to_existed: allocate_vla_to_existed
+            create_pod_set_by_region: create_pod_set_by_region
+            allocate_pod_set_by_region: allocate_pod_set_by_region
+
+      - name: CreateNannyPodSet
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: man_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: man_instances
+            yp_quota_abc: yp_quota_abc
+            skip: allocate_man_to_existed
+        output:
+            new_man_pod_ids_create_pod_set: pod_ids
+
+      - name: CreateNannyPodSet
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: sas_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: sas_instances
+            yp_quota_abc: yp_quota_abc
+            skip: allocate_sas_to_existed
+        output:
+            new_sas_pod_ids_create_pod_set: pod_ids
+
+      - name: CreateNannyPodSet
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: vla_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: vla_instances
+            yp_quota_abc: yp_quota_abc
+            skip: allocate_vla_to_existed
+        output:
+            new_vla_pod_ids_create_pod_set: pod_ids
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: man_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: man_instances
+            skip: create_man_pod_set
+        output:
+            new_man_pod_ids_existed_pod_set: new_pod_ids
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: vla_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: vla_instances
+            skip: create_vla_pod_set
+        output:
+            new_vla_pod_ids_existed_pod_set: new_pod_ids
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            region: sas_region
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances: sas_instances
+            skip: create_sas_pod_set
+        output:
+            new_sas_pod_ids_existed_pod_set: new_pod_ids
+
+      - name: UnitePodIds
+        provider_name: clownductor
+        input:
+            first_man_ids: new_man_pod_ids_create_pod_set
+            second_man_ids: new_man_pod_ids_existed_pod_set
+            first_sas_ids: new_sas_pod_ids_create_pod_set
+            second_sas_ids: new_sas_pod_ids_existed_pod_set
+            first_vla_ids: new_vla_pod_ids_create_pod_set
+            second_vla_ids: new_vla_pod_ids_existed_pod_set
+        output:
+            new_man_pod_ids: united_man_ids
+            new_sas_pod_ids: united_sas_ids
+            new_vla_pod_ids: united_vla_ids
+
+      - name: WaitPodsAllocateEnd
+        provider_name: clownductor
+        input:
+            sas_pods: new_sas_pod_ids
+            man_pods: new_man_pod_ids
+            vla_pods: new_vla_pod_ids
+
+        # Start deploying to new pods
+      - name: NannyCubeAddPodsToDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            regions: regions
+            vla_pods: new_vla_pod_ids
+            sas_pods: new_sas_pod_ids
+            man_pods: new_man_pod_ids
+            is_append: use_append_pods
+        output:
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeRemovePodsFromDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            vla_pods_ids_to_remove: vla_pod_ids
+            sas_pods_ids_to_remove: sas_pod_ids
+            man_pods_ids_to_remove: man_pod_ids
+            pod_ids_by_region: pod_ids_by_region
+        output:
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+        # Process balancer changes
+      - name: InternalGetNamespaces
+        provider_name: clowny-balancer
+        input:
+            service_id: service_id
+            branch_ids: branch_ids
+        output:
+            namespace_ids: namespace_ids
+
+      - name: AwacsWaitSyncBackends
+        provider_name: clowny-balancer
+        input:
+            namespace_ids: namespace_ids
+
+

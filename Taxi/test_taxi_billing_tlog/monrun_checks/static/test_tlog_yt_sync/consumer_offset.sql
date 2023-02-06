@@ -1,0 +1,22 @@
+INSERT INTO tlog.consumer_offset
+(
+    consumer_id,
+    journal_entry_id
+)
+VALUES
+(
+    'upload_revenues_to_arnold',
+    100
+),
+(
+    'upload_revenues_to_hahn',
+    109
+),
+(
+    'upload_expenses_to_hahn',
+    110
+),
+(
+    'upload_payments_to_hahn',
+    109
+);

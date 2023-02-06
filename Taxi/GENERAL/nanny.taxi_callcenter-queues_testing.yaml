@@ -1,0 +1,260 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: rtc
+    name: taxi_callcenter-queues_testing
+graphs:
+    callcenter-queues.taxi.tst.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Conflict
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/cc/v1/callcenter-queues/v1/queues/list_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Отдает информацию об очередях. Отдает только enabled очереди. 
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/queues/list"}
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/queues/list/"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/queues/list?"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/queues/list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Project and filter are not in consistence;
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/cc/v1/callcenter-queues/v1/queues/statistics_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Отдает информацию о статистиках сабкластеров и метаочередей. Статистики по количеству операторов (total, connected, paused) с разбивкой по 1) метаочереди (суммарная статистика по всем сабкластерам, присутствующим на метаочереди) 2) сабкластеру (суммарная статистика по всем метаочередям, присутствующим на сабе) 3) сабкластеру в рамках метаочереди 
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/queues/statistics"}
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/queues/statistics/"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/queues/statistics?"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/queues/statistics/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Unknown project
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/cc/v1/callcenter-queues/v1/system/linkage/enabler_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Включает/выключает связку <саб + метаочередь> для нашего бэка. "     {         'metaqueue': 'ru_taxi_disp',         'subcluster': '1',         'enabled': True     } " Если записи нет в базе, то создаст ее там. Если саб или метаочередь не найдены среди CALLCENTER_ROUTING_SUBCLUSTER_INFO_MAP и CALLCENTER_METAQUEUES соответственно, то ответ 404. Если саб пытаются отключить, но он не отключен от балансировки звонков и автобалансировки операторов, то ответ 409. Если передан проект и метаочередь не согласована с проектом, то ответ 403. Если пробовать отключить отключенный саб - валидно 200. Если пробовтаь включить включенный саб - валидно 200. 
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/enabler"}
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/enabler/"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/enabler?"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/enabler/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Either subcluster, or metaqueue were not found in configs. 
+              - 409 # Try to disable cluster, that is in work according to enabled_for_balancing = True, enabled_for_sip_user_autobalancing = True; Metaqueue and project are not in constitence; 
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/cc/v1/callcenter-queues/v1/system/linkage/params_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Меняет параметры связки <саб + метаочередь>: - enabled_for_balancing - enabled_for_sip_user_autobalancing "     {         'metaqueue': 'ru_taxi_disp',         'subcluster': '1',         'enabled_for_balancing': True,         'enabled_for_sip_user_autobalancing': False     } " Если саб или метаочередь не найдены среди CALLCENTER_ROUTING_SUBCLUSTER_INFO_MAP и CALLCENTER_METAQUEUES соответственно, то ответ 404. Если саб в состоянии enabled: False, то нельзя менять параметры саба - ответ 409. Если передан проект и метаочередь не согласована с проектом, то ответ 403. 
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/params"}
+              - Equals: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/params/"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/params?"}
+              - StartsWith: {request_url: "/cc/v1/callcenter-queues/v1/system/linkage/params/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Either subcluster, or metaqueue were not found in configs; Metaqueue and project are not in constitence; 
+              - 409 # Try to disable cluster, that is in work according to enabled_for_balancing = True, enabled_for_sip_user_autobalancing = True; 
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/external/v1/calls/balance_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/external/v1/calls/balance"}
+              - Equals: {request_url: "/external/v1/calls/balance/"}
+              - StartsWith: {request_url: "/external/v1/calls/balance?"}
+              - StartsWith: {request_url: "/external/v1/calls/balance/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/call_info_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/call_info"}
+              - Equals: {request_url: "/v1/call_info/"}
+              - StartsWith: {request_url: "/v1/call_info?"}
+              - StartsWith: {request_url: "/v1/call_info/?"}
+        Options:
+            CustomHttp:
+              - 400 # Invalid data
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/call_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Ручка для получения всех звонков по call_guid 
+              - Equals: {request_url: "/v1/call"}
+              - Equals: {request_url: "/v1/call/"}
+              - StartsWith: {request_url: "/v1/call?"}
+              - StartsWith: {request_url: "/v1/call/?"}
+        Options:
+            CustomHttp:
+              - 400 # Invalid data
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/calls/list_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Ручка для получения всех текущих звонков. Отдает звонки по курсору. 
+              - Equals: {request_url: "/v1/calls/list"}
+              - Equals: {request_url: "/v1/calls/list/"}
+              - StartsWith: {request_url: "/v1/calls/list?"}
+              - StartsWith: {request_url: "/v1/calls/list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Invalid data
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/queues/list_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Отдает информацию о связках сабкластеров и метаочередей: 1) Список метаочередей. 2) Список сабкластеров. 3) Мапа Метаочередь -> <сабкластер + параметры сабкластера>. параметры сабкластера: - включен для балансировки звонков - включен для автобалансировки операторов 
+              - Equals: {request_url: "/v1/queues/list"}
+              - Equals: {request_url: "/v1/queues/list/"}
+              - StartsWith: {request_url: "/v1/queues/list?"}
+              - StartsWith: {request_url: "/v1/queues/list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/sip_user/queues/list_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/sip_user/queues/list"}
+              - Equals: {request_url: "/v1/sip_user/queues/list/"}
+              - StartsWith: {request_url: "/v1/sip_user/queues/list?"}
+              - StartsWith: {request_url: "/v1/sip_user/queues/list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Некорректный запрос
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/sip_user/queues_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Выставляет пользователю метаочереди. В далеком будущем знание о сабкластере пропадет. 
+              - Equals: {request_url: "/v1/sip_user/queues"}
+              - Equals: {request_url: "/v1/sip_user/queues/"}
+              - StartsWith: {request_url: "/v1/sip_user/queues?"}
+              - StartsWith: {request_url: "/v1/sip_user/queues/?"}
+        Options:
+            CustomHttp:
+              - 400 # BadRequest. Например, одна из очередей или переданный саб не описан в конфигах.
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v1/sip_user/tel_state/list_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/sip_user/tel_state/list"}
+              - Equals: {request_url: "/v1/sip_user/tel_state/list/"}
+              - StartsWith: {request_url: "/v1/sip_user/tel_state/list?"}
+              - StartsWith: {request_url: "/v1/sip_user/tel_state/list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Некорректный запрос
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    callcenter-queues.taxi.tst.yandex.net/v2/sip_user/state_POST:
+        And:
+          - Equals: {http_host: "callcenter-queues.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Меняет состояние пользователя на очереди. 
+              - Equals: {request_url: "/v2/sip_user/state"}
+              - Equals: {request_url: "/v2/sip_user/state/"}
+              - StartsWith: {request_url: "/v2/sip_user/state?"}
+              - StartsWith: {request_url: "/v2/sip_user/state/?"}
+        Options:
+            CustomHttp:
+              - 400 # входные данные некорректны
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 409 # ошибка консистентности нового состояния или пары <текущее + новое состояния>
+              - 429 # Too many requests
+

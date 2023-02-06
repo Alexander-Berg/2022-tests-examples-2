@@ -1,0 +1,73 @@
+id: ride_donation_success
+title: ride_donation из похода в persey-payments /ride_donation/calculate
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-Request-Language: 'ru'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                ride_donation:
+                    some: nonempty
+                    proxied: calculate_body
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    PERSEY_PAYMENTS_CALCULATE_RIDE_DONATION:
+      - applepay
+
+experiments:
+    values#object:
+      - key: persey_charity_ride_subs_calculate
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: complete
+            tariff:
+                class: econom
+            currency_rules:
+                code: RUB
+            payment:
+                type: applepay
+            private_data:
+                complements:
+                  - type: personal_wallet
+                current_prices:
+                    user_total_price: 1000
+                    user_ride_display_price: 777
+                    cashback_price: 100
+                    kind: final_cost
+  - resource: persey-payments-internal-v1-charity-ride_donation-calculate
+    response:
+        status-code: 200
+        body:
+            some: nonempty
+            proxied: calculate_body
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            headers:
+                X-Request-Language: 'ru'
+            query:
+                order_id: order_id
+                payment_tech_type: applepay
+                ride_cost#string: 777

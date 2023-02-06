@@ -1,0 +1,35 @@
+id: test_400_lightweight_routestats
+title: |
+    Сервис routestats отдает 400 код в легковесной ручке, клиентам отдаем 400.
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            is_lightweight: true
+    expectations:
+        response:
+            status-code: 400
+            body:
+                iam: 'lightweight-handler'
+                error: 'error message'
+
+experiments:
+    values#object:
+      - key: api_proxy_use_new_routetestats
+        value:
+            enabled: true
+        enabled: true
+      - key: routestats_use_lightweight_handler
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: routestats-v1-routestats-lightweight
+    response:
+        status-code: 400
+        body:
+            iam: 'lightweight-handler'
+            error: 'error message'

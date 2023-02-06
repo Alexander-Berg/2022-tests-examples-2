@@ -1,0 +1,168 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+tests:
+  - name: anonymous_home_happy_path
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "anonymous_plus_sdk_available"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/anonymous/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/anonymous/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["state", "menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "" # empty for not authrorized user
+            X-YaTaxi-Pass-Flags: "" # no flags without uid
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings: [] # no settings for anonymous home
+                    version: ""
+                subscription:
+                    subscription_id: ""
+                    status: "NOT_AVAILABLE"
+                    need_upgrade: false
+                wallets: [] # no wallets for amogus user
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    placeholder: "плюс"
+                    show_glyph: false
+                    subtitle: "баллы, музыка и кино"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: disabled_by_exp
+    marks: [] # missing sweet-home:anonymous-home-enabled experiment
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["state", "menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "" # empty for amogus user
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 401
+
+  - name: inapp_purchase
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "anonymous_plus_sdk_available"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/anonymous/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/anonymous/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "INAPP"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["state", "menu"]
+            supported_features:
+              - type: "inapp_purchases:plus"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                action_button:
+                    action: "PLUS.BUY.INAPP"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить Плюс"
+                    title: "Подключить Плюс"
+                balance_badge:
+                    placeholder: "плюс"
+                    show_glyph: false
+                    subtitle: "баллы, музыка и кино"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings: []
+                    version: ""
+                subscription:
+                    need_upgrade: false
+                    status: "AVAILABLE"
+                    subscription_id: "inapp"
+                wallets: []

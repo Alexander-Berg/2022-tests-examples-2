@@ -1,0 +1,67 @@
+default:
+    new_event_age_limit_mins: 720
+    idempotency_token_ttl_mins: 1440
+    default_event_ttl_hours: 168
+    processing_ticket_ttl_secs: 60
+    processing_lag_msecs: 200
+    default_unprocessed_list_limit: 100
+    round_robin_process: true
+    non_transactional_polling: true
+    polling_max_passes: 3
+description: Параметры процессинга событий
+tags: []
+schema:
+    additionalProperties: false
+    type: object
+    properties:
+        new_event_age_limit_mins:
+            description: Ограничение времени доставки события
+            type: integer
+            x-taxi-cpp-type: std::chrono::minutes
+            minimum: 1
+        idempotency_token_ttl_mins:
+            description: TTL токенов идемпотентности
+            type: integer
+            x-taxi-cpp-type: std::chrono::minutes
+            minimum: 1
+        default_event_ttl_hours:
+            description: TTL событий
+            type: integer
+            x-taxi-cpp-type: std::chrono::hours
+            minimum: 1
+        processing_ticket_ttl_secs:
+            description: TTL тикетов обработки
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            minimum: 1
+        processing_lag_msecs:
+            description: Отставание начала процессирования
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+        default_unprocessed_list_limit:
+            description: Максимальный размер процессируемого пакета
+            type: integer
+            minimum: 1
+            maximum: 32768
+        round_robin_process:
+            description: Обходить по водителям
+            type: boolean
+        non_transactional_polling:
+            description: Безтранзакционный полинг
+            type: boolean
+        polling_max_passes:
+            description: Максимальное число выборок за раз
+            type: integer
+            minimum: 1
+            maximum: 10
+    required:
+      - new_event_age_limit_mins
+      - idempotency_token_ttl_mins
+      - default_event_ttl_hours
+      - processing_ticket_ttl_secs
+      - processing_lag_msecs
+      - default_unprocessed_list_limit
+      - round_robin_process
+      - non_transactional_polling
+      - polling_max_passes

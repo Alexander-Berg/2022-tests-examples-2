@@ -1,0 +1,46 @@
+id: test_lightweight_handler_full_request
+title: |
+    Проверяем, что при включенном эксперименте для запроса с саммари запрос
+    идет в full-ручку, т.к. новая ручка только для легковесных запросов с
+    главного экрана.
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                iam: 'full-handler'
+
+experiments:
+    values#object:
+      - key: api_proxy_use_new_routetestats
+        value:
+            enabled: true
+        enabled: true
+      - key: routestats_use_lightweight_handler
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: routestats-v1-routestats
+    response:
+        status-code: 200
+        body:
+            iam: 'full-handler'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+  - resource: routestats-v1-routestats-lightweight
+    response:
+        status-code: 200
+        body:
+            iam: 'lightweight-handler'
+    expectations:
+        call-count: 0

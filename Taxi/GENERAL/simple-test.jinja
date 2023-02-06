@@ -1,0 +1,33 @@
+id: simple-test
+title: Простая проверка проксирования
+
+
+parameters:
+  - status-code:
+      - 200
+      - 400
+      - 500
+
+
+source:
+    request:
+        method: {{method}}
+        body:
+            code#xget: /test-params/status-code
+    expectations:
+        response:
+            status-code#xget: /test-params/status-code
+            body:
+                answer: 42
+
+mocks:
+  - resource: {{resource}}
+    response:
+        status-code#xget: /request/body/code
+        body:
+            answer: 42
+    expectations:
+        call-count: 1
+        request:
+            method: {{method}}
+

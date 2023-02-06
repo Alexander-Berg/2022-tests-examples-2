@@ -1,0 +1,29 @@
+id: request_unauthorized
+title: Тест с неавторизованным пользователем
+
+taxi_config:
+    API_PROXY_ENABLE_API_ADMIN_USER_INFO: true
+
+source:
+    request:
+        method: get
+        headers:
+            cookies: LONG_COOKIES
+    expectations:
+        response:
+            status-code: 403
+mocks:
+  - resource: api-admin-user-info-get
+    response:
+        status-code: 401
+    expectations:
+        call-count: 1
+        request:
+            method: get
+  - resource: api-admin-user-info-get-old
+    response:
+        status-code: 403
+    expectations:
+        call-count: 1
+        request:
+            method: get

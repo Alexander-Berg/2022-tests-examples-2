@@ -1,0 +1,34 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+sources:
+  - id: ext-source
+    content-type: application/json
+    resource: test-resource
+    body#object:
+      - key: foo
+        value#string: bar
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#object:
+      - key: data
+        value#get:
+            object#source-response-body: ext-source
+            key#string: data-from-ext-handler
+      - key: exp
+        enabled#experiment-effective: test_experiment
+        value#get:
+            object#source-response-body: ext-source
+            key#string: experiment-value
+experiments:
+    consumer: api-proxy/tc_3_0_paymentmethods
+    kwargs:
+      - key: foo1
+        value: []
+        type: set_string
+        whitelisted: true
+      - key: foo2
+        value: []
+        type: set_int
+        whitelisted: true

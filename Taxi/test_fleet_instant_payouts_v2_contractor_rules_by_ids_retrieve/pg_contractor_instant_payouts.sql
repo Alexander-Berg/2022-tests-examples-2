@@ -1,0 +1,100 @@
+INSERT INTO
+    contractor_instant_payouts.operation (
+        uid,
+        started_at,
+        created_at,
+        initiator,
+        name
+    )
+VALUES (
+    999,
+    '2020-01-01T00:00:00+03:00',
+    '2020-01-01T00:00:00+03:00',
+    'platform',
+    'testsuite'
+);
+
+INSERT INTO
+    contractor_instant_payouts.rule (
+        uid,
+        rev,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at,
+        park_id,
+        id,
+        is_deleted,
+        is_enabled,
+        name,
+        withdrawal_minimum,
+        withdrawal_maximum,
+        withdrawal_daily_maximum,
+        fee_percent,
+        fee_minimum,
+        balance_minimum
+    )
+VALUES (
+    101, 0,
+    999, '2020-01-01T12:00:00+03:00',
+    999, '2020-01-01T12:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000001',
+    FALSE, FALSE, 'Rule 1', 100, 100, 100, 1, 100, 100
+), (
+    102, 0,
+    999, '2020-01-01T14:00:00+03:00',
+    999, '2020-01-01T14:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000002',
+    FALSE, FALSE, 'Rule 2', 100, 100, 100, 1, 100, 100
+), (
+    103, 0,
+    999, '2020-01-01T16:00:00+03:00',
+    999, '2020-01-01T16:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000003',
+    FALSE, FALSE, 'Rule 3', 100, 100, 100, 1, 100, 100
+), (
+    104, 0,
+    999, '2020-01-01T16:00:00+03:00',
+    999, '2020-01-01T16:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000004',
+    TRUE, FALSE, 'Rule 4', 100, 100, 100, 1, 100, 100
+);
+
+INSERT INTO
+    contractor_instant_payouts.rule_target (
+        uid,
+        rev,
+        created_by,
+        created_at,
+        updated_by,
+        updated_at,
+        park_id,
+        rule_id,
+        contractor_id,
+        is_deleted
+    )
+VALUES (
+    101, 0,
+    999, '2020-01-01T12:00:00+03:00',
+    999, '2020-01-01T12:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000001', 'CONTRACTOR-01',
+    FALSE
+), (
+    201, 0,
+    999, '2020-01-01T12:00:00+03:00',
+    999, '2020-01-01T12:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000002', 'CONTRACTOR-02',
+    FALSE
+), (
+    301, 0,
+    999, '2020-01-01T12:00:00+03:00',
+    999, '2020-01-01T12:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000003', 'CONTRACTOR-03',
+    FALSE
+), (
+    401, 0,
+    999, '2020-01-01T12:00:00+03:00',
+    999, '2020-01-01T12:00:00+03:00',
+    'PARK-01', '00000000-0000-0000-0000-000000000004', 'CONTRACTOR-04',
+    TRUE
+);

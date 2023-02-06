@@ -1,0 +1,249 @@
+host: taxi_pricing-taximeter_testing
+type: rtc
+telegram: taxi-dev-efficiency-pricing-test
+services:
+- service: pricing-taximeter_not_found_modification_in_cache_testing
+    # Проблемы с обновлением кэша преобразований
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_exceeded_level_v1_get_tariff_info_bad_responses_testing
+    # Массовые ошибки ручки v1/get_tariff_info
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_exceeded_level_v1_get_modifications_bad_responses_testing
+    # Массовые ошибки ручки v1/get_modifications
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_exceeded_level_v1_save_order_details_bad_responses_testing
+    # Массовые ошибки ручки v1/save_order_details
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_recalc_prices_mismatch_v1_save_order_details_testing
+    # Несоответствие цен при пересчёте цены таксометра на бэкенде
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_too_long_compilation_time_testing
+    # Время компиляции преобразований превысило допустимый порог
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_backend_variables_optional_parse_testing
+    # Нарушена обратная совместимость в backend variables
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_no_paid_supply_additional_price_testing
+    # Некорректное применение платной подачи
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 100%     # <-->
+    crit: 101%     # Временно приглушили до выполнения EFFICIENCYDEV-11761
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_missed_modifications_testing
+   # Отсутствует правило в ручке v1/get_modifications
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_recalc_prices_mismatch_v1_order_recalculate_testing
+  # Расхождение цены таксометра и пересчитанной цены в /v1/order/recalculate
+  telegram: taxi-dev-efficiency-pricing-test
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-taximeter_pricing_antifraud_exception_testing
+  # Исключения при работе алгоритмов антифрода прайсинга
+  telegram: taxi-dev-efficiency-pricing-test
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+templates:
+- template: core-files-testing
+- template: test_forced-logrotate-count
+- template: hejmdal-bad-rps
+- template: hejmdal-rtc-net-usage
+- template: hejmdal-rtc-oom
+- template: hejmdal-rtc-resource-usage
+- template: hejmdal-timings
+- template: iptruler
+- template: pilorama
+- template: ping-handle-status
+- template: push-client
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: vhost-499
+- template: test_vhost-500
+- template: test_virtual-meta
+- template: rtc-atop-warning
+- template: hejmdal-cutres-draft-notify
+- template: userver_congestion_control

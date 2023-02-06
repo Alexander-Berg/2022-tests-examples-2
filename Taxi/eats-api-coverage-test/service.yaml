@@ -1,0 +1,72 @@
+project-name: yandex-taxi-eats-api-coverage-test
+short-name: eats-api-coverage-test
+wiki: https://wiki.yandex-team.ru/eda/qa/avtomatizacija/pro-api-coverage/
+maintainers:
+  - Oleg Savinov <olegsavinov@yandex-team.ru>
+libraries:
+  - yandex-userver-core
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy:
+    os-name: bionic
+
+target-os:
+  - bionic
+
+debian:
+    source_package_name: yandex-taxi-eats-api-coverage-test
+    maintainer_name: Oleg Savinov
+    maintainer_login: olegsavinov
+
+tvm2:
+    secdist-service-name: eats-api-coverage-test
+
+uservice_unit:
+    description: description
+
+    hostname:
+        production:
+          - eats-api-coverage-test.eda.yandex.net
+        testing:
+          - eats-api-coverage-test.eda.tst.yandex.net
+
+    nginx:
+        set_x_real_ip: false
+
+    grafana:
+        production: TODO
+        testing: TODO
+
+dashboards:
+    service_group:
+        rtc:
+            name: eats-api-coverage-test
+    grafana_additional_layouts:
+      - userver_common:
+            collapsed: true
+            uservice_name: eats-api-coverage-test
+
+linters:
+    extra-application-package-names:
+      - eats_api_coverage_test_plugins
+
+
+clownductor_service_info:
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-0
+    disk_profile: default
+    duty_group_id: duty_eats_auto
+    clownductor_project: eda
+
+ya-make:
+    enabled: true
+
+pytest:
+    api-coverage:
+        enabled: true

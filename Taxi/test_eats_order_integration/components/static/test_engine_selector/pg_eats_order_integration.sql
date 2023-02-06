@@ -1,0 +1,23 @@
+INSERT INTO integration_engines
+(
+    id,
+    name,
+    engine_class
+)
+values
+(
+    1,
+    'test1',
+    null
+),
+(
+    2,
+    'test2',
+    null
+),
+(
+    3,
+    'test3',
+    null
+)
+;

@@ -1,0 +1,173 @@
+default:
+    thresholds:
+        brand:
+            hard_threshold: 1.0
+            soft_threshold: 0.0
+        color:
+            hard_threshold: 1.0
+            soft_threshold: 0.0
+        dirt:
+            threshold_success: 0.7
+            threshold_block: 0.9
+        damage:
+            threshold_success: 0.7
+            threshold_block: 0.9
+        branding:
+            threshold_success: 0.7
+        exterior_trash:
+            threshold_success: 0.7
+            threshold_block: 0.9
+        license_plate:
+            lower_bound: 1
+            upper_bound: 3
+        seats:
+            threshold_success: 0.35
+            threshold_block: 99.0
+        rugs:
+            threshold_success: 1.0
+            threshold_block: 99.0
+        seatcase:
+            threshold_success: 1.0
+            threshold_block: 99.0
+        interior_trash:
+            threshold_success: 0.6
+            threshold_block: 99.0
+
+    interior_exam_cities: ['москва', 'санкт-петербург']
+    lp_exam_countries: ['россия']
+    reg_exps:
+        trash_messages:
+          - '.*ет одной или нескольких фотографий автомобиля.*'
+          - '.*зображение нечёткое.*'
+        license_plate_patterns:
+          - '[ABEKMHOPCTYX]{2}[0-9]{4,}$'
+          - '[ABEKMHOPCTYX][0-9]{3}[ABEKMHOPCTYX]{2}[0-9]{1,}$'
+
+description: Настройки для ручки ДКК
+tags: ['notfallback']
+maintainers: [ploshkin]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        thresholds:
+            $ref: '#/definitions/Thresholds'
+        interior_exam_cities:
+            type: array
+            description: список городов, в которых резолюция зависит от проверки интерьера
+            items:
+                type: string
+        lp_exam_countries:
+            type: array
+            description: список стран, в которых резолюция зависит от проверки номера
+                авто
+            items:
+                type: string
+        reg_exps:
+            $ref: '#/definitions/RegExps'
+    required:
+      - thresholds
+      - interior_exam_cities
+      - lp_exam_countries
+      - reg_exps
+
+    definitions:
+        Thresholds:
+            type: object
+            additionalProperties: false
+            properties:
+                brand:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        hard_threshold:
+                            type: number
+                        soft_threshold:
+                            type: number
+                    required:
+                      - hard_threshold
+                      - soft_threshold
+                color:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        hard_threshold:
+                            type: number
+                        soft_threshold:
+                            type: number
+                    required:
+                      - hard_threshold
+                      - soft_threshold
+                dirt:
+                    $ref: '#/definitions/Threshold'
+                damage:
+                    $ref: '#/definitions/Threshold'
+                branding:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        threshold_success:
+                            type: number
+                    required:
+                      - threshold_success
+                exterior_trash:
+                    $ref: '#/definitions/Threshold'
+                license_plate:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        lower_bound:
+                            type: integer
+                        upper_bound:
+                            type: integer
+                    required:
+                      - lower_bound
+                      - upper_bound
+                seats:
+                    $ref: '#/definitions/Threshold'
+                rugs:
+                    $ref: '#/definitions/Threshold'
+                seatcase:
+                    $ref: '#/definitions/Threshold'
+                interior_trash:
+                    $ref: '#/definitions/Threshold'
+            required:
+              - brand
+              - color
+              - dirt
+              - damage
+              - branding
+              - exterior_trash
+              - license_plate
+              - seats
+              - rugs
+              - seatcase
+              - interior_trash
+
+        Threshold:
+            type: object
+            additionalProperties: false
+            properties:
+                threshold_success:
+                    type: number
+                threshold_block:
+                    type: number
+            required:
+              - threshold_success
+              - threshold_block
+
+        RegExps:
+            type: object
+            additionalProperties: false
+            properties:
+                trash_messages:
+                    type: array
+                    items:
+                        type: string
+                license_plate_patterns:
+                    type: array
+                    items:
+                        type: string
+            required:
+              - trash_messages
+              - license_plate_patterns

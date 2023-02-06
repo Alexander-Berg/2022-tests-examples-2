@@ -1,0 +1,89 @@
+{%- set shards = {
+ 'fleet_traffic_fines': {'cid': 'mdbfn90peccc8dnhgbej', 'ns': 'taxi.yasm.test'},
+ 'eats_smart_prices': {'cid': 'mdb4h4imbh50rqsavrab', 'ns': 'taxi.yasm.test'}
+}
+%}
+
+taxi_yasm_test_taxi_postgres:
+{%- for shard_name, attrs in shards|dictsort %}
+  {{ shard_name }}_cpu_usage:
+    signals: perc(portoinst-cpu_<usage|limit>_cores_tmmv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: primary,replica
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_space_usage:
+    signals: perc(push-disk-used_bytes_pgdata_tmmx,push-disk-total_bytes_pgdata_tmmx)
+    tags:
+      itype: mailpostgresql
+      ctype: {{ attrs['cid'] }}
+      tier: primary
+    settings:
+      type: thresh
+      warn: 77
+      crit: 87 # at 97% database will be switched to read-only mode
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_network_utilization:
+    signals: perc(conv(portoinst-net_mb_summ,0.125),conv(portoinst-net_limit_mb_summ,0.125))
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: primary,replica
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_pg_connections_aborted:
+    signals: push-postgres_conn_aborted_vmmv
+    tags:
+      itype: mailpostgresql
+      ctype: {{ attrs['cid'] }}
+      tier: primary,replica
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_pgsql_log_errors:
+    signals: postgresql_log-log_total-errors_mmmm
+    tags:
+      itype: mailpostgresql
+      ctype: {{ attrs['cid'] }}
+      tier: primary,replica
+    settings:
+      type: thresh
+      warn: 300
+      crit: 400
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+{%- endfor %}

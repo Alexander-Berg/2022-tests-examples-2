@@ -1,0 +1,79 @@
+python_service:
+    service_name: admin-users-info
+debian:
+    source_package_name: yandex-taxi-admin-users-info
+    maintainer_name: Konstantin Khlyzov
+    maintainer_login: khlyzov
+mongo:
+    collections:
+      - vip_users
+      - admin_groups
+      - staff
+      - order_proc
+
+clownductor_service_info:
+    duty_group_id: 5f724de38ef826475c624741
+    clownductor_project: taxi
+    preset:
+        name: x2nano
+    design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-389
+    disk_profile: default
+    networks:
+        production: __CLOWNDUCTOR_STABLE__
+        testing: __CLOWNDUCTOR_TESTING__
+
+client_tvm: true
+
+teamcity:
+    conductor-disabled: true
+docker-deploy: {}
+
+clients:
+    services:
+      - passenger-profile
+      - zalogin
+      - user-api
+      - safety-center
+
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/users-info/
+
+units:
+  - name: web
+    web:
+        description: Yandex.Taxi admin-users-info web package
+        add_taxi_config_package: true
+        hostname:
+            production:
+              - admin-users-info.taxi.yandex.net
+            testing:
+              - admin-users-info.taxi.tst.yandex.net
+            unstable:
+              - admin-users-info.taxi.dev.yandex.net
+        num_procs:
+            production: 4
+            testing: 2
+    debian:
+        binary_package_name: yandex-taxi-admin-users-info-web
+    api_admin_service_middleware:
+syslog:
+    rtc_postrotate: false
+
+maintainers:
+  - Konstantin Khlyzov <khlyzov@yandex-team.ru>
+tvm:
+    service_name: admin-users-info
+libraries:
+    client-archive-api:
+    client-personal:
+    client-territories:
+    client-user-api:
+
+
+dashboards:
+    project_name: taxi
+    service_group:
+        rtc:
+            name: admin-users-info
+    grafana_additional_layouts:
+      - system:
+            collapsed: true

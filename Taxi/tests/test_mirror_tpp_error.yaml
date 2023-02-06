@@ -1,0 +1,36 @@
+id: test_mirror_tpp_error
+title: Авторизованный запрос, идем в кору
+
+source:
+    request:
+        method: get
+        headers:
+            X-YaTaxi-User: 'eats_user_id=id1'
+            X-Request-Application: 'app_info=ab3'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                source: 'core'
+                iam: 'good_resp'
+
+mocks:
+  - resource: eats-core-tracking
+    response:
+        status-code: 200
+        body:
+            iam: 'good_resp'
+    expectations:
+        call-count: 1
+
+  - resource: eats-orders-tracking
+    response:
+        status-code: 404
+    expectations:
+        call-count: 1
+
+experiments:
+    values:
+        use_eats_orders_tracking_service:
+            source: 'core'
+            mirror: 'eats-orders-tracking'

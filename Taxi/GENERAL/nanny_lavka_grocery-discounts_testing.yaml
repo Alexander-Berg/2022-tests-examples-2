@@ -1,0 +1,27 @@
+clownductor_config: lavka:grocery-discounts:testing
+http_hosts:
+  - grocery-discounts.lavka.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        uservice_name: grocery-discounts
+
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: grocery-discounts-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - include:
+        collapsed: false
+        path: grocery-discounts/metrics.json
+        title: discounts-match library metrics
+        variables:
+          - cluster: testing_uservices
+  - stq:
+        queues:
+          - grocery_discounts_discount_usage_add
+          - grocery_discounts_discount_usage_cancel
+  - http

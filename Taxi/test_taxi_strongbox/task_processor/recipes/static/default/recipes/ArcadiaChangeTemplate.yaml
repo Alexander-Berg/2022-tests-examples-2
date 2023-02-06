@@ -1,0 +1,45 @@
+data:
+    name: ArcadiaChangeTemplate
+    provider_name: taxi-strongbox
+    job_vars:
+      - st_ticket
+      - diff_proposal
+      - automerge
+      - initiator # taxi-strongbox?
+      - reviewers
+      - approve_required
+      - service_name
+      - type_name
+      - with_pr # True
+    stages:
+      - name: MetaStartDiffProposalWithPR
+        provider_name: clownductor
+        input:
+            st_ticket: st_ticket
+            diff_proposal: diff_proposal
+            automerge: automerge
+            initiator: initiator
+            reviewers: reviewers
+            approve_required: approve_required
+            with_pr: with_pr
+        output:
+            job_id: job_id
+
+      - name: GetArcadiaPrUrl
+        provider_name: taxi-strongbox
+        input:
+            job_id: job_id
+        output:
+            pull_request_url: pull_request_url
+
+      - name: SaveLastChangeUrl
+        provider_name: taxi-strongbox
+        input:
+            pull_request_url: pull_request_url
+            service_name: service_name
+            type_name: type_name
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: job_id

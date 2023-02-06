@@ -1,0 +1,338 @@
+description: user devices
+settings:
+    collection: users
+    connection: users
+    database: dbusers
+sharding:
+    key:
+      - name: _id
+        type: hashed
+indexes:
+  - key:
+      - name: _id
+        type: hashed
+  - key:
+      - name: authorized
+        type: ascending
+      - name: created
+        type: descending
+  - key:
+      - name: authorized
+        type: ascending
+      - name: created
+        type: descending
+      - name: _arc0
+        type: ascending
+    partialFilterExpression:
+        authorized:
+        last_order_created:
+  - key: banners_enabled
+  - key: old_yandex_uuid
+    sparse: true
+  - key: phone
+  - key: phone_id
+  - key: uber_id
+    sparse: true
+  - key: updated
+  - key: yandex_uid
+  - key: yandex_uuid
+jsonschema:
+    additionalProperties: false
+    properties:
+        _id:
+            type: string
+        alice_uuid:
+            description: уникальный uuid на каждую установку приложения Алисы
+        antifraud:
+            description: Данные для клиентского антифейка
+            properties:
+                instance_id:
+                    type: string
+                ip:
+                    type: string
+                mac:
+                    type: string
+                metrica_device_id:
+                    type: string
+                metrica_uuid:
+                    type: string
+                position:
+                    properties:
+                        dx:
+                            type: integer
+                        point:
+                            items:
+                                type: number
+                            type: array
+                    type: object
+            type: object
+        apns_token:
+            description: Токен для пушей Apple
+            type: string
+        apns_type:
+            description: Различает билды приложения в тестинге и продакшене для пушей
+                Apple (release-distr|inhouse-distr|inhouse-dev)
+            type: string
+        app_id:
+            type: string
+        application:
+            description: Приложение пользователя
+            type: string
+        application_version:
+            description: Версия приложения
+            type: string
+        authorized:
+            description: True - авторизован, False - был разавторизован, если поле
+                отсутствует, не был авторизован, например, пользователь веб, записи
+                без этого поля (и без выполненных заказов) подлежат удалению через
+                некоторое время.
+            type: boolean
+        banners_enabled:
+            description: Имена баннеров, которые увидит пользователь. __all__ означает
+                "все баннеры", пустой список - никакие.
+            items:
+                type: string
+            type: array
+        banners_seen:
+            description: Список id баннеров (dbtaxi.fullscreen_banners), уже показанных
+                на этом устройстве.
+            items:
+                type: string
+            type: array
+        blacklist:
+            items:
+                type: string
+            type: array
+        c2dm_token:
+            description: Токен для пушей Android
+            type: string
+        car_number:
+            description: outdated?
+            items:
+                type: string
+            type: array
+        confirmation:
+            description: Данные для подтверждения авторизации
+            properties:
+                attemps:
+                    description: Количество попыток, после которых пользователь будет
+                        заблокирован
+                    type: integer
+                code:
+                    description: Код для авторизации
+                    type: string
+                created:
+                    description: Время, когда код был сгенерирован
+                    type: datetime
+            type: object
+        coupon_code:
+            type: string
+        created:
+            description: Время создания документа
+            type: datetime
+        dervice_id:
+            description: Скорее всего опечатка device_id (142 случая)
+            type: string
+        device_id:
+            description: id устройства, в последний раз присланный для этого пользователя
+                в launch
+            type: string
+        device_location:
+            description: (uber-related) Местоположение устройства в момент обращения
+                к PUT /user
+            items:
+                type: number
+            type: array
+        gcm_token:
+            description: Токен для новых пушей Android
+            type: string
+        has_plus:
+            type: boolean
+        has_ya_plus:
+            type: boolean
+        is_roaming_user:
+            description: (uber-related) Существует для пользователей, созданных через
+                external api, истинно для пользователей uber не резидентов РФ
+            type: boolean
+        last_calibrate:
+            description: Информация из последнего запроса к taxicount о необходимости
+                калибровки
+            type: string
+        last_couponchecks:
+            items:
+                type: datetime
+            type: array
+        last_order_created:
+            description: Время создания последнего заказа, используется taxi_maintenance.stuff.cleanup_users
+            type: datetime
+        last_routestats:
+            items:
+                type: datetime
+            type: array
+        last_tariff_imprint:
+            properties:
+                categiry_name:
+                    type: string
+                service_level:
+                    oneOf:
+                      - type: integer
+                      - type: object
+            type: object
+        location:
+            items:
+                type: number
+            type: array
+        mpns_url:
+            description: url для пушей Microsoft
+            format: uri
+            type: string
+        name:
+            description: deprecated (надо выпилить из не 2х частей проекта)
+            type: string
+        old_yandex_uuid:
+            description: Ранее используемый yandex_uuid
+            oneOf:
+              - type: string
+              - type: 'null'
+        order_id:
+            description: outdated?
+            items:
+                type: string
+            type: array
+        passport_token:
+            type: string
+        payment_method:
+            type: string
+        phone:
+            type: string
+        phone_doc:
+            description: outdated
+            type: object
+        phone_id:
+            description: Cсылка на документ с номером телефона пользователя
+            type: object_id
+        promotions:
+            description: Список id из dbtaxi.promotions, выбранных пользователем
+            items:
+                type: string
+            type: array
+        skip_intro_video:
+            type: boolean
+        sourceid:
+            type: string
+        svo_commit_orders:
+            description: Заказы проекта "Шереметьево", которые необходимо довести
+                до коммита (данное поле присутствует только в документе 297d52da8caf4b5f86abf4cbd58e5a88)
+            items:
+                properties:
+                    car_number:
+                        type: string
+                    order_id:
+                        type: string
+                type: object
+            type: array
+        token_only:
+            description: True, если yandex_uid получен через токен Паспорта (такой
+                юзер не должен больше приходить без токена)
+            type: boolean
+        uber_id:
+            description: (uber-related) Идентификатор пользователя в uber
+            type: string
+        updated:
+            description: Временная отметка об обновлении device_id
+            type: datetime
+        use_forwarding:
+            type: boolean
+        vendor_id:
+            type: string
+        wns_url:
+            description: url для пушей Microsoft новой версии
+            format: uri
+            type: string
+        yamoney_token:
+            description: deprecated надо выпилитить отовсюду
+            type: string
+        yandex_cookie:
+            type: string
+        yandex_staff:
+            description: True, если пользователь привязан к логину внутри Яндекса
+            type: boolean
+        yandex_uid:
+            description: uid пользователя в Паспорте
+            type: string
+        yandex_uuid:
+            description: Выданный Стартапом или сгенерированный идентификатор пользователя
+            type: string
+    type: object
+wiki_info: |
+    ####dbusers.users - Пользователи (является _antifraudable)
+
+    //#FIXME:// из профиля пользователя удалить номер телефона 'phone'
+
+    ```python
+    user = {
+        # обязательные атрибуты
+        'created': utcnow(),             # время создания документа
+
+        # опциональные атрибуты
+        'alice_uuid': uuid4,                                         # уникальный uuid на каждую установку приложения Алисы
+        'name': 'имя пользователя',                                  # deprecated (надо выпилить из не 2х частей проекта)
+        'phone_id': ObjectId(),                                      # ссылка на документ с номером телефона пользователя, не существует до первого заказа нового пользователя
+        'apns_token': 'hexstr',                                      # токен для пушей Apple
+        'apns_type': 'release-distr|inhouse-distr|inhouse-dev',      # различает билды приложения в тестинге и продакшене для пушей Apple
+        'c2dm_token': 'hexstr',                                      # токен для пушей Android
+        'gcm_token': 'hexstr',                                       # токен для новых пушей Android
+        'mpns_url': 'url',                                           # url для пушей Microsoft
+        'wns_url': 'url',                                            # url для пушей Microsoft новой версии
+        'authorized': True,                                          # False или отсутствующее поле означает, что пользователь не авторизован
+        'confirmation': {                                            # данные для подтверждения авторизации
+            'code': '000',       # код для авторизации
+            'attempts': 3,       # количество попыток, после которых пользователь будет заблокирован
+            'created': utcnow(), # время, когда код был сгенерирован
+        },
+        'last_calibrate': '<0|1>',                                   # информация из последнего запроса к taxicount о необходимости калибровки
+        'yandex_uid': '123456789',                                   # uid пользователя в Паспорте
+        'yandex_uid_type': 'portal',                                 # тип аккаунта в Паспорте: portal, phonish, web; может отсутствовать в отсутсвии поддержки full-авторизации
+        'token_only': True,                                          # True, если yandex_uid получен через токен Паспорта (такой юзер не должен больше приходить без токена)
+        'yandex_staff': True,                                        # True, если пользователь привязан к логину внутри Яндекса
+        'has_ya_plus': True,                                         # True, если пользователь имеет YandexPlus; отсутсвие интерпретируется как False
+        'yandex_cookie': 'супер-длинная авторизационная кука',
+        'yamoney_token': 'токен Я.Денег',                            # deprecated надо выпилитить отовсюду
+        'yandex_uuid': uuid4,                                        # выданный Стартапом или сгенерированный идентификатор пользователя
+        'old_yandex_uuid': None|uuid4,                               # ранее используемый yandex_uuid
+        'banners_seen': ['id1', 'id2']                               # список id баннеров (dbtaxi.fullscreen_banners), уже показанных на этом устройстве.
+        'banners_enabled': ['__all__'],                              # имена баннеров, которые увидит пользователь. __all__ означает "все баннеры", пустой список - никакие.
+        'promotions': ['promotion_id'],                              # список id из dbtaxi.promotions, выбранных пользователем
+        'device_id': '12345678',                                     # id устройства, в последний раз присланный для этого пользователя в launch
+        'updated': datetime.datetime.utcnow(),                       # временная отметка об обновлении device_id
+        'last_order_created': datetime.datetime(),                   # время создания последнего заказа, используется taxi_maintenance.stuff.cleanup_users
+        'svo_commit_orders': [                                       # заказы проекта "Шереметьево", которые необходимо довести до коммита
+            {                                                        # (данное поле присутствует только в документе 297d52da8caf4b5f86abf4cbd58e5a88)
+                "order_id": "(идентификатор заказа)",
+                "car_number": "A777AA177",
+            }
+        ],
+        'application': 'iphone',                                     # приложение пользователя
+        'application_version': '3.80.6288',                          # версия приложения
+        'antifraud' : {                                              # данные для клиентского антифейка
+            'position' : {
+                'dx' : 23,
+                'point' : [
+                    37.5902323,
+                    55.7335018
+                 ]
+            },
+            'instance_id' : 'qweRTYu42',
+            'mac' : '02:00:00:00:00:00',
+            'ip' : '127.0.0.1',
+            'metrica_device_id' : '4c...82e',
+            'metrica_uuid' : 'b7...94'
+        },
+
+        # uber-related
+        'uber_id': 'идентификатор пользователя в uber',
+        'is_roaming_user': True,                                    # существует для пользователей, созданных через external api,
+                                                                    # истинно для пользователей uber не резидентов РФ
+        'device_location': [37.000000, 55.00000],                   # местоположение устройства в момент обращения к PUT /user
+    }
+    ```

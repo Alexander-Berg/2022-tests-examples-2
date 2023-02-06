@@ -1,0 +1,23 @@
+_scenario () {
+    MAIN index_data.start:
+    MAIN index_data.check_prev_indexed_data: index_data.start
+    MAIN index_data.prepare_data: index_data.check_prev_indexed_data
+    MAIN index_data.cleanup_destination_folders: index_data.check_prev_indexed_data
+
+    MAIN index_data.setup_rthub_build.Baseline: index_data.prepare_data index_data.cleanup_destination_folders
+    MAIN index_data.setup_rthub_build.Test: index_data.prepare_data index_data.cleanup_destination_folders
+
+    MAIN index_data.index_hosts_rthub.Baseline: index_data.setup_rthub_build.Baseline
+    MAIN index_data.index_hosts_rthub.Test: index_data.setup_rthub_build.Test index_data.index_hosts_rthub.Baseline
+
+#    MAIN_CLUSTERED index_data.index_app_docs_rthub.Baseline: index_data.setup_rthub_build.Baseline res=buckets:1/5
+#    MAIN_CLUSTERED index_data.index_app_docs_rthub.Test: index_data.setup_rthub_build.Test index_data.index_app_docs_rthub.Baseline res=buckets:1/5
+
+#    MAIN_CLUSTERED index_data.merge_app_docs_to_pages.Baseline: index_data.index_app_docs_rthub.Baseline res=buckets:1/5
+#    MAIN_CLUSTERED index_data.merge_app_docs_to_pages.Test: index_data.index_app_docs_rthub.Test res=buckets:1/5
+
+    MAIN_CLUSTERED index_data.index_pages_rthub.Baseline: index_data.index_hosts_rthub.Baseline res=buckets:1/5
+    MAIN_CLUSTERED index_data.index_pages_rthub.Test: index_data.index_hosts_rthub.Test index_data.index_pages_rthub.Baseline res=buckets:1/5
+
+    MAIN index_data.finish: index_data.index_hosts_rthub.Test index_data.index_pages_rthub.Test
+}

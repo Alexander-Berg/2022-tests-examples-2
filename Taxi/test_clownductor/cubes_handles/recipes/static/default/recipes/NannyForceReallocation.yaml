@@ -1,0 +1,242 @@
+data:
+    name: NannyForceReallocation
+    provider_name: clownductor
+    job_vars:
+      - nanny_name
+      - reallocation_coefficient
+      - user
+      - branch_id
+      - service_id
+      - role_to_check
+    stages:
+      - name: NannyGetNewestPod
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+        output:
+            newest_pod_id: newest_pod_id
+            region: region
+
+      - name: NannyPrepareAllocationRequest
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            nanny_pod_id: newest_pod_id
+            region: region
+            reallocation_coefficient: reallocation_coefficient
+        output:
+            original_allocation_request: original_allocation_request
+            prepared_allocation_request: prepared_allocation_request
+
+      - name: ClownNannyReallocatePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            allocation_request: prepared_allocation_request
+        output:
+            reallocation_id: reallocation_id
+
+      - name: NannyForceReallocationTicketText
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            original_allocation_request: original_allocation_request
+            prepared_allocation_request: prepared_allocation_request
+            reallocation_coefficient: reallocation_coefficient
+            branch_id: branch_id
+            user: user
+        output:
+            ticket_summary: summary_text
+            ticket_description: description_text
+
+      - name: StartrekCubeCreateTicket
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            ticket_summary: ticket_summary
+            ticket_description: ticket_description
+            user: user
+        output:
+            new_ticket: new_ticket
+
+      - name: NannyForceReallocationCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            user: user
+            reallocation_id: reallocation_id
+            allocation_request: prepared_allocation_request
+        output:
+            start_comment: start_comment
+            end_comment: end_comment
+            comment_props: comment_props
+            key_phrase: key_phrase
+            rollback_comment: rollback_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: start_comment
+
+      - name: GetPrestableForDiff
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+        output:
+            prestable_nanny_name: prestable_nanny_name
+
+      - name: ClownNannyReallocatePods
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            allocation_request: prepared_allocation_request
+        output:
+            pre_reallocation_id: reallocation_id
+
+      - name: NannyForceReallocationCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            user: user
+            reallocation_id: pre_reallocation_id
+            allocation_request: prepared_allocation_request
+        output:
+            pre_start_comment: start_comment
+            pre_end_comment: end_comment
+            comment_props: comment_props
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_start_comment
+
+      - name: ClownNannyWaitForReallocation
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            reallocation_id: reallocation_id
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: end_comment
+
+      - name: ClownNannyWaitForReallocation
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            reallocation_id: pre_reallocation_id
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_end_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: rollback_comment
+
+      - name: ApproveWaitForSpecifiedApproval
+        provider_name: clownductor
+        input:
+            role_to_check: role_to_check
+            service_id: service_id
+            st_key: new_ticket
+            key_phrase: key_phrase
+
+      - name: ClownNannyReallocatePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            allocation_request: original_allocation_request
+        output:
+            rollback_reallocation_id: reallocation_id
+
+      - name: NannyForceReallocationCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            user: user
+            reallocation_id: rollback_reallocation_id
+            allocation_request: original_allocation_request
+        output:
+            rollback_start_comment: start_comment
+            rollback_end_comment: end_comment
+            comment_props: comment_props
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: rollback_start_comment
+
+      - name: ClownNannyReallocatePods
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            allocation_request: original_allocation_request
+        output:
+            pre_rollback_reallocation_id: reallocation_id
+
+      - name: NannyForceReallocationCommentText
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            user: user
+            reallocation_id: pre_rollback_reallocation_id
+            allocation_request: original_allocation_request
+        output:
+            pre_rollback_start_comment: start_comment
+            pre_rollback_end_comment: end_comment
+            comment_props: comment_props
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_rollback_start_comment
+
+      - name: ClownNannyWaitForReallocation
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            reallocation_id: rollback_reallocation_id
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: rollback_end_comment
+
+      - name: ClownNannyWaitForReallocation
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            reallocation_id: pre_rollback_reallocation_id
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: pre_rollback_end_comment
+
+      - name: StartrekCubeCloseTicket
+        provider_name: clownductor
+        input:
+            new_service_ticket: new_ticket

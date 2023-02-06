@@ -1,0 +1,59 @@
+id: test_get_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: get
+        url: /api/v1/server/users/1
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true, "payload": {"timezone": "Moscow", "isFastFood": false,
+                    "countryCode": "RU", "name": "some_name", "roles": [{"role": "ROLE_OPERATOR",
+                            "id": 1, "title": "Оператор"}, {"role": "ROLE_MANAGER",
+                            "id": 2, "title": "Управляющий"}], "email": "test@test.test",
+                    "id": 1, "restaurants": [1, 2, 3]}}
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-user-get
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-info
+    response:
+        status-code: 200
+        body:
+            payload:
+                id: 1
+                name: some_name
+                email: test@test.test
+                is_blocked: false
+                places: [1, 2, 3]
+                is_fast_food: false
+                country_code: RU
+                roles:
+                  - slug: ROLE_OPERATOR
+                    title: Оператор
+                    id: 1
+                  - slug: ROLE_MANAGER
+                    title: Управляющий
+                    id: 2
+                timezone: Moscow
+                partner_id: some_partner_id
+    expectations:
+        call-count: 1
+        request:
+            query:
+                partner_id#string: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_read: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 1

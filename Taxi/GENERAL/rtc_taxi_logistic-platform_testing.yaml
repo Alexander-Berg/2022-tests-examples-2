@@ -1,0 +1,31 @@
+- service: rt_robots_failures_test
+  description: |-
+    Алерт на падения RT-роботов.
+    В случае проблем обращаться к skulik@
+  alert_type: expression
+  checkExpression: sum(data) >= 0.3
+  period: 300
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      host='cluster', code='fail', sensor='*',
+      application='logistic-platform',
+      group='taxi_logistic-platform_testing'
+    });
+  groupByLabels:
+  - host
+- service: tag_generators_watcher_runs_count_test
+  description: |-
+    Мало запусков у tag_generators_watcher.
+  alert_type: expression
+  checkExpression: sum(data) == 0
+  period: 300
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', service='logistics', host='cluster',
+      sensor='tag_generators_watcher', code='success',
+      application='logistic-platform',
+      group='taxi_logistic-platform_testing', project='taxi'
+    });
+  groupByLabels:
+  - host

@@ -1,0 +1,112 @@
+default:
+    compensation:
+        summary: Компенсация по заказу {order_id}
+        description: >
+            Комментарий: {compensation_comment}
+
+            Название таксопарка: {park_name}
+
+            E-mail: {park_email}
+
+            CLID: {clid}
+
+            ID поездки: {order_alias_id}
+
+            Номер водительского удостоверения: {driver_license}
+
+            Город: {park_city}
+
+            Дата поездки: {order_date} {order_time}
+
+            Тариф: {tariff_id}
+
+            Класс: {tariff}
+
+            Сумма компенсации: {compensation_amount}
+
+            Заказ в админке Таксометра: {taximeter_admin_url}/redirect/to/order?db={park_db_id}&order={order_id}
+
+            Заказ в админке Такси: {tariff_editor_url}/orders/{order_id}
+        tags:
+          - compensation_cost
+
+    dispatcher_change_price:
+        summary: Заявка диспетчера на изменение стоимости заказа {order_id}
+        description: >
+            ID заказа {order_id}
+
+            Сумма, на которую заказ закрыт фактически: {taximeter_cost} {tariff_currency}
+
+            Сумма, которую выставил диспетчер: {disp_cost} {tariff_currency}
+
+            Категория заказа: {tariff}
+
+            Точка А: {point_a}
+
+            Точка Б: {points_b}
+
+            Водительское удостоверение: {driver_license}
+
+            Заказ в админке Таксометра: {taximeter_admin_url}/redirect/to/order?db={park_db_id}&order={order_id}
+
+            Заказ в админке Такси: {tariff_editor_url}/orders/{order_id}
+        tags:
+          - disp_change_cost
+
+    driver_change_price:
+        summary: Заявка водителя на изменение стоимости заказа {order_id}
+        description: >
+            ID заказа {order_id}
+
+            Сумма, на которую заказ закрыт фактически: {taximeter_cost} {tariff_currency}
+
+            Сумма, которую выставил водитель: {driver_cost} {tariff_currency}
+
+            Категория заказа: {tariff}
+
+            Точка А: {point_a}
+
+            Точка Б: {points_b}
+
+            Водительское удостоверение: {driver_license}
+
+            Заказ в админке Таксометра: {taximeter_admin_url}/redirect/to/order?db={park_db_id}&order={order_id}
+
+            Заказ в админке Такси: {tariff_editor_url}/orders/{order_id}
+        tags:
+          - driver_change_cost
+
+description: Параметры тикетов на компенсацию и изменение стоимости
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - compensation
+      - dispatcher_change_price
+      - driver_change_price
+    properties:
+        compensation:
+            $ref: "#/definitions/FinanceTicketParams"
+        dispatcher_change_price:
+            $ref: "#/definitions/FinanceTicketParams"
+        driver_change_price:
+            $ref: "#/definitions/FinanceTicketParams"
+
+    definitions:
+        FinanceTicketParams:
+            type: object
+            additionalProperties: false
+            required:
+              - summary
+              - description
+              - tags
+            properties:
+                summary:
+                    type: string
+                description:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string

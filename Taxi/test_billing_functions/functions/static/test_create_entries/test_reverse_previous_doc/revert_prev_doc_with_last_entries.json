@@ -1,0 +1,200 @@
+{
+  "accounts": [
+    {
+      "$Account": {
+        "agreement_id": "taxi/yandex_ride",
+        "currency": "RUB",
+        "entity_external_id": "taximeter_park_id/some_park_id",
+        "id": 1,
+        "sub_account": "subvention/do_x_get_y"
+      }
+    },
+    {
+      "$Account": {
+        "agreement_id": "taxi/driver_balance",
+        "currency": "RUB",
+        "entity_external_id": "taximeter_driver_id/some_park_id/some_uuid",
+        "id": 2,
+        "sub_account": "total"
+      }
+    }
+  ],
+  "doc": {
+    "$Doc": {
+      "data": {
+        "last_entries": {
+          "adopted_entry_ids": [],
+          "entry_ids": [
+            0,
+            1
+          ],
+          "history_doc_id": 2,
+          "reversal_entry_ids": []
+        }
+      },
+      "entry_ids": [
+        0,
+        1
+      ],
+      "event_at": {
+        "$datetime": "2020-12-31T21:00:00+03:00"
+      },
+      "external_ref": "2d8e0d52-1767-402d-a572-3976bbcb29a9:A/5/1",
+      "id": 1,
+      "kind": "taxi_goal_shift",
+      "process_at": {
+        "$datetime": "2020-12-31T21:00:00+03:00"
+      },
+      "revision": 1,
+      "status": "complete",
+      "topic": "taxi/shift/unique_driver_id/5afee214453b0a524e56d237"
+    }
+  },
+  "entries": [
+    {
+      "$AppendedEntry": {
+        "account_id": 1,
+        "amount": {
+          "$decimal": "600"
+        },
+        "created": {
+          "$datetime": "2020-12-31T20:59:59.999999+00:00"
+        },
+        "details": {
+          "alias_id": "noorder/some_payment_ref",
+          "driver": {
+            "driver_uuid": "some_uuid"
+          }
+        },
+        "doc_ref": 1,
+        "event_at": {
+          "$datetime": "2020-12-30T21:00:00"
+        },
+        "id": 0,
+        "idempotency_key": "1/1"
+      }
+    },
+    {
+      "$AppendedEntry": {
+        "account_id": 2,
+        "amount": {
+          "$decimal": "600"
+        },
+        "created": {
+          "$datetime": "2020-12-31T20:59:59.999999+00:00"
+        },
+        "details": {},
+        "doc_ref": 1,
+        "event_at": {
+          "$datetime": "2020-12-30T21:00:00"
+        },
+        "id": 1,
+        "idempotency_key": "1/2"
+      }
+    }
+  ],
+  "expected_results": {
+    "$LastEntries": {
+      "adopted_entry_ids": [],
+      "entry_ids": [],
+      "history_doc_id": 3,
+      "reversal_entry_ids": [
+        3,
+        4
+      ]
+    }
+  },
+  "history_docs": [
+    {
+      "$Doc": {
+        "data": {
+          "doc_id": 1,
+          "version": [
+            1
+          ]
+        },
+        "entry_ids": [],
+        "event_at": {
+          "$datetime": "2020-12-31T21:00:00+03:00"
+        },
+        "external_ref": "1234567880:1",
+        "id": 2,
+        "kind": "doc_ref_history",
+        "process_at": {
+          "$datetime": "2020-12-31T21:00:00+03:00"
+        },
+        "revision": 1,
+        "status": "complete",
+        "topic": "h/some_payment_ref"
+      }
+    }
+  ],
+  "query": {
+    "$Query": {
+      "base_doc_ref": 18061991,
+      "base_doc_version": 1,
+      "entries": null,
+      "entries_save_version": 2,
+      "history_item_tags": [],
+      "history_start": {
+        "$datetime": "2020-12-30T21:00:00+00:00"
+      },
+      "history_tag": "block",
+      "minimize_reversals": true,
+      "now": {
+        "$datetime": "2020-12-31T23:59:59.999999+03:00"
+      },
+      "payment_ref": "some_payment_ref",
+      "reversal_entry_customizers": {
+        "$load_py_json": "_reversal_entry_customizers.json"
+      },
+      "templates": [
+        {
+          "$Template": {
+            "context": {
+              "base_doc_id": 18061991,
+              "base_doc_version": 1,
+              "contract": {
+                "currency_rate": "0.01000",
+                "donate_multiplier": "1.0000",
+                "id": "1",
+                "is_payable": true,
+                "service_id": 111
+              },
+              "driver": {
+                "billing_client_id": "some_billing_client_id",
+                "clid": "some_clid",
+                "driver_uuid": "some_uuid",
+                "park_id": "some_park_id"
+              },
+              "entries_save_version": {
+                "$entries_save_version": 2
+              },
+              "event_at": "2020-12-31T23:59:59.999999+03:00",
+              "subvention": {
+                "contract_value": {
+                  "amount": "6.0000",
+                  "currency": "USD"
+                },
+                "details": {
+                  "agglomeration": "MSKc",
+                  "goal_counter": "<counter>",
+                  "last_day_of_shift": "2020-07-05T00:00:00+03:00",
+                  "limit_ref": "some_limit_ref",
+                  "payment_ref": "some_payment_ref",
+                  "tariff_class": "business",
+                  "tariff_zone": "moscow"
+                },
+                "value": {
+                  "amount": "600",
+                  "currency": "RUB"
+                }
+              }
+            },
+            "name": "subvention_goal_unfulfilled"
+          }
+        }
+      ]
+    }
+  }
+}

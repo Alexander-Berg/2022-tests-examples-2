@@ -1,0 +1,91 @@
+id: test_payment_methods_404
+title: ресурс payment-methods-v1-integration-availability ответил 404, вся ручка отвечает
+    404
+
+source:
+    request:
+        method: post
+        body:
+            point: [37.62, 55.75]
+            user_id: "USER_ID"
+        headers:
+            User-Agent: "call_center"
+            X-Request-Application: "app_name=call_center"
+    expectations:
+        response:
+            status-code: 404
+            body:
+                message: "zone not found"
+
+mocks:
+  - resource: user-users-get
+    response:
+        status-code: 200
+        body:
+            phone_id: "PHONE_ID"
+            yandex_uid: "YANDEX_UID"
+    expectations:
+        call-count: 1
+  - resource: user-api-v2-user_phones-get
+    response:
+        status-code: 200
+        body:
+            last_payment_method:
+                type: "LPM_TYPE"
+                id: "LPM_ID"
+    expectations:
+        call-count: 1
+  - resource: payment-methods-v1-integration-availability
+    response:
+        status-code: 404
+        body:
+            message: "zone not found"
+    expectations:
+        call-count: 1
+  - resource: corp-v1-corp_paymentmethods
+    response:
+        status-code: 200
+        body:
+            methods#array:
+              - value#object:
+                  - type: "CORP_TYPE"
+                  - id: "CORP_ID"
+                  - label: "CORP_LABEL"
+                  - description: "CORP_DESCRIPTION"
+                  - cost_center: "CORP_COST_CENTER"
+                  - cost_center_fields#array:
+                      - value#object:
+                          - id: "COST_CENTER_FIELDS_ID"
+                          - title: "COST_CENTER_FIELDS_TITLE"
+                          - required: true
+                          - format: mixed
+                          - values:
+                              - "командировка"
+                              - "в центральный офис"
+                          - services:
+                              - taxi
+                              - drive
+                          - order_flows:
+                              - taxi
+                  - hide_user_cost: false
+                  - can_order: true
+                  - order_disable_reason: "CORP_ORDER_DISABLE_REASON"
+                  - zone_available: true
+                  - zone_disable_reason: "CORP_ZONE_DISABLE_REASON"
+    expectations:
+        # call-count: 1
+
+taxi_config:
+    BILLING_SERVICE_NAME_MAP_BY_BRAND:
+        yataxi: "card"
+    APPLICATION_TO_CORP_SOURCE_MAP:
+        call_center: "call_center"
+    PAYMENTMETHODS_INT_API_APPLEPAY_PARAMETERS_ENABLED: true
+    PAYMENTMETHODS_IPHONE_MERCHANT_LIST: ["MERCHANT_ID"]
+    INTEGRATION_API_PAYMENTMETHODS_FILTERED_CARDS_FOR_SOURCE_IDS: ["alice"]
+    INTEGRATION_API_PAYMENTMETHODS_FILTERED_CARDS_FOR_BRAND: []
+    INTEGRATION_API_PAYMENTMETHODS_SHOW_CARDS_FOR_SOURCE_IDS: ["alice"]
+    INTEGRATION_API_PAYMENTMETHODS_SHOW_CARDS_FOR_BRAND: []
+    CARD_SYSTEMS_MAPPING_V2:
+        CARD_SYSTEM:
+            human_readable: "CARD_SYSTEM_HUMAN_READABLE"

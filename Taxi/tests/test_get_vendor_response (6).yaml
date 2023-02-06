@@ -1,0 +1,28 @@
+id: test_get_vendor_response
+title: Проверка получения ответа от бэкенда ресторанного приложения
+
+source:
+    request:
+        method: get
+        url: /api/v1/server/users/roles
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-roles
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+
+  - resource: eats-partners-internal-v1-roles
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_read: false
+        enabled: true

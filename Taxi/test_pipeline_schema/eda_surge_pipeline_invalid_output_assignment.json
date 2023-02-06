@@ -1,0 +1,43 @@
+{
+  "consumer": "eda-surge",
+  "id": "0",
+  "name": "calc_surge",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "assign",
+      "out_bindings": [
+        {
+          "alias": "places_out",
+          "query": "places_out"
+        }
+      ],
+      "source_code": "return {places_out: [{place_id: 1, result: {total: 1}}, {place_id: 2, result: {total: 2}}]};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "place_id"
+            }
+          ],
+          "domain": "input",
+          "query": "places.*"
+        }
+      ],
+      "name": "corruption",
+      "optional": true,
+      "out_bindings": [
+        {
+          "alias": "result",
+          "query": "places_out[?(@.place_id==place_id)].result"
+        }
+      ],
+      "source_code": "if (place_id == 1) { return {result: {total: 99}}; } else { return {result: {total: 'invalid'}}; }"
+    }
+  ],
+  "state": "active"
+}

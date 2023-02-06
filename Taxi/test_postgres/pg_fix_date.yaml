@@ -1,0 +1,32 @@
+name: pg_fix_date
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: updated_at
+    connection:
+        secret: conditioned
+    primary_key:
+      - id
+    table: date_table
+
+    broken_date_default: '2020-03-22'
+
+destinations:
+  - pg_fix_date:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    sort_order: ascending
+                  - input_column: created_at
+                    name: utc_created_dttm
+                    cast: datetime_to_datetime_format
+                    type: string
+                    sort_order: ascending
+                    description: Дата создания в UTC
+            path: pg_fix_date_raw
+            cluster_groups:
+              - map_reduce

@@ -1,0 +1,2 @@
+BRAND_ID = 1
+PLACE_ID = 1

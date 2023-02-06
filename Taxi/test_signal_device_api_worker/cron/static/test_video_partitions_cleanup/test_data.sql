@@ -1,0 +1,55 @@
+INSERT INTO signal_device_api.video_chunks (
+  device_id,
+  file_id,
+  offset_bytes,
+  size_bytes,
+  s3_path,
+  created_at,
+  updated_at
+)
+VALUES
+(
+    1,
+    'xxx',
+    0,
+    10, 
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/not_concatenated/0_10.part',
+    '2015-12-06T12:00:00+00',
+    '2015-12-06T12:00:00+00'
+),
+(
+    1,
+    'yyy',
+    0,
+    10,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/not_concatenated/0_11.part',
+    '2015-12-06T12:00:00+00',
+    '2015-12-06T12:00:00+00'
+),
+(
+    1,
+    'zzz',
+    0,
+    10,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/not_concatenated/0_12.part',
+    '2015-12-06T12:00:00+00',
+    '2015-12-06T12:00:00+00'
+),
+(
+    1,
+    'bbb',
+    0,
+    10,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/not_concatenated/0_13.part',
+    '2015-12-06T12:00:00+00',
+    '2015-12-06T12:00:00+00'
+),
+(
+    2,
+    'bbb',
+    0,
+    10,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/not_concatenated/0_14.part',
+    '2015-12-06T12:00:00+00',
+    '2015-12-06T12:00:00+00'
+);

@@ -1,0 +1,207 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'Dummy API'
+
+paths:
+    /tvm/protected/:
+        get:
+            summary: 'handler behind tvm'
+            operationId: TvmProtected
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '../definitions.yaml#/definitions/RefToSomeString'
+            x-taxi-middlewares:
+                tvm: true
+
+    /tvm/protected-by-default/:
+        get:
+            summary: 'handler behind tvm'
+            operationId: TvmProtectedByDefault
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '../definitions.yaml#/definitions/RefToSomeString'
+
+    /tvm/unprotected:
+        get:
+            summary: 'handler without tvm check'
+            operationId: TvmUnprotected
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '../definitions.yaml#/definitions/SomeString'
+            x-taxi-middlewares:
+                tvm: false
+
+    /tvm/whoami:
+        get:
+            summary: 'respond with request source service name'
+            operationId: TvmWhoAmI
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/SourceService'
+
+    /tvm/check_role:
+        get:
+            summary: 'respond ok for tvm_check_role role'
+            operationId: TvmCheckRole
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '../definitions.yaml#/definitions/SomeString'
+            x-taxi-py3-middlewares:
+                tvm_roles: tvm_check_role
+
+    /tvm/multi_roles/{sub_role}:
+        parameters:
+          - in: path
+            name: sub_role
+            type: string
+            required: true
+          - in: query
+            name: sub_role2
+            type: string
+            required: true
+          - in: query
+            name: sub_role3
+            type: string
+            required: true
+        get:
+            summary: 'respond ok using sub_role in path'
+            operationId: TvmMultiRoles
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '../definitions.yaml#/definitions/SomeString'
+            x-taxi-py3-middlewares:
+                tvm_roles:
+                    parameters-template:
+                        template: multi_role-{tmpl1}-complicated-{tmpl2}_{tmpl3}
+                        parameters:
+                            tmpl1:
+                                in: path
+                                name: sub_role
+                            tmpl2:
+                                in: query
+                                name: sub_role3
+                            tmpl3:
+                                in: query
+                                name: sub_role2
+
+    /tvm/user-ticket-scopes:
+        get:
+            responses:
+                '200':
+                    description: Ok
+                    schema:
+                        type: object
+                        properties:
+                            default_uid:
+                                type: integer
+                            uids:
+                                type: array
+                                items:
+                                    type: integer
+                            scopes:
+                                type: array
+                                items:
+                                    type: string
+                            provider:
+                                type: string
+                        additionalProperties: false
+            x-taxi-middlewares:
+                tvm:
+                    user-scopes:
+                      - "test:read"
+                      - "test:write"
+                    adjust-prod-env: true
+
+    /tvm/user-ticket-proxy:
+        get:
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: object
+                        properties:
+                            default_uid:
+                                type: integer
+                            uids:
+                                type: array
+                                items:
+                                    type: integer
+                            scopes:
+                                type: array
+                                items:
+                                    type: string
+                            provider:
+                                type: string
+                        additionalProperties: false
+            x-taxi-middlewares:
+                tvm:
+                    user-scopes:
+                      - "test:read"
+                      - "test:write"
+                    adjust-prod-env: true
+
+    /tvm/user-ticket-no-scopes:
+        get:
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: object
+                        properties:
+                            default_uid:
+                                type: integer
+                            uids:
+                                type: array
+                                items:
+                                    type: integer
+                            scopes:
+                                type: array
+                                items:
+                                    type: string
+                            provider:
+                                type: string
+                        additionalProperties: false
+            x-taxi-middlewares:
+                tvm:
+                    adjust-prod-env: true
+
+    /tvm/testing:
+        get:
+            responses:
+                '200':
+                    description: OK
+            x-taxi-middlewares:
+                tvm:
+                    tvm2-testing: true # for transition from api-key
+
+definitions:
+
+    SourceService:
+        type: object
+        additionalProperties: false
+        properties:
+            name:
+                $ref: '../definitions.yaml#/definitions/SomeString'

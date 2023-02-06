@@ -1,0 +1,108 @@
+extender_name: test_service_metrics
+
+labels:
+    TariffZoneLabels:
+      - tariff
+      - zone:
+            default: moscow
+
+    CompabilityLabels:
+      - __metric_name__
+      - zone:
+            solomon_tag: false
+
+types:
+    Counter:
+        predefined_type: Counter
+
+    TimeCounter:
+        predefined_type: Counter
+        value_type: std::chrono::microseconds
+
+    Percentile:
+        predefined_type: Percentile
+        percentile_params:
+            counter_type: std::uint16_t
+        percentiles:
+          - 0
+          - 50
+          - 75
+          - 95
+          - 100
+
+    BigPercentile:
+        predefined_type: Percentile
+        percentile_params:
+            buckets_count: 10000
+            counter_type: std::uint16_t
+            extra_buckets_count: 500
+            extra_buckets_size: 100
+        percentiles:
+          - 0
+          - 50
+          - 75
+          - 95
+          - 100
+
+    TimePercentile:
+        predefined_type: Percentile
+        recent_period_params:
+            epoch_duration: 10000
+            max_duration: 60000
+            duration_type: std::chrono::milliseconds
+        value_type: std::chrono::milliseconds
+        percentiles:
+          - 0
+          - 50
+          - 75
+          - 95
+          - 100
+
+    AvgCounter:
+        predefined_type: AvgCounter
+
+    TimeAvgCounter:
+        predefined_type: AvgCounter
+        value_type: std::chrono::seconds
+
+    MilliLap:
+        predefined_type: Lap
+        value_type: std::chrono::microseconds
+
+metrics:
+    metric_1:
+        description: Usual counter
+        labels: TariffZoneLabels
+        type: Counter
+
+    metric_2:
+        description: |
+            Usual
+            time
+            counter
+        labels: TariffZoneLabels
+        type: TimeCounter
+
+    metric_3:
+        labels: CompabilityLabels
+        type: Percentile
+
+    metric_4:
+        labels: TariffZoneLabels
+        type: BigPercentile
+
+    metric_5:
+        labels: TariffZoneLabels
+        type: TimePercentile
+
+    metric_6:
+        labels: CompabilityLabels
+        type: AvgCounter
+
+    metric_7:
+        labels: TariffZoneLabels
+        type: TimeAvgCounter
+
+    metric_8:
+        labels: TariffZoneLabels
+        type: MilliLap

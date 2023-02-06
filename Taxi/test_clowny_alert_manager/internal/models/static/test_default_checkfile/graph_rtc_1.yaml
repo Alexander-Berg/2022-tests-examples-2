@@ -1,0 +1,33 @@
+host: taxi_driver-route-watcher_stable
+type: rtc
+multichildren:
+  - taxi_driver-route-watcher_pre_stable
+  - taxi_driver-route-watcher_stable
+services:
+  - service: driver-route-watcher-too-many-db-reset-destination-fails
+  # Алерт на eta в driver-route-watcher
+  # Ответственные: команда графа
+    telegram:
+      - taxi-graph-alerts
+    times:
+      - days: Mon-Sun
+        time: 0-23
+        crit: 0
+        warn: 0
+  - service: driver-route-watcher-too-many-order-core-verify-failed
+  # Алерт на eta в driver-route-watcher
+  # Ответственные: команда графа
+    telegram:
+      - taxi-graph-alerts
+    times:
+      - days: Mon-Sun
+        time: 0-23
+        crit: 0
+        warn: 0
+templates:
+  - template: rtc-atop-warning
+  - template: userver-distlock-task-failures
+    children:
+      - (host=driver-route-watcher & service=userver-distlock-task-failures*)
+telegram:
+  - alerts-by-duty_taxidutygraph-taxidutygraph

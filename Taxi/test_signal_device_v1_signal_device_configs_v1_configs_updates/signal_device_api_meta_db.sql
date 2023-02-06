@@ -1,0 +1,156 @@
+INSERT INTO signal_device_api.declared_devices (
+    id,
+    serial_number,
+    aes_key,
+    imei,
+    mac_wlan0,
+    mac_bluetooth,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    '1234567890ABC',
+    'RkFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'FAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '123456789012345',
+    '38:fe:38:8e:84:e0',
+    'e6:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    2,
+    '9999567812CBC',
+    'VEFCRTRYTFhDMzBFRTE4MXmpS5A4SPr0kC5606701TZzLRqo4wOGxL0VJ0DgUa1He0pOTIidu3icB+DIh7ajr8l8lJL4KJErIzBOIUn1987HNnqbZW25ZkMy9CnoTZFj', -- encrypted key 'TABE4XLXC30EE18148CE3ADA374669999D9DD7CC84B0731248B42700E521991E'
+    '123456789012345',
+    '12:fe:12:fe:84:e0',
+    'fe:32:12:fc:11:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    3,
+    '9000567812CBC',
+    'RjIyTDk4TFhDMzBFRTE4MXmpS5A4SPr0kC5606701TZzLRqo4wOGxL0VJ0DgUa1He0pOTIidu3icB+DIh7ajr8l8lJL4KJErIzBOIUn1987HNnqbZW25ZkMy9CnoTZFj', -- encrypted key 'F22L98LXC30EE18148CE3ADA374669999D9DD7CC84B0731248B42700E521991E'
+    '199956789012345',
+    '11:ee:11:ee:84:e0',
+    'ee:12:12:cc:11:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    4,
+    '1204467800CBC',
+    'WDQyWDk5TFhDMzBFTDQ4MXmpS5A4SPr0kC5606701TZzLRqo4wOGxL0VJ0DgUa1He0pOTIidu3icB+DIh7ajr8l8lJL4KJErIzBOIUn1987HNnqbZW25ZkMy9CnoTZFj', -- encrypted key 'X42X99LXC30EL48148CE3ADA374669999D9DD7CC84B0731248B42700E521991E'
+    '199956789012345',
+    '12:ef:12:ef:84:e0',
+    'ef:11:12:cc:11:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    5,
+    '2234567890ABC',
+    'FAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E', -- raw aes_key
+    '123456789012345',
+    '38:fe:38:8e:84:e0',
+    'e6:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+);
+
+INSERT INTO signal_device_api.devices
+(
+    id,
+    is_alive,
+    public_id,
+    public_key,
+    mac_wlan0,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    TRUE,
+    'pd1',
+    'pub_key_1',
+    '38:fe:38:8e:84:e0',
+    '1234567890ABC',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    2,
+    TRUE,
+    'pd2',
+    'pub_key_2',
+    '12:fe:12:fe:84:e0',
+    '9999567812CBC',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    3,
+    TRUE,
+    'pd3',
+    'pub_key_3',
+    '11:ee:11:ee:84:e0',
+    '9000567812CBC',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    5,
+    TRUE,
+    'pd5',
+    'pub_key_5',
+    '38:fe:38:8e:84:e0',
+    '2234567890ABC',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+) VALUES (
+    'p1',
+    1,
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE
+), 
+(
+    'p2',
+    2,
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    FALSE
+);

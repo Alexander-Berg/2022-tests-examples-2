@@ -1,0 +1,52 @@
+group:
+  type: qloud-ext
+  name: lavka.events.test.backend
+
+graphs:
+  Monitoring:
+    vhost-500:
+      DefaultLimits: { Warn: 5, Crit: 10 }
+
+  ev.lavka.tst.yandex.net:
+    And:
+      - Equals: { http_host: "ev.lavka.tst.yandex.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+        - 499
+
+  ev.lavka.tst.yandex.net_push:
+    And:
+      - Equals: { http_host: "ev.lavka.tst.yandex.net" }
+      - Equals: { request_method: "POST" }
+      - StartsWith: { request_url: "/api/ev/push" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+        - 499
+
+  ev.lavka.tst.yandex.net_take:
+    And:
+      - Equals: { http_host: "ev.lavka.tst.yandex.net" }
+      - Equals: { request_method: "POST" }
+      - StartsWith: { request_url: "/api/ev/take" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+        - 499

@@ -1,0 +1,33 @@
+default-response: resp
+enabled: true
+allow-unauthorized: true
+sources:
+  - id: upstream
+    resource: upstream
+    content-type: application/json
+    fail-policy:
+      - selector: fallbacking
+        action: fallback
+        fallback: fallbacking
+      - selector: 500
+        action: fallback
+        fallback: '500'
+      - selector: tech
+        action: fallback
+        fallback: throttled
+responses:
+  - id: resp
+    body#xget: /sources/upstream/response/body
+    content-type: application/json
+
+fallbacks:
+  - id: fallbacking
+    body:
+        result: fallback
+  - id: '500'
+    body:
+        result: error
+  - id: throttled
+    body:
+        result: throttled
+

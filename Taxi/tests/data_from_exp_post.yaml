@@ -1,0 +1,50 @@
+id: data_from_exp_post
+title: тест offers/create-ручки с добавлением данных из эксперимента
+
+source:
+    request:
+        method: post
+        headers:
+            HeaderFromClient: HEADER_FROM_CLIENT
+        body:
+            field_from_client: FIELD_FROM_CLIENT
+        url: /4.0/scooters/api/yandex/offers/create
+    expectations:
+        response:
+            status-code: 200
+            body:
+                offer_id: OFFER_ID
+
+mocks:
+  - resource: scooters-common-post
+    response:
+        status-code: 200
+        body:
+            offer_id: OFFER_ID
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                HeaderFromClient: HEADER_FROM_CLIENT
+                HeaderFromExp: HEADER_FROM_EXP
+            body:
+                field_from_client: FIELD_FROM_CLIENT
+                field_from_exp: FIELD_FROM_EXP
+            path-params:
+                path: api/yandex/offers/create
+
+
+experiments:
+    values#object:
+      - scooters-additional-headers:
+            HeaderFromExp: HEADER_FROM_EXP
+        enabled: true
+      - scooters-additional-body-fields:
+            field_from_exp: FIELD_FROM_EXP
+        enabled: true
+    expectations:
+        consumer: api-proxy/scooters-common
+        kwargs:
+          - key: endpoint
+            value: api/yandex/offers/create
+            type: string

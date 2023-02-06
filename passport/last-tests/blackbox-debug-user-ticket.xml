@@ -1,0 +1,326 @@
+<test>
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="format">
+            <instance id="xml">xml</instance>
+            <instance id="json">json</instance>
+        </cgi>
+
+        <cgi name="method">
+            <instance id="get_debug_user_ticket">get_debug_user_ticket</instance>
+        </cgi>
+
+        <cgi name="add_scope_sessionid">
+            <instance id="yes">yes</instance>
+        </cgi>
+
+        <cgi name="add_scope_sessguard">
+            <instance id="yes">yes</instance>
+        </cgi>
+
+        <cgi name="oauth_token" func="gentoken" pregeneration="1">
+            <instance id="expired_token">
+                <arg name="const_value">788d9e09c3204521b90e878353bb3361</arg>
+            </instance>
+            <instance id="client_credentials">
+                <arg name="grant_type">client_credentials</arg>
+                <arg name="client_id">5e8656ef62914d738a9865ebf1e999b9</arg>
+                <arg name="client_secret">be550f6ba7234f928b42ca7961a4d0c9</arg>
+                <arg name="x_meta">p: \One more Testing\"/\\&lt;tester&gt;( )\u25D5\u203F\u25D5</arg>
+                <arg name="payment_auth_context_id">ignored in api</arg>
+                <arg name="payment_auth_scope_addendum">ignored in api</arg>
+            </instance>
+
+            <instance id="stateful_valid">
+                <arg name="grant_type">password</arg>
+                <arg name="username">oauth.master</arg>
+                <arg name="password">!Q@W#E$R%T</arg>
+                <arg name="client_id">5e8656ef62914d738a9865ebf1e999b9</arg>
+                <arg name="client_secret">be550f6ba7234f928b42ca7961a4d0c9</arg>
+                <arg name="device_id">ca2c4cfc56ed4465861356647d76865b</arg>
+                <arg name="x_meta">p: \Testing\"/\\&lt;tester&gt;( )\u25D5\u203F\u25D5</arg>
+                <arg name="payment_auth_context_id">ignored in api</arg>
+                <arg name="payment_auth_scope_addendum">ignored in api</arg>
+            </instance>
+
+            <instance id="stateless_valid">
+                <arg name="type">stateless</arg>
+                <arg name="uid">4001096104</arg>
+                <arg name="client_id">2267</arg>
+                <arg name="device_id">ca2c4cfc56ed4465861356647d76865b</arg>
+                <arg name="scopes">50,35</arg>
+                <arg name="x_meta">p: \Testing\"/\\&lt;tester&gt;( )\u25D5\u203F\u25D5</arg>
+            </instance>
+        </cgi>
+
+        <header name="X-Ya-Service-Ticket" func="get_service_ticket">
+            <instance id="passport_dev">
+                <arg name="dst">242</arg>
+            </instance>
+            <instance id="id_ip_denied">
+                <arg name="dst">253</arg>
+            </instance>
+            <instance id="not_exists_grants">
+                <arg name="dst">257</arg>
+            </instance>
+            <instance id="invalid">
+                <arg name="const_value">some invalid ticket</arg>
+            </instance>
+        </header>
+
+        <result name="grants_missing_service_ticket">
+            <body func="matchxpath">
+                <arg name="/doc/exception">ACCESS_DENIED</arg>
+                <arg name="/doc/exception/@id">21</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Access denied: method=get_debug_user_ticket allowed only with header 'X-Ya-Service-Ticket'</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">ACCESS_DENIED</arg>
+                <arg name="/exception/id">21</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: Access denied: method=get_debug_user_ticket allowed only with header 'X-Ya-Service-Ticket'</arg>
+            </jsonBody>
+        </result>
+        <result name="grants_invalid_service_ticket">
+            <body func="matchxpath">
+                <arg name="/doc/exception">UNKNOWN</arg>
+                <arg name="/doc/exception/@id">1</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: failed to check service ticket: Malformed ticket.</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">UNKNOWN</arg>
+                <arg name="/exception/id">1</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: failed to check service ticket: Malformed ticket.</arg>
+            </jsonBody>
+        </result>
+        <result name="missing_token">
+            <body func="matchxpath">
+                <arg name="/doc/exception">INVALID_PARAMS</arg>
+                <arg name="/doc/exception/@id">2</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Missing or empty oauth token</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: Missing or empty oauth token</arg>
+            </jsonBody>
+        </result>
+        <result name="client_credentials">
+            <body func="matchxpath">
+                <arg name="/doc/exception">UNKNOWN</arg>
+                <arg name="/doc/exception/@id">1</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: OAuth token is valid but does not contain uid (USER)</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">UNKNOWN</arg>
+                <arg name="/exception/id">1</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: OAuth token is valid but does not contain uid (USER)</arg>
+            </jsonBody>
+        </result>
+
+        <result name="expired_token">
+            <body func="matchxpath">
+                <arg name="/doc/status">INVALID</arg>
+                <arg name="/doc/comment">expired_token</arg>
+                <arg name="/doc/user_ticket"></arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">INVALID</arg>
+                <arg name="/comment">expired_token</arg>
+                <arg name="/user_ticket"></arg>
+            </jsonBody>
+        </result>
+
+        <result name="stateful_valid">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment">OK</arg>
+                <arg name="/doc/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">test:limited</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment">OK</arg>
+                <arg name="/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">test:limited</arg>
+                </arg>
+            </jsonBody>
+        </result>
+        <result name="stateless_valid">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment">OK</arg>
+                <arg name="/doc/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">oauth:grant_xtoken,test:limited</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment">OK</arg>
+                <arg name="/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">oauth:grant_xtoken,test:limited</arg>
+                </arg>
+            </jsonBody>
+        </result>
+
+        <result name="stateful_valid_with_sess_scopes">
+            <body func="matchxpath">
+                <arg name="/doc/exception">UNKNOWN</arg>
+                <arg name="/doc/exception/@id">1</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Impossible to add scope 'bb:sessionid' or 'bb:sessguard' to UserTicket: oauth token must be xtoken</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">UNKNOWN</arg>
+                <arg name="/exception/id">1</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: Impossible to add scope 'bb:sessionid' or 'bb:sessguard' to UserTicket: oauth token must be xtoken</arg>
+            </jsonBody>
+        </result>
+
+        <result name="stateless_valid_with_sessionid">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment">OK</arg>
+                <arg name="/doc/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">bb:sessionid,oauth:grant_xtoken,test:limited</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment">OK</arg>
+                <arg name="/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">bb:sessionid,oauth:grant_xtoken,test:limited</arg>
+                </arg>
+            </jsonBody>
+        </result>
+        <result name="stateless_valid_with_sessguard">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment">OK</arg>
+                <arg name="/doc/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">bb:sessguard,bb:sessionid,oauth:grant_xtoken,test:limited</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment">OK</arg>
+                <arg name="/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4001096104</arg>
+                    <arg name="default_uid">4001096104</arg>
+                    <arg name="scopes">bb:sessguard,bb:sessionid,oauth:grant_xtoken,test:limited</arg>
+                </arg>
+            </jsonBody>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>BlackBox</description>
+
+        <pre-test>
+        set -e
+        T=$((`date +%s`+600));
+        if [ -z $RECIPE_MYSQL_DIR ]; then MYSQL_HOST="cnt-dbm-test.passport.yandex.net"; else MYSQL_HOST="127.0.0.1"; fi
+        MYSQL_CREDS="-h $MYSQL_HOST -P ${RECIPE_MYSQL_PORT:-3306} --protocol tcp -u $BB_PASSPORTDB_USER_RW ${BB_PASSPORTDB_PASSWD_RW:+-p$BB_PASSPORTDB_PASSWD_RW}"
+
+        if [ -n "$RECIPE_MYSQL_DIR" ]; then
+            NOW=`date +%s`
+            ${RECIPE_MYSQL_DIR}mysql $MYSQL_CREDS -Doauthdbshard1 -e "UPDATE token_attributes SET value='${NOW}' WHERE id in (5731234,5731236) AND type in (9,10)"
+            ${RECIPE_MYSQL_DIR}mysql $MYSQL_CREDS -Doauthdbshard1 -e "UPDATE token_attributes SET value='${T}' WHERE id in (5731234,5731236) AND type=7"
+            ${RECIPE_MYSQL_DIR}mysql $MYSQL_CREDS -Doauthdbshard2 -e "UPDATE token_attributes SET value='${NOW}' WHERE id in (58628812) AND type in (9,10)"
+            ${RECIPE_MYSQL_DIR}mysql $MYSQL_CREDS -Doauthdbshard2 -e "UPDATE token_attributes SET value='${T}' WHERE id in (58628812) AND type=7"
+        fi
+        </pre-test>
+
+        <case>
+            <description>Check method=get_debug_user_ticket</description>
+            <path>blackbox</path>
+            <cgi name="method">get_debug_user_ticket</cgi>
+            <cgi name="oauth_token" withnull="1">*</cgi>
+            <cgi name="add_scope_sessionid" withnull="1">*</cgi>
+            <cgi name="add_scope_sessguard" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket" withnull="1">*</header>
+
+            <check>
+                <header name="X-Ya-Service-Ticket" withnull="1"></header>
+                <result>grants_missing_service_ticket</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">invalid</header>
+                <result>grants_invalid_service_ticket</result>
+            </check>
+            <check>
+                <cgi name="oauth_token" withnull="1"></cgi>
+                <result>missing_token</result>
+            </check>
+
+            <check>
+                <cgi name="oauth_token">expired_token</cgi>
+                <result>expired_token</result>
+            </check>
+            <check>
+                <cgi name="oauth_token">client_credentials</cgi>
+                <result>client_credentials</result>
+            </check>
+
+            <check>
+                <cgi name="oauth_token">stateful_valid</cgi>
+                <cgi name="add_scope_sessionid" withnull="1"></cgi>
+                <cgi name="add_scope_sessguard" withnull="1"></cgi>
+                <result>stateful_valid</result>
+            </check>
+            <check>
+                <cgi name="oauth_token">stateless_valid</cgi>
+                <cgi name="add_scope_sessionid" withnull="1"></cgi>
+                <cgi name="add_scope_sessguard" withnull="1"></cgi>
+                <result>stateless_valid</result>
+            </check>
+
+            <check>
+                <cgi name="oauth_token">stateless_valid</cgi>
+                <cgi name="add_scope_sessionid">yes</cgi>
+                <cgi name="add_scope_sessguard" withnull="1"></cgi>
+                <result>stateless_valid_with_sessionid</result>
+            </check>
+            <check>
+                <cgi name="oauth_token">stateless_valid</cgi>
+                <cgi name="add_scope_sessguard">yes</cgi>
+                <result>stateless_valid_with_sessguard</result>
+            </check>
+
+            <check>
+                <cgi name="oauth_token">stateful_valid</cgi>
+                <cgi name="add_scope_sessionid" withnull="1">yes</cgi>
+                <cgi name="add_scope_sessguard" withnull="1">yes</cgi>
+                <result>stateful_valid_with_sess_scopes</result>
+            </check>
+        </case>
+    </node>
+
+</test>

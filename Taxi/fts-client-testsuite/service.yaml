@@ -1,0 +1,103 @@
+project-name: yandex-taxi-fts-client-testsuite
+short-name: fts-client-testsuite
+wiki: https://wiki.yandex-team.ru/taxi/backend/graph/
+maintainers:
+  - Artem Serebriyskiy <aserebriyskiy@yandex-team.ru>
+  - Vyacheslav Vanin <vaninvv@yandex-team.ru>
+libraries:
+  - yandex-userver-core
+  - yandex-taxi-library-fts-client
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy:
+    os-name: bionic
+
+target-os:
+  - bionic
+
+debian:
+    source_package_name: yandex-taxi-fts-client-testsuite
+    maintainer_name: Artem Serebriyskiy
+    maintainer_login: aserebriyskiy
+
+# TODO: please follow these simple steps to finish TVM setup (already done if your service is in RTC):
+# https://wiki.yandex-team.ru/taxi/backend/userver/tvm/#podkljuchenie
+tvm2:
+    secdist-service-name: fts-client-testsuite
+
+uservice_unit:
+    description: |
+        This service is not deployed - it is simply collection
+        of tests for fts-client library
+
+    hostname:
+        production:
+          - fts-client-testsuite.taxi.yandex.net
+        testing:
+          - fts-client-testsuite.taxi.tst.yandex.net
+        # TODO: Uncomment this section if you need unstable
+        # unstable:
+        #   - fts-client-testsuite.taxi.dev.yandex.net
+
+    nginx:
+        # Remove the line below if you don't use L7-balancer (which sets X-Real-IP itself)
+        set_x_real_ip: false
+
+    grafana:
+        production: TODO
+        testing: TODO
+
+# TODO: Customize your dashboard:
+# https://wiki.yandex-team.ru/taxi/backend/userver/dashboards-generation/
+# https://wiki.yandex-team.ru/taxi/backend/dashboards/
+dashboards:
+    service_group:
+        rtc:
+            name: fts-client-testsuite
+    grafana_additional_layouts:
+      - userver_common:
+            collapsed: true
+            uservice_name: fts-client-testsuite
+
+linters:
+    extra-application-package-names:
+      - fts_client_testsuite_plugins
+
+
+clownductor_service_info:
+    # Documentation: https://wiki.yandex-team.ru/taxi-ito/cloudhowto/#sborkaokruzhenijaservisacherezservice.yaml
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    design_review: https://st.yandex-team.ru/NONE-01
+    disk_profile: ssd-default
+    duty:
+        abc_slug: taxidutygraph
+        primary_schedule: taxidutygraph
+    # Your project. One of a list https://tariff-editor.taxi.yandex-team.ru/services/
+    clownductor_project: taxi-infra
+
+# TODO: you can provide your taxi-* group from https://a.yandex-team.ru/arc_vcs/groups/
+#       with "g:" prefix here, otherwise maintainers will be used
+ya-make:
+    enabled: true
+    owners:
+      - g:taxi_graph
+
+pytest:
+    api-coverage:
+        enabled: false
+
+dependencies:
+    injections:
+      - name: fts_client
+        include-fwd: fts-client/client/i_pipeline_client.hpp
+        include:
+          - fts-client/client/i_pipeline_client.hpp
+          - fts-client/components/component.hpp
+        type: fts::client::IFtsPipelineClientPtr
+        init: context.FindComponent<fts::components::Component>().GetClient("test")

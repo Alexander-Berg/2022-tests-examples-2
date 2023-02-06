@@ -1,0 +1,48 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        state-manager:
+            initial: {}
+        keys-mapping:
+            default-keys: [handle-default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            shared-state-init: {}
+            stages:
+              - id: default-stage
+                handlers:
+                  - id: default-handler
+                    handler-fallback-policy:
+                      - strategy: ignore
+                        enabled#equal:
+                          - value#xget: /sources/default-request/response/status-code
+                          - value: 409
+                        result:
+                            error: true
+                            catch-409: true
+                      - strategy: ignore
+                        result:
+                            error: true
+                            catch-409: false
+                    resources:
+                      - id: default-resource
+                        method: get
+                        url: $example_resource_url
+                        max-retries: 1
+                    requests:
+                      - id: default-request
+                        resource: default-resource
+                        fail-policy:
+                          - selector: any
+                            action: propagate
+                    result:
+                        error: false

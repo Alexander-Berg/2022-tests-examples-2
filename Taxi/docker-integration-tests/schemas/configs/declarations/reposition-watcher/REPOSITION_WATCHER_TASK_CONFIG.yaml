@@ -1,0 +1,30 @@
+default:
+    session_updating_state_ttl: 60
+    sessions_per_subtask: 1000
+    parallel_subtasks_count: 1
+description: Параметры основной крон-таски reposition-watcher
+full-description: Параметры для гибкой настройки таски, осуществляющей проверку водителей
+    в режимах перемещещния.
+tags: [notfallback]
+maintainers: [sandyre, ichebykin]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        session_updating_state_ttl:
+            type: integer
+            description: Время в секундах, спустя которое считается что процесс проверки
+                сессии зафейлился и ее можно снова брать.
+            x-taxi-cpp-type: std::chrono::seconds
+        sessions_per_subtask:
+            type: integer
+            description: Количество сессий, которое джоба берет на одну итерацию проверок
+                (в одну таску).
+        parallel_subtasks_count:
+            type: integer
+            description: Количество тасок, которое будет запущено в рамках одной итерации.
+            minimum: 1
+    required:
+      - session_updating_state_ttl
+      - sessions_per_subtask
+      - parallel_subtasks_count

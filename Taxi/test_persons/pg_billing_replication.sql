@@ -1,0 +1,58 @@
+INSERT INTO parks.clients (id, park_id, created, updated) VALUES
+    ('1', '100', CAST('2017-01-01 10:00:00.000001' AS TIMESTAMP), CAST('2019-01-01 10:00:00.000001' AS TIMESTAMP)),
+    ('2', '200', CAST('2017-01-01 10:00:00.000001' AS TIMESTAMP), CAST('2019-01-01 10:00:00.000001' AS TIMESTAMP)),
+    ('3', '300', CAST('2017-01-01 10:00:00.000001' AS TIMESTAMP), CAST('2019-01-01 10:00:00.000001' AS TIMESTAMP)),
+    ('4', '400', CAST('2017-01-01 10:00:00.000001' AS TIMESTAMP), CAST('2019-01-01 10:00:00.000001' AS TIMESTAMP))
+;
+
+INSERT INTO parks.persons (
+    "ID","POSTADDRESS","OWNERSHIP_TYPE","DELIVERY_TYPE","LEGAL_ADDRESS_POSTCODE","NAME","MNAME","LONGNAME","LNAME","PHONE","INN",
+    "CLIENT_ID","AUTHORITY_DOC_TYPE","FNAME","INVALID_BANKPROPS","LEGALADDRESS","TYPE","EMAIL","SIGNER_PERSON_NAME",
+    "KPP","OGRN","BIK","BANK","BANKCITY","ACCOUNT","CORRACCOUNT","DT",created,updated
+) VALUES (
+    '3265597','Юрьевский пер. д. 16А (*)',NULL,NULL,NULL,'Testar Testovich Testov','Testovich',
+    'Индивидуальный предприниматель Testar Testovich Testov','Testov','+71111111111','123','1',
+    'Свидетельство о регистрации','Testar','True','111111, улица, дом, Мытищи, МО, Россия','ur',
+    'test01@gmail.com','Another Dude Entirely',NULL,'111102200022011','044011044',NULL,NULL,
+    '00000010100000001100',NULL,CAST('2017-11-02 11:57:09' AS TIMESTAMP),
+    CAST('2019-03-04 13:25:28.936361' AS TIMESTAMP),CAST('2019-03-04 13:25:28.936361' AS TIMESTAMP)
+);
+
+INSERT INTO parks.persons (
+    "ID","POSTADDRESS","OWNERSHIP_TYPE","DELIVERY_TYPE","LEGAL_ADDRESS_POSTCODE","NAME","MNAME","LONGNAME","LNAME","PHONE","INN",
+    "CLIENT_ID","AUTHORITY_DOC_TYPE","FNAME","INVALID_BANKPROPS","LEGALADDRESS","TYPE","EMAIL","SIGNER_PERSON_NAME",
+    "KPP","OGRN","BIK","BANK","BANKCITY","ACCOUNT","CORRACCOUNT","DT",created,updated
+) VALUES (
+    '3659468',NULL,NULL,NULL,NULL,'Estra Estrovna Estrova','Estrovna',
+    'Индивидуальный предприниматель Estra Estrovna Estrova','Estrova','+72222222222','456','1',
+    'Устав','Estra',NULL,'100121, г.Екатеринбург, ул. Поддубная, 987/4','ph','d@mail.ru',NULL,
+    '118001001','111100000011011','244211244',NULL,NULL,'00000010100000001100','a',
+    CAST('2016-12-11 18:20:58' AS TIMESTAMP),CAST('2019-03-04 13:25:28.936361' AS TIMESTAMP),
+    CAST('2019-03-04 13:25:28.936361' AS TIMESTAMP)
+);
+
+INSERT INTO parks.persons (
+    "ID","POSTADDRESS","OWNERSHIP_TYPE","DELIVERY_TYPE","LEGAL_ADDRESS_POSTCODE","NAME","MNAME","LONGNAME","LNAME","PHONE","INN",
+    "CLIENT_ID","AUTHORITY_DOC_TYPE","FNAME","INVALID_BANKPROPS","LEGALADDRESS","TYPE","EMAIL","SIGNER_PERSON_NAME",
+    "KPP","OGRN","BIK","BANK","BANKCITY","ACCOUNT","CORRACCOUNT","DT",created,updated,"KZ_IN"
+) VALUES (
+    '9137508','620149,Екатеринбург,ул Рябинина,29, кв.539','SELFEMPLOYED','4','110111','Web Design, Ltd',NULL,'Web Design, Ltd',NULL,
+    '+73333332222','789','2','Доверенность',NULL,'True',
+    'Israel Tel-Aviv Street 1','eu_yt','a@yandex.ru',NULL,
+    NULL,NULL,NULL,NULL,NULL,NULL,NULL,CAST('2018-12-29 13:28:31' AS TIMESTAMP),
+    CAST('2019-03-04 13:25:28.936361' AS TIMESTAMP),CAST('2019-03-04 13:25:28.936361' AS TIMESTAMP),
+    '180540020512'  -- KZ_IN
+);
+
+INSERT INTO parks.persons (
+    "ID","POSTADDRESS","OWNERSHIP_TYPE","DELIVERY_TYPE","LEGAL_ADDRESS_POSTCODE","NAME","MNAME","LONGNAME","LNAME","PHONE","INN",
+    "CLIENT_ID","AUTHORITY_DOC_TYPE","FNAME","INVALID_BANKPROPS","LEGALADDRESS","TYPE","EMAIL","SIGNER_PERSON_NAME",
+    "KPP","OGRN","BIK","BANK","BANKCITY","ACCOUNT","CORRACCOUNT","DT",created,updated,status
+) VALUES (
+   '9314338', '620149,Екатеринбург,ул Рябинина,29, кв.539', 'SELFEMPLOYED', '4', '119571', 'Зиновьев Алексей Владимирович', 'Владимирович',
+   'Зиновьев Алексей Владимирович', 'Зиновьев',
+   '+79262711664', '771977706439', '4', 'Свидетельство о регистрации', 'Алексей', 'True',
+   'проспект Вернадского, 127, Москва, Россия', 'ur', 'awesome.taxi7002@yandex.ru', 'Зиновьев Алексей',
+   NULL, NULL, NULL, NULL, NULL, NULL, NULL, CAST('2019-01-23 20:50:32' AS TIMESTAMP),
+   CAST('2019-02-20 20:09:33.147738' AS TIMESTAMP), CAST('2019-03-25 13:28:51.869762' AS TIMESTAMP), 'INACTIVE'
+);

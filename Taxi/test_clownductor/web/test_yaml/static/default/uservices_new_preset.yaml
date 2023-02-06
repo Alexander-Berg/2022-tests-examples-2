@@ -1,0 +1,103 @@
+project-name: yandex-taxi-eats-couriers-equipment
+short-name: eats-couriers-equipment
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/eats-couriers-equipment/
+maintainers:
+  - Karachev Dmitrii <karachevda@yandex-team.ru>
+  - Petrov Mikhail <mvpetrov@yandex-team.ru>
+libraries:
+  - yandex-taxi-userver-core
+  - yandex-taxi-library-client-distlocks
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy: {}
+
+debian:
+    source_package_name: yandex-taxi-eats-couriers-equipment
+    maintainer_name: karachevda
+    maintainer_login: karachevda
+
+tvm2:
+    secdist-service-name: eats-couriers-equipment
+
+uservice_unit:
+    description: Service for managing couriers equipment
+
+    hostname:
+        production:
+          - eats-couriers-equipment.eda.yandex.net
+        testing:
+          - eats-couriers-equipment.eda.tst.yandex.net
+        unstable:
+          - eats-couriers-equipment.eda.dev.yandex.net
+
+    grafana:
+        production: https://grafana.yandex-team.ru/d/rPACzomGk/nanny_eda_eats-couriers-equipment_stable
+        testing: https://grafana.yandex-team.ru/d/RD4pWomMk/nanny_eda_eats-couriers-equipment_testing
+
+dashboards:
+    service_group:
+        rtc:
+            name: eats-couriers-equipment
+    grafana_additional_layouts:
+      - userver_common:
+            collapsed: true
+            uservice_name: eats-couriers-equipment
+
+linters:
+    extra-application-package-names:
+      - eats_couriers_equipment_plugins
+
+postgresql:
+    databases:
+      - outsource-lavka-transport
+
+clients:
+  - couriers-core
+  - personal
+
+configs:
+    names:
+      - EATS_COURIERS_EQUIPMENT_UPDATE_COURIERS_CONFIGURATION
+      - EATS_COURIERS_EQUIPMENT_PG_TIMEOUTS
+
+clownductor_service_info:
+    preset:
+        production:
+            name: x2micro
+        testing:
+            name: x2nano
+        unstable:
+            name: x2nano
+            overrides:
+                cpu: 0.5
+                ram: 2.5
+    duty_group_id: 5b69be79c5755f678048a169
+    design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-265
+    clownductor_project: eda
+    has_balancers: false
+    disk_profile:
+        production:
+            name: ssd-default
+            overrides:
+              - path: /logs
+                size: 50000
+                type: ssd
+            root_override:
+                size: 10240
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 6
+                work_dir_size: 256
+        testing:
+            name: ssd-default
+            overrides:
+              - path: /logs
+                size: 50000
+                type: ssd
+        unstable:
+            name: ssd-default
+            overrides:
+              - path: /logs
+                size: 50000
+                type: ssd

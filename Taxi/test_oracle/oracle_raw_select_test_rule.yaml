@@ -1,0 +1,31 @@
+name: oracle_raw_select_test
+source:
+    type: oracle
+    connection:
+        secret: test_yav_one_shard
+    table: test.test
+    primary_key:
+      - ID
+    replicate_by: utc_updated_dttm
+    raw_select:
+        data: SELECT * FROM test.test
+        data_query_has_conditions: false
+        min_replicate_by: SELECT min(utc_updated_dttm) FROM test.test
+        max_replicate_by: SELECT max(utc_updated_dttm) FROM test.test
+    time_chunk_size: 2592000  #  инкремент в месяц
+destinations:
+  - oracle_raw_select_test_raw:
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    input_column: ID
+                    type: string
+                    description: ID
+                    sort_order: ascending
+            cluster_groups:
+              - map_reduce
+            path: raw/test/test
+        type: yt
+replication_type: queue

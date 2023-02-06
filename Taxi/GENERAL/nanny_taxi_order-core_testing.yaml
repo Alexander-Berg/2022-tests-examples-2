@@ -1,0 +1,134 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:order-core:testing
+awacs_namespace: order-core-lb.taxi.tst.yandex.net
+
+http_hosts:
+  - order-core.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - userver_common:
+        collapsed: true
+        uservice_name: order-core
+  - include:
+        collapsed: true
+        path: common/congestion-control.json
+        title: Congestion Control Activity
+        variables:
+            cluster_group: taxi_order-core_testing
+            cluster_name: testing_uservices
+            custom_status: '503'
+            uservice_name: order-core
+  - include:
+        collapsed: true
+        path: nanny_taxi_order-core/mongo-sharded-panels.json
+        title: Mongo shards
+        variables:
+            cluster_name: testing_uservices
+            group: '*'
+            percentile: p99
+            shards:
+              - display_selector: multi
+                shard_name: multishard
+                shard_selector: '''mongo_shard''==''multi'''
+              - display_selector: '!(2|3|4|5|6|7|8|9|10|multi)'
+                shard_name: taxi_minor_shard0
+                shard_selector: '''mongo_shard''!=''2|3|4|5|6|7|8|9|10|multi'''
+              - display_selector: 2|5
+                shard_name: taxi_minor_shard1
+                shard_selector: '''mongo_shard''=''2|5'''
+              - display_selector: 3|6
+                shard_name: taxi_minor_shard2
+                shard_selector: '''mongo_shard''=''3|6'''
+              - display_selector: 4|7
+                shard_name: taxi_minor_shard3
+                shard_selector: '''mongo_shard''=''4|7'''
+              - display_selector: 8
+                shard_name: taxi_minor_shard4
+                shard_selector: '''mongo_shard''=''8'''
+              - display_selector: 9
+                shard_name: taxi_minor_shard5
+                shard_selector: '''mongo_shard''=''9'''
+              - display_selector: 10
+                shard_name: taxi_minor_shard6
+                shard_selector: '''mongo_shard''=''10'''
+            uservice_name: order-core
+  - include:
+        collapsed: true
+        path: nanny_taxi_order-core/mongo-pool-limit-panels.json
+        title: Pool limit
+        variables:
+            cluster_name: testing_uservices
+            group: '*'
+            percentile: p99
+            shards:
+              - display_selector: '!(5|6|7|8|9|10)'
+                shard_name: taxi_minor_shard0
+                shard_selector: '''mongo_shard''!=''5|6|7|8|9|10'''
+              - display_selector: 5
+                shard_name: taxi_minor_shard1
+                shard_selector: '''mongo_shard''=''5'''
+              - display_selector: 6
+                shard_name: taxi_minor_shard2
+                shard_selector: '''mongo_shard''=''6'''
+              - display_selector: 7
+                shard_name: taxi_minor_shard3
+                shard_selector: '''mongo_shard''=''7'''
+              - display_selector: 8
+                shard_name: taxi_minor_shard4
+                shard_selector: '''mongo_shard''=''8'''
+              - display_selector: 9
+                shard_name: taxi_minor_shard5
+                shard_selector: '''mongo_shard''=''9'''
+              - display_selector: 10
+                shard_name: taxi_minor_shard6
+                shard_selector: '''mongo_shard''=''10'''
+            uservice_name: order-core
+  - include:
+        collapsed: true
+        path: nanny_taxi_order-core/stq-processing-starter.json
+        title: Stq processing starter
+        variables:
+            cluster_name: testing_uservices
+            group: '*'
+            uservice_name: order-core
+  - include:
+        collapsed: true
+        path: nanny_taxi_order-core/mongo-commit-limits-panels.json
+        title: Order commit limits (taxi)
+        variables:
+            cities: "Москва|Санкт-Петербург|Алматы|Ташкент|Казань|Екатеринбург|Минск|Астана|Краснодар|Ереван"
+            cluster_name: testing_uservices
+            service_type: taxi
+  - include:
+        collapsed: true
+        path: nanny_taxi_order-core/mongo-commit-limits-panels.json
+        title: Order commit limits (cargo)
+        variables:
+            cities: "Москва|Санкт-Петербург|Алматы|Ташкент|Казань|Екатеринбург|Минск|Астана|Краснодар|Ереван"
+            cluster_name: testing_uservices
+            service_type: cargo
+  - include:
+        collapsed: true
+        path: nanny_taxi_order-core/mongo-global-commit-limits-panel.json
+        title: Global commit limits
+        variables:
+            cluster_name: testing_uservices
+  - fallbacks:
+        services:
+          - order-core
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: order-core-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - stq:
+        collapsed: true
+        queues:
+          - process_cancel
+          - process_trigger
+          - process_update
+          - processing_starter
+          - support_commit
+  - http

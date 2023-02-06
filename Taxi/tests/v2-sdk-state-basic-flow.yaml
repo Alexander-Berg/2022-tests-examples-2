@@ -1,0 +1,56 @@
+id: v2-sdk-state-basic-flow
+title: Тест для проверки проксирования ручки /4.0/sweet-home/v2/sdk-state в апи-прокси
+
+parameters:
+  - case:
+      - mocked_status_code: 200
+        mocked_body:
+            menu: {"sections": []}
+        expected_status_code: 200
+        expected_body:
+            menu: {"sections": []}
+      - mocked_status_code: 400
+        mocked_body:
+            code: "400"
+            message: "Missing X-SDK-Client-ID in header"
+        expected_status_code: 400
+        expected_body:
+            code: "400"
+            message: "Missing X-SDK-Client-ID in header"
+      - mocked_status_code: 500
+        mocked_body:
+            code: "500"
+            message: "Internal Server Error"
+        expected_exception: "Raise for status exception, code = 500: source_id=0 (plus-sweet-home-v2-sdk-state).\
+            \ location stack: sources[0]; sources; responses; /; "
+
+source:
+    request:
+        method: post
+        body:
+            include: ["menu", "state"]
+        headers:
+            content-type: 'application/json'
+            X-Yandex-UID: 'yandex_uid1'
+    expectations:
+        exception:
+            text#xget:
+                path: /test-params/case/expected_exception
+                default-value#null: {}
+        response:
+            status-code#xget: /test-params/case/expected_status_code
+            body#xget: /test-params/case/expected_body
+
+mocks:
+  - resource: plus-sweet-home-v2-sdk-state
+    response:
+        status-code#xget: /test-params/case/mocked_status_code
+        body#xget: /test-params/case/mocked_body
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                include: ["menu", "state"]
+            headers:
+                X-Yandex-UID: 'yandex_uid1'

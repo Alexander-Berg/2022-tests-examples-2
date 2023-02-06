@@ -1,0 +1,67 @@
+name: Some name
+description: Some descr
+stages:
+  - label: Stage 1
+    steps:
+      - label: set
+        action: test_set_string
+        outputs:
+          - var: my_string
+            type: string
+        args:
+          string: Nalivkin does nalivka
+          sleep_secs: 10
+        next:
+          - concat
+
+      - label: concat
+        action: test_concat
+        outputs:
+          - var: my_new_string
+            type: string
+        args:
+          string1: '{{ my_string }}'
+          string2: ' good'
+          sleep_secs: 10
+        next:
+          - split
+
+      - label: split
+        action: test_split_string
+        args:
+          string: '{{ my_new_string }}'
+          sleep_secs: 10
+        outputs:
+          - var: splitted
+            type: string_list
+        next:
+          - concat_mult_one
+
+      - label: concat_mult_one
+        action: test_concat
+        multiple: splitted
+        outputs:
+          - var: appended1
+            type: string_list
+        args:
+          string1: '{{ splitted }}'
+          string2: '!'
+          sleep_secs: 10
+        next:
+          - concat_mult_two
+
+      - label: concat_mult_two
+        action: test_concat
+        multiple: appended1
+        outputs:
+          - var: appended2
+            type: string_list
+        args:
+          string1: '{{ appended1 }}'
+          string2: '?'
+          sleep_secs: 10
+        next:
+          - finish
+
+      - label: finish
+        action: finish

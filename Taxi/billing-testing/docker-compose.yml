@@ -1,0 +1,54 @@
+version: "2.3"
+
+services:
+    billing-testing:
+        extends:
+            service: billing-backend-py3
+        environment:
+          - PYTHONPATH=/usr/lib/yandex/taxi-src:/taxi/sibilla
+          - PACKAGE=taxi-src
+          - SOURCE=src
+          - GENERATE
+          - VERBOSE
+        volumes:
+          - $GIT_TAXI_BACKEND_PATH:/taxi/backend-py3:rw
+          - $GIT_TAXI_BILLING_TESTING_PATH/docker/services/taxi-src:/taxi/backend-py3/services/taxi-src
+          - $TEST_PATH:/taxi/tests:rw
+          - $GIT_TAXI_BILLING_TESTING_PATH:/taxi/sibilla
+          - $OUTPUT_PATH:/taxi/tests/output:rw
+        command: /bin/sh
+        depends_on:
+            taxi-billing-tlog:
+                condition: service_healthy
+            taxi-billing-docs:
+                condition: service_healthy
+            taxi-billing-accounts:
+                condition: service_healthy
+            taxi-billing-commissions:
+                condition: service_healthy
+            taxi-billing-subventions-x:
+                condition: service_healthy
+            taxi-billing-subventions:
+                condition: service_healthy
+            taxi-billing-reports:
+                condition: service_healthy
+        networks:
+          - taxi-internal
+    billing-testing-light:
+        extends:
+            service: billing-backend-py3
+        environment:
+          - PYTHONPATH=/usr/lib/yandex/taxi-src:/taxi/sibilla
+          - PACKAGE=taxi-src
+          - SOURCE=src
+          - GENERATE
+          - VERBOSE
+        volumes:
+          - $GIT_TAXI_BACKEND_PATH:/taxi/backend-py3:rw
+          - $GIT_TAXI_BILLING_TESTING_PATH/docker/services/taxi-src:/taxi/backend-py3/services/taxi-src
+          - $TEST_PATH:/taxi/tests:rw
+          - $GIT_TAXI_BILLING_TESTING_PATH:/taxi/sibilla
+          - $OUTPUT_PATH:/taxi/tests/output:rw
+        command: /bin/sh
+        networks:
+          - taxi-internal

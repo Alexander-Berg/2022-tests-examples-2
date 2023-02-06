@@ -1,0 +1,270 @@
+host: taxi_pricing-data-preparer_testing
+type: rtc
+telegram: taxi-dev-efficiency-pricing-test
+services:
+- service: pricing-data-preparer_not_found_modification_in_cache
+    # Проблемы с обновлением кэша преобразований
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_calculated_invalid_price
+    # Проблемы с применением преобразований к базовой цене
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_exceeded_level_v2_calc_paid_supply_bad_responses
+    # Массовые ошибки ручки v2/calc_paid_supply
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_exceeded_level_v2_prepare_bad_responses
+    # Массовые ошибки ручки v2/prepare
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_exceeded_level_v2_recalc_bad_responses
+    # Массовые ошибки ручки v2/recalc
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_exceeded_level_v2_recalc_order_bad_responses
+    # Массовые ошибки ручки v2/recalc_order
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_compose_pricing_data_timeouts
+    # Слишком долгие вычисления цен (на уже полученных необходимых для этого данных)
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_fetch_data_timeouts
+    # Слишком долгое ожидание при получении данных от сторонних сервисов
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_router_errors
+    # Ошибки при получении данных от роутера
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 100%  # a lot of false positive checks
+    crit: 100%  # will be fixed at EFFICIENCYDEV-15003
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_recalc_prices_mismatch
+    # Несоответствие цен при пересчёте цены таксометра на бэкенде
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_too_long_compilation_time
+    # Время компиляции преобразований превысило допустимый порог
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_backend_variables_optional_parse
+    # Нарушена обратная совместимость в backend variables
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+- service: pricing-data-preparer_no_paid_supply_additional_price
+    # Некорректное применение платной подачи
+  children:
+  - cluster
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  ignore_nodata: true
+  times:
+  - days: Mon-Fri
+    time: 10-20
+    warn: 0
+    crit: 50%
+  - days: Sat-Sun
+    time: 10-20
+    warn: 100%
+    crit: 100%
+  - days: Mon-Sun
+    time: 21-9
+    warn: 100%
+    crit: 100%
+templates:
+- template: core-files-testing
+- template: test_forced-logrotate-count
+- template: hejmdal-bad-rps
+- template: hejmdal-rtc-net-usage
+- template: hejmdal-rtc-oom
+- template: hejmdal-rtc-resource-usage
+- template: hejmdal-timings
+- template: iptruler
+- template: pilorama
+- template: ping-handle-status
+- template: push-client
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: vhost-499
+- template: test_vhost-500
+- template: test_virtual-meta
+- template: rtc-atop-warning
+- template: hejmdal-cutres-draft-notify
+- template: userver_congestion_control

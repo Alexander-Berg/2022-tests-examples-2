@@ -1,0 +1,50 @@
+id: test_post
+title: Проверка, что вызывы делаются с правильными параметрами
+
+source:
+    request:
+        method: post
+        body:
+            chainid: some_chainid
+        query:
+            some_field_query: some_field_query
+        headers:
+            some_field_headers: some_field_headers
+            X-Yandex-UID: some_uid
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code: 200
+        body:
+            offer: some_offer_id
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                chainid: some_chainid
+            query:
+                some_field_query: some_field_query
+            headers:
+                some_field_headers: some_field_headers
+                X-Yandex-UID: some_uid
+
+  - resource: callcenter-stats-operators-save_actions
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                chain_id: some_chainid
+                offer_id: some_offer_id
+                yandex_uid: some_uid
+                action_type: estimate
+
+taxi_config:
+    INTEGRATION_AUTH_SAVE_ACTIONS_ENABLED: true

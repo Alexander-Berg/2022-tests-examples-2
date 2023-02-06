@@ -1,0 +1,111 @@
+description: passes in quality-control service
+settings:
+    collection: qc_passes
+    connection: qc
+    database: qc
+indexes:
+  - key:
+      - name: entity_type
+        type: ascending
+      - name: entity_id
+        type: ascending
+      - name: exam
+        type: ascending
+  - key:
+      - name: entity_type
+        type: ascending
+      - name: exam
+        type: ascending
+      - name: status
+        type: ascending
+      - name: modified
+        type: ascending
+  - key:
+      - name: entity_type
+        type: ascending
+      - name: filter
+        type: ascending
+      - name: modified_ts
+        type: ascending
+    partialFilterExpression:
+        modified_ts:
+            $exists: true
+wiki_info: |
+    ####qc.qc_passes - проверки фотоконтроля
+
+    Каждый документ представляет состояние одной проверки. На каждую сущность (водитель, транспортное средство, или что-то ещё), каждый тип экзамена (ДКК, ДКВУ и т. д.) и на каждую проверку в рамках этого экзамена в коллекции присутствует отдельный документ.
+
+    ```python
+    qc_pass = {
+      '_id': ObjectId('5d82794ffa207ceeded82d80'),     # Суррогатный id проверки
+      'entity_type': 'driver',                         # Дубликат поля из коллекции qc_entities
+      'entity_id': '93e8f59ef68e44a2adbbc0dd8262f4d9_f8e2b9a527f0489bb0dc89b0d5d3deb7', # Id сущности из qc_entities, для которой назначена проверка
+      'exam': 'dkk',                                  # Тип проверки. Список возможных значений задается множеством значений qc.qc_settings[].exams[].code. текущие значения: identity | biometry | sts | dkvu | dkb | dkk | branding
+      'created': ISODate('2019-09-18T18:37:04.552Z'),  # Дата создания проверки (неизменяемая)
+      'modified': ISODate('2019-10-13T17:36:09.631Z'), # Дата последнего изменения документа (deprecated)
+      'modified_ts': Timestamp(1570988169, 6),         # Дата последнего изменения документа
+      'status': 'RESOLVED',                            # Статус проверки. начения: NEW | PENDING | CANCELED | RESOLVED
+      'parent': ObjectId('5d65037ad554c1424aaec079'),  # Id родительской проверки (опционально. если задано, то текущая проверка инициирована по результатам другой - родительской првоерки)
+      'media': [{                                      # Список media-документов (и запрошенных, и предоставленных) попроверке
+         'code': 'title',                              # Тип media-документа. Список возможных значений задается множеством значений qc.qc_settings[].exams[].media.items[].code
+         'required': true,                             # Обязательно ли предоставление данного media-документа для прохождения проверки
+         'loaded': ISODate('2019-10-13T17:28:13.432Z'), # Дата предоставления media-документа. Если поле не задано, то media-документ не предоставлен
+         'storage': {                                  # Метадданные по хранилищу. Если отсутствуют, то media-документ либо не предоставлен, либо хранится в дефолтном хранилище - QC_MDS_S3
+           "type": "media_storage",                    # Тип используемого хранилища
+           "id": "aff14de6da5d47f2bd3fac44855e6ac3",
+           "version": "e5458074b9744e84b64c5b3e592967f9",
+           "bucket": "identity-card"
+         },
+           "settings": {                                 # Доп. настройки  media-документа - deprecated
+           "camera_type": "back",
+           "camera_focus": "far",
+           "mask_code": "car_trunk",
+           "tutorial": "9"
+         }
+       }, {
+         'code': 'registration',
+         'required': true,
+         'loaded': ISODate('2019-10-13T17:28:14.148Z')
+      }],
+      'filter': [{                                     # дополнительные метаданные (обычно - поля из qc_entity), по которым можно вести индексированный поиск
+          'field': 'id',
+          'value': '7ad36bc7560449998acbe2c57a75c293_55261727c55d7027eefb977135cb4e3f'
+        }, {
+          'field': 'car_number',
+          'value': '013100777'
+      }],
+      'data': [{                                       # Данные, собранные в процессе проверки. Может отсутствовать, даже для подтверждённых проверок.
+        'field': 'identity_id',                        # Id поля. Открытый список значпений. Текущие значения: identity_id | identity_data | identity_number
+        'required': true,                              # Обязательно ли собрать предоставить это поле для прохождения экзамена
+        'value': 'passport_rus'                        # Значение поля
+      }, {
+        'field': 'identity_confirmation',
+        'required': true,
+        'value': '88c28f421bae4031a276555dde3f2228'
+      }, {
+        'field': 'identity_data',
+        'required': false,
+        'value': '948764fc0703482983ed9406126c7bdb'
+      }],
+      'resolution': {                                  # Итог проведения проверки. Если отсутствует, то проверка находится в процессе - резолюция ещё не вынесена.
+        'resolved': ISODate('2019-10-13T17:36:09.614Z'), # Дата простановки резолюции
+        'status': 'FAIL',                              # Тип резолюции. Значения: SUCCESS | FAIL | CANCEL
+       #'reason': 'давай еще раз',                   # Пояснительный текст по резолюции, текст. Deprecated
+        'reason': {                                    # Пояснение по резолюции
+          'text': 'мелкие предметы в салоне',          # Пояснительный текст, написанный вручную
+          'keys': [
+            'dkk_high_classes_salon_small_items'       # Ключ в танкере с пояснительным текстом
+          ]
+        },
+        'identity': {                                  # Идентификатор проверяющего, вынесшего резолюцию
+          'yandex_team': {                             # Если присутсвует, резолюцию вынес пользователь yandex-team
+            'yandex_login': 'frauhelga'                # Логин проверяющего
+          },
+          'script': {                                  # Если присутствет, резолюция вынесена скриптом
+            'name': 'amnesty.py',
+            'id': '948764fc0703482983ed9406126c7bdb'
+          }
+        }
+      }
+    }
+    ```

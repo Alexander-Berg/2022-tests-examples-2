@@ -1,0 +1,27 @@
+id: request_failure
+title: Failure response
+
+parameters:
+  - test-error:
+      - code: 400
+        message: bad request
+      - code: 500
+        message: server error
+
+source:
+    request:
+        method: get
+    expectations:
+        response:
+            status-code#xget: /test-params/test-error/code
+            body:
+                message#xget: /test-params/test-error/message
+
+mocks:
+  - resource: individual-tariffs-v1-tariff-get
+    response:
+        status-code#xget: /test-params/test-error/code
+        body:
+            message#xget: /test-params/test-error/message
+    expectations:
+        call-count#integer: 1

@@ -1,0 +1,30 @@
+emitter:
+  args:
+    balancer_host: 'logbroker-prestable.yandex.net:8999'
+    client: passport@lbc-passport-revoke-oauth-tokens
+    data_port: 8999
+    ident: passport
+    per_host_config:
+      .*?:
+        dc: myt
+        topics:
+        - rt3.myt--passport--passport-revoke-oauth-tokens-log
+        - rt3.man--passport--passport-revoke-oauth-tokens-log
+    workers_count: 4
+  class: passport.backend.logbroker_client.core.consumers.simple.emitter.PartitionsCountEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+oauth:
+  url: https://oauth-test-internal.yandex.ru/
+  retries: 3
+  timeout: 1
+logpath: /var/log/yandex/logbroker-client/revoke-oauth-tokens/
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.revoke_oauth_tokens.handler.RevokeOAuthTokensHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.worker.AutoBalancedLogbrokerWorker
+  count: 4

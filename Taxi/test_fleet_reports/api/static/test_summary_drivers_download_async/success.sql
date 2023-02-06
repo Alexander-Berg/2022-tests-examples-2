@@ -1,0 +1,98 @@
+INSERT INTO yt.report_summary_drivers
+(
+    "park_id",
+    "driver_id",
+    "date_day",
+    "work_rule_id",
+    "count_orders_completed",
+    "count_orders_all",
+    "count_orders_platform",
+    "count_orders_accepted",
+    "count_orders_cancelled_by_driver",
+    "count_orders_cancelled_by_client",
+    "work_time_seconds",
+    "price_cash",
+    "price_cashless",
+    "price_platform_commission",
+    "price_park_commission",
+    "shard"
+)
+VALUES
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5ce98',
+    '2020-06-02',
+    'y7sh66456yu4oq348hyb22ctrai5ge92',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    7
+),
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5ce98',
+    '2020-06-03',
+    'y7sh66456yu4oq348hyb22ctrai5ge92',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    7
+),
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5c123',
+    '2020-06-02',
+    'y7sh66456yu4oq348hyb22ctrai5ge92',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    1,
+    1,
+    1,
+    1,
+    7
+)
+;
+INSERT INTO yt.operations
+    (
+        operation_id,
+        operation_status,
+        type,
+        status,
+        cluster,
+        created_at,
+        updated_at,
+        date_to
+    )
+VALUES
+    (
+        '5f69eb5d9dee76b6221355fe',
+        'COMPLETED',
+        'report_summary_v2',
+        'uploaded_to_db',
+        'hahn',
+        '2020-09-22 00:00:00+03:00',
+        '2020-09-22 00:00:00+03:00',
+        '2020-09-22 00:00:00+03:00'
+    )
+;

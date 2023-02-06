@@ -1,0 +1,88 @@
+_scenario () {
+    MAIN clean_cmpy_tmp:
+    MAIN build_test_triggers: clean_cmpy_tmp
+    MAIN build_prev_triggers: clean_cmpy_tmp
+    MAIN build_aspam_pack: clean_cmpy_tmp
+    MAIN build_triggers: build_test_triggers build_prev_triggers build_aspam_pack
+    MAIN download_triggers_build: build_triggers
+    MAIN set_desc_and_format: download_triggers_build
+    MAIN get_ya_tool: set_desc_and_format
+    MAIN deploy_test_triggers: get_ya_tool
+    MAIN deploy_test_procedures: deploy_test_triggers
+    MAIN deploy_test_exports: deploy_test_procedures
+
+    MAIN init_update_initial_data:
+    MAIN get_nightly_urls: init_update_initial_data
+    MAIN get_nightly_hosts: init_update_initial_data
+    MAIN upload_isPlatinum_url_to_kiwi_main: get_nightly_urls
+    MAIN upload_isPlatinum_hosts_to_kiwi_main: get_nightly_hosts
+    MAIN update_initial_data: upload_isPlatinum_url_to_kiwi_main upload_isPlatinum_hosts_to_kiwi_main
+
+    MAIN init_update_apteryx_data:
+    MAIN merge_urls_IsPlat_export_tables: init_update_apteryx_data
+    MAIN merge_hosts_IsPlat_export_tables: init_update_apteryx_data
+    MAIN clean_urls_table: merge_urls_IsPlat_export_tables
+    MAIN clean_hosts_table: merge_hosts_IsPlat_export_tables
+    MAIN upload_urls_to_apteryx: clean_urls_table
+    MAIN upload_hosts_to_apteryx: clean_hosts_table
+    MAIN update_apteryx_data: upload_urls_to_apteryx upload_hosts_to_apteryx
+
+# Main testing contour
+    MAIN cleanup_working_dir:
+
+#    MAIN merge_baseline_aspam_exports: cleanup_working_dir
+    MAIN merge_baseline_host_exports: cleanup_working_dir
+    MAIN merge_baseline_nocontent_exports: cleanup_working_dir
+    MAIN merge_baseline_content_exports: cleanup_working_dir
+
+#    MAIN merge_test_aspam_exports:
+    MAIN merge_test_host_exports: cleanup_working_dir
+    MAIN merge_test_nocontent_exports: cleanup_working_dir
+    MAIN merge_test_content_exports: cleanup_working_dir
+
+#    MAIN get_urls_from_baseline_aspam_exports: merge_baseline_aspam_exports
+    MAIN get_hosts_from_baseline_host_exports: merge_baseline_host_exports
+    MAIN get_urls_from_baseline_nocontent_exports: merge_baseline_nocontent_exports
+    MAIN get_urls_from_baseline_content_exports: merge_baseline_content_exports
+
+#    MAIN get_urls_from_test_aspam_exports: merge_test_aspam_exports
+    MAIN get_hosts_from_test_host_exports: merge_test_host_exports
+    MAIN get_urls_from_test_nocontent_exports: merge_test_nocontent_exports
+    MAIN get_urls_from_test_content_exports: merge_test_content_exports
+
+#    MAIN intersect_aspam_urls: get_urls_from_baseline_aspam_exports get_urls_from_test_aspam_exports
+    MAIN intersect_hosts: get_hosts_from_baseline_host_exports get_hosts_from_test_host_exports
+    MAIN intersect_nocontent_urls: get_urls_from_baseline_nocontent_exports get_urls_from_test_nocontent_exports
+    MAIN intersect_content_urls: get_urls_from_baseline_content_exports get_urls_from_test_content_exports
+
+#    MAIN get_final_baseline_aspam_data: intersect_aspam_urls
+    MAIN get_final_baseline_host_data: intersect_hosts
+    MAIN get_final_baseline_nocontent_data: intersect_nocontent_urls
+    MAIN get_final_baseline_content_data: intersect_content_urls
+
+#    MAIN get_final_test_aspam_data: intersect_aspam_urls
+    MAIN get_final_test_host_data: intersect_hosts
+    MAIN get_final_test_nocontent_data: intersect_nocontent_urls
+    MAIN get_final_test_content_data: intersect_content_urls
+
+    MAIN prepare_kiwi_data_for_bases: get_final_baseline_host_data get_final_baseline_nocontent_data get_final_baseline_content_data get_final_test_host_data get_final_test_nocontent_data get_final_test_content_data
+
+    MAIN update_z2_configuration: prepare_kiwi_data_for_bases
+    MAIN update_kiwi_triggers_jupiter_cm: update_z2_configuration
+
+# 1st pass
+    MAIN copy_baseline_kiwi_data: update_kiwi_triggers_jupiter_cm
+    MAIN run_baseline_spread: copy_baseline_kiwi_data
+    MAIN run_baseline_base_build: run_baseline_spread
+    MAIN finish_baseline_base_build: run_baseline_base_build
+# 2nd pass
+    MAIN copy_test_kiwi_data: finish_baseline_base_build
+    MAIN run_test_spread: copy_test_kiwi_data
+    MAIN prepare_test_base_build: run_test_spread
+    MAIN run_test_base_build: prepare_test_base_build
+    MAIN finish_test_base_build: run_test_base_build
+
+    MAIN build_bases: finish_test_base_build
+
+    MAIN run_fml_task: build_bases
+}

@@ -1,0 +1,33 @@
+    {{ taxi_service }}:
+        extends:
+            service: taxi-{{ repo }}{% if rtc %}
+        image: registry.yandex.net/taxi/{{ pure_service }}/production:${IMAGE_VERSION:-test}{% else %}
+        image: registry.yandex.net/taxi/taxi-integration/xenial/{{ taxi_service }}:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: {{ taxi_service }}
+                packages: yandex-{{ taxi_web_service }}
+                platform: ${PLATFORM:-xenial}{% endif %}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name={{ taxi_service }}{% if repo == 'backend-py3' %}
+        working_dir: /usr/lib/yandex/{{ taxi_web_service }}{% endif %}
+        hostname: {{ pure_service }}.taxi.yandex.net
+        command: /taxi/run/{{ pure_service }}.sh
+        healthcheck:
+            test: curl -f http://{{ pure_service }}.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - {{ pure_service }}.taxi.yandex.net
+

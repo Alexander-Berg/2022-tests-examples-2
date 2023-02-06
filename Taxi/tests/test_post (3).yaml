@@ -1,0 +1,72 @@
+id: test_post
+title: Проверка, что вызывы делаются с правильными параметрами
+
+
+source:
+    request:
+        method: post
+        body:
+            some_field_body: some_field_body
+            inbound_number: 89672763662
+            chainid: some_chainid
+            offer: some_offer
+            zone_name: some_zone_name
+        query:
+            some_field_query: some_field_query
+        headers:
+            some_field_headers: some_field_headers
+            X-Yandex-UID: some_uid
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code: 200
+        body:
+            orderid: some_orderid
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                some_field_body: some_field_body
+                chainid: some_chainid
+                offer: some_offer
+                zone_name: some_zone_name
+            query:
+                some_field_query: some_field_query
+            headers:
+                some_field_headers: some_field_headers
+                X-Yandex-UID: some_uid
+
+  - resource: callcenter-stats-operators-save_actions
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                chain_id: some_chainid
+                offer_id: some_offer
+                yandex_uid: some_uid
+                order_id: some_orderid
+                zone_name: some_zone_name
+                action_type: draft
+
+  - resource: taxi-ivr-dispatcher-inbound_number
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                order_id: some_orderid
+                inbound_number: 89672763662
+
+taxi_config:
+    INTEGRATION_AUTH_SAVE_ACTIONS_ENABLED: true
+    INTEGRATION_AUTH_STORE_INBOUND_NUMBER: true

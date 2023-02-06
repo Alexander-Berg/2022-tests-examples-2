@@ -1,0 +1,44 @@
+INSERT INTO corp_discounts.apply_log
+(
+    order_id,
+    user_id,
+    link_id,
+    order_service,
+    client_id,
+    order_discount_amount,
+    order_discount_vat,
+    order_discount_amount_w_vat,
+    order_price,
+    order_created,
+    apply_timestamp,
+    discount_reverted
+)
+VALUES
+(
+    'order_1',
+    'user_1',
+    1,
+    'eats2',
+    'client_1',
+    '256',
+    '51.2000',
+    '317.2000',
+    '1024',
+    '2021-09-24T00:00:00+00:00',
+    '2021-09-24T01:00:00+00:00',
+    true
+),
+(
+    'order_2',
+    'user_1',
+    1,
+    'eats2',
+    'client_1',
+    '128',
+    '25.6000',
+    '153.6000',
+    '512',
+    '2021-09-30T20:00:00+00:00',
+    '2021-10-01T00:00:00+03:00',
+    false
+)

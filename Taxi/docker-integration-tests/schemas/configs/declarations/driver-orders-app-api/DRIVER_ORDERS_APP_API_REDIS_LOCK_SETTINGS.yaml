@@ -1,0 +1,52 @@
+description: Redis lock settings for driver-orders-app-api client
+default:
+    __default__:
+        min_sleep_delay: 100
+        max_sleep_delay: 2500
+        max_retries: 10
+        max_lock_obtaining_duration: 30000
+        redis_lock_key_ttl: 30000
+
+tags: []
+schema:
+    $ref: '#/definitions/HandlerRedisLockSettings'
+
+    definitions:
+        RedisLockSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                min_sleep_delay:
+                    description: Initial sleep duration (ms)
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                max_sleep_delay:
+                    description: Max sleep duration (ms)
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                max_retries:
+                    description: Max retries count
+                    type: integer
+                    minimum: 1
+                max_lock_obtaining_duration:
+                    description: Max total lock obtaining duration (ms)
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                redis_lock_key_ttl:
+                    description: Redis lock key ttl (to expire) (ms)
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+
+        HandlerRedisLockSettings:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/RedisLockSettings'
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/RedisLockSettings'

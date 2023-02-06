@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:geo_informer.exports.beans.morda.autotests.yandex.ru"
+            xmlns:ns="urn:geo_informer.exports.beans.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="geo_informer_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.MapMapListDeserializer
+                    &lt;ru.yandex.autotests.morda.beans.exports.geo_informer.GeoInformerEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="geo_informer_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.annotations.exports.MordaExportDescription"
+                                    name="geo_informer"
+                                    clazz="ru.yandex.autotests.morda.beans.exports.geo_informer.GeoInformerExport"/>
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.AbstractMordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.beans.exports.geo_informer.GeoInformerExport,
+                    ru.yandex.autotests.morda.beans.exports.geo_informer.GeoInformerEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:geo_informer_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.beans.exports.geo_informer.GeoInformerDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="geo_informer_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.beans.exports.AbstractEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithId</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithGeoAndLang</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithDomain</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="domain">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:property>
+                            <jaxb:baseType name="ru.yandex.autotests.morda.exports.filters.MordaDomainFilter"/>
+                        </jaxb:property>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.MordaDomainFilterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lang">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:property>
+                            <jaxb:baseType name="ru.yandex.autotests.morda.exports.filters.MordaLanguageFilter"/>
+                        </jaxb:property>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.MordaLanguageFilterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="geo">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:property>
+                            <jaxb:baseType name="ru.yandex.autotests.morda.exports.filters.MordaGeoFilter"/>
+                        </jaxb:property>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.MordaGeoFilterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="text" type="xsd:string"/>
+            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="link" type="xsd:string"/>
+            <xsd:element name="from" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.FromDateTimeDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="till" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.TillDateTimeDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="newto" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.TillDateTimeDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="permanent" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

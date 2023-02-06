@@ -1,0 +1,119 @@
+test:
+    name: "Тестирование billing-subventions (driver_fix)"
+    description: |
+        Отправляем в сервис billing-orders заказы,
+        совершенные в режиме driver_fix.
+        Проверяем корректность начисления субсидий и комиссий.
+    prerequests:
+        stq3:
+            billing_rollup_balances:
+                queue: "billing_rollup_balances"
+                task_id: "1"
+                eta: 0
+        configs:
+            BILLING_ACCOUNTS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_ACCOUNTS_PGAAS_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_CALCULATORS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_DOCS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_DOCS_PGAAS_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_ORDERS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_REPORTS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 1000}}
+            BILLING_SUBVENTIONS_USERVICES_CLIENT_QOS: {'__default__': {'attempts': 3,
+                    'timeout-ms': 1000}}
+            BILLING_DOCS_PAYLOAD_LIMIT: 102400
+            BILLING_ORDERS_EVENT_LIMIT_KIND_HOURS:
+                __default__: 99999
+            BILLING_REPORTS_REPLICATION_OFFSET_HOURS: {'__default__': 999999}
+            BILLING_PROCESS_ORDER_READY_FOR_BILLING_DOC: true
+            BILLING_SUBVENTIONS_CREATE_SUBVENTIONS_INPUT: true
+            BILLING_SUBVENTIONS_UPDATE_SUBVENTION_REASONS: true
+            BILLING_SUBVENTIONS_PROCESS_SUBVENTION_COMMISSION: true
+            BILLING_SUBVENTIONS_PROCESS_COMMISSION: true
+            BILLING_SUBVENTIONS_CREATE_SUBVENTIONS_FROM_INPUT: true
+            BILLING_SUBVENTIONS_ENRICH_SUBVENTIONS_INPUT: true
+            BILLING_SUBVENTIONS_PROCESS_RULE_EVENT_HANDLED: true
+            BILLING_SUBVENTIONS_PROCESS_SINGLE_ORDER_RULES: true
+            TAXI_TERRITORIES_TIMEOUT_MS: 2500
+            BILLING_SUBVENTIONS_PROCEDURE_INSTANT_SUBVENTION: true
+            BILLING_PROCESS_DRIVER_GEOAREA_ACTIVITY_DOC: true
+            BILLING_PROCESS_DRIVER_GEOAREA_ACTIVITY_EVENT: true
+            BILLING_OLD_JOURNAL_LIMIT_DAYS: 9999
+            BILLING_DRIVER_MODES_ENABLED: true
+      # TODO:
+      # TVM_ENABLED=true пока вызывает кучу проблем в тестах,
+      # тем не менее без него работает почти всё, кроме ручек,
+      # которые ориентируются на процедуру tvm_enabled()
+      # желательно добиться его нормальной работы
+            TVM_ENABLED: false
+
+      # TODO:
+      # v2_process_event_async без TVM_ENABLE=true приводит к 403
+      # следующие конфиги приводят к вызову v2_process_event_async
+      # и установлены в false
+            BILLING_SUBVENTIONS_PROCESS_ANTIFRAUD_COMPLETE: false
+            BILLING_SUBVENTIONS_PAY_OUT_COMMISSION: false
+
+      # BILLING_SUBVENTIONS_PROCESS_SHIFT_ENDED_DOC включается позже,
+      # в 60-enable-shift-ended.json
+            BILLING_SUBVENTIONS_PROCESS_SHIFT_ENDED_DOC: false
+
+      # --- некоторые конфиги, которые в проде включены ---
+            BILLING_SUBVENTIONS_CREATE_ORDER_INCOME_DOC: true
+            BILLING_SUBVENTIONS_WRITE_DRIVER_FIX_INCOME_MINUTES: true
+            BILLING_SUBVENTIONS_CREATE_COMMISSION_TRANSACTIONS_DOC: true
+            BILLING_SUBVENTIONS_PROCESS_PAYMENT: true
+            BILLING_SUBVENTIONS_PROCESS_DRIVER_FIX_SHIFT_ENDED: true
+            BILLING_SEND_DRIVER_FIX_PARK_COMMISSION: true
+            BILLING_SEND_DRIVER_FIX_PAYOUTS_WITHOUT_PAYMENTS: true
+
+      # --- Конфиг из прода, который надо тестировать и обновлять ---
+            BILLING_DRIVER_MODE_SETTINGS:
+                driver_fix:
+                  - start: '2019-12-17T00:00:00+03:00'
+                    value:
+                        additional_profile_tags:
+                          - subv_disable_all
+                          - subv_disable_discount_payback
+                        commission_enabled: false
+                        promocode_compensation_enabled: false
+                orders:
+                  - start: '2020-03-01T00:00:00+03:00'
+                    value:
+                        additional_profile_tags: []
+                        commission_enabled: true
+                        promocode_compensation_enabled: true
+                uberdriver:
+                  - start: '2019-12-12T00:00:00+03:00'
+                    value:
+                        additional_profile_tags:
+                          - subv_disable_on_top
+                          - subv_disable_nmfg
+                          - subv_disable_mfg
+                          - subv_disable_do_x_get_y
+                        commission_enabled: true
+                        promocode_compensation_enabled: true
+            BILLING_REPLICATION_EXT_REQUEST_TIMEOUT_MS: 2500
+            BILLING_SUBVENTIONS_USE_BILLING_COMMISSIONS: {"default_for_all": "full_usage"}
+        services:
+          - url: http://billing-docs.taxi.yandex.net/ping
+          - url: http://billing-accounts.taxi.yandex.net/ping
+          - url: http://billing-subventions.taxi.yandex.net/ping
+          - url: http://billing-orders.taxi.yandex.net/ping
+          - url: http://billing-reports.taxi.yandex.net/ping
+          - url: http://stq-agent.taxi.yandex.net/ping
+        mongo:
+            dbtaxi:
+                conn: taxi
+                restore: true
+            dbsubvention_reasons:
+                conn: subvention_reasons
+                restore: true
+            dbstq_config:
+                conn: stq_config
+                restore: true
+        postgres:
+            billing_commissions:
+                conn: billing_commissions
+                file: billing_commissions.sql
+                shard: 0
+                restore: true

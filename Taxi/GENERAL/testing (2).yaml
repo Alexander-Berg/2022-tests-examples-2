@@ -1,0 +1,58 @@
+environment: testing
+
+database_migrations_abs_path: /etc/yandex/taxi-robowarehouse/migrations/
+
+logging:
+  level: DEBUG
+  stream_format: tskv
+
+endpoints:
+  tuya:
+    client_id: 8ukq9fjuay197wnfxttn
+
+  postgresql:
+    host: c-mdb2hr0ucg0ljd4ls31h.rw.db.yandex.net
+    port: 6432
+    database: robowarehouse
+
+    connection_args:
+      ssl_mode: verify-full
+      ssl_root_cert: /etc/ssl/certs/ca-certificates.crt
+
+  solomon:
+    cluster: backend_testing
+    auth_type: TVMAuth
+    solomon_tvm_id: 2010242
+    self_monitoring: True
+
+  redis:
+    host: c-mdbhf071ndssrc5eegcp.rw.db.yandex.net
+    port: 6379
+
+api:
+  hypercorn:
+    workers: 1
+
+queue:
+  workers:
+    - type: tuya
+      instances: 1
+
+tvm:
+  tvm_id: 2030449
+  dsts:
+    - 2013636 # developers
+    - 2010242 # solomon
+    - 2030797 # robowarehouse-frontend
+    - 2024159 # logistic-platform
+    - 2008715 # api-admin
+  acl:
+    admin:
+      - 2013636 # developers
+      - 2008715 # api-admin
+    courier:
+      - 2013636 # developers
+      - 2030797 # robowarehouse-frontend
+    dealer:
+      - 2013636 # developers
+      - 2024159 # logistic-platform

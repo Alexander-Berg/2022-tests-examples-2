@@ -1,0 +1,53 @@
+id: test-contractor-statistics-view-active_triggers-ok-no-version
+title: Тест для ручки driver-v1-partner-contractor-statistics-view-active_triggers
+    (POST) в случае, когда не удалось получить версию event
+source:
+    request:
+        method: post
+        headers:
+            X-Request-Application-Version#string: '10.10'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+            Accept-Language: 'ru'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payload:
+                    trigger_tags:
+                      - trigger1
+                      - trigger2
+            headers:
+                X-Polling-Delay: 600
+
+taxi_config:
+    TAXIMETER_POLLING_DELAYS:
+        "/driver/v1/partner/contractor-statistics-view/v1/active_triggers": 600
+
+mocks:
+  - resource: contractor-statistics-view-v1-active_triggers
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Request-Application-Version#string: '10.10'
+                X-YaTaxi-Park-Id: 'dbid'
+                X-YaTaxi-Driver-Profile-Id: 'uuid'
+                Accept-Language: 'ru'
+    response:
+        status-code: 200
+        body:
+            trigger_tags:
+              - trigger1
+              - trigger2
+  - resource: client-events-push
+    expectations:
+        call-count: 1
+        request:
+            body:
+                service: 'yandex.pro'
+                event: 'server_triggered_lessons'
+                channel: 'contractor:dbid_uuid'
+                send_notification: false
+    response:
+        status-code: 500

@@ -1,0 +1,70 @@
+syntax = "proto2";
+package yandex.maps.proto.search.search;
+
+import "yandex/maps/proto/common2/geometry.proto";
+import "yandex/maps/proto/common2/geo_object.proto";
+import "yandex/maps/proto/common2/metadata.proto";
+
+
+message RequestMetadata
+{
+    required string text = 1;                                   // query text
+    optional int32 results = 2;                                 // requested result count
+    optional int32 skip = 3;                                    // requested skip count
+    optional common2.geometry.Point point = 4;                   // request origin
+    optional common2.geometry.BoundingBox bounded_by = 5;        // request bounding box
+}
+
+message CorrectedQuery {
+    message Substring {
+        required string text = 1;
+        required bool is_corrected = 2;
+    }
+
+    repeated Substring parts = 1;                                // original and corrected parts of a string
+}
+
+message Sort {
+    enum Type {
+        RANK = 1;
+        DISTANCE = 2;
+    }
+    enum Origin {
+        USER = 1;       // user (url: 'ull', mapkit: setUserPosition())
+        QUERY = 2;      // toponym extracted from the user query (url: 'text', mapkit: submit(...,text,...)
+        REQUEST = 3;    // client-specified origin (url: 'sort_origin', mapkit: resubmit(DISTANCE, sortOrigin, ...))
+    }
+    required Type type = 1;     // sorting type
+    optional Origin origin = 2; // sort origin (if type == DISTANCE)
+}
+
+message ResponseMetadata
+{
+    optional RequestMetadata request = 1;
+    optional CorrectedQuery corrected = 2;
+    required int32 found = 3;                                    // total objects count
+    optional Sort sort = 8;                                      // server-chosen sorting type
+    optional common2.geometry.BoundingBox bounded_by = 5;        // bounding box of the response as a whole
+                                                                 // (to position the map after initial request)
+    optional common2.geo_object.GeoObject geo_object = 6;        // geocoder response to the toponym part of the query
+    repeated common2.metadata.Metadata source = 7;               // source metadata list
+
+    extensions 100 to max; // Internal info
+}
+
+
+message GeoObjectMetadata
+{
+    optional string log_id = 1; // an opaque string to be logged for this object
+    optional string ugc_id = 2; // id to use for various UGC content (for users to add photos, reviews, etc.)
+}
+
+extend common2.metadata.Metadata
+{
+    optional ResponseMetadata RESPONSE_METADATA = 30;
+}
+
+extend common2.metadata.Metadata
+{
+    optional GeoObjectMetadata GEO_OBJECT_METADATA = 31;
+}

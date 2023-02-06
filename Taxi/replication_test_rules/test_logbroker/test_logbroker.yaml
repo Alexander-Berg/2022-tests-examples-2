@@ -1,0 +1,21 @@
+name: test_logbroker
+queue_data:
+    db_cluster: replication_queue_mdb_0
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: modified_at
+    connection:
+        secret: conditioned
+    table: just_table
+
+    primary_key:
+      - id
+    timezone: Europe/Moscow
+destinations:
+  - test_logbroker:
+        type: logbroker
+        target:
+            installation: logbroker
+            topic: test-topic
+            partitions: 2

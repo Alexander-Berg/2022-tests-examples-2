@@ -1,0 +1,177 @@
+dashboard_update:
+    templating:
+        list:
+          - label: intent
+            allValue: '*'
+            allFormat: 'glob'
+            datasource: Solomon
+            hide: 0
+            multi: false
+            includeAll: false
+            name: intent
+            query: "{'application'='driver-scoring', 'cluster'='testing_uservices',\
+                \ 'project'='taxi', 'sensor'='driver-scoring-statistics.*', 'service'='uservices'}\
+                \ #sensor"
+            refresh: 1
+            regex: '/(?<=driver-scoring-statistics\.)(.+).handler./'
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+          - label: handler
+            allValue: '*'
+            allFormat: 'glob'
+            current:
+                text: All
+                value: $__all
+            datasource: Solomon
+            hide: 0
+            multi: true
+            includeAll: true
+            name: handler
+            query: "{'application'='driver-scoring', 'cluster'='testing_uservices',\
+                \ 'project'='taxi', 'sensor'='driver-scoring-statistics.$intent.*',\
+                \ 'service'='uservices'} #sensor"
+            refresh: 1
+            skipUrlSync: false
+            regex: '/(?<=driver-scoring-statistics\..+)(?!.*_/).handler.(.*)(?=.timings)/'
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+          - label: postprocess_results_script
+            allValue: '*'
+            allFormat: 'glob'
+            current:
+                text: All
+                value: $__all
+            datasource: Solomon
+            hide: 0
+            multi: true
+            includeAll: false
+            name: postprocess_results_script
+            query: "{'application'='driver-scoring', 'cluster'='testing_uservices',\
+                \ 'project'='taxi', 'sensor'='driver-scoring-statistics.$intent.postprocess_results.*',\
+                \ 'service'='uservices'} #sensor"
+            refresh: 1
+            skipUrlSync: false
+            regex: '/(?<=driver-scoring-statistics\..+)(?!.*_/).postprocess_results.(.*)(?=.errors)/'
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+          - label: tariff_zone
+            allValue: '*'
+            allFormat: 'glob'
+            current:
+                text: All
+                value: $__all
+            datasource: Solomon
+            hide: 0
+            multi: true
+            includeAll: false
+            name: tariff_zone
+            query: "{'application'='driver-scoring', 'cluster'='testing_uservices',\ 
+                   \ 'project'='taxi', 'sensor'='driver_scoring_metrics.*', \
+                   \ 'service'='uservices', 'tariff_zone'='*'} #tariff_zone"
+            refresh: 1
+            regex: ''
+            skipUrlSync: false
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+          - label: tariff_class
+            allValue: '*'
+            allFormat: 'glob'
+            current:
+                text: All
+                value: $__all
+            datasource: Solomon
+            hide: 0
+            multi: true
+            includeAll: false
+            name: tariff_class
+            query: "{'application'='driver-scoring', 'cluster'='testing_uservices',\ 
+                   \ 'project'='taxi', 'sensor'='driver_scoring_metrics.*', \
+                   \ 'service'='uservices', 'tariff_class'='*'} #tariff_class"
+            refresh: 1
+            regex: ''
+            skipUrlSync: false
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+            
+
+awacs_namespace: driver-scoring.taxi.tst.yandex.net
+layout:
+  - include:
+        title: Metrics summary
+        path: nanny_taxi_driver-scoring/postprocess_results/metrics_summary.json
+        collapsed: false
+        variables:
+          - cluster: testing_uservices
+  - include:
+        title: Requests count per 1 min ($tariff_zone)
+        path: nanny_taxi_driver-scoring/postprocess_results/metrics_counter.json
+        collapsed: true
+        repeat_var: tariff_zone
+        variables:
+          - cluster: testing_uservices
+          - metric: requests_count_1m
+  - include:
+        title: Orders count per 1 min ($tariff_zone)
+        path: nanny_taxi_driver-scoring/postprocess_results/metrics_counter.json
+        collapsed: true
+        repeat_var: tariff_zone
+        variables:
+          - cluster: testing_uservices
+          - metric: orders_count_1m
+  - include:
+        title: Candidates count per 1 min ($tariff_zone)
+        path: nanny_taxi_driver-scoring/postprocess_results/metrics_counter.json
+        collapsed: true
+        repeat_var: tariff_zone
+        variables:
+          - cluster: testing_uservices
+          - metric: candidates_count_1m
+  - include:
+        title: Filtered candidates count per 1 min ($tariff_zone)
+        path: nanny_taxi_driver-scoring/postprocess_results/metrics_counter.json
+        collapsed: true
+        repeat_var: tariff_zone
+        variables:
+          - cluster: testing_uservices
+          - metric: filtered_candidates_count_1m
+  - include:
+        title: Scoring calculator
+        path: nanny_taxi_driver-scoring/scoring_calculator.json
+        collapsed: false
+        variables:
+          - cluster: testing_uservices
+  - include:
+        row_panels: 3
+        title: Handlers $handler
+        path: nanny_taxi_driver-scoring/handlers.json
+        collapsed: false
+        variables:
+          - cluster: testing_uservices
+  - include:
+        row_panels: 3
+        title: $postprocess_results_script
+        path: nanny_taxi_driver-scoring/postprocess_results/layout.json
+        collapsed: false
+        repeat_var: postprocess_results_script
+        variables:
+          - cluster: testing_uservices

@@ -1,0 +1,13 @@
+#include <gtest/gtest.h>
+
+#include <common/test_config.hpp>
+#include <config/car_info_config.hpp>
+#include <config/config.hpp>
+
+TEST(TestCarInfoConfig, Fallback) {
+  const auto& docs_map = config::DocsMapForTest();
+  const auto& config = config::Config(docs_map);
+  const auto& car_info_config = config.Get<config::CarInfo>();
+  ASSERT_EQ(car_info_config.cache_colors_update_enabled, false);
+  ASSERT_EQ(car_info_config.cache_brands_update_enabled, false);
+}

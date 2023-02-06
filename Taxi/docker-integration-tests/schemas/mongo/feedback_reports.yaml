@@ -1,0 +1,31 @@
+settings:
+    collection: feedback_reports
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - expireAfterSeconds: 604800
+    key: created
+  - key: order_id
+wiki_info: |
+    #### feedback_reports
+    *Назначение:* Коллекция содержит информацию о заказах с успешно отправленным в зендесе фидбэком.
+    Нужна для того, чтобы не отправлять фидбэк в зендеск дважды. В коллекции установлен TTL-индекс на
+    поле created c временем жизни 1 неделя.
+
+    *Структура документа:*
+
+    ```python
+    feedback_reports = {
+    #Идентификатор заказа
+    'order_id': '6c2aa5b019b447d59a85506fc007ad5d'
+    #Дата создания заказа
+    'created': datetime.datetime()
+    #Идентификатор созданного в зендеске тикета
+    'ticket_id': 123456
+    #Статус тикета в зендеске: created(тикет создан) или commented(к тикету добавлен
+    #приватный комментарий, содержащий ссылки на админки)
+    'status': 'commented'
+    # Тип отзыва: отзыв был оставлен после поездки или во время поездки
+    'type': 'ride|after_ride'
+    }
+    ```

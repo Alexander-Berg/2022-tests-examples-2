@@ -1,0 +1,139 @@
+id: exp3-matcher-typed-experiments
+title: Тест для проверки использования typed_experiments из exp3-matcher-а при отсутствии
+    данного поля в ответе launch.
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-Request-Application: 'app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2'
+            X-YaTaxi-PhoneId: 'phone_id'
+            X-YaTaxi-Pass-Flags: 'portal,ya-plus,cashback-plus,bank-account'
+            X-YProxy-Header-Host: 'proxy_header_host_value'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                authorized: false
+                client_geo_params:
+                    enabled: false
+                typed_experiments:
+                    any: 'json'
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+
+mocks:
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body:
+            any: 'json'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        called-after:
+          - taxi-3.0-launch
+        call-count: 1
+        request:
+            method: post
+            body:
+                consumer: 'client_protocol/launch' # указать другой client консьюмер?
+                user_agent#any: []
+                locale#any: []
+                kwargs_transformations#any: []
+                args#array:
+                  - value:
+                        name: 'accept_language'
+                        type: 'string'
+                        value#string: ''
+                  - value:
+                        name: 'application'
+                        type: 'application'
+                        value#string: 'iphone'
+                  - value:
+                        name: 'device_id'
+                        type: 'string'
+                        value#string: ''
+                  - value:
+                        name: 'launch_id'
+                        type: 'string'
+                        value#any: []
+                  - value: # important
+                        name: 'phone_id'
+                        type: 'string'
+                        value#string: 'phone_id'
+                  - value: # important
+                        name: 'personal_phone_id'
+                        type: 'string'
+                        value#string: 'personal_123'
+                  - value:
+                        name: 'remote_ip'
+                        type: 'string'
+                        value#string: ''
+                  - value:
+                        name: 'uid'
+                        type: 'string'
+                        value#string: ''
+                  - value:
+                        name: 'user_id'
+                        type: 'string'
+                        value#string: 'user_id'
+                  - value:
+                        name: 'yandex_uuid'
+                        type: 'string'
+                        value#string: ''
+                  - value:
+                        name: 'is_fallback'
+                        type: 'bool'
+                        value#boolean: true
+                  - value:
+                        name: 'has_bank_account'
+                        type: 'bool'
+                        value: true
+                  - value:
+                        name: 'has_ya_plus'
+                        type: 'bool'
+                        value: true
+                  - value:
+                        name: 'has_cashback_plus'
+                        type: 'bool'
+                        value: true
+                  - value:
+                        name: 'proxy_header_host'
+                        type: 'string'
+                        value: 'proxy_header_host_value'
+
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: false
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+            method: post
+  - resource: taxi-3.0-launch
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post

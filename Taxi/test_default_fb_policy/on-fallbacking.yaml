@@ -1,0 +1,30 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        default-fail-policy:
+            on-fallbacking: disable-handler
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: default
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: default-on-fb
+                    result:
+                        default-handler-called: true
+                  - id: custom-on-fb
+                    result:
+                        custom-handler-called: true
+                    on-fallbacking: do-nothing
+

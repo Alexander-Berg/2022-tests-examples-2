@@ -1,0 +1,81 @@
+description: Расположения логов диспатчера и трекера в YT
+tags: []
+schema:
+    type: object
+    required:
+      - yt_cluster
+      - chyt_clique_id
+      - yt_destination
+      - log_sources
+    additionalProperties: false
+    properties:
+        yt_cluster:
+            description: Кластер YT
+            type: string
+        chyt_clique_id:
+            description: Клика ClickHouse over YT
+            type: string
+        yt_destination:
+            $ref: '#/definitions/LogPath'
+        log_sources:
+            description: Пути до необходимых логов
+            type: object
+            required:
+              - buffer_dispatch
+            properties:
+                buffer_dispatch:
+                    $ref: '#/definitions/LogPath'
+            additionalProperties:
+                description: Пути к fastcgi-логам необходимых сервисов
+                $ref: '#/definitions/LogPath'
+
+    definitions:
+        LogPath:
+            description: >
+                Определяет к логам в Кипарисе.
+                Абсолютный путь, если path_prefix не задан,
+                иначе - путь, зависимый от типа окружения,
+                например, <path_prefix>/production/<path>
+            type: object
+            additionalProperties: false
+            required:
+              - path
+            properties:
+                path_prefix:
+                    description: Префикс пути к директориям логов production, testing
+                        и unstable
+                    type: string
+                path:
+                    description: Путь к логам
+                    type: string
+                tz_offset:
+                    description: ISO-суффикс тайм-зоны timestamp-ов логов
+                    type: string
+                interface:
+                    description: Способ выборки логов
+                    type: string
+                    enum:
+                      - chyt
+                      - yql
+                upload_delay:
+                    description: Задержка выгрузки логов в YT в минутах
+                    type: integer
+                    minimum: 1
+
+default:
+    yt_cluster: 'hahn'
+    chyt_clique_id: '*ch_public'
+    yt_destination:
+        path_prefix: '//home/taxi'
+        path: 'features/taxi-dispatch-logs-admin'
+    log_sources:
+        buffer_dispatch:
+            path_prefix: '//home/taxi'
+            path: 'features/driver-dispatcher/buffer_dispatch'
+            tz_offset: '+0000'
+        driver_dispatcher:
+            path: '//home/logfeller/logs/taxi-driver-dispatcher-libyandex-fastcgi-taxi-driver-dispatcher-log'
+            tz_offset: '+0300'
+        tracks:
+            path: '//home/logfeller/logs/taxi-tracks-libyandex-fastcgi-taxi-tracker-log'
+            tz_offset: '+0300'

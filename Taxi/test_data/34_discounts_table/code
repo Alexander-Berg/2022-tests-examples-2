@@ -1,0 +1,120 @@
+if (fix.discount as discount) {
+  let restrictions = discount.restrictions;
+
+  if (discount.calc_data_table_data as table) {
+    let price = *ride.price - ride.price.waiting
+                            - ride.price.transit_waiting
+                            - ride.price.destination_waiting;
+    with (first_iteration = true,
+          prev_table_price = 0,
+          prev_table_coeff = 0,
+          first_table_price = 0,
+          first_table_coeff = 0,
+          result = 0
+         ) generate(elem : table)
+      let table_price = elem.price;
+      let table_coeff = elem.coeff;
+      // exclude division by 0
+      if (!first_iteration &&
+          !(   (table_price - prev_table_price > 0)
+            || (table_price - prev_table_price < 0))) {
+        return ride.price;
+      }
+
+      let tmp_result = (  !first_iteration
+                        && prev_table_price <= price
+                        && price < table_price)
+          ? (prev_table_coeff
+              + (price - prev_table_price)
+                  / (table_price - prev_table_price) * (table_coeff - prev_table_coeff))
+          : result;
+      // save first table elem
+      let tmp_first_table_price = (first_iteration)
+          ? elem.price
+          : first_table_price;
+      let tmp_first_table_coeff = (first_iteration)
+          ? elem.coeff
+          : first_table_coeff;
+    endgenerate(first_iteration = false,
+                prev_table_price = table_price,
+                prev_table_coeff = table_coeff,
+                first_table_price = tmp_first_table_price,
+                first_table_coeff = tmp_first_table_coeff,
+                result = tmp_result)
+    let tmp_coeff = (price >= prev_table_price)
+        ? prev_table_coeff
+        : result;
+    let coeff = ((price <= first_table_price)
+        ? first_table_coeff
+        : tmp_coeff) * 0.01;  // from percents to fraction
+
+    // copy-paste with another discounts types
+    let coeff_newbie = coeff;
+
+    // TODO: check & apply other restrictions: driver_less_coeff, limited_rides
+
+    // normalize to [min, max]
+    let tmp_coeff_normalized = (coeff_newbie > restrictions.max_discount_coeff)
+        ? restrictions.max_discount_coeff
+        : coeff_newbie;
+    let coeff_normalized = (tmp_coeff_normalized < restrictions.min_discount_coeff)
+        ? 0
+        : tmp_coeff_normalized;
+
+    if (restrictions.max_absolute_value as max_absolute_value) {
+      // normalize by absolute value
+      let price1 = *ride.price - ride.price.waiting
+                              - ride.price.transit_waiting
+                              - ride.price.destination_waiting;
+      if (   (price1 > 0.0001)  // check division by 0
+          && (price1 * coeff_normalized > max_absolute_value)) {
+        let tmp_max_coeff = (max_absolute_value / price1 < 0)
+            ? 0
+            : max_absolute_value / price;
+        let max_coeff = (tmp_max_coeff > 1)
+            ? 1
+            : tmp_max_coeff;
+        let mult = 1 - max_coeff;
+        return {
+            boarding = ride.price.boarding * mult,
+            distance = ride.price.distance * mult,
+            time = ride.price.time * mult,
+            requirements = ride.price.requirements * mult,
+            waiting = ride.price.waiting,
+            transit_waiting = ride.price.transit_waiting,
+            destination_waiting = ride.price.destination_waiting
+        };
+      }
+    }
+
+    if (coeff_normalized <= 0) {
+      // mult == 1, then price will be not changed
+      return ride.price;
+    }
+    if (coeff_normalized >= 1) {
+      // mult == 0, then price components will be equal 0, except for waitings
+      return {
+          boarding = 0,
+          distance = 0,
+          time = 0,
+          requirements = 0,
+          waiting = ride.price.waiting,
+          transit_waiting = ride.price.transit_waiting,
+          destination_waiting = ride.price.destination_waiting
+      };
+    }
+
+    let mult = 1 - coeff_normalized;
+    return {
+        boarding = ride.price.boarding * mult,
+        distance = ride.price.distance * mult,
+        time = ride.price.time * mult,
+        requirements = ride.price.requirements * mult,
+        waiting = ride.price.waiting,
+        transit_waiting = ride.price.transit_waiting,
+        destination_waiting = ride.price.destination_waiting
+    };
+  }
+}
+
+return ride.price;

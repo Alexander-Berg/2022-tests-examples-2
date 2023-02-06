@@ -1,0 +1,22 @@
+default:
+    __default__: false
+description: |
+    Использовать новый способ постановки задач на обработку:
+      1. В billing-orders приходит событие.
+      2.1. Планируется stq таск c полями (topic, external_ref, created_at) и eta = now + BILLING_ORDERS_PROCESS_DELAY
+      2.2. Создается документ в billing-docs
+      2.3. Stq таск перепланируется на now
+
+    Обработка STQ:
+      1 Если документ найден, дергается ручка process_doc в billing-calculators/subventions
+      2 Если документ не найден, повторяем в течение BILLING_ORDERS_INTERNAL_STQ_STOP_PROCESSING_INTERVAL после постановки задачи и завершаем обработку.
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        type: boolean
+    properties:
+        __default__:
+            type: boolean
+    required:
+      - __default__

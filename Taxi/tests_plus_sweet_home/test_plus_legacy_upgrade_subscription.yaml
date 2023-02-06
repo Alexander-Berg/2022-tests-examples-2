@@ -1,0 +1,137 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+mockserver:
+  - url: /mediabilling-v2/billing/cashback-status
+    response:
+        status: 200
+        body:
+            result:
+                status: "OK"
+
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: config
+    kwargs:
+        PLUS_SWEET_HOME_REGISTERED_CLIENTS:
+            taxi:
+              - client_id: "taxi.test"
+
+tests:
+  - name: success_upgrade
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+
+  - name: already_has_cashback_plus_no_upgrade
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 409
+
+  - name: no_ya-plus_no_upgrade
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 409
+
+  - name: zero_balance_no_upgrade
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "0"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 409
+
+  - name: mb_ugrade_return_400
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /mediabilling-v2/billing/cashback-status
+        response:
+            status: 400
+            body:
+    response:
+        status: 500
+
+  - name: mb_ugrade_return_409
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /mediabilling-v2/billing/cashback-status
+        response:
+            status: 409
+            body:
+    response:
+        status: 500
+
+  - name: mb_ugrade_return_500
+    request:
+        method: POST
+        path: /4.0/plus/v1/subscriptions/upgrade
+        headers:
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /mediabilling-v2/billing/cashback-status
+        response:
+            status: 500
+            body:
+    response:
+        status: 500

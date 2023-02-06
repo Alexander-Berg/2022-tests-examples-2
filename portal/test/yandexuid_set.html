@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<br/>yandexuid cookie: [% yandexuid _ ' ' _ yudate %]
+[% IF new_yandexuid %]
+<br/>yandexuid cookie SET: [% new_yandexuid %]
+[% END %]
+<br/>
+<script type="text/javascript">
+function older(minutes) {
+    if (!minutes) {
+        minutes = Number(document.getElementById("minutes_older").value);
+    }
+    if (isNaN(minutes) || (minutes < 0)) {
+        minutes = 0;
+    }
+    var uid = document.getElementById("curryandexuid").value;
+    
+    document.getElementById("yuinput").value = uid.replace(/(\d{10})$/, function (match, ts) {
+        return ts - minutes * 60;
+    });
+    document.getElementById("minutes_older").value = minutes;
+    return false;
+}
+</script>
+
+<style>
+.required { color: red }
+</style>
+
+<div>
+<form method="POST">
+  <div>
+    <input type="hidden" name="mode" value="set">
+    <input name="curryandexuid" type="hidden" value="[% yandexuid %]" id="curryandexuid">
+    <input type="button" value="Состарить на: " onclick="return older();">
+    <input type="text" style="width: 7em;" maxlength="6" id="minutes_older">&nbsp;минут или на&nbsp;
+    <input type="button" value="1" onclick="return older(1440);">
+    <input type="button" value="2" onclick="return older(2880);">
+    <input type="button" value="3" onclick="return older(4320);">
+    <input type="button" value="4" onclick="return older(5760);">&nbsp;дня
+  </div>
+  <div>
+    <input name="yandexuid" id="yuinput">
+    <input type="submit" value="Установить">
+  </div>
+</form>
+</div>
+
+<br>
+
+<h2>Сгенерить yandexuid для тестов с солью</h2>
+<form method=POST>
+<table>
+    <tr><td>Четырехдневные:</td><td><input type=checkbox name=ancient value=1 [% "checked" IF ancient %]></td></tr>
+    <tr><td>Слот<span class=required>*</span>:</td><td><input type=text name=slot value="[% slot %]"></td></tr>
+    <tr><td>Процент<span class=required>*</span>:</td><td><input type=text name=percent value="[% percent %]"></td></tr>
+    <tr><td>Соль<span class=required>*</span>:</td><td><input type=text name=salt value="[% salt %]"> (по умолчанию текущее значение)</td></tr>
+    <tr><td colspan=2><span class=required>*</span> Поля обязательны для заполнения</td></tr>
+    <tr><td colspan=2><input type=submit value="Сгенерировать"></td></tr>
+</table>
+<input type=hidden name=mode value=gen>
+</form>
+[% generated_yandexuid_cont %]

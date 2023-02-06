@@ -1,0 +1,106 @@
+INSERT INTO yt.report_summary_cars
+(
+    "park_id",
+    "car_id",
+    "date_day",
+    "rental",
+    "drivers",
+    "rent_sum",
+    "rent_withdraw",
+    "rent_withhold",
+    "rent_cancel",
+    "orders",
+    "orders_cash",
+    "orders_cashless",
+    "distance",
+    "shard"
+)
+VALUES
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5ce98',
+    '2020-06-02',
+    TRUE,
+    '1ash66r567j4ogt98acb22cg7ai5ce98,1ash66r567j4ogt98acb22cg7ai5c123',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    7
+),
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5ce98',
+    '2020-06-03',
+    FALSE,
+    '1ash66r567j4ogt98acb22cg7ai5ce98,1ash66r567j4ogt98acb22cg7ai5c123',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    7
+),
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5c123',
+    '2020-06-02',
+    TRUE,
+    '1ash66r567j4ogt98acb22cg7ai5c123',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    7
+),
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '1ash66r567j4ogt98acb22cg7ai5c193',
+    '2020-06-02',
+    TRUE,
+    NULL,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    7
+)
+;
+INSERT INTO yt.operations
+    (
+        operation_id,
+        operation_status,
+        type,
+        status,
+        cluster,
+        created_at,
+        updated_at,
+        date_to
+    )
+VALUES
+    (
+        '5f69eb5d9dee76b6221355fe',
+        'COMPLETED',
+        'report_summary_cars',
+        'uploaded_to_db',
+        'hahn',
+        '2020-09-22 00:00:00+03:00',
+        '2020-09-22 00:00:00+03:00',
+        '2020-09-22 00:00:00+03:00'
+    )
+;

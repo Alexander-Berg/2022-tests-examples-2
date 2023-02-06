@@ -1,0 +1,93 @@
+default: []
+description: |
+    Правила проверки доступа к ручке в сервисе cc-authproxy.
+    Если нужно проверть доступы хотя бы в одной ручке из prefix,
+      то необходимо указать все ручки из этого префикса.
+    Иначе будет возвращаться 401 с кодом undefined_access_rules.
+tags:
+  - notfallback
+maintainers: [segoon, antoshkka]
+schema:
+    type: array
+    items:
+        type: object
+        additionalProperties: false
+        required:
+          - prefix
+          - access_rules
+        properties:
+            prefix:
+                type: string
+                description: |
+                    Префикс ручек. Такой же, как в конфиге PASS_AUTH_ROUTER_RULES_2
+            access_rules:
+                type: array
+                items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - path
+                      - method
+                      - check_restrictions
+                    properties:
+                        path:
+                            description: Путь ручки. Путь должен начинаться с prefix.
+                            type: string
+                        method:
+                            description: Метод ручки.
+                            type: string
+                            enum:
+                              - GET
+                              - POST
+                              - PUT
+                              - PATCH
+                              - DELETE
+                        access_conditions:
+                            type: object
+                            description: |
+                                Условия доступа.
+                                Чтобы получить доступ к запрашиваемому ресурсу,
+                                пользователь должен обладать всеми пермишнами
+                                из хотя бы одной группы пермишнов.
+                            additionalProperties: false
+                            required:
+                              - any_of
+                            properties:
+                                any_of:
+                                    type: array
+                                    items:
+                                        $ref: '#/definitions/AllOfPermissions'
+                        check_restrictions:
+                            type: boolean
+                            description: |
+                                Флаг, указывающий, надо ли искать ограничения на запрос
+                                в ручку и проверять, что пользователь не нарушил их
+                                Если true, но ограничений на эту ручку не существует
+                                то проверка считается пройденной.
+    definitions:
+        Permission:
+            type: object
+            description: Пермишн.
+            additionalProperties: false
+            required:
+              - type
+              - name
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - permission
+                      - permission_rule
+                name:
+                    type: string
+        AllOfPermissions:
+            type: object
+            description: Группа пермишнов.
+            additionalProperties: false
+            required:
+              - all_of
+            properties:
+                all_of:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Permission'

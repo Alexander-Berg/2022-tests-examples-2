@@ -1,0 +1,94 @@
+group:
+  type: rtc
+  name: taxi_py2-order-processing_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+  py2-order-processing.taxi.tst.yandex.net:
+    Equals: { http_host: "py2-order-processing.taxi.tst.yandex.net" }
+    Options:
+      CustomHttp:
+        - 400
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+
+
+  py2-order-processing.taxi.tst.yandex.net/ping:
+    And:
+      -   Equals: {http_host: "py2-order-processing.taxi.tst.yandex.net"}
+      -   Equals: {request_method: "GET"}
+      -   Or:
+            -   Equals: {request_url: "/ping"}
+            -   Equals: {request_url: "/ping/"}
+            -   StartsWith: {request_url: "/ping?"}
+            -   StartsWith: {request_url: "/ping/?"}
+    Options:
+      CustomHttp:
+        - 400
+        - 401
+        - 403
+        - 404
+        - 409
+        - 429
+
+  py2-order-processing.taxi.tst.yandex.net/do-processing-iteration:
+    And:
+      - Equals: {http_host: "py2-order-processing.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or:
+        - Equals: {request_url: "/do-processing-iteration"}
+        - Equals: {request_url: "/do-processing-iteration/"}
+        - StartsWith: {request_url: "/do-processing-iteration?"}
+        - StartsWith: {request_url: "/do-processing-iteration/?"}
+    Options:
+        CustomHttp:
+          - 400
+          - 401
+          - 403
+          - 404
+          - 409
+          - 429
+
+  py2-order-processing.taxi.tst.yandex.net/mark-corp-expire:
+    And:
+      - Equals: {http_host: "py2-order-processing.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or:
+          - Equals: {request_url: "/mark-corp-expire"}
+          - Equals: {request_url: "/mark-corp-expire/"}
+          - StartsWith: {request_url: "/mark-corp-expire?"}
+          - StartsWith: {request_url: "/mark-corp-expire/?"}
+    Options:
+      CustomHttp:
+        - 400
+        - 401
+        - 403
+        - 404
+        - 409
+        - 429
+
+  py2-order-processing.taxi.tst.yandex.net/mark-fraud-expire:
+    And:
+      - Equals: {http_host: "py2-order-processing.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or:
+          - Equals: {request_url: "/mark-fraud-expire"}
+          - Equals: {request_url: "/mark-fraud-expire/"}
+          - StartsWith: {request_url: "/mark-fraud-expire?"}
+          - StartsWith: {request_url: "/mark-fraud-expire/?"}
+    Options:
+      CustomHttp:
+        - 400
+        - 401
+        - 403
+        - 404
+        - 409
+        - 429

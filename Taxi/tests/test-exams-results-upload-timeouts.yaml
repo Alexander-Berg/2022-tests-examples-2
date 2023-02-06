@@ -1,0 +1,50 @@
+id: test-exams-results-upload-timeouts
+title: Тест для обработки таймаутов сервиса exams-platform
+
+parameters:
+  - group:
+      - expect_code_taxi_exams: 200
+      - expect_code_taxi_exams: 400
+
+source:
+    request:
+        method: post
+        headers:
+            Cookie: "Session_id=3:SESSION_ID"
+        query:
+            X-Ya-Request-Id: REQUEST_ID
+        body:
+            city: Moscow
+            center: Center
+            license: 12AA123456
+            course: ultima
+            result: 5
+            exam_date: "2022-07-01T12:00:01Z"
+    expectations:
+        response:
+            status-code#xget: /test-params/group/expect_code_taxi_exams
+
+mocks:
+  - resource: taxi-exams-api-v20-exam-result
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                Cookie: "Session_id=3:SESSION_ID"
+            query:
+                X-Ya-Request-Id: REQUEST_ID
+            body:
+                city: Moscow
+                center: Center
+                license: 12AA123456
+                course: ultima
+                result: 5
+                exam_date: "2022-07-01T12:00:01Z"
+    response:
+        status-code#xget: /test-params/group/expect_code_taxi_exams
+
+  - resource: exams-platform-v20-exams-results-upload
+    exception: timeout
+
+  - resource: exams-platform-v10-compare-responses
+    exception: timeout

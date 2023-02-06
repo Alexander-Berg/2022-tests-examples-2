@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+
+
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="useCodeAsDefaultMessage" value="true"/>
+    </bean>
+
+
+    <bean class="ru.yandex.metrika.ui.old.filter.FilterHelper" id="filterHelper">
+    </bean>
+    <bean id="jdbcTemplateSrc" class="ru.yandex.metrika.util.route.DataSourceRouterImpl">
+        <property name="counterDao" ref="counterDao"/>
+        <property name="poolCapacity" value="16"/>
+        <property name="dataSourceFactory" ref="facedDataSourceFactory"/>
+        <property name="elements">
+            <list>
+                <bean class="ru.yandex.metrika.util.route.RouteConfig"/>
+                <bean class="ru.yandex.metrika.util.route.RouteConfig"/>
+                <bean class="ru.yandex.metrika.util.route.RouteConfig"/>
+                <bean class="ru.yandex.metrika.util.route.RouteConfig"/>
+                <bean class="ru.yandex.metrika.util.route.RouteConfig"/>
+
+                <bean class="ru.yandex.metrika.util.route.RouteConfig">
+                    <property name="master" ref="routeConfigSimple"/>
+                    <property name="slave" ref="routeConfigSimple"/>
+                </bean>
+
+            </list>
+        </property>
+
+    </bean>
+
+    <bean id="routeConfigSimple" class="ru.yandex.metrika.util.route.RouteConfigSimple">
+        <property name="host" value="localhost"/>
+        <!--<property name="password" value="XmlPropertyConfigurer.getTextFromFile(\"~/.mysql/pass_new\")"/>-->
+        <property name="port" value="3326"/>
+        <property name="user" value="metrica"/>
+    </bean>
+
+    <bean id="counterDao" class="ru.yandex.metrika.util.route.layers.LayerDaoImpl">
+        <property name="jdbc" ref="countersTemplate"/>
+    </bean>
+
+    <bean id="countersTemplate" factory-bean="dataSourceFactory" factory-method="getTemplate">
+        <constructor-arg ref="mysql_counters"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.dbclients.mysql.DataSourceFactory" id="dataSourceFactory">
+        <property name="props" ref="daemonConnectionProperties"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.dbclients.mysql.DataSourceFactory" id="facedDataSourceFactory">
+        <property name="props">
+            <bean class="ru.yandex.metrika.dbclients.mysql.MySQLConnectionPropertiesBean" parent="daemonConnectionProperties">
+                <!-- добавляем таймауты и slow query -->
+                <property name="slowQueryThresholdMillis" value="5000"/>
+                <property name="logSlowQueries" value="true"/>
+                <property name="connectTimeout" value="5000"/>
+                <property name="initialTimeout" value="10"/>
+                <property name="retriesAllDown" value="20"/>
+            </bean>
+        </property>
+    </bean>
+    <bean id="mysql_counters" factory-bean="dataSourceFactory" factory-method="getDataSource">
+        <constructor-arg value="4"/>
+        <property name="user" value="root"/>
+        <property name="password" value="qwerty"/>
+        <property name="host" value="localhost"/>
+        <property name="port" value="3308"/>
+        <property name="db" value="conv_main"/>
+    </bean>
+    <bean id="daemonConnectionProperties" class="ru.yandex.metrika.dbclients.mysql.MySQLConnectionPropertiesBean">
+        <!-- Чтобы можно было слать пакеты запросов -->
+        <property name="allowMultiQueries" value="true"/>
+        <!-- INSERT INTO table(c1, c2) values (x1,y1); INSERT INTO table(c1, c2) values (x2,y2) => INSERT INTO table(c1, c2) values (x1,y1),(x2, y2) -->
+        <property name="rewriteBatchedStatements" value="false"/>
+        <!-- Запись логов JDBC в наши логи-->
+        <property name="logger" value="Slf4JLogger"/>
+        <!-- Типа мы сами все честно закрываем, не надо следить -->
+        <property name="dontTrackOpenResources" value="true"/>
+        <!-- Server prerared statements + MySQL = ЗЛО -->
+        <property name="useServerPrepStmts" value="false"/>
+        <!-- Чтобы знать источник проблем в лицо -->
+        <property name="dumpQueriesOnException" value="true"/>
+        <!-- Оптимизации чтобы не спрашивал у сервера лишнего -->
+        <property name="elideSetAutoCommits" value="true"/>
+        <property name="alwaysSendSetIsolation" value="false"/>
+        <property name="cacheServerConfiguration" value="true"/>
+        <property name="sessionVariables" value="low_priority_updates=1"/>
+        <!-- avoid 5.5 mysql fail -->
+        <property name="useDynamicCharsetInfo" value="false"/>
+        <!-- Don't parse and convert MySQL time in ResultSet.getString() -->
+        <property name="noDatetimeStringSync" value="true"/>
+        <property name="failOverReadOnly" value="false"/>
+        <property name="exceptionInterceptors" value="ru.yandex.metrika.util.io.MySQLExceptionInterceptor"/>
+        <!--
+        <property name="characterEncoding" value="utf8"/>
+        <property name="connectionCollation" value="utf8_general_ci"/>
+        -->
+        <!-- Отладочные штуки-->
+        <!--<property name="explainSlowQueries" value="true"/>
+        <property name="profileSQL" value="true"/>-->
+    </bean>
+
+    <bean class="ru.yandex.metrika.managers.Platforms" id="osBase">
+        <property name="jdbc" ref="metricaTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.managers.SearchEngines" id="seBase">
+        <property name="jdbc" ref="metricaTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.geobase.GeoBase" id="geoBase">
+    </bean>
+
+    <bean id="metricaTemplate" factory-bean="dataSourceFactory" factory-method="getTemplate">
+        <constructor-arg ref="mysql_metrica"/>
+    </bean>
+
+    <bean id="mysql_metrica" factory-bean="dataSourceFactory" factory-method="getDataSource">
+        <constructor-arg value="2"/>
+        <property name="user" value="root"/>
+        <property name="password" value="qwerty"/>
+        <property name="host" value="localhost"/>
+        <property name="port" value="3308"/>
+        <property name="db" value="Metrica"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.app.ZooSettingsImpl" id="zookeeperSettings"/>
+
+    <bean class="ru.yandex.metrika.util.FrontendSettings" id="facedSettingsTest">
+        <property name="zookeeperSettings" ref="zookeeperSettings"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.WebvisorService" id="webvisorService">
+
+    </bean>
+
+</beans>

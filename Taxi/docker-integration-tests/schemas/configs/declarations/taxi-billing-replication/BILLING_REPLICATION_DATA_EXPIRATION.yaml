@@ -1,0 +1,49 @@
+default:
+    tables:
+      - name: parks.contract_changes
+        field: timestamp
+      # A month in days
+        max_age: 30
+      - name: parks.contract_field_diffs
+        field: timestamp
+      # A month in days
+        max_age: 30
+
+description: Настройки очистки старых данных taxi-billing-replication
+tags: []
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - tables
+
+    properties:
+        tables:
+            description: Таблицы, для которых проводится протухание данных. (НЕ ОЧЕРЕДИ)
+            type: array
+            items:
+                $ref: '#/definitions/TableExpireConfig'
+
+    definitions:
+        TableExpireConfig:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - field
+              - max_age
+
+            properties:
+                name:
+                    description: Название таблицы
+                    type: string
+                field:
+                    description: Поле, по которому проверяется возраст записи; должно
+                        быть типа TIMESTAMP
+                    type: string
+                max_age:
+                    description: Максимальное время жизни записи без обновления в
+                        днях. > 1, иначе все удалится!
+                    type: integer
+                    minimum: 1

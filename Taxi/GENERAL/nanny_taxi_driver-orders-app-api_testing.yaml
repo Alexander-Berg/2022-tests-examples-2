@@ -1,0 +1,39 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:driver-orders-app-api:testing
+awacs_namespace: driver-orders-app-api-lb.taxi.tst.yandex.net
+
+http_hosts:
+  - driver-orders-app-api.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        hide:
+          - tvm2
+          - mongo
+          - redis_subscribe_client
+          - redis_client
+        uservice_name: driver-orders-app-api
+  - userver_redis_client:
+        collapsed: true
+        hide_shard_groups:
+          - taximeter-hour
+        uservice_name: driver-orders-app-api
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: driver-orders-app-api-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - stq:
+        queues:
+          - driver_orders_integrator_requestconfirm
+          - driver_orders_integrator_setcar_xml
+          - driver_orders_save_driver_freightage
+          - driver_orders_send_communications_notifications
+          - driver_orders_xservice_calcservice
+          - driver_orders_xservice_email_bill
+          - send_driver_order_messages
+          - send_park_driver_sms_voice_message
+  - http

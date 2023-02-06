@@ -1,0 +1,71 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+
+marks:
+  - name: config
+    kwargs:
+        PLUS_SWEET_HOME_SERVICES_SETTING_DEFINITIONS:
+            global_settings:
+              - setting_id: "subscription_renewal_for_points"
+                display_name_tanker_key: "sweet_home.settings.subscription_renewal_for_points"
+                enabled: true
+                is_local: false
+                type: "boolean"
+                default_value: false
+            taxi:
+              - setting_id: "composite_payment.enabled"
+                display_name_tanker_key: "sweet_home.settings.composite_payment.taxi"
+                enabled: true
+                is_local: true
+                type: "boolean"
+                default_value: false
+        PLUS_SWEET_HOME_REGISTERED_CLIENTS:
+            taxi:
+              - client_id: "taxi.test"
+
+
+tests:
+  - name: wrong_setting_id_changes_preferences
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/user/preferences/changes
+        body:
+            version: "0"
+            changes:
+              - type: "update"
+                setting_id: "some_setting"
+                value: true
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "yandex_uid"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    response:
+        status: 200
+        body:
+            version: ""
+            settings: []
+
+  - name: unsupported_settings_to_change
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/user/preferences/changes
+        body:
+            version: "0"
+            changes:
+              - type: "update"
+                setting_id: "composite_payment.enabled"
+                value: true
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "yandex_uid"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    response:
+        status: 400

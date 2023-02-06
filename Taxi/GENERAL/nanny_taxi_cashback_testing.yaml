@@ -1,0 +1,34 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:cashback:testing
+
+http_hosts:
+  - cashback.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - include:
+        collapsed: false
+        path: cashback/cashback_line_graph.json
+        row_panels: 3
+        title: Stats
+        variables:
+          -   - cluster: production
+                sensor: cashback_processing_orders
+                title: Orders processing
+              - cluster: production
+                sensor: cashback_paid
+                title: Paid cashback
+              - cluster: production
+                sensor: cashback_refund
+                title: Returned cashback
+  - py3_common:
+        collapsed: true
+        service_name: cashback_*
+  - http
+  - stq:
+        queues:
+          - cashback_charge_failed_events
+          - cashback_charge_processing
+          - cashback_charge_processing_non_critical
+          - cashback_rates_processing
+          - universal_cashback_processing

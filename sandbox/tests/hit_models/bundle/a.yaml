@@ -1,0 +1,51 @@
+service: yabs_models_services
+title: Hit models testing tasks bundle
+ci:
+  secret: sec-01fr0x6kqyev6hh3n339ap92g9
+  runtime:
+    sandbox-owner: YABS_MODELS_SERVICES
+  releases:
+    release-binary-tasks:
+      title: Hit models testing tasks bundle release
+      flow: release-binary-tasks
+      stages:
+        build_binary_tasks:
+          title: Build task bundle
+        release_stable:
+          title: Release task bundle to stable
+      auto:
+        conditions:
+          - since-last-release: 6h
+      filters:
+        - discovery: any
+
+  flows:
+    release-binary-tasks:
+      title: Release binary tasks
+      jobs:
+        build:
+          title: Build bundle
+          stage: build_binary_tasks
+          task: common/sandbox/deploy_binary_task
+          input:
+            target: sandbox/projects/runtime_models/tests/hit_models/bundle
+            attrs:
+              tasks_bundle: YABS_HIT_MODELS_TESTS_BUNDLE
+              sync_upload_to_mds: true
+          attempts:
+            max: 5
+            backoff: exp
+            initial-backoff: 15m
+            max-backoff: 60m
+
+        release_stable:
+          title: Release bundle
+          stage: release_stable
+          needs: build
+          task: common/releases/release_to_sandbox
+          manual: false
+          input:
+            config:
+              sandbox_resource_type: SANDBOX_TASKS_BINARY
+              common_release_data:
+                release_stage: stable

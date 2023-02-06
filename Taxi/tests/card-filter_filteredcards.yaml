@@ -1,0 +1,123 @@
+id: card-filter_filteredcards
+title: Используем ответ /v1/filteredcards
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 1
+              - 1
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods:
+                  - available: true
+                    number: "****1111"
+                    system: visa
+                    availability:
+                        disabled_reason: ''
+                        available: true
+                    name: visa
+                    currency: RUR
+                    type: card
+                    id: valid_card_id
+                    bin: '4000000'
+                    card_bank: 'METABANK'
+                    card_country: 'USA'
+                  - avaliable: true
+                    number: "****1234"
+                    system: YandexBank
+                    availability:
+                        available: true
+                    currency: RUR
+                    name: Ya Bank
+                    id: card-1234
+                    bin: '6000000'
+                    is_yandex_card: true
+                merchant_id_list:
+                  - id1
+
+mocks:
+  - resource: card-filter-v1-filteredcards
+    response:
+        status-code: 200
+        body:
+            available_cards:
+              - available: true
+                number: "****1111"
+                system: visa
+                availability:
+                    disabled_reason: ''
+                    available: true
+                name: visa
+                currency: RUR
+                type: card
+                id: valid_card_id
+                bin: '4000000'
+                card_bank: 'METABANK'
+                card_country: 'USA'
+              - avaliable: true
+                number: "****1234"
+                system: YandexBank
+                availability:
+                    available: true
+                currency: RUR
+                name: Ya Bank
+                id: card-1234
+                bin: '6000000'
+                yandex_card:
+                    is_owner: true
+                    is_fake: true
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            query:
+            body:
+                user_id: "user_id"
+                yandex_uid: "yandex_uid"
+                service_type: "some_service_type"
+                service: ""
+                cache_preferred: false
+                show_unbound: false
+                show_unverified: true
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payments:
+                card:
+                    type: card
+            merchant_ids:
+              - id1
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false
+
+experiments:
+    values:
+        card_filter_enabled:
+            enabled: true
+
+configs:
+    values:
+        superapp_lpm_show_unverified:
+            enabled: true
+        superapp_service_type:
+            service_type: "some_service_type"

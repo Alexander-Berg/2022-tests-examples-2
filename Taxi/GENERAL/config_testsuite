@@ -1,0 +1,860 @@
+<DaemonConfig>
+    CType: testing_dispatch
+    AccessLog : /dev/stderr
+    IndexLog : /dev/stderr
+    LoggerType : /dev/stderr
+    LogLevel : 7
+    LogRotation : false
+    MetricsMaxAge : 10
+    MetricsPrefix : Refresh_
+    StdErr : console
+    StdOut : console
+    <Controller>
+        ClientTimeout : 200
+        ConfigsControl : false
+        ConfigsRoot :
+        #Log : ${LogDir}/controller
+        MaxConnections : 0
+        MaxQueue : 0
+        Port : ${ControllerPort}
+        StartServer : 1
+        #StateRoot : ${LogDir}/state
+        Threads : 20
+        <DMOptions>
+            ConnectionTimeout : 100
+            CType : prestable
+            Enabled : 0
+            Host : localhost
+            InteractionTimeout : 60000
+            Port : 11111
+            ServiceType : rtyserver
+            Slot : asdasda:12312
+            TimeoutS : 45
+        </DMOptions>
+    </Controller>
+</DaemonConfig>
+<Server>
+    EventLog : /dev/stderr
+    UserAgent : logistic-dispatcher (testsuite)
+    <HttpServer>
+        Port:${BasePort}
+        Threads: 16
+        CompressionEnabled: true
+    </HttpServer>
+
+    <OperatorCommandsManager>
+        <HistoryConfig>
+            Deep: 10m
+            MaxHistoryDeep: 10m
+            EventsStoreInMemDeep: 10m
+        </HistoryConfig>
+    </OperatorCommandsManager>
+
+    <Monitoring>
+        PushUrl: http://${MockserverHost}:${MockserverPort}/monitoring/push
+        #Port: 8802
+        Method: push-json
+        <Labels>
+            application: logistic-dispatcher
+        </Labels>
+    </Monitoring>
+
+    <RolesManager>
+        Type: taxi_config
+        ConfigName: LOGISTIC_DISPATCHER_ROLES
+        ConfigApiName: unused
+        AutoRefresh: 1
+    </RolesManager>
+    <PermissionsManager>
+        Type: taxi_config
+        ConfigName: LOGISTIC_DISPATCHER_PERMISSIONS
+        AutoRefresh: 1
+        DefaultUser: system-admin
+    </PermissionsManager>
+
+    <RequestHandlers>
+        <default>
+        ThreadsCount: 16
+        </default>
+    </RequestHandlers>
+
+    <RequestProcessing>
+    </RequestProcessing>
+
+    <ExternalDatabases>
+        <main-db>
+            Type: Postgres
+            ConnectionString: ${SecDistPSQLConn}
+            UseBalancing: true
+        </main-db>
+    </ExternalDatabases>
+
+    <UsersManager>
+        DBName: main-db
+        Type: db
+    </UsersManager>
+
+    <NotifiersManager>
+        DBName: main-db
+        <History>
+            Deep: 1d
+            MaxHistoryDeep: 1d
+            EventsStoreInMemDeep: 1d
+        </History>
+    </NotifiersManager>
+
+    <OffersManager>
+        <HistoryConfig>
+            Deep: 1d
+            MaxHistoryDeep: 1d
+            EventsStoreInMemDeep: 1d
+        </HistoryConfig>
+    </OffersManager>
+
+    <PersonalDataStorage>
+        Type: fake
+    </PersonalDataStorage>
+
+    <LocksManager>
+        Type: db
+        DBName: main-db
+    </LocksManager>
+
+    <EventsMonitor>
+        Type: db
+        DBName: main-db
+    </EventsMonitor>
+
+     <Databases>
+        <default_cache>
+            Type: Postgres
+            <Postgres>
+                ConnectionString: ${SecDistPSQLConn}
+                UseBalancing: false
+                TableName: default_cache
+            </Postgres>
+        </default_cache>
+     </Databases>
+
+    <AbstractExternalAPI>
+        <geoareas>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /geoareas
+            Https: false
+            <RequestConfig>
+                GlobalTimeout: 10000
+                MaxAttempts: 2
+                TasksCheckIntervalms: 200
+                SendingTimeout: 1000
+                ConnectTimeout: 100
+            </RequestConfig>
+            <Customization>
+                Type: tvm
+                DestinationClientId: 2017887
+                SelfClientId: ${SecDistTVMId}
+            </Customization>
+        </geoareas>
+        <lookup>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /lookup
+            Https: false
+            <RequestConfig>
+                GlobalTimeout: 1500
+                MaxAttempts: 2
+                TasksCheckIntervalms: 500
+                SendingTimeout: 1000
+                ConnectTimeout: 100
+            </RequestConfig>
+            <Customization>
+                Type: tvm
+                DestinationClientId: 2013802
+                SelfClientId: ${SecDistTVMId}
+            </Customization>
+        </lookup>
+        <hyperlocal>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /hyperlocal
+            Https: false
+            <RequestConfig>
+                GlobalTimeout: 1500
+                MaxAttempts: 2
+                TasksCheckIntervalms: 500
+                SendingTimeout: 1000
+                ConnectTimeout: 100
+            </RequestConfig>
+            <Customization>
+                Type: tvm
+                DestinationClientId: 2026987
+                SelfClientId: ${SecDistTVMId}
+            </Customization>
+        </hyperlocal>
+        <logistic-platform-replica>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /logistic-platform-replica
+            Https: false
+            <RequestConfig>
+                GlobalTimeout: 1500
+                MaxAttempts: 2
+                TasksCheckIntervalms: 500
+                SendingTimeout: 1000
+                ConnectTimeout: 100
+            </RequestConfig>
+            <Customization>
+                Type: tvm
+                DestinationClientId: 2033361
+                SelfClientId: ${SecDistTVMId}
+            </Customization>
+        </logistic-platform-replica>
+    </AbstractExternalAPI>
+    <ExternalAPI>
+        <cargo-tracing>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /cargo-misc
+            AdditionalCgi:
+            Https: false
+            <RequestConfig>
+                GlobalTimeout: 10000
+                MaxAttempts: 3
+                TasksCheckIntervalms: 2000
+            </RequestConfig>
+            DestinationClientId: 2017967
+            SelfClientId: ${SecDistTVMId}
+        </cargo-tracing>
+        <cargo_dispatch>
+            RouterId: logistic-dispatch
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /cargo-dispatch
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            #DestinationClientId: 2017977
+            SelfClientId: ${SecDistTVMId}
+        </cargo_dispatch>
+        <cargo_orders>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /cargo-orders
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+            DestinationClientId: 2020955
+            SelfClientId: ${SecDistTVMId}
+        </cargo_orders>
+        <eats-eta>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /eats-eta
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+            DestinationClientId: 2020851
+            SelfClientId: ${SecDistTVMId}
+        </eats-eta>
+        <candidates>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /candidates
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 3
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 200
+            </RequestConfig>
+
+            #DestinationClientId: 2014778
+            SelfClientId: ${SecDistTVMId}
+        </candidates>
+        <reposition-matcher>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /reposition
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            DestinationClientId: 2020172
+            SelfClientId: ${SecDistTVMId}
+        </reposition-matcher>
+        <surger>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /surger
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            DestinationClientId: 2019647
+            SelfClientId: ${SecDistTVMId}
+        </surger>
+        <superapp_misc>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /superapp-misc
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            DestinationClientId: 2017845
+            SelfClientId: ${SecDistTVMId}
+        </superapp_misc>
+        <grocery_checkins>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /grocery-checkins
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            DestinationClientId: 2025818
+            SelfClientId: ${SecDistTVMId}
+        </grocery_checkins>
+
+        <grocery_supply>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /grocery-supply
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            DestinationClientId: 2026620
+            SelfClientId: ${SecDistTVMId}
+        </grocery_supply>
+
+        <client_routing_sidecar>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /client-routing-sidecar
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            SelfClientId: ${SecDistTVMId}
+        </client_routing_sidecar>
+
+        <exp3_matcher_sidecar>
+            ApiHost: ${MockserverHost}
+            ApiPort: ${MockserverPort}
+            CommonPrefix: /exp3-matcher-sidecar
+            Https: 0
+            RequestTimeout: 10s
+            <RequestConfig>
+                MaxAttempts: 1
+                TimeoutSendingms: 8000
+                TimeoutConnectms: 5000
+                GlobalTimeout: 5000
+                TasksCheckInterval: 5000
+            </RequestConfig>
+
+            SelfClientId: ${SecDistTVMId}
+        </exp3_matcher_sidecar>
+    </ExternalAPI>
+
+    <GeoAreas>
+        Type: external_areas
+        ApiName: geoareas
+        DBName: main-db
+        AutoRefresh: true
+    </GeoAreas>
+
+    <Hyperlocal>
+        Type: hyperlocal
+        ApiName: hyperlocal
+        AutoRefresh: true
+    </Hyperlocal>
+
+    <HyperlocalSlot>
+        Type: hyperlocal_slot
+        ApiName: hyperlocal
+        AutoRefresh: true
+        RefreshInterval: 5s
+    </HyperlocalSlot>
+
+    <RTBackgroundManager>
+        DBName: main-db
+        Deep: 1h
+        MaxHistoryDeep: 1h
+        EventsStoreInMemDeep: 1h
+        <HistoryConfig>
+            Deep: 1d
+            MaxHistoryDeep: 1d
+            EventsStoreInMemDeep: 1d
+        </HistoryConfig>
+    </RTBackgroundManager>
+
+    <Settings>
+        Type: settings-pack
+        Freshness: 1s
+        <Segments>
+            <default>
+                Type: taxi-config
+                Freshness: 1s
+                SectionName: LOGISTIC_DISPATCHER_SETTINGS
+            </default>
+        </Segments>
+    </Settings>
+
+    <AuthModules>
+        <fake>
+            Type: fake
+            DefaultUserId: system-admin
+        </fake>
+        # <tvm_admin>
+        #     Type: tvm
+        #     SelfClientId: ${SecDistTVMId}
+        #     AcceptedClientIds: 2020477,2013864,2013636
+        #     UserId: system-admin
+        # </tvm_admin>
+    </AuthModules>
+
+    # <Tvm>
+    #     SelfClientId: ${SecDistTVMId}
+    #     DestinationClientIds:
+    #     Secret: ${SecDistTVMSecret}
+    # </Tvm>
+
+    <EmployerFactorsWatcher>
+        KVServiceName: default_cache
+    </EmployerFactorsWatcher>
+
+    <DBLoggers>
+        DBName: main-db
+        PlannerLogsTable: courier_advice_calculation_log
+        PropositionTaxiIdLogsTable: courier_proposition_taxi_id_log
+        EmulationResultsTable: emulation_results
+    </DBLoggers>
+
+    DBName: main-db
+
+    <RequestPolicy>
+        <rtline>
+            GlobalTimeout: 30000
+            ConnectTimeout: 100
+            TasksCheckIntervalms: 5000
+        </rtline>
+    </RequestPolicy>
+    <RTLineAPIs>
+        <junk-kv>
+            Host: ${MockserverHost}
+            Port: ${MockserverPort}
+            ServiceName: junk-kv
+            RequestPolicyName: rtline
+        </junk-kv>
+    </RTLineAPIs>
+
+    <StationsManager>
+        <HistoryConfig>
+            Deep: 10m
+            MaxHistoryDeep: 10m
+            EventsStoreInMemDeep: 10m
+        </HistoryConfig>
+    </StationsManager>
+    <ResourcesManager>
+        <HistoryConfig>
+            Deep: 10m
+            MaxHistoryDeep: 10m
+            EventsStoreInMemDeep: 10m
+        </HistoryConfig>
+    </ResourcesManager>
+    <ResourcesManager>
+        <HistoryConfig>
+            Deep: 10m
+            MaxHistoryDeep: 10m
+            EventsStoreInMemDeep: 10m
+        </HistoryConfig>
+    </ResourcesManager>
+    <RequestsManager>
+        <CompilationsManager>
+            Deep: 1s
+            HistoryDeep: 1s
+            MaxHistoryDeep: 1s
+            EventsStoreInMemDeep: 10s
+            LogisticPlatformReplicaApiName: logistic-platform-replica
+            ThreadsPoolThreadsCount: 8
+        </CompilationsManager>
+        <HistoryConfig>
+            Deep: 1h
+            MaxHistoryDeep: 1h
+            EventsStoreInMemDeep: 1h
+        </HistoryConfig>
+        <TagsManager>
+            <HistoryConfig>
+                Deep: 1h
+                MaxHistoryDeep: 1h
+                EventsStoreInMemDeep: 1h
+            </HistoryConfig>
+        </TagsManager>
+    </RequestsManager>
+    <PropositionsManager>
+        PropositionsKVStorage: junk-kv
+        <HistoryConfig>
+            Deep: 6h
+            MaxHistoryDeep: 6h
+            EventsStoreInMemDeep: 6h
+        </HistoryConfig>
+    </PropositionsManager>
+
+    <ContractorsManager>
+        <PositionsWatcherConfig>
+            KVServiceName: default_cache
+        </PositionsWatcherConfig>
+        <PingsWatcherConfig>
+            KVServiceName: default_cache
+        </PingsWatcherConfig>
+        <EstimationsWatcherConfig>
+            KVServiceName: default_cache
+        </EstimationsWatcherConfig>
+        <TaskWatcher>
+            RTYServiceName: junk-kv
+        </TaskWatcher>
+        <FeaturesWatcher>
+            RTYServiceName: junk-kv
+        </FeaturesWatcher>
+        <Operators>
+            <default>
+                <PositionsFetcher>
+                    Type: candidates
+                </PositionsFetcher>
+                <PingsFetcher>
+                    Type: candidates
+                </PingsFetcher>
+                <CandidatesFetcher>
+                    ClientType: candidates
+                </CandidatesFetcher>
+                <PropositionsNotifier>
+                    Type: taxi
+                </PropositionsNotifier>
+                <EventsFetcher>
+                    Type: taxi
+                </EventsFetcher>
+            </default>
+        </Operators>
+    </ContractorsManager>
+
+    <Processors>
+        <api/admin/settings/info>
+            AuthModuleName: tvm_admin
+            ProcessorType: settings_info
+        </api/admin/settings/info>
+        <api/admin/settings/upsert>
+            AuthModuleName: tvm_admin
+            ProcessorType: settings_upsert
+        </api/admin/settings/upsert>
+        <api/admin/settings/remove>
+            AuthModuleName: tvm_admin
+            ProcessorType: settings_remove
+        </api/admin/settings/remove>
+
+        <employee/timer>
+            AuthModuleName: fake
+            ProcessorType: employee-timer
+        </employee/timer>
+
+        <eats/supply-availability>
+            AuthModuleName: fake
+            ProcessorType: supply-availability
+        </eats/supply-availability>
+
+        <api/proposition/list>
+            AuthModuleName: fake
+            ProcessorType: proposition-list
+        </api/proposition/list>
+        <api/proposition/accept>
+            AuthModuleName fake
+            ProcessorType: proposition-accept
+        </api/proposition/accept>
+        <api/proposition/reject>
+            AuthModuleName: fake
+            ProcessorType: proposition-reject
+        </api/proposition/reject>
+
+        <driver-for-order>
+            AuthModuleName: fake
+            ProcessorType: lookup-driver-for-order
+        </driver-for-order>
+        <assign-external-driver>
+            AuthModuleName: fake
+            ProcessorType: proposition-set-external-contractor
+        </assign-external-driver>
+        <lookup/order/register>
+            AuthModuleName: fake
+            ProcessorType: lookup-register
+        </lookup/order/register>
+
+        <v1/journal/callback/segments>
+            AuthModuleName: fake
+            ProcessorType: v1-journal-callback-segments
+        </v1/journal/callback/segments>
+
+        <api/contractor/list_active>
+            AuthModuleName: fake
+            ProcessorType: executor-list-active
+        </api/contractor/list_active>
+        <api/contractor/accept>
+            AuthModuleName: fake
+            ProcessorType: executor-action-accept
+        </api/contractor/accept>
+        <api/contractor/session>
+            AuthModuleName: fake
+            ProcessorType: executor-session-get
+        </api/contractor/session>
+
+        # <api/pull_dispatch/promise>
+        #     AuthModuleName: fake
+        #     ProcessorType: pull-dispatch-emulation-results
+        # </api/pull_dispatch/promise>
+        # <api/pull_dispatch/estimations>
+        #     AuthModuleName: fake
+        #     ProcessorType: pull-dispatch-emulation-results
+        # </api/pull_dispatch/estimations>
+
+        <api/request/diagnostics>
+            AuthModuleName: fake
+            ProcessorType: request-contractor-satisfy
+        </api/request/diagnostics>
+
+        <testsuite/rt-robot-execute>
+            AuthModuleName: fake
+            ProcessorType: rt-robot-execute
+        </testsuite/rt-robot-execute>
+
+        <api/staff/bg/info>
+            AuthModuleName: fake
+            ProcessorType: rt_background-list
+        </api/staff/bg/info>
+        <api/staff/bg/upsert>
+            AuthModuleName fake
+            ProcessorType: rt_background-upsert
+        </api/staff/bg/upsert>
+        <api/staff/bg/remove>
+            AuthModuleName fake
+            ProcessorType: rt_background-remove
+        </api/staff/bg/remove>
+
+        <service/jemalloc/prof>
+            AuthModuleName: fake
+            ProcessorType: jemalloc-prof
+        </service/jemalloc/prof>
+    </Processors>
+
+    <TaxiConfigClient>
+        Type: taxi
+        Host: ${MockserverHost}
+        Port: ${MockserverPort}
+        Https: 0
+        Route: configs-service/configs/values
+        RequestTimeout: 10s
+    </TaxiConfigClient>
+
+    <TaxiTagsClient>
+        ClientType: taxi
+        Host: ${MockserverHost}
+        Port: ${MockserverPort}
+        Https: 0
+        Route: tags/v2/match
+        RequestTimeout: 50ms
+        SelfTvmId: ${SecDistTVMId}
+        DestinationTvmId: 2001996
+    </TaxiTagsClient>
+
+    <TestsuiteClient>
+        Type: taxi
+        Host: ${MockserverHost}
+        Port: ${MockserverPort}
+        Https: 0
+        RequestTimeout: 10s
+    </TestsuiteClient>
+
+    # <TaxiMLSupplyEstimatorClient>
+    #     Host: umlaas.taxi.tst.yandex.net
+    #     Port: 80
+    #     Https: 0
+    #     Route: umlaas/v1/logistics-performer-availability
+    #     RequestTimeout: 1000ms
+    #     SelfTvmId: ${SecDistTVMId}
+    #     DestinationTvmId: 2015413
+    # </TaxiMLSupplyEstimatorClient>
+
+    # <ExternalFeatures>
+    #     # <eats_external_features>
+    #     #     Name: eats_external_features
+    #     #     RefreshDuration: 60s
+    #     #     YtCluster: hahn
+    #     #     TableName: //home/taxi/testing/logistic-dispatcher/eats-additional-features
+    #     #     KeyField: courier_id
+    #     #     ValueField: additional_seconds
+    #     # </eats_external_features>
+    #     # <pull_dispatch_oph_features>
+    #     #     Name: pull_dispatch_oph_features
+    #     #     RefreshDuration: 60s
+    #     #     YtCluster: hahn
+    #     #     TableName: //home/eda-dwh/ods/googledocs/pull_dispatch_feature_price/pull_dispatch_feature_price
+    #     #     KeyField: logistic_group_id
+    #     #     ValueField: order_per_courier_val
+    #     # </pull_dispatch_oph_features>
+    # </ExternalFeatures>
+
+    <DBLoggers>
+        DBName: main-db
+        PlannerLogsTable: courier_advice_calculation_log
+        PropositionTaxiIdLogsTable: courier_proposition_taxi_id_log
+    </DBLoggers>
+
+    <TagDescriptions>
+        DBName: main-db
+    </TagDescriptions>
+
+    <GraphAPI>
+        Type: ymaps
+        <auto>
+            Host: ${MockserverHost}
+            Port: ${MockserverPort}
+            MatrixHost: ${MockserverHost}
+            Https: 0
+            DistanceRoute: yamaps/v2/route
+            MatrixRoute: yamaps/v2/matrix
+            RoutesActuality: 10m
+            RequestTimeout: 15s
+            <RequestConfig>
+                TasksCheckIntervalms: 3000
+                TimeoutSendingms: 5000
+                GlobalTimeout: 15000
+                MaxAttempts: 3
+                MaxReconnections: 3
+            </RequestConfig>
+            <RateLimiters>
+                <background>
+                    MaxRequestsPerSecond: 35
+                    MaxWeightPerSecond: 800
+                    MaxWaitDuration: 45s
+                </background>
+                <realtime>
+                    MaxRequestsPerSecond: 15
+                    MaxWeightPerSecond: 200
+                    MaxWaitDuration: 250ms
+                </realtime>
+            </RateLimiters>
+        </auto>
+        <pedestrian>
+            Host: ${MockserverHost}
+            Port: ${MockserverPort}
+            Https: 0
+            DistanceRoute: yamaps/pedestrian/v2/route
+            MatrixRoute: yamaps/pedestrian/v2/matrix
+            RoutesActuality: 12h
+            RequestTimeout: 15s
+            <RequestConfig>
+                TasksCheckIntervalms: 3000
+                TimeoutSendingms: 5000
+                GlobalTimeout: 15000
+                MaxAttempts: 3
+                MaxReconnections: 3
+            </RequestConfig>
+            <RateLimiters>
+                <background>
+                    MaxRequestsPerSecond: 35
+                    MaxWeightPerSecond: 800
+                    MaxWaitDuration: 45s
+                </background>
+                <realtime>
+                    MaxRequestsPerSecond: 15
+                    MaxWeightPerSecond: 200
+                    MaxWaitDuration: 250ms
+                </realtime>
+            </RateLimiters>
+        </pedestrian>
+        <masstransit>
+            Host: ${MockserverHost}
+            Port: ${MockserverPort}
+            MatrixHost: ${MockserverHost}
+            Https: 0
+            DistanceRoute: yamaps/masstransit/v2/route
+            MatrixRoute: yamaps/masstransit/v2/matrix
+            RoutesActuality: 1h
+            RequestTimeout: 15s
+            <RequestConfig>
+                TasksCheckIntervalms: 3000
+                TimeoutSendingms: 5000
+                GlobalTimeout: 15000
+                MaxAttempts: 3
+                MaxReconnections: 3
+            </RequestConfig>
+            <RateLimiters>
+                <background>
+                    MaxRequestsPerSecond: 5
+                    MaxWeightPerSecond: 800
+                    MaxWaitDuration: 45s
+                </background>
+                <realtime>
+                    MaxRequestsPerSecond: 5
+                    MaxWeightPerSecond: 200
+                    MaxWaitDuration: 250ms
+                </realtime>
+            </RateLimiters>
+        </masstransit>
+    </GraphAPI>
+</Server>

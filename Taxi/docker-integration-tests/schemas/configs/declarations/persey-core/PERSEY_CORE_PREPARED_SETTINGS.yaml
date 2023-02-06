@@ -1,0 +1,40 @@
+default:
+    success_mail_template_xml: '<?xml version="1.0" encoding="UTF-8"?><mails><mail>
+        <from>{persey_email}</from> <subject>Заявка подтверждена</subject> <body>
+        Ваша заявка, {order_id} подтверждена. Подробности в ЛК. </body> </mail></mails>'
+    failed_mail_template_xml: '<?xml version="1.0" encoding="UTF-8"?><mails><mail>
+        <from>{persey_email}</from> <subject>Заявка отклонена</subject> <body> Ваша
+        заявка, {order_id} отклонена. {reject_cause}. Подробности в ЛК. </body> </mail></mails>'
+    delimiter: '\n'
+description: |
+    Настройки STQ-таски, занимающейся уведомлением о результатах
+    проверки документов
+tags: ['notfallback']
+maintainers:
+  - sanvean
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        success_mail_template_xml:
+            type: string
+            description: |
+                Шаблон письма об успешной проверке документов
+                Может содержать следующие подстановки:
+                {persey_email} - обратный адрес из конфига сервиса
+                {order_id} - номер заявки
+        failed_mail_template_xml:
+            type: string
+            description: |
+                Шаблон письма о неуспешной проверке документов
+                Может содержать следующие подстановки:
+                {persey_email} - обратный адрес из конфига сервиса
+                {order_id} - номер заявки
+                {reject_cause} - причина отказа
+        delimiter:
+            type: string
+            description: разделитель элементов в reject_cause
+    required:
+      - success_mail_template_xml
+      - failed_mail_template_xml
+      - delimiter

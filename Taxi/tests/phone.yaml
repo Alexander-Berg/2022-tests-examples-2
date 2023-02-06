@@ -1,0 +1,84 @@
+id: phone
+title: Check for all test cases of the phone channel
+
+parameters:
+  - case:
+      # Phone from exp
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "+7906",
+                        "type": "phone", "text": "text"}]}}
+        called_region#string: "1"
+        exp_channel#string: "+7906"
+        exp_enabled#boolean: true
+      # Phone override via the region config
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "+7495",
+                        "type": "phone", "text": "text"}]}}
+        called_region#string: "1"
+        exp_channel#string: ""
+        exp_enabled#boolean: true
+      # Phone by region doesn't exist
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "8800",
+                        "type": "phone", "text": "text"}]}}
+        called_region#string: "2"
+        exp_channel#string: ""
+        exp_enabled#boolean: true
+      # Fallen back to a default phone if the exp is turned off
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "88006001210",
+                        "type": "phone", "text": "Позвонить"}]}}
+        called_region#string: "2"
+        exp_channel#string: ""
+        exp_enabled#boolean: false
+
+source:
+    request:
+        method: get
+        query:
+            regionId#xget: /test-params/case/called_region
+        headers:
+            X-Device-Id: someDevice
+            X-Platform: somePlatform
+            X-Request-Application: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/case/expected_body
+
+experiments:
+    values#object:
+      - key: eats-feedback-channels-ab
+        value:
+            enabled: true
+            one_chat: true
+            channels#array:
+              - value#object:
+                  - key: id
+                    value: 1
+                  - key: channel
+                    value#xget: /test-params/case/exp_channel
+                  - key: type
+                    value: "phone"
+                  - key: text
+                    value: "text"
+        enabled#xget: /test-params/case/exp_enabled
+    expectations:
+        kwargs:
+          - key: platform
+            type: string
+            value: somePlatform
+          - key: personal_phone_id
+            type: string
+            value: ""
+          - key: device_id
+            type: string
+            value: someDevice
+
+taxi_config:
+    EATS_FEEDBACK_PHONE_NUMBERS:
+        "__default__": {"phone_number#string": "8800"}
+        "1": {"phone_number#string": "+7495"}
+
+mocks:
+  - resource: eats-ordershistory-get-orders
+    response:
+        status-code: 200
+        body:
+            orders#array:

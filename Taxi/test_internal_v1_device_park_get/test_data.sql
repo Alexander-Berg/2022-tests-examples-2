@@ -1,0 +1,99 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at,
+    is_drive_device
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'd1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'SERIAL1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE
+),
+(
+    2,
+    NULL,
+    TRUE,
+    'd2',
+    'pub_key_2',
+    '990000862471852',
+    '07:f2:74:af:8b:b2',
+    NULL,
+    NULL,
+    'SERIAL2',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    '2020-02-25T22:30:00+03',
+    '2020-02-26T02:00:00+03',
+    FALSE
+),
+(
+    'PARK_ID1',
+    1,
+    '2020-02-25T22:30:00+03',
+    '2020-02-26T02:00:00+03',
+    TRUE
+),
+(
+    'p1',
+    2,
+    '2020-02-25T22:30:00+03',
+    '2020-02-26T02:00:00+03',
+    FALSE
+);

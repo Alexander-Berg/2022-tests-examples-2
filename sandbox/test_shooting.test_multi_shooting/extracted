@@ -1,0 +1,52 @@
+{
+    "phantom": {
+        "load_profile": {
+            "load_type": "rps", 
+            "schedule": "line(1,1000,3m)"
+        }, 
+        "instances": 10000, 
+        "multi": [
+            {
+                "ammofile": "https://proxy.sandbox.yandex-team.ru/2", 
+                "headers": [], 
+                "load_profile": {
+                    "load_type": "rps", 
+                    "schedule": "line(1,1000,1m) const(1000, 2m)"
+                }, 
+                "instances": 10000, 
+                "address": "host2.yandex.net:80"
+            }, 
+            {
+                "ammofile": "https://proxy.sandbox.yandex-team.ru/3", 
+                "headers": [], 
+                "load_profile": {
+                    "load_type": "rps", 
+                    "schedule": "line(1,2000,1m) line(1,2000,2m)"
+                }, 
+                "instances": 10000, 
+                "address": "host3.yandex.net:80"
+            }
+        ], 
+        "ammofile": "https://proxy.sandbox.yandex-team.ru/1", 
+        "headers": [
+            "Host: mtinfo.maps.yandex.net", 
+            "Accept: application/x-protobuf"
+        ], 
+        "address": "host1.yandex.net:80"
+    }, 
+    "rcassert": {
+        "pass": "0 21 22"
+    }, 
+    "autostop": {
+        "autostop": [
+            "http(5xx,10%,10)", 
+            "http(4xx,20%,10)"
+        ]
+    }, 
+    "uploader": {
+        "operator": "lunapark", 
+        "task": "MTDEV-305", 
+        "component": "mtinfo-all", 
+        "job_name": "mtinfo-all"
+    }
+}

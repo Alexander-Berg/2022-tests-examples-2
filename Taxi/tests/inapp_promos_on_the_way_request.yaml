@@ -1,0 +1,265 @@
+id: inapp_promos_on_the_way_request
+title: Проверяет построение запроса к /v1/promos-on-the-way, что ответ этого источника
+    есть в общем response
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            media_size_info: {'screen_height': 1920, 'screen_width': 1080, 'scale': 2.5}
+            user_actions: {'share_ride_with_family': {'value': true}}
+            supported_widgets: ['toggle']
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                driver:
+                    short_name: 'Михаил'
+                    rating: '4.97'
+                    photos:
+                        avatar_image:
+                            url: 'driver_photo_url'
+                            url_parts:
+                                key: ''
+                                path: ''
+                higher_class_dialog:
+                    image: class_comfortplus_car
+                    text: some_text
+                    title: some_title
+                    class_after_upgrade: comfortplus
+                notifications#object:
+                  - key: notification_1
+                    value:
+                        id: id_notification_1
+                brandings#array:
+                  - value#object:
+                      - key: match
+                        value:
+                            views: ['waiting', 'driving']
+                      - key: type
+                        value: 'stories'
+                      - key: stories
+                        value#array:
+                          - value#object:
+                              - key: id
+                                value: 1
+                              - key: name
+                                value: 'story_name'
+                              - key: enabled
+                                value: true
+                              - key: media
+                                value: [{'type': 'image', 'content': 'url'}]
+                promotions#object:
+                  - key: banners
+                    value#object:
+                      - key: items
+                        value#array:
+                          - value:
+                                id: 'banner_id'
+                                title: {'items': [{'text': 'title', 'type': 'text'}]}
+                                text: {'items': [{'text': 'text', 'type': 'text'}]}
+                                icon:
+                                    image_tag: 'my_image_tag'
+                                    image_url: 'http://here.is.url/with/path?and=query'
+                                backgrounds#array:
+                                  - {'content': 'https://test.png', 'type': 'image'}
+                                  - {'content': 'FFFFFF', 'type': 'color'}
+                                action: {'deeplink': 'yandextaxi://depplink'}
+                                show_policy:
+                                    id: 'show_policy_id'
+                                    max_show_count: 3
+                                    max_widget_usage_count: 1
+                                priority: 3
+                  - key: promoblocks
+                    value#object:
+                      - key: items
+                        value#array:
+                          - value:
+                                id: 'promoblock_id'
+                                meta_type: 'totw_family_share_promoblock'
+                                supported_classes: ['econom']
+                                title: {'items': [{'text': 'text', 'type': 'text'}]}
+                                widgets: {}
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+experiments:
+    values#object:
+      - key: update_selected_class_after_upgrade
+        value:
+            enabled: false
+        enabled: true
+      - key: api_proxy_totw_stories_use_inapp
+        value:
+            enabled: true
+        enabled: true
+      - key: api_proxy_totw_driver_map
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            higher_class_dialog:
+                image: class_comfortplus_car
+                title: some_title
+                text: some_text
+                class_after_upgrade: comfortplus
+            driver:
+                short_name: 'Михаил'
+                rating: '4.97'
+                pictures:
+                    avatar_image:
+                        url: 'driver_photo_url_protocol'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: driver-map-driver-profile-response
+    response:
+        status-code: 200
+        body:
+            photos:
+                avatar_image:
+                    url: 'driver_photo_url'
+                    url_parts:
+                        key: ''
+                        path: ''
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            calc:
+                alternative_type: 'perfect_chain'
+            private_data:
+                nz: 'moscow'
+                driver_id: 'driver_id_1'
+                extra_user_phone_id: 'extra_user_phone_id_1'
+                current_prices:
+                    currency: 'RUB'
+                    alt_offer_final_discount: 25.5
+            request:
+                route: ['geopoint': [37.5, 57.5], 'geopoint': [37.8, 59.7]]
+            tariff:
+                class: comfortplus
+            status: 'transporting'
+            rsk: 'sharing_key_1'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'
+  - resource: inapp-communications-v1-promos-on-the-way
+    response:
+        status-code: 200
+        body#object:
+          - key: notifications
+            value#object:
+              - key: notification_1
+                value:
+                    id: id_notification_1
+          - key: legacy_stories
+            value#object:
+              - key: match
+                value:
+                    views: ['waiting', 'driving']
+              - key: type
+                value: 'stories'
+              - key: stories
+                value#array:
+                  - value#object:
+                      - key: id
+                        value: 1
+                      - key: name
+                        value: 'story_name'
+                      - key: enabled
+                        value: true
+                      - key: media
+                        value: [{'type': 'image', 'content': 'url'}]
+          - key: promotions
+            value#object:
+              - key: banners
+                value#object:
+                  - key: items
+                    value#array:
+                      - value:
+                            id: 'banner_id'
+                            title: {'items': [{'text': 'title', 'type': 'text'}]}
+                            text: {'items': [{'text': 'text', 'type': 'text'}]}
+                            icon:
+                                image_tag: 'my_image_tag'
+                                image_url: 'http://here.is.url/with/path?and=query'
+                            backgrounds#array:
+                              - {'content': 'https://test.png', 'type': 'image'}
+                              - {'content': 'FFFFFF', 'type': 'color'}
+                            action: {'deeplink': 'yandextaxi://depplink'}
+                            show_policy:
+                                id: 'show_policy_id'
+                                max_show_count: 3
+                                max_widget_usage_count: 1
+                            priority: 3
+              - key: promoblocks
+                value#object:
+                  - key: items
+                    value#array:
+                      - value:
+                            id: 'promoblock_id'
+                            meta_type: 'totw_family_share_promoblock'
+                            supported_classes: ['econom']
+                            title: {'items': [{'text': 'text', 'type': 'text'}]}
+                            widgets: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                supported_widgets: ['toggle']
+                point_a: [37.5, 57.5]
+                point_b: [37.8, 59.7]
+                tariff_class: 'comfortplus'
+                driver_id: 'driver_id_1'
+                driver:
+                    short_name: 'Михаил'
+                    rating: '4.97'
+                    pictures:
+                        avatar_image:
+                            url: 'driver_photo_url'
+                extra_user_phone_id: 'extra_user_phone_id_1'
+                sharing_key: 'sharing_key_1'
+                status: 'transporting'
+                media_size_info: {'screen_height': 1920, 'screen_width': 1080, 'scale': 2.5}
+                currency: 'RUB'
+                alternative_type: 'perfect_chain'
+                alt_offer_final_discount: 25.5

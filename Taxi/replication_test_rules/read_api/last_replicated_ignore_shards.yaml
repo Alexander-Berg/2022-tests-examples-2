@@ -1,0 +1,34 @@
+name: last_replicated_ignore_shards
+queue_data:
+    db_cluster: replication_queue_mdb_0
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: modified_at
+    connection:
+        secret: example_pg
+    timezone: Europe/Moscow
+    table: just_table
+
+    primary_key:
+      - id
+      - doc_type
+    plugin_parameters:
+      - name: last_replicated_ignore_shards
+        parameters:
+            source_unit_names:
+              - 'shard0'
+            default_lag_seconds: 600
+destinations:
+  - last_replicated_ignore_shards_raw:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    sort_order: ascending
+            path: last_replicated_ignore_shards_raw
+            cluster_groups:
+              - map_reduce

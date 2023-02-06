@@ -1,0 +1,34 @@
+INSERT INTO voice_gateways.voice_gateways
+(
+ id,
+ disabled_at,
+ token,
+ settings.disabled,
+ info.ignore_certificate,
+ disable_reason
+)
+VALUES
+(
+ 'gateway_id_1',
+ NULL,
+ 'gateway_id_1',
+ TRUE,
+ TRUE,
+ 'test_reason'
+),
+(
+ 'gateway_id_2',
+ current_timestamp - interval '25 minutes',
+ 'gateway_id_2',
+ TRUE,
+ TRUE,
+ 'long_reason'
+),
+(
+ 'gateway_id_3',
+ current_timestamp,
+ 'gateway_id_3',
+ TRUE,
+ TRUE,
+ 'test_reason'
+);

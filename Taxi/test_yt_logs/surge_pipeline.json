@@ -1,0 +1,47 @@
+[
+  {
+    "consumer": "scooters-surge-zoned",
+    "name": "test_pipeline_name",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "zone.id{zone_id}"
+          }
+        ],
+        "name": "resource_fetch",
+        "resources": [
+          {
+            "field": "scooters",
+            "name": "scooters"
+          }
+        ],
+        "source_code": "log.warning('pipeline log'); return {scooters: {zone_id: zone_id}};"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "scooters"
+          }
+        ],
+        "name": "calc_surge",
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          },
+          {
+            "alias": "features",
+            "query": "features"
+          }
+        ],
+        "source_code": "let sum_charge = 0; let cnt = 0; for(let idx in scooters.scooters_list) {let charge = scooters.scooters_list[idx].fuel_level / 100; if(!charge) {continue;} sum_charge += charge; cnt++;} return {value: cnt ? sum_charge / cnt : 0, features: [scooters.scooters_list.length]};"
+      }
+    ],
+    "state": "active"
+  }
+]

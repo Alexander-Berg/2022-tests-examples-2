@@ -1,0 +1,17 @@
+let waiting_price = (fix.tariff.transfer_prices as prices) ? prices.waiting_price : fix.tariff.waiting_price;
+let free_waiting_time = waiting_price.free_waiting_time;
+let paid_waiting_time = ride.ride.waiting_time - free_waiting_time;
+
+//emit("paid_waiting_time", paid_waiting_time);
+
+let meta = {metadata = [
+       "paid_waiting_time":  paid_waiting_time
+   ]
+};
+
+if (paid_waiting_time > 0) {
+  let price_per_minute = waiting_price.price_per_minute;
+  return concat({waiting = paid_waiting_time * price_per_minute / 60}, meta);
+}
+
+return concat(ride.price, meta);

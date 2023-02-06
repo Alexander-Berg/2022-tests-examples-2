@@ -1,0 +1,42 @@
+data:
+    name: ApplyDashboardConfig
+    provider_name: dashboards
+    job_vars:
+      - dashboard_name
+    stages:
+      - name: GenerateDashboardConfigChanges
+        provider_name: dashboards
+        input:
+            dashboard_name: dashboard_name
+        output:
+            diff_proposal: diff_proposal
+            project_name: project_name
+            service_name: service_name
+      - name: ValidateDashboardConfigChanges
+        provider_name: dashboards
+        input:
+            diff_proposal: diff_proposal
+      - name: EnqueueDashboardConfigUpload
+        provider_name: dashboards
+        input:
+            diff_proposal: diff_proposal
+        output:
+            config_upload_ids: config_upload_ids
+      - name: WaitDashboardConfigUpload
+        provider_name: dashboards
+        input:
+            config_upload_ids: config_upload_ids
+      - name: UploadDashboardFromConfig
+        provider_name: dashboards
+        input:
+            diff_proposal: diff_proposal
+            project_name: project_name
+            service_name: service_name
+      - name: DeleteDashboardConfigUpload
+        provider_name: dashboards
+        input:
+            config_upload_ids: config_upload_ids
+      - name: FinishApplyingDashboardConfig
+        provider_name: dashboards
+        input:
+            dashboard_name: dashboard_name

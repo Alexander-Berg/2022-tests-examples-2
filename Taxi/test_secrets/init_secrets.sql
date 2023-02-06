@@ -1,0 +1,106 @@
+INSERT INTO secrets.secrets (
+    key,
+    secret_uuid,
+    version_uuid,
+    type,
+    updated,
+    env,
+    project_name,
+    service_name
+)
+VALUES (
+  'TEST_1',
+  'YAV_UUID_1',
+  'VERSION_UUID_1',
+  'mongodb',
+  250,
+  'unstable',
+  null,
+  null
+),
+(
+  'TEST_2',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'mongodb',
+  250,
+  'testing',
+  'eda',
+  'service2'
+),
+(
+  'MONGODB_TAXI_STRONGBOX',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'postgresql',
+  250,
+  'testing',
+  'taxi',
+  'service'
+),
+(
+  'MONGODB_TAXI-INFRA_STRONGBOX',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'postgresql',
+  250,
+  'testing',
+  'taxi-infra',
+  'service'
+),
+(
+  'SEARCHABLE_SECRET',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'mongodb',
+  250,
+  'testing',
+  'taxi',
+  null
+),
+(
+  'SEARCHABLE_SECRET',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'redis',
+  250,
+  'unstable',
+  'taxi',
+  'service'
+);
+
+INSERT INTO secrets.groups (
+  name,
+  secret_uuid,
+  version_uuid,
+  env,
+  service_name
+)
+VALUES (
+  'taxi:service:unstable',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'unstable',
+  'service'
+),
+(
+  'taxi:service:testing',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'testing',
+  'service'
+),
+(
+  'taxi-infra:service:testing',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'testing',
+  'service'
+),
+(
+  'eda:service2:testing',
+  'YAV_UUID_2',
+  'VERSION_UUID_2',
+  'testing',
+  'service2'
+);

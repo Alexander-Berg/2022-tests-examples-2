@@ -1,0 +1,24 @@
+#
+# Regular cron jobs for the yandex-taxi yandex-taxi-billing-accounts package
+#
+# ТЫ БУДЕШЬ ОСТАВЛЯТЬ ПУСТУЮ СТРОКУ В КОНЦЕ ЭТОГО ФАЙЛА
+#
+
+PATH="/usr/lib/yandex/taxi-py3-2/bin:/usr/bin:/bin"
+PYTHONPATH="/usr/lib/yandex/taxi-billing-accounts-cron"
+MAILTO=taxi-cron@yandex-team.ru
+YT_LOG_LEVEL=WARNING
+
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-journal-0.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_journal_0 --handler journal --pg-shard 0
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-journal-1.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_journal_1 --handler journal --pg-shard 1
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-journal-2.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_journal_2 --handler journal --pg-shard 2
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-journal-3.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_journal_3 --handler journal --pg-shard 3
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-balance-0.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_balance_at_0 --handler balance_at --pg-shard 0
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-balance-1.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_balance_at_1 --handler balance_at --pg-shard 1
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-balance-2.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_balance_at_2 --handler balance_at --pg-shard 2
+  *  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && /usr/bin/flock -n /var/run/yandex/taxi-billing-accounts-cron/replicate-balance-3.lock python3.7 -m taxi_billing_accounts.replication.cron_run taxi_billing_accounts.replication.tasks.replicate --cron-name billing_accounts_replication_balance_at_3 --handler balance_at --pg-shard 3
+*/5  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_accounts.audit.cron_run taxi_billing_accounts.audit.tasks.aggregate_journal_data_v2
+*/5  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_accounts.audit.cron_run taxi_billing_accounts.audit.tasks.aggregate_pg_balance_data
+*/5  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_accounts.audit.cron_run taxi_billing_accounts.audit.tasks.aggregate_yt_balance_data
+*/5  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_accounts.audit.cron_run taxi_billing_accounts.audit.tasks.aggregate_pg_accounts_data
+*/5  *  * * *     root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_accounts.audit.cron_run taxi_billing_accounts.audit.tasks.aggregate_yt_accounts_data

@@ -1,0 +1,37 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: failed_handler_test
+        queue: example
+        stq-queue: failed_handler_test_example
+        static-event-traits:
+            is-create#equal:
+              - value#xget: /event/payload/kind
+              - value#string: create
+        state-manager:
+            initial: {}
+        keys-mapping:
+            default-keys: [handle-default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            shared-state-init: {}
+            stages:
+              - id: fail-the-handler-stage
+                handlers:
+                  - id: handler-to-be-disabled
+                    requests:
+                      - id: example-request-a
+                        resource: example-resource-a
+                        fail-policy:
+                          - selector: any
+                            action: disable
+                    resources:
+                      - id: example-resource-a
+                        url: $bad_handler_url
+                        method: get
+                    result:
+                        request-enabled#xget: /sources/example-request-a/enabled

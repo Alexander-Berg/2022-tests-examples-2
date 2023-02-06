@@ -1,0 +1,70 @@
+id: driver-v1-partner-v1-shuttle-start_trip-ok
+title: Happy path scenario
+source:
+    request:
+        method: POST
+        url: /driver/v1/shuttle-control/v1/shuttle/start_trip
+        body:
+        query:
+            route_id: 'route1'
+        headers:
+            Content-Type: 'application/json'
+            Accept-Language: 'ru'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payload:
+                    state: "route_selection"
+                    shuttle_id: "shuttle1"
+                    stops_display_limit: 1
+                    ticket_settings:
+                        length: 1
+                    panel_en_route:
+                        items: []
+                version#string: 1.123
+
+mocks:
+  - resource: shuttle-control-v1-shuttle-start_trip
+    response:
+        status-code: 200
+        body:
+            state: "route_selection"
+            shuttle_id: "shuttle1"
+            stops_display_limit: 1
+            ticket_settings:
+                length: 1
+            panel_en_route:
+                items: []
+
+    expectations:
+        call-count: 1
+        request:
+            method: POST
+            body: {}
+
+  - resource: client-events-push
+    response:
+        status-code: 200
+        body:
+            version#string: "1.123"
+
+    expectations:
+        call-count: 1
+        request:
+            method: POST
+            body:
+                service: yandex.pro
+                channel: contractor:dbid_uuid
+                event: shuttle_status_state
+                payload:
+                    state: "route_selection"
+                    shuttle_id: "shuttle1"
+                    stops_display_limit: 1
+                    ticket_settings:
+                        length: 1
+                    panel_en_route:
+                        items: []

@@ -1,0 +1,33 @@
+settings:
+    collection: driver_payment_type
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: cleanup_datetime
+    sparse: true
+  - key: license_pd_id
+    sparse: true
+    unique: true
+  - key: updated
+wiki_info: |
+    ####dbtaxi.driver_payment_type - опция выбора способа оплаты для водителей
+    https://wiki.yandex-team.ru/users/causelove/paymentmetnodchoice/#formatvzaimodejjstvija
+    ```python
+    driver_payment_type = {
+        # обязательные атрибуты
+        '_id': '123456789', # водительские права (driver_license из коллекции driver)
+        'payment_type': 'online', # желаемый способ оплаты (online, cash, none = любой)
+        'enabled': true, # доступна ли опция для водителя (если водитель исчерпал лимиты за сутки, опция выключается)
+        'enabled_count': 4, # сколько раз водитель активировал опцию за последние сутки
+        'order_ids': ['1', '2', '3'] # несколько последних заказов по которым была учтена статистика
+        'cleanup_datetime': datetime, # время когда обнуляется статистика водителя и опция становится вновь доступной
+        'cash': {
+            'travel_time': 3600, # сколько водитель проехал времени на заказах за наличку с включённой опцией
+            'travel_distance': 10000, # сколько водитель проехал метров на заказах за наличку с включённой опцией
+        },
+        'online': {
+            'travel_time': 3600, # сколько водитель проехал времени на заказах по безналу с включённой опцией
+            'travel_distance': 10000, # сколько водитель проехал метров на заказах по безналу с включённой опцией
+        },
+    }
+    ```

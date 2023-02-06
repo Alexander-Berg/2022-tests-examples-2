@@ -1,0 +1,107 @@
+  - id: test-with-operator-any
+    title: Тест для проверки использования typed_experiments из exp3-matcher-а
+    source:
+        request:
+            method: post
+            body:
+                id: 'user_id'
+            headers:
+                content-type: 'application/json'
+                X-YaTaxi-User: 'personal_phone_id=personal_123'
+                X-Request-Application: 'app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2'
+                X-YaTaxi-PhoneId: 'phone_id'
+                X-Remote-Ip: '1.1.1.1'
+        expectations:
+            response:
+                status-code#integer: 200
+                body:
+                    id: 'user_id'
+                    authorized: false
+                    typed_experiments:
+                        some_exp: 'some_val'
+
+    mocks:
+      - resource: exp3-matcher-typed-experiments
+        response:
+            status-code: 200
+            body:
+                some_exp: 'some_val'
+            headers:
+                content-type: 'application/json'
+        expectations:
+            call-count: 1
+            request:
+                headers:
+                    X-Request-Application: 'app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2'
+                body#object:
+                  - key: args
+                    value#array:
+                      - value:
+                            type: string
+                            value: 1.1.1.1
+                            name: x_remote_ip
+                      - value:
+                            type: string
+                            value: ''
+                            name: accept_language
+                      - value:
+                            type: application
+                            value: iphone
+                            name: application
+                      - value:
+                            type: string
+                            value: ''
+                            name: device_id
+                      - value:
+                            type: string
+                            value#any: {}
+                            name: launch_id
+                      - value:
+                            type: string
+                            value: phone_id
+                            name: phone_id
+                      - value:
+                            type: string
+                            value: personal_123
+                            name: personal_phone_id
+                      - value:
+                            type: string
+                            value: 1.1.1.1
+                            name: remote_ip
+                      - value:
+                            type: string
+                            value: ''
+                            name: uid
+                      - value:
+                            type: string
+                            value: user_id
+                            name: user_id
+                      - value:
+                            type: string
+                            value: ''
+                            name: yandex_uuid
+                      - value:
+                            name: is_fallback
+                            type: bool
+                            value: true
+                  - key: user_agent
+                    value: ''
+                  - key: locale
+                    value: ''
+                  - key: consumer
+                    value: 'client_protocol/launch'
+      - resource: zalogin-v1-launch-auth
+        response:
+            status-code: 200
+            body:
+                id: 'user_id'
+                authorized: false
+                phone_id: 'phone_id'
+            headers:
+                content-type: 'application/json; charset=utf-8'
+        expectations:
+            call-count: 1
+            request:
+                body:
+                    id: 'user_id'
+                method: post

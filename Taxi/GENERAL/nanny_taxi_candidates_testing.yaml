@@ -1,0 +1,172 @@
+clownductor_config: taxi:candidates:testing
+http_hosts:
+  - candidates.taxi.tst.yandex.net
+
+layout:
+  - system
+  - rps_share
+  - http_basic
+  - http:
+      methods:
+      - id: count
+        title: count
+      - id: count-by-categories
+        title: count-by-categories
+      - id: deptrans
+        title: deptrans
+      - id: list-profiles
+        title: list-profiles
+      - id: order-satisfy
+        title: order-satisfy
+      - id: order-search
+        title: order-search
+      - id: order-multisearch
+        title: order-multisearch
+      - id: profiles
+        title: profiles
+      - id: profiles-snapshot
+        title: profiles-snapshot
+      - id: satisfy
+        title: satisfy
+      - id: searchable
+        title: searchable
+      - id: search-bulk
+        title: search-bulk
+      - id: search
+        title: search
+  - include:
+      title: 'client: router'
+      path: taxi_candidates/external_service.json
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        title: /v2/summary
+        handler: http://core-driving-router.maps.yandex.net/v2/summary
+  - include:
+      title: 'client: pedestrian router'
+      path: taxi_candidates/external_service.json
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        title: /v2/summary
+        handler: http://core-masstransit-router.maps.yandex.net/pedestrian/v2/summary
+  - include:
+      title: 'client: bicycle router'
+      path: taxi_candidates/external_service.json
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        title: /v2/summary
+        handler: http://core-bicycle-router.maps.yandex.net/v2/summary
+  - include:
+      title: 'client: masstransit router'
+      path: taxi_candidates/external_service.json
+      variables:
+        cluster: testing_candidates
+        service: candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        title: /v2/summary
+        handler: http://core-masstransit-router.maps.yandex.net/masstransit/v2/summary
+  - include:
+      path: taxi_candidates/taxi_candidates_cache.json
+      collapsed: false
+      title: Cache
+      row_panels: 2
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        data_points: 300
+  - include:
+      path: taxi_candidates/drivers_statistic.json
+      collapsed: false
+      title: Drivers statistic
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        zone_name: total
+  - include:
+      path: taxi_candidates/drivers_statistic.json
+      collapsed: true
+      title: Moscow drivers statistic
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        zone_name: zones.moscow
+  - include:
+      path: taxi_candidates/taxi_candidates_filters.json
+      collapsed: false
+      title: Filters
+      row_panels: 2
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        application: candidates
+        service: candidates
+        data_points: 300
+  - include:
+      path: taxi_candidates/filters_timings.json
+      collapsed: false
+      title: Filters timings
+      row_panels: 1
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        application: candidates
+        service: candidates
+        data_points: 300
+  - include:
+      path: taxi_candidates/geoindex_graph.json
+      collapsed: true
+      title: 'geoindex: graph'
+      row_panels: 2
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+  - include:
+      path: taxi_candidates/order_search.json
+      collapsed: true
+      title: 'handler: order-search'
+      row_panels: 1
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        handler: order-search
+  - include:
+      path: taxi_candidates/order_search.json
+      collapsed: true
+      title: 'handler: order-multisearch'
+      row_panels: 1
+      variables:
+        cluster: testing_candidates
+        group: taxi_candidates_testing
+        host: taxi-candidates-*
+        service: candidates
+        handler: order-multisearch
+  - jams_closures:
+      path: candidates
+  - geobus:
+      type: listener
+      uservice_name: candidates
+      service: candidates
+  - rate_limiter:
+      collapsed: true
+      service_name: candidates

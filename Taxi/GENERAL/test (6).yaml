@@ -1,0 +1,212 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi order-offers Service
+    title: Yandex Taxi order-offers Service
+    version: '1.0'
+
+servers:
+  - url: order-offers.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: ORDER_OFFERS_CLIENT_QOS
+
+paths:
+    /v1/test/save-offer:
+        post:
+            description: Тестовая ручка создания документа оффера.
+            requestBody:
+                description: |
+                    BSON-документ, параметры запроса:
+                    {
+                         "payload": {...документ оффера без _id и _shard_id...},
+                         "mdb_only": <flag>
+                    }
+                    _id и _shard_id генерируются на стороне сервиса
+                required: true
+                content:
+                    application/bson:
+                        schema:
+                            $ref: '#/components/schemas/TestBsonDocument'
+            responses:
+                '200':
+                    description: |
+                        BSON-документ:
+                        {
+                            "document": {"_id": ...},
+                        }
+                    content:
+                        application/bson:
+                            x-taxi-non-std-type-reason: Это BSON-документ
+                            schema:
+                                $ref: '#/components/schemas/TestBsonDocument'
+                '400':
+                    description: Некорректный запрос.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestError'
+
+    /v1/test/search-offers:
+        post:
+            description: Тестовая ручка поиска офферов.
+            requestBody:
+                description: |
+                    BSON-документ, параметры запроса:
+                    {
+                         "query": {...запрос для поиска документов...},
+                         "fields": [...список полей...],
+                         "sort": {{field, dir}, ..., {field, dir}},
+                    }
+                    где field - поле сортировки (string), a dir - направление (int, +-1).
+                    Можно указать любое неотрицательное количество полей.
+                    Если для поля не указано направление сортировки - используется по возрастанию.
+                    Поля, используемые для сортировки, обязаны быть указаны в fields.
+
+                    _id и _shard_id генерируются на нашей стороне
+                required: true
+                content:
+                    application/bson:
+                        schema:
+                            $ref: '#/components/schemas/TestBsonDocument'
+            responses:
+                '200':
+                    description: |
+                        BSON-документ:
+                        {
+                            "documents": [
+                                {"_id": ...},
+                                ...
+                            ]
+                        }
+                    content:
+                        application/bson:
+                            x-taxi-non-std-type-reason: Это BSON-документ
+                            schema:
+                                $ref: '#/components/schemas/TestBsonDocument'
+                '400':
+                    description: Некорректный запрос.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestError'
+
+    /v1/test/gen-shard-id:
+        post:
+            description: |
+                Тестовая ручка генерации shard_id.
+                Исключает сломанные шарды основываясь на сервисе статистики
+                (при включённом конфиге).
+                Принимает поля описанные в config.user.yaml в shards_kwargs
+                (для соответствующей компоненты, обычно sharded-mongo-wrapper-component),
+                чтобы заполнить кварги для конфига3 со списком шардов.
+                Можно передать пустое тело, или записать в него что угодно,
+                тогда вернётся значение дефолтной клозы конфига3.
+            requestBody:
+                description: |
+                    BSON-документ, параметры запроса:
+                    {
+                         "document": {
+                             "user_id": ...
+                         },
+                    }
+                required: true
+                content:
+                    application/bson:
+                        schema:
+                            $ref: '#/components/schemas/TestBsonDocument'
+            responses:
+                '200':
+                    description: |
+                        BSON-документ:
+                        {
+                            "_id": ...,
+                        }
+                    content:
+                        application/bson:
+                            x-taxi-non-std-type-reason: Это BSON-документ
+                            schema:
+                                $ref: '#/components/schemas/TestBsonDocument'
+
+    /v1/test/get-fields:
+        post:
+            description: |
+                Получить произвольные поля для указанного документа.
+                Поля, отсутствующие в целевом документе, не попадут в результат
+                (но могу появиться незапрошенные, например, `_id`).
+            requestBody:
+                description: |
+                    BSON-документ, параметры запроса:
+                    {
+                        "filter": {...допольнительные условия фильтра...},
+                        "fields": [...список полей, которые нужно вернуть...]
+                    }
+                required: true
+                content:
+                    application/bson:
+                        schema:
+                            $ref: '#/components/schemas/TestBsonDocument'
+            parameters:
+              - in: query
+                name: document_id
+                required: true
+                schema:
+                    description: Идентификатор документа
+                    type: string
+                    minLength: 1
+              - in: query
+                name: require_latest
+                schema:
+                    default: false
+                    description: требуется запрос в Master
+                    type: boolean
+            responses:
+                '200':
+                    description: |
+                        Ответ будет в формате BSON. Структура ответа следующая:
+                        {
+                            "document": {
+                              "_id": string,
+                              ...
+                            }
+                        }
+                        В документе (`document`) всегда присутствует поле `_id`.
+                    content:
+                        application/bson:
+                            x-taxi-non-std-type-reason: Это BSON-документ
+                            schema:
+                                $ref: '#/components/schemas/TestBsonDocument'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestError'
+                '404':
+                    description: Order not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestError'
+
+components:
+    schemas:
+        TestBsonDocument:
+            description: BSON документ
+            type: string
+            format: binary
+
+        TestError:
+            type: object
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string

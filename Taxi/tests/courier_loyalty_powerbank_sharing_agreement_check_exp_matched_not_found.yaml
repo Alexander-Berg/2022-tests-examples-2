@@ -1,0 +1,53 @@
+id: courier_loyalty_powerbank_sharing_agreement_check_exp_matched_not_found
+title: Запрос с данными, которые матчатся в конфиге 3.0, и курьер не найден
+
+source:
+    request:
+        method: post
+        body#object:
+          - key: courier_id
+            value: 42
+          - key: region_id
+            value: 1
+          - key: courier_type
+            value: pedestrian
+          - key: dbid_uuid
+            value:
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: is_active
+                value#boolean: false
+
+configs:
+    values#object:
+      - key: eats-courier-loyalty-power-bank-sharing-agreement-status
+        value:
+            enabled: true
+        enabled: true
+    expectations:
+        consumer: eats-api-proxy/courier-loyalty-powerbank-sharing-api-agreement-check
+        kwargs:
+          - key: courier_id
+            type: integer
+            value: 42
+          - key: region_id
+            type: integer
+            value: 1
+
+mocks:
+  - resource: eats-core-internal-api-v1-courier-loyalty-power-bank-sharing-agreement-check
+    response:
+        status-code: 200
+        body#object:
+          - key: statuses
+            value#array: []
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: courier_ids
+                value#array:
+                  - value#integer: 42

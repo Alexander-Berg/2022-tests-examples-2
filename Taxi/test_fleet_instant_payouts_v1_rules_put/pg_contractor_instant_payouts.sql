@@ -1,0 +1,35 @@
+INSERT INTO
+  contractor_instant_payouts.park_payout_rule (
+    id,
+    version,
+    park_id,
+    rule_name,
+    is_enabled,
+    amount_min,
+    amount_max,
+    amount_max_per_day,
+    amount_min_residual,
+    fee_percent,
+    fee_min,
+    is_deleted,
+    created_at,
+    updated_at
+  )
+VALUES
+  (
+    '00000000-0001-0000-0000-000000000000',
+    0,
+    'park_1',
+    'test_rule',
+    true,
+    '10.0000',
+    '100.0000',
+    '80.0000',
+    '20.0000',
+    '5.0000',
+    '15.0000',
+    false,
+    '2020-01-01T12:00:00+03:00',
+    '2020-01-01T12:00:00+03:00'
+  )
+;

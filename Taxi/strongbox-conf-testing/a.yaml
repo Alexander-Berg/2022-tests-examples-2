@@ -1,0 +1,35 @@
+service: taxiroboticsecretstoragetesting
+title: strongbox-conf-testing
+
+arcanum:
+    auto_merge:
+        requirements:
+          - system: arcanum
+            type: approved
+            data:
+                min_approvers_count: 0
+          - system: arcanum
+            type: comment_issues_closed
+          - system: arcanum
+            type: st_issue_linked
+            disabling_policy: allowed  # TODO: fixme
+            filters:
+                authors:
+                    excluded: ['automerger']
+            data:
+                in_commit_message: true
+          - system: ci
+            type: build
+            filters:
+                authors:
+                    excluded: ['automerger']
+          - system: ci
+            type: tests
+            filters:
+                authors:
+                    excluded: ['automerger']
+
+    review:
+        required: true
+        min_approvers_count: 1
+        skip_review_for: automerger

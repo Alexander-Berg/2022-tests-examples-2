@@ -1,0 +1,36 @@
+include conf.d/yandex-taxi-unit.upstream_list;
+
+lua_package_path '/usr/lib/yandex/taxi/rate-limiter-agent2/?.lua;;';
+
+init_worker_by_lua_block {
+    -- init periodical tasks
+    local status, plugin = pcall(require, "rate-limiter-nginx-plugin")
+    plugin.SET_OPERATION_ID_VAR_ON_REJECT = true
+    plugin.CUSTOM_HEADER_WITH_CLIENT_ID = 'X-Client-Id-Header'
+}
+
+server {
+    include listen;
+    server_name empty.yandex-team.ru;
+    server_name empty.yandex.net;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_pass http://upstream_name/;
+        if ($upstream_http_x_yataxi_api_operationid = false) {
+            set $upstream_http_x_yataxi_api_operationid "";
+        }
+        access_by_lua_block {
+            local status, plugin = pcall(require, "rate-limiter-nginx-plugin")
+            if status then
+                -- remove trailing / from uri
+                local path = ngx.var.uri
+                if #path > 1 and string.sub(path, -1) == '/' then
+                    path = string.sub(path, 1, -2)
+                end
+                -- check access to path with request weight 1
+                plugin.tvm_rate_access(path, 1)
+            end
+        }
+    }
+}

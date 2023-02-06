@@ -1,0 +1,115 @@
+INSERT INTO persey_payments.fund
+    (
+        fund_id,
+        name,
+        offer_link,
+        operator_uid,
+        balance_client_id,
+        trust_partner_id,
+        trust_product_id,
+        exclude_from_sampling
+    )
+VALUES
+    (
+        'friends',
+        'Имя фонда',
+        'http://fund.com',
+        '777',
+        'some_client',
+        'some_partner_id',
+        'some_product_id',
+        FALSE
+    ),
+    (
+        'gift_to_an_angel',
+        'Подарок Ангелу',
+        'http://gift_to_an_angel.com',
+        '777',
+        'some_client',
+        'some_partner_id',
+        'some_product_id',
+        FALSE
+    );
+
+INSERT INTO persey_payments.ride_subs
+    (
+        yandex_uid,
+        phone_id,
+        brand,
+        fund_id,
+        mod,
+        locale
+    )
+VALUES
+    (
+        'phonish_uid1',
+        'af35af35af35af35af35af35',
+        'yataxi',
+        'friends',
+        10,
+        'ru'
+    ),
+    (
+        'phonish_uid2',
+        'af35af35af35af35af35af35',
+        'lavka',
+        'friends',
+        10,
+        'ru'
+    ),
+    (
+        'phonish_uid3',
+        'af35af35af35af35af35af36',
+        'yataxi',
+        'friends',
+        10,
+        'ru'
+    ),
+    (
+        'portal_uid',
+        'af35af35af35af35af35af36',
+        'yataxi',
+        'friends',
+        10,
+        'ru'
+    );
+
+INSERT INTO persey_payments.active_ride_subs
+    (
+        ride_subs_id,
+        yandex_uid,
+        brand
+    )
+VALUES
+    (
+        1,
+        'phonish_uid1',
+        'yataxi'
+    ),
+    (
+        2,
+        'phonish_uid2',
+        'lavka'
+    ),
+    (
+        3,
+        'phonish_uid3',
+        'yataxi'
+    ),
+    (
+        4,
+        'portal_uid',
+        'yataxi'
+    );
+
+
+INSERT INTO persey_payments.bound_uids
+    (
+        portal_yandex_uid,
+        phonish_yandex_uid
+    )
+VALUES
+    (
+        'portal_uid',
+        'phonish_uid1'
+    );

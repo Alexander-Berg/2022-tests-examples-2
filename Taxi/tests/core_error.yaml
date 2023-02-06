@@ -1,0 +1,46 @@
+id: core_error
+title: core_error
+source:
+    request:
+        method: post
+        body:
+            zone_name: 'moscow'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 400
+            body:
+                error: 'core_error'
+
+experiments:
+    values#object:
+      - key: use_zoneinfo_core
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-zoneinfo
+    response:
+        status-code: 200
+        body:
+            the_field: 'protocol_value'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: zoneinfo-core
+    response:
+        status-code: 400
+        body:
+            error: 'core_error'
+  - resource: zoneinfo-compare
+    expectations:
+        call-count: 1
+        request:
+            body:
+                response_legacy:
+                    the_field: 'protocol_value'
+                response_fallback:
+                    error: 'core_error'
+    response:
+        status-code: 409

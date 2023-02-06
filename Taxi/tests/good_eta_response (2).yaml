@@ -1,0 +1,110 @@
+id: good_eta_response
+title: Тест с проходящим валидацию временем доставки
+
+taxi_config:
+    EATS_RESTAPP_PLACES_ZONE_VALIDATION:
+        is_delivery_time_validation_on#boolean: true
+
+mocks:
+  - resource: eats-restapp-authorizer-user-check-access
+    response:
+        status-code: 200
+        body:
+            role#string: "ROLE_MANAGER"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: partner_id
+                value: 123123
+              - key: place_ids
+                value: [123]
+              - key: permissions
+                value: ["permission.restaurant.management"]
+
+  - resource: eats-core-places-delivery-zones
+    response:
+        status-code: 200
+        body#object:
+          - key: payload
+            value#object:
+              - key: geo_place
+                value#object:
+                  - key: geometry
+                    value#object:
+                      - key: coordinates
+                        value#array: [55.737375, 37.640156]
+    expectations:
+        call-count: 1
+        called-after:
+          - eats-restapp-authorizer-user-check-access
+
+  - resource: eats-restapp-places-internal-v1-post
+    response:
+        status-code: 204
+    expectations:
+        call-count: 1
+        called-after:
+          - eats-restapp-authorizer-user-check-access
+          - eats-core-places-delivery-zones
+        request:
+            method: post
+            body#object:
+              - key: place_position
+                value: [55.737375, 37.640156]
+              - key: eta
+                value: 10
+              - key: geozone
+                value: [[[ [55.737375, 37.640156]]]]
+
+
+  - resource: backend-service-vendor-v1-client-restaurants-common-post
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        called-after:
+          - eats-restapp-authorizer-user-check-access
+          - eats-core-places-delivery-zones
+          - eats-restapp-places-internal-v1-post
+        request:
+            method: post
+            body#object:
+              - geometry#object:
+                  - coordinates: [[[55.737375, 37.640156]]]
+              - properties#object:
+                  - averageDeliveryTime: 10
+                  - key: enabled
+                    value: true
+                  - deliveryCondition#object:
+                      - thresholds#array:
+                          - value#object:
+                              - orderPrice: 1000
+                              - deliveryCost: 250
+
+source:
+    request:
+        url: /4.0/restapp-front/api/v1/client/restaurants/123/delivery-zone
+        method: post
+        body#object:
+          - geometry#object:
+              - coordinates: [[[55.737375, 37.640156]]]
+          - properties#object:
+              - averageDeliveryTime: 10
+              - key: enabled
+                value: true
+              - deliveryCondition#object:
+                  - thresholds#array:
+                      - value#object:
+                          - orderPrice: 1000
+                          - deliveryCost: 250
+        headers:
+            X-YaEda-PartnerId#string: "123123"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                isSuccess: true

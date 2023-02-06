@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<document type="freeswitch/xml">
+  <X-PRE-PROCESS cmd="exec-set" data="test=echo 1234"/>
+  <X-PRE-PROCESS cmd="set" data="default_password=$${test}"/>
+  <X-PRE-PROCESS cmd="set" data="core_video_blank_image=$${conf_dir}/freeswitch-logo.png"/>
+  <section name="configuration" description="Various Configuration">
+    <configuration name="modules.conf" description="Modules">
+      <modules>
+        <load module="mod_console"/>
+        <load module="mod_loopback"/>
+        <load module="mod_opus"/>
+        <load module="mod_commands"/>
+        <load module="mod_sndfile"/>
+        <load module="mod_dptools"/>
+        <load module="mod_tone_stream"/>
+		<load module="mod_test"/>
+		<load module="mod_red"/>
+		<load module="mod_ulpfec"/>
+      </modules>
+    </configuration>
+
+    <configuration name="console.conf" description="Console Logger">
+      <mappings>
+        <map name="all" value="console,debug,info,notice,warning,err,crit,alert"/>
+      </mappings>
+      <settings>
+        <param name="colorize" value="true"/>
+        <param name="loglevel" value="debug"/>
+      </settings>
+    </configuration>
+
+    <configuration name="timezones.conf" description="Timezones">
+      <timezones>
+          <zone name="GMT" value="GMT0" />
+      </timezones>
+    </configuration>
+
+<configuration name="opus.conf">
+    <settings>
+        <param name="use-vbr" value="1"/>
+        <!--<param name="use-dtx" value="1"/>-->
+        <param name="complexity" value="5"/>
+        <param name="packet-loss-percent" value="15"/>
+		<!-- Enable bitrate negotiation -->
+        <param name="bitrate-negotiation" value="1"/>
+		<!-- Keep FEC Enabled -->
+        <param name="keep-fec-enabled" value="1"/>
+		<param name="use-jb-lookahead" value="true"/>
+        <param name="maxaveragebitrate" value="14400"/>
+        <param name="maxplaybackrate" value="8000"/>
+		<!-- Enable automatic bitrate variation during the call based on RTCP feedback -->
+        <param name="adjust-bitrate" value="1"/>
+    </settings>
+</configuration>
+
+    <X-PRE-PROCESS cmd="include" data="vpx.conf.xml"/>
+  </section>
+
+  <section name="dialplan" description="Regex/XML Dialplan">
+    <context name="default">
+      <extension name="sample">
+        <condition>
+          <action application="info"/>
+        </condition>
+      </extension>
+    </context>
+  </section>
+</document>

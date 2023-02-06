@@ -1,0 +1,77 @@
+syntax = "proto2";
+package yandex.maps.proto.search.hours;
+
+// TimeRange
+// 7 AM - 11 PM -> from = 25200, to = 82800
+// 6 PM - 2 AM  -> from = 64800, to = 7200
+// 24 hours     -> all_day = true
+
+message TimeRange
+{
+    // choice: from,to / all_day
+    optional uint32 from = 1;   // seconds from midnight
+    optional uint32 to = 2;     // seconds from midnight, could be less than 'from', see above
+    optional bool all_day = 3;
+}
+
+enum DayOfWeek
+{
+    SUNDAY = 0;
+    MONDAY = 1;
+    TUESDAY = 2;
+    WEDNESDAY = 3;
+    THURSDAY = 4;
+    FRIDAY = 5;
+    SATURDAY = 6;
+    EVERYDAY = 7;
+}
+
+message Hours
+{
+    repeated DayOfWeek day = 1;
+    repeated TimeRange time_range = 2;
+}
+
+// parameters w.r.t. 'right now' (i.e. request time)
+message State {
+    optional bool is_open_now = 1;      // is open right now
+    optional string text = 2;
+    optional string short_text = 3;
+    repeated string tag = 4;            // one of the following 3 tags: 'break', 'opening_soon', 'closing_soon'
+                                        // (additional tag values may be added eventually)
+}
+
+message OpenHours {
+    repeated Hours hours = 1;           // Structured working hours info
+    required string text = 2;           // Formatted working hours info
+    optional sint32 tz_offset = 3;      // UTC offset, seconds
+    optional State state = 4;           // current company working status
+}
+
+// откроется через  (orange)      is_open_now: false,
+//                                info: { tag: ['opening_soon'],
+//                                        text: 'Откроется через 10 минут', short_text: 'До открытия 10 мин'}
+
+// откроется в  (red)             is_open_now: false,
+//                                info: { tag: -,
+//                                        text: 'Откроется в 15:30', short_text: 'До 15:30'}
+
+// перерыв  (orange)              is_open_now: false,
+//                                info: { tag: ['break']
+//                                        text: 'До 18:00 (перерыв с 13:00 до 14:00)', short_text: 'До 14:00'}
+
+// закроется через  (orange)      is_open_now: true,
+//                                info: { tag: ['closing_soon']
+//                                        text: 'Закроется через 15 минут', short_text: 'До закрытия 15 мин'}
+
+// закроется в  (black)           is_open_now: true,
+//                                info: { tag: -,
+//                                        text: 'Закроется в 23:00', short_text: 'До 23:00'}
+
+// откроется в  (red)             is_open_now: false,
+//                                info: { tag: -,
+//                                        text: 'Откроется в понедельник', short_text: 'До понедельника'}
+
+// круглосуточно  (black)         is_open_now: true,
+//                                info: { tag: -,
+//                                        text: 'Круглосуточно', short_text: '24 ч'}

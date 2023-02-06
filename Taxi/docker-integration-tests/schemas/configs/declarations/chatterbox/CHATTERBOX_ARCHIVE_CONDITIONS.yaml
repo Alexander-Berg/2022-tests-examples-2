@@ -1,0 +1,60 @@
+default:
+  - primary_target: zendesk
+    targets:
+      - zendesk
+      - startrack
+description: Условия для архивации в Зендеск и Стартрек
+tags: []
+schema:
+    type: array
+    minItems: 1
+    items:
+        type: object
+        additionalProperties: false
+        properties:
+            targets:
+                description: Список хранилищ для архивации (zendesk, startrack)
+                type: array
+                items:
+                    $ref: "#/definitions/Target"
+            primary_target:
+                description: Хранилище, архивация в которое отражается в статусе таски
+                $ref: "#/definitions/Target"
+            conditions:
+                $ref: "#/definitions/ActionConditions"
+        required:
+          - targets
+          - primary_target
+
+    definitions:
+        Target:
+            type: string
+            enum:
+              - zendesk
+              - startrack
+
+        ActionConditions:
+            type: object
+            properties:
+                type:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                chat_type:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                meta_info/zendesk_profile:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ActionConditions"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ActionConditions"
+
+                "#not":
+                    $ref: "#/definitions/ActionConditions"
+
+            minProperties: 1
+            additionalProperties: false

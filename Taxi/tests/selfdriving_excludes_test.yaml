@@ -1,0 +1,149 @@
+id: selfdriving_excludes_test
+title: Не возвращаем имя и картинки водителя, если тариф - беспилотник. Не возвращаем
+    телефон, если эксп включен и сматчен по зоне с hide_phone_zones
+
+parameters:
+  - cases:
+      # если тариф не беспилотник - отображаем все данные
+      - class: econom
+        has_custom_endpoints#boolean: false
+        driver:
+            tag: 'some tag'
+            name: 'driver_name'
+            phone: '+79998887766'
+            car: [1, 1]
+        enabled: true
+        hide_phone_zones: ['moscow', 'bishkek', 'saratov']
+      # если тариф не беспилотник - матчинг по зона не должен ничего менять
+      - class: econom
+        has_custom_endpoints#boolean: false
+        driver:
+            tag: 'some tag'
+            name: 'driver_name'
+            phone: '+79998887766'
+            car: [1, 1]
+        enabled: true
+        hide_phone_zones: ['moscow', 'bishkek', 'saratov']
+      # если тариф - беспилотник и эксп сматчился по зоне, то нужно скрыть все данные
+      - class: selfdriving
+        has_custom_endpoints#boolean: true
+        driver:
+            car: [1, 1]
+        enabled: true
+        hide_phone_zones: ['moscow', 'bishkek', 'saratov']
+      # если эксп не сматчился по зоне, то нужно показать все данные
+      - class: selfdriving
+        has_custom_endpoints#boolean: true
+        driver:
+            phone: '+79998887766'
+            car: [1, 1]
+        enabled: true
+        hide_phone_zones: ['bishkek', 'saratov']
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            break: 'user'
+            cancel_state: 'free'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid#string: '12345'
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: custom_endpoints
+                value#array:
+                  - value#object:
+                      - key: type
+                        value#string: route
+                      - key: path
+                        value#string: /4.0/route/v1/selfdriving
+                enabled#xget: /test-params/cases/has_custom_endpoints
+              - additional_buttons#object:
+              - feedback#object:
+              - key: driver
+                value#xget: /test-params/cases/driver
+              - key: performer_realtime_info
+                value: {"position": [1, 1]}
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+configs:
+    values#object:
+      - key: selfdriving_hide_driver_details
+        value#object:
+          - key: enabled
+            value#xget: /test-params/cases/enabled
+          - key: hide_phone_zones
+            value#xget: /test-params/cases/hide_phone_zones
+
+experiments:
+    values#object:
+      - key: custom_endpoints_by_tariff
+        value#object:
+          - key: selfdriving
+            value#array:
+              - value#object:
+                  - key: type
+                    value#string: route
+                  - key: path
+                    value#string: /4.0/route/v1/selfdriving
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body#object:
+          - key: driver
+            value#object:
+              - key: name
+                value#string: 'driver_name'
+              - key: tag
+                value#string: 'some tag'
+              - key: pictures
+                value#object:
+                  - key: avatar_image
+                    value#string: 'avatar_image'
+              - key: phone
+                value: '+79998887766'
+              - key: car
+                value: [1, 1]
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: personal-data-type-phones-retrieve
+    response:
+        status-code: 200
+        body#object:
+          - key: value
+            value#string: '+79998887766'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        request:
+            method: post
+            body:
+                id: 'personal_id'
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#object:
+          - status#string: driving
+          - tariff#object:
+              - class#xget: /test-params/cases/class
+          - private_data#object:
+              - nz#string: 'moscow'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

@@ -1,0 +1,47 @@
+default:
+    default_duration_before_min: 10
+    default_duration_after_min: 10
+    save_db_command_control:
+        network_timeout_ms: 200
+        statement_timeout_ms: 200
+description: Настройки ручки сохранения тестовых данных
+tags: [notfallback]
+maintainers:
+  - victorshch
+  - oboroth
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - default_duration_before_min
+      - default_duration_after_min
+      - save_db_command_control
+    properties:
+        default_duration_before_min:
+            type: integer
+            x-taxi-cpp-type: std::chrono::minutes
+            minimum: 0
+        default_duration_after_min:
+            type: integer
+            x-taxi-cpp-type: std::chrono::minutes
+            minimum: 1
+        save_db_command_control:
+            $ref: '#/definitions/DbCommandControl'
+    definitions:
+        DbCommandControl:
+            type: object
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout_ms
+              - statement_timeout_ms

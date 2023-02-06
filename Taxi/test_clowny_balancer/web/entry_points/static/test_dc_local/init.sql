@@ -1,0 +1,167 @@
+insert into
+    balancers.upstreams (
+        id,
+        branch_id,
+        service_id,
+        awacs_backend_id,
+        env
+    )
+values (
+    11,
+    21,
+    31,
+    'taxi_service-31_stable',
+    'stable'
+),
+(
+    13,
+    23,
+    33,
+    'taxi_service-33_stable',
+    'stable'
+),
+(
+    14,
+    24,
+    34,
+    'taxi_service-34_stable',
+    'stable'
+),
+(
+    15,
+    25,
+    35,
+    'taxi_service-35_stable',
+    'stable'
+),
+(
+    16,
+    26,
+    36,
+    'taxi_service-36_stable',
+    'stable'
+)
+;
+
+insert into
+    balancers.namespaces (
+        id,
+        project_id,
+        awacs_namespace,
+        env,
+        abc_quota_source
+    )
+values (
+    51,
+    150,
+    'taxi-service-31',
+    'stable',
+    'taxiquotaypdefault'
+),
+(
+    53,
+    150,
+    'taxi-service-33',
+    'stable',
+    'taxiquotaypdefault'
+),
+(
+    54,
+    150,
+    'taxi-service-34',
+    'stable',
+    'taxiquotaypdefault'
+),
+(
+    55,
+    150,
+    'taxi-service-35',
+    'stable',
+    'taxiquotaypdefault'
+),
+(
+    56,
+    150,
+    'taxi-service-36',
+    'stable',
+    'taxiquotaypdefault'
+)
+;
+
+insert into
+    balancers.entry_points (
+        id,
+        namespace_id,
+        awacs_upstream_id,
+        protocol,
+        dns_name,
+        env
+    )
+values (
+    41,
+    51,
+    'default',
+    'http',
+    'service-31.taxi.yandex.net',
+    'stable'
+),
+(
+    43,
+    53,
+    'default',
+    'http',
+    'service-33.taxi.yandex.net',
+    'stable'
+),
+(
+    44,
+    54,
+    'default',
+    'http',
+    'service-34.taxi.yandex.net',
+    'stable'
+),
+(
+    45,
+    55,
+    'default',
+    'http',
+    'service-35.taxi.yandex.net',
+    'stable'
+),
+(
+    46,
+    56,
+    'default',
+    'http',
+    'service-36.taxi.yandex.net',
+    'stable'
+)
+;
+
+insert into
+    balancers.entry_points_upstreams (
+        entry_point_id,
+        upstream_id
+    )
+values (
+    41,
+    11
+),
+(
+    43,
+    13
+),
+(
+    44,
+    14
+),
+(
+    45,
+    15
+),
+(
+    46,
+    16
+)
+;

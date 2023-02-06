@@ -1,0 +1,235 @@
+openapi: 3.0.0
+info:
+    version: '1.0'
+    title: 'Dummy API'
+
+x-taxi-client-qos:
+    taxi-config: EATS_TESTING_SIMPLIFIER_RESPONSER_CLIENT_QOS
+
+paths:
+    # Не удаляйте пинг, если на 100% не уверены, что он вам не нужен
+    /ping:
+        get:
+            summary: ping
+            operationId: ping
+            responses:
+                '200':
+                    description: OK
+            x-taxi-middlewares:
+                tvm: false
+            x-taxi-py3-middlewares:
+                logging:
+                    level: warning
+
+    # Ручка-пример, можно удалить
+    /example:
+        get:
+            summary: 'example get by name'
+            operationId: GetExample
+            parameters:
+              - in: query
+                name: name
+                schema:
+                    type: string
+                required: true
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ExampleObject'
+    /v1/orders/create:
+        post:
+            summary: Создаёт заказ для переданного списка позиций и заданного способа
+                оплаты
+            operationId: CreateOrder
+            parameters:
+              - in: header
+                name: Accept-Language
+                schema:
+                    type: string
+              - in: header
+                name: X-AppMetrica-DeviceId
+                schema:
+                    type: string
+              - in: header
+                name: User-Agent
+                schema:
+                    type: string
+                required: false
+              - in: header
+                name: X-Platform
+                schema:
+                    type: string
+                required: false
+              - in: header
+                name: X-App-Version
+                schema:
+                    type: string
+              - in: header
+                name: X-Eats-Testing-Mock-Bypass
+                schema:
+                    type: string
+                required: false
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateOrderRequest'
+
+            responses:
+                '200':
+                    description: order created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/EmptyResponse'
+                '400':
+                    description: data validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/ErrorResponse'
+
+    /v2/orders/create:
+        post:
+            summary: Создаёт заказ для переданного списка позиций и заданного способа
+                оплаты
+            operationId: CreateOrderV2
+            parameters:
+              - in: header
+                name: Accept-Language
+                schema:
+                    type: string
+              - in: header
+                name: X-AppMetrica-DeviceId
+                schema:
+                    type: string
+              - in: header
+                name: User-Agent
+                schema:
+                    type: string
+                required: false
+              - in: header
+                name: X-Platform
+                schema:
+                    type: string
+                required: false
+              - in: header
+                name: X-App-Version
+                schema:
+                    type: string
+              - in: header
+                name: X-Eats-Testing-Mock-Bypass
+                schema:
+                    type: string
+                required: false
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V2CreateOrderRequest'
+
+            responses:
+                '200':
+                    description: order created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/EmptyResponse'
+                '400':
+                    description: data validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/ErrorResponse'
+
+components:
+    schemas:
+        # Пример объекта, на который можно ссылаться из ручек
+        ExampleObject:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    description: 'id'
+                    example: 'D-503'
+                greetings:
+                    type: string
+                    description: 'Greetings from Dummy API'
+                    example: 'Hello, D-503'
+
+        CreateOrderRequest:
+            type: object
+            additionalProperties: false
+            example:
+                $ref: '#/components/examples/SimpleCreateOrderExample'
+            required:
+              - id
+              - payment_method
+              - currency
+              - items
+              - mcc
+              - revision
+            properties:
+                id:
+                    $ref: '../definitions.yaml#/components/schemas/OrderId'
+                payment_method:
+                    $ref: '../definitions.yaml#/components/schemas/ClientPaymentMethod'
+                currency:
+                    $ref: '../definitions.yaml#/components/schemas/Currency'
+                items:
+                    $ref: '../definitions.yaml#/components/schemas/OrderItems'
+                mcc:
+                    $ref: '../definitions.yaml#/components/schemas/MCC'
+                business:
+                    $ref: '../definitions.yaml#/components/schemas/Business'
+                service:
+                    $ref: '../definitions.yaml#/components/schemas/Service'
+                revision:
+                    $ref: '../definitions.yaml#/components/schemas/Revision'
+                complements:
+                    description: Список дополнительных способов оплаты
+                    type: array
+                    items:
+                        $ref: '../definitions.yaml#/components/schemas/ComplementPayment'
+                ttl:
+                    type: integer
+
+        V2CreateOrderRequest:
+            type: object
+            additionalProperties: false
+            example:
+                $ref: '#/components/examples/SimpleCreateOrderExample'
+            required:
+              - id
+              - payment_method
+              - currency
+              - mcc
+              - revision
+            properties:
+                id:
+                    $ref: '../definitions.yaml#/components/schemas/OrderId'
+                payment_method:
+                    $ref: '../definitions.yaml#/components/schemas/ClientPaymentMethod'
+                currency:
+                    $ref: '../definitions.yaml#/components/schemas/Currency'
+                mcc:
+                    $ref: '../definitions.yaml#/components/schemas/MCC'
+                business:
+                    $ref: '../definitions.yaml#/components/schemas/Business'
+                service:
+                    $ref: '../definitions.yaml#/components/schemas/Service'
+                revision:
+                    $ref: '../definitions.yaml#/components/schemas/Revision'
+                complements:
+                    description: Список дополнительных способов оплаты
+                    type: array
+                    items:
+                        $ref: '../definitions.yaml#/components/schemas/ComplementPayment'
+                ttl:
+                    type: integer

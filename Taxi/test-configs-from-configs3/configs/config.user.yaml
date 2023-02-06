@@ -1,0 +1,33 @@
+components_manager:
+    components:
+        dynamic-config-client-updater:
+            deduplicate-update-types: none
+            # turn off standard config updater, because we are going to receive
+            # updates from configs-from-configs3-updater
+            load-enabled: false
+        handler-ping:
+            path: /ping
+            method: GET
+            url_trailing_slash: strict-match
+            task_processor: main-task-processor
+        congestion-control:
+            # CC throttles input HTTP requests and returns 429
+            # if the service is out of CPU. Set 'fake-mode: true' to disable CC.
+            # See more on CC at the wiki page: https://nda.ya.ru/t/ljilWGyY3zAkcW
+            fake-mode: false
+        configs-from-configs3-updater:
+            consumers:
+              - userver/market
+        tvm2-settings-storage:
+            get-tvm-config-from-external-source: true
+        tvm2-custom-config-client:
+            load-enabled: true
+            url: $tvm_external_config_url
+            timeout: 1000
+            retries: 3
+        # turn off tvm2 cache settings from config to resolve dependency on taxi-config
+        tvm2-keys-cache:
+            config-settings: false
+        tvm2-tickets-cache:
+            config-settings: false
+

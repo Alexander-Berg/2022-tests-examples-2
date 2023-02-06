@@ -1,0 +1,69 @@
+name: test_raw_history
+queue_data:
+    db_cluster: replication_queue_mdb_0
+replication_type: queue
+source:
+    type: mongo
+    collection_name: test_coll
+    replicate_by: updated
+destinations:
+  - test_raw_history_month:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    description: smth
+                    sort_order: ascending
+                  - name: updated
+                    type: double
+                raw_column_name: custom_raw_doc
+                partitioning:
+                    rotate_policy: raw_history
+                    type: by_months
+                    field_name: updated
+            path: test/test_raw_history
+            cluster_groups:
+              - runtime
+  - test_raw_history_years:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    description: smth
+                    sort_order: ascending
+                  - name: updated
+                    type: double
+                raw_column_name: custom_raw_doc
+                partitioning:
+                    rotate_policy: raw_history
+                    type: by_years
+                    field_name: updated
+            path: test/test_raw_history_years
+            cluster_groups:
+              - runtime
+  - test_raw_history_days:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    description: smth
+                    sort_order: ascending
+                  - name: updated
+                    type: double
+                raw_column_name: custom_raw_doc
+                partitioning:
+                    rotate_policy: raw_history
+                    type: by_days
+                    field_name: updated
+            path: test/test_raw_history_days
+            cluster_groups:
+              - runtime

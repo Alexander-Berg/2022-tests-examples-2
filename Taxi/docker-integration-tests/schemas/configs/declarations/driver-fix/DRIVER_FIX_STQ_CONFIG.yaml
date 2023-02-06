@@ -1,0 +1,65 @@
+description: Настройки stq-задач driver_fix [EFFICIENCYDEV-4712]
+default: []
+tags: [notfallback]
+maintainers: [venimaster]
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/CheckSettings'
+    definitions:
+        SubventionRuleCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - subvention_rule
+        OnlineTimeTagsCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - online_time_tags
+        RequiredTagsCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - required_tags
+        CheckSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - enabled
+              - schedule_timeshift_ms
+              - reschedule_timeshift_ms
+              - check_settings
+            properties:
+                enabled:
+                    type: boolean
+                reschedule_timeshift_ms:
+                    description: Задержка между перезапусками задачи.
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                schedule_timeshift_ms:
+                    description: Сдвиг во времени первого запуска задачи
+                    type: integer
+                    minimum: 0
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                check_settings:
+                    oneOf:
+                      - $ref: '#/definitions/SubventionRuleCheck'
+                      - $ref: '#/definitions/OnlineTimeTagsCheck'
+                      - $ref: '#/definitions/RequiredTagsCheck'

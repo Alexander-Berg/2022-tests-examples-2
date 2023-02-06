@@ -1,0 +1,50 @@
+default:
+    acquire_lock:
+        network_timeout_ms: 300
+        statement_timeout_ms: 200
+    prolong_lock:
+        network_timeout_ms: 300
+        statement_timeout_ms: 200
+    release_lock:
+        network_timeout_ms: 300
+        statement_timeout_ms: 200
+    get_lock:
+        network_timeout_ms: 300
+        statement_timeout_ms: 200
+description: Параметры запроса к базе данных сервиса distlocks
+tags: []
+schema:
+    type: object
+    properties:
+        acquire_lock:
+            $ref: '#/definitions/db_requests_settings'
+        prolong_lock:
+            $ref: '#/definitions/db_requests_settings'
+        release_lock:
+            $ref: '#/definitions/db_requests_settings'
+        get_lock:
+            $ref: '#/definitions/db_requests_settings'
+    required:
+      - acquire_lock
+      - prolong_lock
+      - release_lock
+      - get_lock
+    additionalProperties: false
+    definitions:
+        db_requests_settings:
+            type: object
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: Максимальное время ожидания подключения
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: Максимальное время выполнения запроса
+            additionalProperties: false
+            required:
+              - network_timeout_ms
+              - statement_timeout_ms

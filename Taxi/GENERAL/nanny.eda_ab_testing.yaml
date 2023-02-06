@@ -1,0 +1,102 @@
+group:
+  type: rtc
+  name: eda_ab_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Or:
+          - StartsWith: { request_url: "/ping" }
+          - StartsWith: { request_url: "/metrics" }
+          - StartsWith: { request_url: "/health" }
+
+  ab.eda.tst.yandex.net:
+    Equals: { http_host: "ab.eda.tst.yandex.net" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/api/v1/ab:
+    StartsWith: { request_url: "/api/v1/ab" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/api/v2/ab:
+    StartsWith: { request_url: "/api/v2/ab" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/api/v1/experiments/active:
+    StartsWith: { request_url: "/api/v1/experiments/active" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/api/v2/experiments/active:
+    StartsWith: { request_url: "/api/v2/experiments/active" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/api/v2/experiments:
+    And:
+      - StartsWith: { request_url: "/api/v2/experiments" }
+      - Not: [ StartsWith: {request_url: "/api/v2/experiments/active" } ]
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/eats/v1/ab/experiments:
+    StartsWith: { request_url: "/eats/v1/ab/experiments" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  ab.eda.tst.yandex.net/eats/v1/ab/configs:
+    StartsWith: { request_url: "/eats/v1/ab/configs" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429

@@ -1,0 +1,251 @@
+
+USE hahn;
+
+$acts_path = "//home/taxi-internal-control/external-data/decomposition/acts";
+
+
+DEFINE SUBQUERY $get_table_names($folder_path) AS
+    SELECT AGGREGATE_LIST_DISTINCT(ListLast(String::SplitToList(Path, "/")))
+    FROM FOLDER($folder_path, "schema;row_count")
+    WHERE
+        Type = "table" AND
+        Yson::GetLength(Attributes.schema) > 0 AND
+        Yson::LookupInt64(Attributes, "row_count") > 0
+END DEFINE;
+
+DEFINE SUBQUERY $get_trs($service_id, $service, $act_path) AS
+    SELECT
+        order_id,
+        claim_id,
+        contract_id,
+        contract_eid,
+        product_id,
+        product,
+        SUM(amount) AS total_sum,
+        amount_act,
+        is_equal_w_nds_act,
+        is_equal_wo_nds_act,
+        diff_tlog_and_act_w_nds,
+        diff_tlog_and_act_wo_nds,
+        promo_value_wo_nds,
+        rest_in_amount_wo_vat
+    FROM $act_path
+    WHERE service_id = $service_id
+        AND IF (
+            $service = 'cargo',
+            claim_id IS NOT NULL,
+            IF ($service = 'taxi', order_id IS NOT NULL, True)
+        )
+    GROUP BY
+        contract_eid,
+        product_id,
+        product,
+        Yson::ConvertToString(order_id) AS order_id,
+        Yson::ConvertToString(claim_id) AS claim_id,
+        contract_id,
+        amount_act,
+        is_equal_w_nds_act,
+        is_equal_wo_nds_act,
+        diff_tlog_and_act_w_nds,
+        diff_tlog_and_act_wo_nds,
+        promo_value_wo_nds,
+        rest_in_amount_wo_vat
+END DEFINE;
+
+
+$act_dates = SELECT * FROM $get_table_names($acts_path);
+
+EVALUATE IF ListHas($act_dates, "2021-11") DO BEGIN
+    $act_path = $acts_path || "/2021-11";
+
+    $drive_target_path = "//home/taxi/production/services/taxi-corp/raw_reports/drive/2021-11";
+    $drive_orders_path = "//home/taxi/production/replica/postgres/corp_orders/drive_orders";
+
+    INSERT INTO $drive_target_path WITH TRUNCATE
+    SELECT
+
+        orders.id AS id,
+        transactions.order_id AS act_order_id,
+        transactions.contract_eid AS act_contract_eid,
+        transactions.contract_id AS contract_id,
+        transactions.product_id AS product_id,
+        transactions.product AS product,
+        orders.created_at AS created_at,
+        orders.updated_at AS updated_at,
+        orders.client_id AS client_id,
+        orders.department_id AS department_id,
+        orders.personal_phone_id AS personal_phone_id,
+        orders.user_id AS user_id,
+        orders.yandex_uid AS yandex_uid,
+        orders.account_id AS account_id,
+        orders.drive_user_id AS drive_user_id,
+        orders.started_at AS started_at,
+        orders.finished_at AS finished_at,
+        orders.duration AS duration,
+        orders.tariff AS tariff,
+        -- orders.total_sum AS total_sum,
+        -- orders.vat AS vat,
+        -- orders.total_sum_with_vat AS total_sum_with_vat,
+        transactions.total_sum AS total_sum,
+        orders.finish_point_coordinates AS finish_point_coordinates,
+        orders.start_point_coordinates AS start_point_coordinates,
+        orders.car_model AS car_model,
+        orders.car_number AS car_number,
+        orders.total_mileage AS total_mileage,
+        orders.currency AS currency,
+        orders.city AS city,
+        orders.finish_point_address AS finish_point_address,
+        orders.start_point_address AS start_point_address,
+        orders.timezone AS timezone,
+        orders.country AS country,
+        -- NEXT COLUMNS ARE FOR CHECKING AND ADDITIONAL SHEET
+        transactions.amount_act AS act_total_amount,
+        transactions.is_equal_w_nds_act AS act_is_equal_w_vat,
+        transactions.is_equal_wo_nds_act AS act_is_equal_wo_vat,
+        transactions.diff_tlog_and_act_w_nds AS act_diff_tlog_w_vat,
+        transactions.diff_tlog_and_act_wo_nds AS act_diff_tlog_wo_vat,
+        transactions.promo_value_wo_nds AS act_promo_value,
+        transactions.rest_in_amount_wo_vat AS act_rest_in_amount_wo_vat
+
+    FROM $get_trs(672, 'drive', $act_path) AS transactions
+    LEFT JOIN $drive_orders_path AS orders
+    ON (orders.id == transactions.order_id)
+    ORDER BY act_contract_eid, client_id, created_at, product_id;
+
+
+    $eats_target_path = "//home/taxi/production/services/taxi-corp/raw_reports/eats/2021-11";
+    $eats_orders_path = "//home/taxi/production/replica/postgres/corp_orders/eda_orders";
+
+    INSERT INTO $eats_target_path WITH TRUNCATE
+    SELECT
+
+        orders.id AS id,
+        transactions.order_id AS act_order_id,
+        transactions.contract_eid AS act_contract_eid,
+        transactions.contract_id AS contract_id,
+        transactions.product_id AS product_id,
+        transactions.product AS product,
+        orders.department_id AS department_id,
+        orders.client_id AS client_id,
+        orders.user_id AS user_id,
+        orders.yandex_uid AS yandex_uid,
+        orders.courier_phone_id AS courier_phone_id,
+        orders.created_at AS created_at,
+        orders.updated_at AS updated_at,
+        orders.closed_at AS closed_at,
+        orders.country AS country,
+        orders.currency AS currency,
+        orders.destination_address AS destination_address,
+        orders.discount AS discount,
+        transactions.total_sum AS final_cost,
+        -- orders.final_cost AS final_cost,
+        -- orders.final_cost_with_vat AS final_cost_with_vat,
+        -- orders.vat AS vat,
+        orders.order_calculation AS order_calculation,
+        orders.restaurant_name AS restaurant_name,
+        orders.restaurant_address AS restaurant_address,
+        orders.status AS status,
+        -- NEXT COLUMNS ARE FOR CHECKING AND ADDITIONAL SHEET
+        transactions.amount_act AS act_total_amount,
+        transactions.is_equal_w_nds_act AS act_is_equal_w_vat,
+        transactions.is_equal_wo_nds_act AS act_is_equal_wo_vat,
+        transactions.diff_tlog_and_act_w_nds AS act_diff_tlog_w_vat,
+        transactions.diff_tlog_and_act_wo_nds AS act_diff_tlog_wo_vat,
+        transactions.promo_value_wo_nds AS act_promo_value,
+        transactions.rest_in_amount_wo_vat AS act_rest_in_amount_wo_vat
+
+    FROM $get_trs(668, 'eats', $act_path) AS transactions
+    LEFT JOIN $eats_orders_path AS orders
+    ON (orders.id == transactions.order_id)
+    ORDER BY act_contract_eid, client_id, created_at, product_id;
+
+
+    $cargo_target_path = "//home/taxi/production/services/taxi-corp/raw_reports/cargo/2021-11";
+    $cargo_orders_path = "//home/taxi/production/replica/postgres/cargo_claims/claims";
+
+    INSERT INTO $cargo_target_path WITH TRUNCATE
+    SELECT
+
+        orders.uuid_id AS claim_id,
+        transactions.claim_id AS act_claim_id,
+        transactions.contract_eid AS act_contract_eid,
+        transactions.product_id AS product_id,
+        transactions.product AS product,
+        orders.corp_client_id AS client_id,
+        orders.taxi_order_id AS taxi_order_id,
+        transactions.total_sum AS cost_without_vat,
+        orders.final_price AS final_price,
+        orders.created_ts AS created_ts,
+        -- NEXT COLUMNS ARE FOR CHECKING AND ADDITIONAL SHEET
+        transactions.amount_act AS act_total_amount,
+        transactions.is_equal_w_nds_act AS act_is_equal_w_vat,
+        transactions.is_equal_wo_nds_act AS act_is_equal_wo_vat,
+        transactions.diff_tlog_and_act_w_nds AS act_diff_tlog_w_vat,
+        transactions.diff_tlog_and_act_wo_nds AS act_diff_tlog_wo_vat,
+        transactions.promo_value_wo_nds AS act_promo_value,
+        transactions.rest_in_amount_wo_vat AS act_rest_in_amount_wo_vat
+
+    FROM $get_trs(650, 'cargo', $act_path) AS transactions
+    LEFT JOIN $cargo_orders_path AS orders
+    ON (orders.uuid_id == transactions.claim_id)
+    ORDER BY act_contract_eid, client_id, created_ts, product_id;
+
+
+    $taxi_target_path = "//home/taxi/production/services/taxi-corp/raw_reports/taxi/2021-11";
+    $taxi_orders_path = "//home/taxi/production/replica/mongo/struct/corp/corp_orders";
+
+    INSERT INTO $taxi_target_path WITH TRUNCATE
+    SELECT
+
+        orders.id AS id,
+        transactions.order_id AS act_order_id,
+        transactions.contract_eid AS act_contract_eid,
+        transactions.product_id AS product_id,
+        transactions.product AS product,
+        orders.client_id AS client_id,
+        orders.type AS type,
+        orders.application AS application,
+        orders.city AS city,
+        orders.class AS class,
+        orders.corp_user AS corp_user,  -- Yson
+        orders.created_date AS created_date,
+        orders.destination AS destination,  -- Yson
+        orders.due_date AS due_date,
+        orders.nearest_zone AS nearest_zone,
+        orders.order_updated AS order_updated,
+        orders.performer AS performer,  -- Yson
+        orders.requirements AS requirements,  -- Yson
+        orders.comment AS comment,
+        orders.cost_center AS cost_center,  -- Yson
+        orders.waiting AS waiting,  -- Yson
+        orders.source AS source,  -- Yson
+        orders.interim_destinations AS interim_destinations,  -- Yson
+        orders.status AS status,
+        orders.taxi_status AS taxi_status,
+        orders.finished_date AS finished_date,
+        orders.start_waiting_time AS start_waiting_time,
+        orders.started_date AS started_date,
+        orders.updated AS updated,
+        transactions.total_sum AS cost_without_vat,
+        -- doesnt work w/o user_to_pay because of taxi/data.py#L48
+        orders.user_to_pay AS user_to_pay,  -- Yson
+        -- orders.without_vat_to_pay AS without_vat_to_pay,
+        orders.created_by AS created_by,  -- Yson
+        orders.taxi_user_id AS taxi_user_id,
+        orders.extra_user_phone_id AS extra_user_phone_id,
+        orders.distance AS distance,
+        -- NEXT COLUMNS ARE FOR CHECKING AND ADDITIONAL SHEET
+        transactions.amount_act AS act_total_amount,
+        transactions.is_equal_w_nds_act AS act_is_equal_w_vat,
+        transactions.is_equal_wo_nds_act AS act_is_equal_wo_vat,
+        transactions.diff_tlog_and_act_w_nds AS act_diff_tlog_w_vat,
+        transactions.diff_tlog_and_act_wo_nds AS act_diff_tlog_wo_vat,
+        transactions.promo_value_wo_nds AS act_promo_value,
+        transactions.rest_in_amount_wo_vat AS act_rest_in_amount_wo_vat
+
+    FROM $get_trs(650, 'taxi', $act_path) AS transactions
+    LEFT JOIN $taxi_orders_path AS orders
+    ON (orders.id == transactions.order_id)
+    ORDER BY act_contract_eid, client_id, created_date, product_id;
+
+END DO;

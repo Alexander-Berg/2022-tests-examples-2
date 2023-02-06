@@ -1,0 +1,98 @@
+meta:
+    service_name: common-service
+    maintainers:
+      - Dmitrii Karachev <karachevda@yandex-team.ru>
+    wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/common-service/
+
+tvm:
+    service_name: common-service
+    some_key: some_value
+
+some_key: some_value
+
+units:
+  - name: web
+  - name: stq3
+    some_key: some_value
+  - name: eda_web
+    some_key: some_value
+    tvm:
+        service_name: common-service-eda
+  - name: eda_stq3
+    tvm:
+        service_name: common-service-eda
+        some_key: some_value
+  - name: eda_cron
+    tvm:
+        service_name: common-service-eda
+
+clownductor_service_info:
+    service:
+        clownductor_project: taxi
+        critical_class: A
+        description: Main alias. Name would be taken from meta.service_name if not
+            overrided.
+        design_review: https://st.yandex-team.ru/TAXIADMIN-9711
+        units:
+          - web
+          - stq3
+        preset:
+            name: x2micro
+            overrides:
+                cpu: 4
+        disk_profile:
+            name: default
+            overrides:
+              - path: /var/cache/yandex
+                size: 10240
+                type: ssd
+              - path: /var/custom
+                size: 1024
+                type: hdd
+                bandwidth_guarantee_mb_per_sec: 12
+              - path: /cores
+                size: 0
+                type: hdd
+        yt_log_replications:
+          - table: taxi-api-yandex-taxi-protocol-cxx-log
+            url: https://yt.yandex-team.ru/hahn/navigation?path=//logs/taxi-api-yandex-taxi-protocol-cxx-log
+        grafana:
+            production: TODO
+            testing: TODO
+        duty:
+            abc_slug: some_abc
+            primary_schedule: some_schedule
+
+    aliases:
+      - name: common-service-critical
+        description: Same as main alias, yet different instance. Other fields will
+            be derived from main alias.
+
+      - name: common-service-eda
+        units:
+          - eda_web
+          - eda_stq3
+          - eda_cron
+        description: Eda
+        clownductor_project: eda
+        preset:
+            name: x2nano
+            overrides:
+                ram: 1
+        networks:
+            production: __STABLE__
+        grafana:
+            production: https://grafana.yandex-team.ru/d/LVu3OitWk/nanny_common_service_eda_stable
+        robots:
+            production:
+              - robot-tester
+              - nanny-robot
+            testing:
+              - nanny-robot
+        duty_group_id: common-service-eda-id
+        deploy_callback_url: http://frontend-dev-api.taxi.yandex.net/api/webhook/clownductor/deploy
+        has_unstable: true
+        has_balancers: true
+        yt_log_replications:
+          - table: taxi-api-yandex-taxi-protocol-cxx-log
+            url: https://yt.yandex-team.ru/hahn/navigation?path=//logs/taxi-api-yandex-taxi-protocol-cxx-log

@@ -1,0 +1,126 @@
+default:
+    __default__:
+        min: "8.78"
+description: Настройки версий Таксометра в зависимости от билда. названия билдов all
+    lowercase ВНИМАНИЕ, необходимо поддерживать синхронизованным с TAXIMETER_VERSION_SETTINGS
+    до того как последний отпилится. min - если версия меньше, то потребует обновиться,
+    current - предлагает обновиться без запрета брать заказы, disabled - запрещает
+    брять заказы выборочно по версиям (всегда объединяется со списком из __default__),
+    feature_support - с какой версии какая фича поддерживается
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-az:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-beta:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-dev:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-sdc:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-x:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-yango:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-uber:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-vezet:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-ios:
+            $ref: '#/definitions/UseragentSettings'
+        taximeter-embedded:
+            $ref: '#/definitions/UseragentSettings'
+
+    definitions:
+        TaximeterVersion:
+            type: string
+            pattern: ^\d{1,2}\.\d{2}( \((\d+)\))?$
+            example: '9.01 (123)'
+
+        FeatureSupportDict:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/TaximeterVersion'
+
+        UseragentSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                current:
+                    $ref: '#/definitions/TaximeterVersion'
+                disabled:
+                    type: array
+                    items:
+                        $ref: '#/definitions/TaximeterVersion'
+                    example: ["9.03", "8.99"]
+                feature_support:
+                    $ref: '#/definitions/FeatureSupportDict'
+                min:
+                    $ref: '#/definitions/TaximeterVersion'
+
+samples:
+  - __default__:
+        min: "9.00 (123)"
+        disabled: []
+        current: "9.00"
+        feature_support:
+            feature1: "9.05"
+  - __default__:
+        min: "9.00"
+        disabled: ["9.01", "9.02"]
+        current: "9.05 (311)"
+        feature_support:
+            feature1: "8.88"
+            feature2: "9.01"
+            feature3: "99.99"
+    taximeter-az:
+        min: "8.95"
+        disabled: ["8.98", "8.97"]
+        feature_support:
+            feature3: "8.99 (435)"
+    taximeter-yango:
+        min: "9.10"
+        current: "9.10"
+    taximeter-beta:
+        min: "9.05"
+        disabled: ["9.08"]
+        feature_support:
+            feature1: "9.15"
+            only_beta_feature: "8.99"
+
+invalid-samples:
+  - taximeter:
+        min: "9.00"
+  - __default__:
+        min: "9.00"
+        max: "10.00"
+  - __default__:
+        min: 9.00
+  - __default__:
+        min: "9.00"
+    taximeter-ololo:
+        min: "9.99"
+  - __default__:
+        min: 9.00
+    taximeter-az:
+        fetur_sprt:
+            some_feature: "9.99"
+  - __default__:
+        min: 9.00
+        feature_support:
+            some_feature: 9.99
+  - __default__:
+        min: 9.00
+        feature_support:
+            some_feature: "9.99"
+    taximeter-yango:
+        disabled: [9.50]
+

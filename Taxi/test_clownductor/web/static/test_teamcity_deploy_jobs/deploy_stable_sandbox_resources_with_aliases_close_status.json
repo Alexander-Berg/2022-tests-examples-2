@@ -1,0 +1,878 @@
+{
+  "expected_jobs": [
+    {
+      "id": 4,
+      "inited_variables": {
+        "aliases": [
+          {
+            "branch_id": 4,
+            "image": null,
+            "logbroker_configuration": null,
+            "nanny_name": "test_service_2_stable",
+            "service_id": 2
+          },
+          {
+            "branch_id": 6,
+            "image": null,
+            "logbroker_configuration": null,
+            "nanny_name": "test_service_3_stable",
+            "service_id": 3
+          }
+        ],
+        "changelog": "test deploy sandbox resources",
+        "comment": "Automatically created release",
+        "configs_branch_ids": [
+          2,
+          4,
+          6
+        ],
+        "configs_info": [],
+        "image": null,
+        "is_rollback": false,
+        "lock_names": [
+          "Deploy.test_service_2_stable",
+          "Deploy.test_service_3_stable",
+          "Deploy.test_service_stable"
+        ],
+        "logbroker_configuration": null,
+        "name": "test_service_stable",
+        "prestable_aliases": [
+          {
+            "branch_id": 4,
+            "image": null,
+            "nanny_name": "test_service_2_pre_stable",
+            "service_id": 2
+          },
+          {
+            "branch_id": 6,
+            "image": null,
+            "nanny_name": "test_service_3_pre_stable",
+            "service_id": 3
+          }
+        ],
+        "prestable_name": "test_service_pre_stable",
+        "project_names": [
+          "test_project"
+        ],
+        "release_ticket_st": "TAXIREL-13",
+        "sandbox_resources": [
+          {
+            "is_dynamic": false,
+            "local_path": "road-graph",
+            "resource_id": "1656867606",
+            "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+            "task_id": "745057883",
+            "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+          }
+        ]
+      },
+      "name": "DeployNannyServiceWithApprove",
+      "stages": [
+        {
+          "appended_variables": {},
+          "name": "InternalCubeCheckAndNotifyDeployments"
+        },
+        {
+          "appended_variables": {},
+          "name": "InternalBatchGetLock"
+        },
+        {
+          "appended_variables": {
+            "job_branch_id": 2,
+            "job_project_id": 1,
+            "job_project_name": "test_project",
+            "job_service_id": 1,
+            "job_service_name": "test_service"
+          },
+          "name": "InternalJobGetInformation"
+        },
+        {
+          "appended_variables": {},
+          "name": "UpdateServiceYamlParams"
+        },
+        {
+          "appended_variables": {
+            "sync_job_ids": []
+          },
+          "name": "StartSyncRemoteParams"
+        },
+        {
+          "appended_variables": {},
+          "name": "MetaCubeWaitForJobsCommon"
+        },
+        {
+          "appended_variables": {
+            "current_diff_aliases_jobs": [
+              1000
+            ],
+            "current_diff_job_id": null
+          },
+          "name": "FindCurrentDiff"
+        },
+        {
+          "appended_variables": {
+            "current_diff_comment": "There are already exists resolve diff jobs:\n* ((/services/1/edit/3/jobs?jobId=1000&isClownJob=true test_service_3))\nWaiting for jobs complete.\n((https://wiki.yandex-team.ru/taxi-ito/cloudhowto/#avtomaticheskoeizmenenieokruzhenija Wiki about diff))",
+            "current_diff_skip": false
+          },
+          "name": "CurrentDiffCommentGenerate"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "WaitChangeSubsystem"
+        },
+        {
+          "appended_variables": {},
+          "ignore_variables": [
+            "approving_managers",
+            "approving_developers",
+            "sandbox_approve_flow",
+            "summonees",
+            "responsible_managers"
+          ],
+          "name": "ApproveCubeGetApprovers"
+        },
+        {
+          "appended_variables": {
+            "aliases_diff_configs": [
+              {
+                "branch_id": 4,
+                "config": [
+                  {
+                    "parameters": [
+                      {
+                        "name": "cpu",
+                        "value": {
+                          "new": 1000,
+                          "old": 2000
+                        }
+                      }
+                    ],
+                    "subsystem_name": "nanny"
+                  }
+                ],
+                "service_id": 2
+              },
+              {
+                "branch_id": 6,
+                "config": [
+                  {
+                    "parameters": [
+                      {
+                        "name": "cpu",
+                        "value": {
+                          "new": 1000,
+                          "old": 500
+                        }
+                      }
+                    ],
+                    "subsystem_name": "nanny"
+                  }
+                ],
+                "service_id": 3
+              }
+            ],
+            "diff_comment": "There is parameters diff:\n* ((/services/1/edit/2/branches/4 test_service_2_stable))\n* ((/services/1/edit/3/branches/6 test_service_3_stable))\n\nTo resolve diff developers should write in the comments to this ticket:\n - \"OK for diff_resolve:4\" - starts resolve diff.\nDraft with diff will be created and should be approved by system administrator.\nDiff starts resolving instantly after draft approval.\nRelease will be freezed until resolve diff complete.\n - \"REJECT for diff_resolve:4\" - skip resolve diff.\nRelease will continue as usual.\n\n((https://wiki.yandex-team.ru/taxi-ito/cloudhowto/#avtomaticheskoeizmenenieokruzhenija Wiki about diff))",
+            "diff_config": null,
+            "diff_resolve_id": "diff_resolve:4",
+            "diff_skip": false,
+            "ok_diff_phrase": "OK for diff_resolve:4",
+            "parameters_errors_comment": "В параметрах были обнаружены следующие ошибки: primary schedule 'primaryschedule' not found in abc service service4. Дифф будет пропущен.",
+            "reject_diff_phrase": "REJECT for diff_resolve:4"
+          },
+          "name": "CheckDiffForDeploy"
+        },
+        {
+          "appended_variables": {},
+          "name": "StartrekCubeAddComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {
+            "diff_approve_type": "approved",
+            "diff_author": "mvpetrov"
+          },
+          "name": "WaitForDiffCommentApprove"
+        },
+        {
+          "appended_variables": {
+            "aliases_diff_drafts": [
+              4,
+              6
+            ],
+            "diff_draft_id": null
+          },
+          "name": "CreateDiffDraft"
+        },
+        {
+          "appended_variables": {
+            "apply_diff_comment": "Wait for apply drafts for resolving diff diff_resolve:4\n* /drafts/draft/4\n* /drafts/draft/6"
+          },
+          "name": "ApplyDiffDraftCommentGenerate"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {
+            "aliases_diff_jobs": [
+              7,
+              8
+            ],
+            "diff_job_id": null,
+            "linked_tickets": [
+              "RUPRICING-4",
+              "TICKET-1"
+            ],
+            "started_diff_jobs": [
+              7,
+              8
+            ]
+          },
+          "name": "WaitForDiffDraftApply"
+        },
+        {
+          "appended_variables": {
+            "st_comment": "Resolve diff started. You can follow the progress in:\n((https://st.test.yandex-team.ru/RUPRICING-4 RUPRICING-4))\n((https://st.test.yandex-team.ru/TICKET-1 TICKET-1))\n"
+          },
+          "name": "GenerateCommentWaitDiffResolve"
+        },
+        {
+          "appended_variables": {},
+          "name": "StartrekCubeAddComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "WaitChangeSubsystem"
+        },
+        {
+          "appended_variables": {
+            "end_diff_comment": "Diff resolve operation diff_resolve:4 was finished"
+          },
+          "name": "EndDiffCommentGenerate"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {
+            "logbroker_operations": null
+          },
+          "name": "LogbrokerConfigurationStart"
+        },
+        {
+          "appended_variables": {},
+          "name": "LogbrokerConfigurationPoll"
+        },
+        {
+          "appended_variables": {
+            "deploy_delay": 0,
+            "deploy_delay_message": ""
+          },
+          "name": "InternalCubeMissingDutyCheck"
+        },
+        {
+          "appended_variables": {},
+          "name": "StartrekCubeAddComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "InternalCubeSleep"
+        },
+        {
+          "appended_variables": {
+            "border_comment": "This is release for several services:\n* **test_service_pre_stable**\n* **test_service_2_pre_stable**\n* **test_service_3_pre_stable**\n\nApprove messages will trigger deploy for all services above.\n\n**Prestable:**\nWaiting for approves for release in with internal id ((/services/1/edit/1/jobs?jobId=4&isClownJob=true release:4)).\n\n**Developers should write:**\n%%\nPRESTABLE OK for release:4\n%%\nin the comments to this ticket.\n\nSee the instruction for the deploy ((https://wiki.yandex-team.ru/taxi/backend/basichowto/deploy/ here)).",
+            "finished_deploy_msg": "Deployment of the release in pre with internal id release:4 finished.",
+            "release_id": "release:4",
+            "release_key_phrase": "PRESTABLE OK for release:4",
+            "skip_prestable": false,
+            "summoned_assignee": null
+          },
+          "ignore_variables": [
+            "started_deploy_msg"
+          ],
+          "name": "ApproveCubeLiteGeneratePreApproveId"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteWaitForDevelopersApprove"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotificationsCubeLenta"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotifyHejmdalDeployEvent"
+        },
+        {
+          "appended_variables": {
+            "prestable_job_ids": [
+              9,
+              10,
+              11
+            ]
+          },
+          "meta": [
+            {
+              "id": 9,
+              "inited_variables": {
+                "changelog": "test deploy sandbox resources",
+                "comment": "Automatically created release",
+                "image": null,
+                "link_to_changelog": "/services/1/edit/1/jobs?jobId=4&isClownJob=true",
+                "nanny_name": "test_service_pre_stable",
+                "sandbox_resources": [
+                  {
+                    "is_dynamic": false,
+                    "local_path": "road-graph",
+                    "resource_id": "1656867606",
+                    "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+                    "task_id": "745057883",
+                    "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+                  }
+                ]
+              },
+              "name": "DeployOneNannyService",
+              "stages": [
+                {
+                  "appended_variables": {
+                    "job_branch_id": 2,
+                    "job_project_id": 1,
+                    "job_project_name": "test_project",
+                    "job_service_id": 1,
+                    "job_service_name": "test_service"
+                  },
+                  "name": "InternalJobGetInformation"
+                },
+                {
+                  "appended_variables": {
+                    "environment": "stable"
+                  },
+                  "name": "InternalGetBranchInformation"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "UpdateHosts"
+                },
+                {
+                  "appended_variables": {
+                    "snapshot_id": "5c26609053b7c34a9ad5a283f48ae03c79853d58"
+                  },
+                  "name": "NannyCubeCreateSnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeDeploySnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyTryDestroyExtraSnapshots"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeWaitForDeploy"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "SendCallback"
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "inited_variables": {
+                "changelog": "test deploy sandbox resources",
+                "comment": "Automatically created release",
+                "image": null,
+                "link_to_changelog": "/services/1/edit/1/jobs?jobId=4&isClownJob=true",
+                "nanny_name": "test_service_2_pre_stable",
+                "sandbox_resources": [
+                  {
+                    "is_dynamic": false,
+                    "local_path": "road-graph",
+                    "resource_id": "1656867606",
+                    "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+                    "task_id": "745057883",
+                    "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+                  }
+                ]
+              },
+              "name": "DeployOneNannyService",
+              "stages": [
+                {
+                  "appended_variables": {
+                    "job_branch_id": 4,
+                    "job_project_id": 1,
+                    "job_project_name": "test_project",
+                    "job_service_id": 2,
+                    "job_service_name": "test_service_2"
+                  },
+                  "name": "InternalJobGetInformation"
+                },
+                {
+                  "appended_variables": {
+                    "environment": "stable"
+                  },
+                  "name": "InternalGetBranchInformation"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "UpdateHosts"
+                },
+                {
+                  "appended_variables": {
+                    "snapshot_id": "5c26609053b7c34a9ad5a283f48ae03c79853d58"
+                  },
+                  "name": "NannyCubeCreateSnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeDeploySnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyTryDestroyExtraSnapshots"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeWaitForDeploy"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "SendCallback"
+                }
+              ]
+            },
+            {
+              "id": 11,
+              "inited_variables": {
+                "changelog": "test deploy sandbox resources",
+                "comment": "Automatically created release",
+                "image": null,
+                "link_to_changelog": "/services/1/edit/1/jobs?jobId=4&isClownJob=true",
+                "nanny_name": "test_service_3_pre_stable",
+                "sandbox_resources": [
+                  {
+                    "is_dynamic": false,
+                    "local_path": "road-graph",
+                    "resource_id": "1656867606",
+                    "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+                    "task_id": "745057883",
+                    "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+                  }
+                ]
+              },
+              "name": "DeployOneNannyService",
+              "stages": [
+                {
+                  "appended_variables": {
+                    "job_branch_id": 6,
+                    "job_project_id": 1,
+                    "job_project_name": "test_project",
+                    "job_service_id": 3,
+                    "job_service_name": "test_service_3"
+                  },
+                  "name": "InternalJobGetInformation"
+                },
+                {
+                  "appended_variables": {
+                    "environment": "stable"
+                  },
+                  "name": "InternalGetBranchInformation"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "UpdateHosts"
+                },
+                {
+                  "appended_variables": {
+                    "snapshot_id": "5c26609053b7c34a9ad5a283f48ae03c79853d58"
+                  },
+                  "name": "NannyCubeCreateSnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeDeploySnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyTryDestroyExtraSnapshots"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeWaitForDeploy"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "SendCallback"
+                }
+              ]
+            }
+          ],
+          "name": "MetaStartDeployNannyServices"
+        },
+        {
+          "appended_variables": {},
+          "name": "MetaCubeWaitForJobsCommon"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotificationsCubeLenta"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotifyHejmdalDeployEvent"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {
+            "instruction_after_deploy": null
+          },
+          "name": "ApproveGenerateInstruction"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeOptionalLiteEnsureComment"
+        },
+        {
+          "appended_variables": {
+            "border_comment": "This is release for several services:\n* **test_service_stable**\n* **test_service_2_stable**\n* **test_service_3_stable**\n\nApprove messages will trigger deploy for all services above.\n\n**Stable:**\nWaiting for approves for release with internal id ((/services/1/edit/1/jobs?jobId=4&isClownJob=true release:4)).\n\n**Managers should approve** by setting status \"ready for release\" to this ticket.\n**After this, developers should write:**\n%%\nOK for release:4\n%%\nin the comments to this ticket.\n\nSee the instruction for the deploy ((https://wiki.yandex-team.ru/taxi/backend/basichowto/deploy/ here)).",
+            "close_ticket_phrase": "CLOSE TICKET for release:4",
+            "finished_deploy_msg": "Deployment of the release with internal id release:4 is finished.\n\nEnsure the service works properly in stable,\nthen change the ticket's state to\n%%\ndeployed\n%%\nby pressing the button in the ticket's action panel.\n\nIf the assignee is unable to do that,\nmanagers or developers should:\nкто:bruno, кто:mvpetrov",
+            "managers_ok_received_msg": "**Stable:**\nManagers approved release with internal id release:4.\nWaiting for developers approve.\n**Developers should write:**\n%%\nOK for release:4\n%%\nin the comments to this ticket.\n\nSee the instruction for the deploy ((https://wiki.yandex-team.ru/taxi/backend/basichowto/deploy/ here)).",
+            "release_id": "release:4",
+            "release_key_phrase": "OK for release:4",
+            "single_approve": false
+          },
+          "ignore_variables": [
+            "started_deploy_msg"
+          ],
+          "name": "ApproveCubeLiteGenerateApproveId"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteWaitForManagersApprove"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteWaitForDevelopersApprove"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteWaitForSingleApprove"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotificationsCubeLenta"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotifyHejmdalDeployEvent"
+        },
+        {
+          "appended_variables": {
+            "job_ids": [
+              12,
+              13,
+              14
+            ]
+          },
+          "meta": [
+            {
+              "id": 12,
+              "inited_variables": {
+                "changelog": "test deploy sandbox resources",
+                "comment": "Automatically created release",
+                "image": null,
+                "link_to_changelog": "/services/1/edit/1/jobs?jobId=4&isClownJob=true",
+                "nanny_name": "test_service_stable",
+                "sandbox_resources": [
+                  {
+                    "is_dynamic": false,
+                    "local_path": "road-graph",
+                    "resource_id": "1656867606",
+                    "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+                    "task_id": "745057883",
+                    "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+                  }
+                ]
+              },
+              "name": "DeployOneNannyService",
+              "stages": [
+                {
+                  "appended_variables": {
+                    "job_branch_id": 2,
+                    "job_project_id": 1,
+                    "job_project_name": "test_project",
+                    "job_service_id": 1,
+                    "job_service_name": "test_service"
+                  },
+                  "name": "InternalJobGetInformation"
+                },
+                {
+                  "appended_variables": {
+                    "environment": "stable"
+                  },
+                  "name": "InternalGetBranchInformation"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "UpdateHosts"
+                },
+                {
+                  "appended_variables": {
+                    "snapshot_id": "5c26609053b7c34a9ad5a283f48ae03c79853d58"
+                  },
+                  "name": "NannyCubeCreateSnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeDeploySnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyTryDestroyExtraSnapshots"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeWaitForDeploy"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "SendCallback"
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "inited_variables": {
+                "changelog": "test deploy sandbox resources",
+                "comment": "Automatically created release",
+                "image": null,
+                "link_to_changelog": "/services/1/edit/1/jobs?jobId=4&isClownJob=true",
+                "nanny_name": "test_service_2_stable",
+                "sandbox_resources": [
+                  {
+                    "is_dynamic": false,
+                    "local_path": "road-graph",
+                    "resource_id": "1656867606",
+                    "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+                    "task_id": "745057883",
+                    "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+                  }
+                ]
+              },
+              "name": "DeployOneNannyService",
+              "stages": [
+                {
+                  "appended_variables": {
+                    "job_branch_id": 4,
+                    "job_project_id": 1,
+                    "job_project_name": "test_project",
+                    "job_service_id": 2,
+                    "job_service_name": "test_service_2"
+                  },
+                  "name": "InternalJobGetInformation"
+                },
+                {
+                  "appended_variables": {
+                    "environment": "stable"
+                  },
+                  "name": "InternalGetBranchInformation"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "UpdateHosts"
+                },
+                {
+                  "appended_variables": {
+                    "snapshot_id": "5c26609053b7c34a9ad5a283f48ae03c79853d58"
+                  },
+                  "name": "NannyCubeCreateSnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeDeploySnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyTryDestroyExtraSnapshots"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeWaitForDeploy"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "SendCallback"
+                }
+              ]
+            },
+            {
+              "id": 14,
+              "inited_variables": {
+                "changelog": "test deploy sandbox resources",
+                "comment": "Automatically created release",
+                "image": null,
+                "link_to_changelog": "/services/1/edit/1/jobs?jobId=4&isClownJob=true",
+                "nanny_name": "test_service_3_stable",
+                "sandbox_resources": [
+                  {
+                    "is_dynamic": false,
+                    "local_path": "road-graph",
+                    "resource_id": "1656867606",
+                    "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+                    "task_id": "745057883",
+                    "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+                  }
+                ]
+              },
+              "name": "DeployOneNannyService",
+              "stages": [
+                {
+                  "appended_variables": {
+                    "job_branch_id": 6,
+                    "job_project_id": 1,
+                    "job_project_name": "test_project",
+                    "job_service_id": 3,
+                    "job_service_name": "test_service_3"
+                  },
+                  "name": "InternalJobGetInformation"
+                },
+                {
+                  "appended_variables": {
+                    "environment": "stable"
+                  },
+                  "name": "InternalGetBranchInformation"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "UpdateHosts"
+                },
+                {
+                  "appended_variables": {
+                    "snapshot_id": "5c26609053b7c34a9ad5a283f48ae03c79853d58"
+                  },
+                  "name": "NannyCubeCreateSnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeDeploySnapshot"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyTryDestroyExtraSnapshots"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "NannyCubeWaitForDeploy"
+                },
+                {
+                  "appended_variables": {},
+                  "name": "SendCallback"
+                }
+              ]
+            }
+          ],
+          "name": "MetaStartDeployNannyServices"
+        },
+        {
+          "appended_variables": {},
+          "name": "MetaCubeWaitForJobsCommon"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotificationsCubeLenta"
+        },
+        {
+          "appended_variables": {},
+          "name": "NotifyHejmdalDeployEvent"
+        },
+        {
+          "appended_variables": {},
+          "name": "ApproveCubeLiteEnsureComment"
+        },
+        {
+          "appended_variables": {},
+          "name": "InternalCubeUpdateServiceConfigs"
+        },
+        {
+          "appended_variables": {
+            "skip_closure_status": false
+          },
+          "name": "ApproveCubeWaitForClosureStatus"
+        },
+        {
+          "appended_variables": {},
+          "name": "StartrekCubeCloseTicket"
+        },
+        {
+          "appended_variables": {
+            "skip_closure": true
+          },
+          "name": "ApproveCubeWaitForClosureApproval"
+        },
+        {
+          "appended_variables": {},
+          "name": "StartrekCubeCloseTicket"
+        },
+        {
+          "appended_variables": {},
+          "name": "InternalBatchReleaseLock"
+        }
+      ]
+    }
+  ],
+  "request_data": {
+    "aliases": [
+      "test_service_2",
+      "test_service_3"
+    ],
+    "changelog": "test deploy sandbox resources",
+    "docker_image": null,
+    "env": "production",
+    "release_ticket": "TAXIREL-13",
+    "sandbox_resources": [
+      {
+        "local_path": "road-graph",
+        "resource_id": "1656867606",
+        "resource_type": "TAXI_GRAPH_ROAD_GRAPH_RESOURSE",
+        "task_id": "745057883",
+        "task_type": "TAXI_GRAPH_DO_UPLOAD_TASK"
+      }
+    ],
+    "service_name": "test_service"
+  }
+}

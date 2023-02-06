@@ -1,0 +1,135 @@
+id: empty_screen
+title: проверка фолбеков при пустом экране
+
+parameters:
+  - case:
+      - shortcuts_code: 200
+        shortcuts_call_count: 1
+        blender_code: 200
+        layout: {"width": 6, "type": "linear_grid", "grid_id": "some_grid_id"}
+      - shortcuts_code: 500
+        shortcuts_call_count: 1
+        blender_code: 200
+        layout: {"grid_id": "_fallback_grid_id_", "width": 6, "type": "linear_grid"}
+      - shortcuts_code: 200
+        shortcuts_call_count: 0
+        blender_code: 500
+        layout: {"grid_id": "_fallback_grid_id_", "width": 6, "type": "linear_grid"}
+
+source:
+    request:
+        method: post
+        body: {"state": {}, "shortcuts": {"grids_support": [{"width": 6, "unit_width": 61}],
+                "supported_features": [{"type": "taxi:route-input", "services": [],
+                        "prefetch_strategies": []}, {"type": "media-stories", "services": [],
+                        "prefetch_strategies": []}], "supported_actions": ["type": "deeplink",
+                    {"destination_support": true, "type": "taxi:summary-redirect"},
+                    "type": "taxi:route-input", {"modes": ["drive", "masstransit"],
+                        "type": "discovery"}], "ndash_width": 9, "mdash_width": 14},
+            "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+            body#concat-objects:
+              - value#object:
+                  - key: screen
+                    value#concat-objects:
+                      - value: {"sections": [{"type": "items_linear_grid", "shortcut_ids": [
+                                        "item1"]}], "offers": {"items": ["shortcut_id": "item1"]}}
+                      - value#object:
+                          - key: layout
+                            value#xget: /test-params/case/layout
+              - value: {"typed_experiments": {"items": []}, "modes": [{"mode": "taxi",
+                            "parameters": {"product_tag": "taxi", "available": true}},
+                        {"mode": "eats", "parameters": {"product_tag": "eats", "available": true}},
+                        {"mode": "shop", "parameters": {"product_tag": "shop", "available": false}}],
+                    "products": [{"tag": "taxi", "service": "taxi", "title": "Такси"},
+                        {"tag": "eats", "service": "eats", "title": "Еда"}, {"tag": "shop",
+                            "service": "shop", "title": "Продукты"}]}
+mocks:
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}},
+                {"mode": "eats", "parameters": {"product_tag": "eats", "available": true}},
+                {"mode": "shop", "parameters": {"product_tag": "shop", "available": false}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Такси"}, {"tag": "eats",
+                    "service": "eats", "title": "Еда"}, {"tag": "shop", "service": "shop",
+                    "title": "Продукты"}]
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-shops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+        request:
+            body:
+                services_availability: [{"mode": "taxi", "parameters": {"product_tag": "taxi",
+                            "available": true}}, {"mode": "eats", "parameters": {
+                            "product_tag": "eats", "available": true}}, {"mode": "shop",
+                        "parameters": {"product_tag": "shop", "available": false}}]
+                shop_format: shortcut
+                user_context#any:
+  - resource: shortcuts-v1-screen-shops
+    response:
+        status-code#xget: /test-params/case/shortcuts_code
+        body: {"offers": {"items": []}, "sections": [{"type": "items_linear_grid",
+                    "shortcut_ids": []}], "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count#xget: /test-params/case/shortcuts_call_count
+        request:
+            method: post
+            body:
+                state: {}
+                zone_name: "moscow"
+                grid: {}
+                services_availability:
+                    modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi",
+                                "available": true}}, {"mode": "eats", "parameters": {
+                                "product_tag": "eats", "available": true}}, {"mode": "shop",
+                            "parameters": {"product_tag": "shop", "available": false}}]
+                    products: [{"tag": "taxi", "service": "taxi", "title": "Такси"},
+                        {"tag": "eats", "service": "eats", "title": "Еда"}, {"tag": "shop",
+                            "service": "shop", "title": "Продукты"}]
+                shortcuts: {"grids_support": [{"width": 6, "unit_width": 61}], "supported_features": [
+                        {"type": "taxi:route-input", "services": [], "prefetch_strategies": []},
+                        {"type": "media-stories", "services": [], "prefetch_strategies": []}],
+                    "supported_actions": ["type": "deeplink", {"destination_support": true,
+                            "type": "taxi:summary-redirect"}, "type": "taxi:route-input",
+                        {"modes": ["drive", "masstransit"], "type": "discovery"}],
+                    "ndash_width": 9, "mdash_width": 14}
+                position#array: [1, 2]
+  - resource: blender-v1-shops-screen-grid
+    response:
+        status-code#xget: /test-params/case/blender_code
+        body: {"grid": {}}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                scenario_tops: []
+                user_context:
+                    pin_position#array: [1, 2]
+                    show_at: "2020-01-01T00:00:00+00:00"
+                state:
+                    nz: "moscow"
+                    services_availability: [{"mode": "taxi", "parameters": {"product_tag": "taxi",
+                                "available": true}}, {"mode": "eats", "parameters": {
+                                "product_tag": "eats", "available": true}}, {"mode": "shop",
+                            "parameters": {"product_tag": "shop", "available": false}}]
+
+experiments:
+    values#object:
+      - key: shortcuts_screen_settings
+        value: {"shops": {"empty_screen_content": {"not_available": {"items": ["shortcut_id": "item1"],
+                        "section": {"shortcut_ids": ["item1"], "type": "items_linear_grid"}},
+                    "not_exists": {"items": ["shortcut_id": "item2"], "section": {
+                            "shortcut_ids": ["item2"], "type": "items_linear_grid"}}}}}
+        enabled: true

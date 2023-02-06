@@ -1,0 +1,20 @@
+INSERT INTO iiko_transport_meta (
+    place_id,
+    api_login,
+    organization_id,
+    terminal_group_id,
+    dek,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    'place_id__1',
+    'AG10CT2o7LKlhaIuii4eEUrU3GRFDBT/BaRM7lKA43k=',
+    'organization_id_1',
+    'terminal_group_id_1',
+    'e7ae0795-f352-44e6-a9f0-5f8e2e47a8e1',
+    '2022-05-16T10:00:30+00:00',
+    '2022-05-16T10:00:30+00:00'
+)
+;

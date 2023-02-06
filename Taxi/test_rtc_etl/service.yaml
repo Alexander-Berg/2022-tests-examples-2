@@ -1,0 +1,51 @@
+dmp:
+  name: test_rtc_etl
+  type: etl
+  deploy_to_rtc: True
+  use_local_queue: True
+  depends_on:
+    - dmp_suite
+    - replication_rules
+  submodules:
+    - replication-core
+
+
+meta:
+    service_name: &service-name dmp-test-rtc-etl
+    maintainers:
+      - Alexander Artemenko <art@yandex-team.ru>
+    wiki: https://wiki.yandex-team.ru/taxi/dwh/etl-to-rtc/
+
+
+clownductor_service_info:
+  service:
+    name: *service-name
+    clownductor_project: taxi-dmp
+    design_review: https://st.yandex-team.ru/TAXIDWH-13049
+    description: "Сервис для переливки данных между YT и Greenplum"
+    duty_group_id: TAXIDWH-SUPPORT-PLATFORMv1
+
+    preset:
+      name: x2nano
+
+    release_flow:
+      single_approve: true
+
+clownductor:
+  default-deploy-type: sandbox-resources
+  aliases:
+    # Если не указать алиас, то автоматика деплоя в TeamCity
+    # не работает, когда мы релизим с использованием sandbox
+    # и не генерим Dockerfile. У алиаса должно быть такое же имя,
+    # как в clownductor_service_info.service.name
+    - *service-name
+
+  sandbox-resources:
+    - source-path: ../resources
+      destination-path: resources
+      # Группа для выделения квоты на ресурсы
+      # https://sandbox.yandex-team.ru/admin/groups?name=TAXI_DMP
+      owner: TAXI_DMP
+
+teamcity:
+    conductor-disabled: true

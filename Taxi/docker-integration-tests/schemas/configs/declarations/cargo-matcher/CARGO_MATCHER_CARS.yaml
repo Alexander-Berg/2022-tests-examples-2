@@ -1,0 +1,88 @@
+default:
+  - taxi_class: express
+    length_cm: 100
+    width_cm: 50
+    height_cm: 40
+    carrying_capacity_kg: 20
+    max_loaders: 0
+    enabled: true
+
+  - taxi_class: cargo
+    cargo_type: van
+    cargo_type_limits_key: van
+    max_loaders: 2
+    enabled: true
+
+  - taxi_class: cargo
+    cargo_type: lcv_m
+    cargo_type_limits_key: lcv_m
+    max_loaders: 2
+    enabled: true
+
+  - taxi_class: cargo
+    cargo_type: lcv_l
+    cargo_type_limits_key: lcv_l
+    max_loaders: 2
+    enabled: true
+
+
+description: Список доступных машин (ОТСОРТИРОВАН ПО ВОЗРАСТАНИЮ МАССОГАБАРИТНЫХ ХАРАКТЕРИСТИК)
+tags: []
+schema:
+    type: array
+    items:
+        '$ref': '#/definitions/Car'
+
+    definitions:
+        LinearSize:
+            description: Линейный размер в сантиметрах
+            type: integer
+            minimum: 1
+
+        Car:
+            type: object
+            additionalProperties: false
+            properties:
+                taxi_class:
+                    description: Класс тарифа в такси (см конфиг ALL_CATEGORIES) [express,
+                        cargo, etc]
+                    type: string
+                cargo_type:
+                    description: Тип грузового автомобиля (если taxi_class = cargo)
+                        [van, lcv_m, lcv_l, etc]
+                    type: string
+                cargo_type_limits_key:
+                    description: Ключ для определения размеров в конфиге CARGO_TYPE_LIMITS
+                    type: string
+                carrying_capacity_kg:
+                    description: |
+                        Минимальная гарантированная грузоподъемность автомобилей этой категории (кг)
+                        (Максимальная гарантированно перевозимая масса груза)
+                    type: integer
+                    minimum: 1
+                height_cm:
+                    description: |
+                        Минимальная гарантированная высота кузова автомобиля этой категории (кг)
+                        (Максимальная гарантированно перевозимая высота груза)
+                    '$ref': '#/definitions/LinearSize'
+                length_cm:
+                    description: |
+                        Минимальная гарантированная длина кузова автомобиля этой категории (кг)
+                        (Максимальная гарантированно перевозимая длина груза)
+                    '$ref': '#/definitions/LinearSize'
+                width_cm:
+                    description: |
+                        Минимальная гарантированная ширина кузова автомобиля этой категории (кг)
+                        (Максимальная гарантированно перевозимая ширина груза)
+                    '$ref': '#/definitions/LinearSize'
+                max_loaders:
+                    description: Максимальное количество грузчиков
+                    type: integer
+                    minimum: 0
+                enabled:
+                    description: Используем ли эту машину
+                    type: boolean
+            required:
+              - taxi_class
+              - max_loaders
+              - enabled

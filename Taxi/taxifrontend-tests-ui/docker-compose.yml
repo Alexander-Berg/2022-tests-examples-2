@@ -1,0 +1,25 @@
+version: '2.3'
+
+services:
+  corp-tests:
+    build:
+      context: .
+      dockerfile: ./packages/corp-client/Dockerfile
+    volumes:
+    - ./cypress/artifacts:/usr/src/cypress-tests/packages/corp-client/cypress/artifacts
+    networks:
+      - taxi_net
+    environment:
+      - YAV_TOKEN
+      - ENVIRONMENT
+    command:
+      npm test
+networks:
+  taxi_net:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+        - subnet: 2001:3984:3989:0000:2::/80

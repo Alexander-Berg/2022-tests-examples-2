@@ -1,0 +1,54 @@
+{{#> base}}
+    {{#*inline "head"}}
+        <script type="text/javascript">
+            setForceSessionCookie(null);
+        </script>
+    {{/inline}}
+    {{#*inline "title"}}
+        page load time title
+    {{/inline}}
+    {{#*inline "content"}}
+        Page Load Time page
+        <script type="text/javascript">
+            var thirdCounterId = 22430419;
+            function memoizePerformance(performance, perfDifs) {
+                if (!performance) {
+                    return null;
+                }
+                var memoizedPerformance = {
+                    timing: {},
+                    navigation: {},
+                };
+                if (performance.redirectCount) {
+                    memoizedPerformance.redirectCount = performance.redirectCount;
+                }
+                if (performance.navigation.redirectCount) {
+                    memoizedPerformance.navigation.redirectCount = performance.navigation.redirectCount;
+                }
+                for (var i = 0; i < perfDifs.length; i += 1) {
+                    var firstKey = perfDifs[i][0];
+                    var secondKey = perfDifs[i][1];
+                    memoizedPerformance.timing[firstKey] = performance.timing[firstKey];
+                    memoizedPerformance.timing[secondKey] = performance.timing[secondKey];
+                }
+                return memoizedPerformance;
+            }
+            window.globalRequestsData = {
+                initialRequests: [],
+                counter: null,
+                memoizePerformance: memoizePerformance,
+            };
+            window._socket.on('request', function (request) {
+                window.globalRequestsData.initialRequests.push(request);
+            });
+            window.globalRequestsData.counter = new Ya.Metrika2({
+                id: thirdCounterId,
+            });
+            document.addEventListener('readystatechange', function () {
+                if (document.readyState === 'complete') {
+                    window.globalRequestsData.counter.hit('https://yandex.ru');
+                }
+            });
+        </script>
+    {{/inline}}
+{{/base}}

@@ -1,0 +1,31 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - hover_ok: /html/body
+  - _inner_test: [True, Passed for html body.]
+
+  - hover_ok: //*[@id="to-hover"]
+  - _inner_test: [True, Passed for button.]
+  - like: [css:.log, Hovered]
+  - _inner_test: [True, Passed for button onclick log.]
+
+  - hover_ok: /html/body/div/div/div  # not existing
+  - _inner_test:
+      success: False
+      message: Page has no element
+      tap_description: Failed for non existing element.
+
+  - hover_ok: css:.none > button
+  - _inner_test:
+      success: False
+      message: 'hover_ok failed. Selenium webdriver exception:'
+      tap_description: Bubbled standard selenium exception as result.

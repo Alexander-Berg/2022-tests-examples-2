@@ -1,0 +1,46 @@
+type: apitest
+version: 0
+service: taxi_protocol
+
+fixtures:
+  - dummy_service
+
+tests:
+  - name: find-one-not-found
+    request:
+        method: POST
+        path: /foo
+        body: {"id": "foo"}
+    assertions:
+      - type: mongo
+        collection: foo
+        operation: find-one
+        query:
+            _id: {"$oid": "5e4bd5412a15670d035b7158"}
+        expected:
+  - name: find-one-exists
+    request:
+        method: POST
+        path: /foo
+        body: {"id": "foo"}
+    assertions:
+      - type: mongo
+        collection: foo
+        operation: find-one
+        query:
+            _id: "123"
+        expected: {"_id": "123", "foo": "bar", "updated": {"$date": "2018-12-31T20:00:00.0+03:00"}}
+  - name: find-many
+    request:
+        method: POST
+        path: /foo
+        body: {"id": "foo"}
+    assertions:
+      - type: mongo
+        collection: foo
+        operation: find
+        sort:
+          - [_id, 1]
+        expected:
+          - {"_id": "123", "foo": "bar", "updated": {"$date": "2018-12-31T20:00:00.0+03:00"}}
+          - {"_id": "321", "foo": "maurice", "updated": {"$date": "2018-12-31T20:00:00.0+03:00"}}

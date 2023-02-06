@@ -1,0 +1,42 @@
+INSERT INTO etag_data.update_requests
+(
+  update_request_id,
+  update_state,
+  update_modes,
+  update_offered_modes,
+  created_at,
+  started_at,
+  finished_at,
+  cancelled
+)
+VALUES
+(
+  1001,
+  True,
+  True,
+  False,
+  '2019-09-01T10:00:00',
+  '2019-09-01T10:01:00',
+  NULL,
+  False
+),
+(
+  1002,
+  True,
+  True,
+  False,
+  '2019-09-01T10:00:00',
+  '2019-09-01T10:01:00',
+  '2019-09-01T10:30:00',
+  False
+),
+(
+  1003,
+  True,
+  True,
+  False,
+  '2019-09-01T10:00:00',
+  '2019-09-01T10:01:00',
+  NULL,
+  True
+);

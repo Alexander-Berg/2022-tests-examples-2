@@ -1,0 +1,99 @@
+default: {}
+description: Настройки джоб в qc.
+schema:
+    type: object
+    additionalProperties:
+        $ref: "#/definitions/Job"
+    definitions:
+        Job:
+            type: object
+            additionalProperties: true
+            properties:
+                enabled:
+                    $ref: 'common/enum.yaml#/switcher'
+                    description: Включает/выключает джобу
+                clients:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/definitions/Client'
+                    properties:
+                        __default__:
+                            $ref: '#/definitions/Client'
+                    required:
+                      - __default__
+                    description: Список настроек для клиентов, которые использует
+                        джоба
+                cursor_sync:
+                    $ref: '#/definitions/CursorSync'
+                    description: настройки курсорной синхронизации
+            required:
+              - enabled
+              - clients
+        Client:
+            type: object
+            additionalProperties: false
+            description: Настройки для клиента джобы
+            properties:
+                batch:
+                    type: integer
+                    minimum: 1
+                    description: Максимальный размер батча, читаемого клиентом
+                sleep:
+                    type: number
+                    minimum: 0
+                    description: Минимальное время сна между запросами от клиента
+                        в секундах
+                timeout_ms:
+                    type: number
+                    minimum: 1
+                    description: таймаут запросов клиента, в миллисекундах
+        CursorSync:
+            type: object
+            additionalProperties: false
+            description: Настройки для клиента джобы
+            properties:
+                sync_period:
+                    $ref: '#/definitions/TimeDelta'
+                    description: периодичность синка курсора
+                sync_lag:
+                    $ref: '#/definitions/TimeDelta'
+                    description: максимальное время отставания синка от now
+                max_operations:
+                    type: number
+                    description: максимально возможное число одновременных операций
+                lock_for:
+                    $ref: '#/definitions/TimeDelta'
+                    decription: время, на которое блокируется операция для обработки
+                        батча
+                retry_for:
+                    $ref: '#/definitions/TimeDelta'
+                    decription: время, через которое будет повторная обработка батча
+                        после неудачи
+            required:
+              - sync_period
+              - sync_lag
+              - max_operations
+              - lock_for
+              - retry_for
+
+        TimeDelta:
+            type: string
+            description: строковое представление времени 30s, 10m, 1h
+
+samples:
+  - qc_sync_job:
+        enabled: 'on'
+        clients:
+            __default__:
+                batch: 500
+                sleep: 0.1
+            qc_exams_client:
+                batch: 1000
+                sleep: 1
+                timeout_ms: 1000
+        cursor_sync:
+            sync_period: 5m
+            sync_lag: 10m
+            max_operations: 5
+            lock_for: 10m
+            retry_for: 2m

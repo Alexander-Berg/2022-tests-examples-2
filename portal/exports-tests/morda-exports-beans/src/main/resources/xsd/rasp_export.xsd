@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:rasp.exports.morda.autotests.yandex.ru"
+            xmlns:ns="urn:rasp.exports.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="rasp_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.MapDeserializer
+                    &lt;ru.yandex.autotests.morda.exports.rasp.RaspEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="rasp_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.exports.annotations.MordaExportDescription"
+                                    name="rasp"
+                                    clazz="ru.yandex.autotests.morda.exports.rasp.RaspExport"/>
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.MordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.exports.rasp.RaspExport,
+                    ru.yandex.autotests.morda.exports.rasp.RaspEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:rasp_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.rasp.RaspDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="rasp_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.exports.MordaExportEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithGeo</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="geo" type="xsd:int"/>
+            <xsd:element name="aero" type="xsd:int"/>
+            <xsd:element name="train" type="xsd:int"/>
+            <xsd:element name="el" type="xsd:int"/>
+            <xsd:element name="bus" type="xsd:int"/>
+            <xsd:element name="ship" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

@@ -1,0 +1,78 @@
+data:
+    name: AllocateExternalL3Addresses
+    provider_name: clowny-balancer
+    job_vars:
+      - abc_service_slug
+      - l3mgr_service_id
+      - fqdn
+      - author
+    stages:
+      - name: L3MGRAddExternalIpv4
+        provider_name: clowny-balancer
+        input:
+            abc_service_slug: abc_service_slug
+            l3mgr_service_id: l3mgr_service_id
+            fqdn: fqdn
+            l3_update_succeeded: true
+        output:
+            l3_update_succeeded: l3_update_succeeded
+            new_vs_ids: new_vs_ids
+      - name: L3MGRAddExternalIpv6
+        provider_name: clowny-balancer
+        input:
+            abc_service_slug: abc_service_slug
+            l3mgr_service_id: l3mgr_service_id
+            fqdn: fqdn
+            l3_update_succeeded: l3_update_succeeded
+            created_new_vs_ids: new_vs_ids
+        output:
+            new_vs_ids: new_vs_ids
+            l3_update_succeeded: l3_update_succeeded
+      - name: L3MGRCreateConfigForVsIds
+        provider_name: clowny-balancer
+        input:
+            l3mgr_service_id: l3mgr_service_id
+            created_vs_ids: new_vs_ids
+            l3_update_succeeded: l3_update_succeeded
+        output:
+            l3mgr_config_id: l3mgr_config_id
+            l3_update_succeeded: l3_update_succeeded
+      - name: L3MGRDeployConfiguration
+        provider_name: clowny-balancer
+        input:
+            l3_update_succeeded: l3_update_succeeded
+            l3mgr_service_id: l3mgr_service_id
+            l3mgr_config_id: l3mgr_config_id
+      - name: L3MGRWaitConfigActivated
+        provider_name: clowny-balancer
+        input:
+            l3mgr_service_id: l3mgr_service_id
+            l3mgr_config_id: l3mgr_config_id
+            l3_update_succeeded: l3_update_succeeded
+
+      - name: StartrekGenerateTrafficTicketParamsForExternal
+        provider_name: clowny-balancer
+        input:
+            skip: l3_update_succeeded
+            author: author
+            l3mgr_service_id: l3mgr_service_id
+        output:
+            queue: queue # will be empty if must be skipped
+            title: title
+            description: description
+            components: components
+            followers: followers
+      - name: StartrekCreateTicket
+        provider_name: clowny-balancer
+        input:
+            queue: queue
+            title: title
+            description: description
+            components: components
+            followers: followers
+        output:
+            traffic_ticket: new_ticket
+      - name: StartrekWaitClosed
+        provider_name: clowny-balancer
+        input:
+            ticket: traffic_ticket

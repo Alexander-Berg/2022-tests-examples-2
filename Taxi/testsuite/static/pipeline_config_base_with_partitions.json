@@ -1,0 +1,94 @@
+{
+  "test": {
+    "definitions": {
+      "data-sinks": {
+        "pp-test-adjusted": {
+          "config": {
+            "address": "channel:test:adjusted",
+            "channel-type": "adjusted",
+            "protocol": "edge",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-predicted": {
+          "config": {
+            "address": "channel:test:predicted",
+            "channel-type": "predicted",
+            "protocol": "edge",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-universal": {
+          "config": {
+            "address": "channel:test:universal",
+            "channel-type": "signals",
+            "protocol": "universal_signal",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        }
+      },
+      "data-streams": {
+        "pp-test-positions": {
+          "partitions": 3,
+          "protocol": "positions"
+        }
+      }
+    },
+    "yaga": {
+      "subpipelines": [
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              0,
+              10
+            ]
+          },
+          "destinations": {
+            "adjusted": {
+              "data-sinks": [
+                "pp-test-adjusted"
+              ],
+              "processors": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "operation": "include",
+                  "type": "time-shift-processor"
+                }
+              ]
+            },
+            "predicted": {
+              "data-sinks": [
+                "pp-test-predicted"
+              ],
+              "processors": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "operation": "exclude",
+                  "type": "time-shift-processor"
+                }
+              ]
+            },
+            "universal": {
+              "data-sinks": [
+                "pp-test-universal"
+              ]
+            }
+          },
+          "input": {
+            "default": {
+              "data-streams": [
+                "pp-test-positions"
+              ]
+            }
+          },
+          "signal_source": "Adjusted"
+        }
+      ]
+    }
+  }
+}

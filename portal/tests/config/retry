@@ -1,0 +1,41 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+__author__ = "Zasimov Alexey"
+__email__ = "zasimov-a@yandex-team.ru"
+
+
+from wp7desktop.share.config import open_config, read_retry_config
+import ConfigParser
+
+
+if __name__ == "__main__":
+    cp = open_config("tests-data/config/retry.conf")
+
+    # Valid configuration.
+    read_retry_config(cp, "valid")
+    
+    # Unknown section.
+    try:
+        read_retry_config(cp, "unknown")
+        exit(1)
+    except ConfigParser.NoSectionError:
+        pass
+
+    # Incomplete configurations.
+    for s in ["incomplete1", "incomplete2", "incomplete3"]:
+        try:
+            read_retry_config(cp, s)
+            print "Fatal. %s readet" % s
+            exit(1)
+        except ConfigParser.NoOptionError:
+            pass
+
+    # Type errors.
+    for s in ["type-error1", "type-error2"]:
+        try:
+            read_retry_config(cp, s)
+            print "Fatal. %s readet" % s
+            exit(1)
+        except ValueError:
+            pass

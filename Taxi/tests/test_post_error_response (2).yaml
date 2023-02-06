@@ -1,0 +1,42 @@
+id: test_post_error_response
+title: Проверка получения ошибочного ответа из сервиса eats-restapp-promo
+
+source:
+    request:
+        method: post
+        url: /server/api/v1/promo/active
+        body:
+            limit: 100
+            cursor: "abacaba"
+    expectations:
+        response:
+            status-code: 400
+            body:
+                code: some_code
+                message: some_message
+
+mocks:
+  - resource: backend-service-core-server-api-v1-promo-active
+    expectations:
+        call-count: 0
+
+  - resource: eats-restapp-promo-internal-v1-promos-active
+    response:
+        status-code: 400
+        body:
+            code: some_code
+            message: some_message
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                limit: 100
+                cursor: "abacaba"
+
+configs:
+    values#object:
+      - key: eats-restapp-promo-merge-active
+        value:
+            enabled: true
+        enabled: true

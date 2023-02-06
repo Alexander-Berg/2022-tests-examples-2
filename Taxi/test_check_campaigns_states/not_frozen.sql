@@ -1,0 +1,21 @@
+INSERT INTO crm_admin.campaign_state_log
+(campaign_id, state_from, state_to, updated_at)
+VALUES
+-- was before last check, but frozen period, NOT FROZEN
+(1, 'READY',                'SEGMENT_PREPROCESSING','2022-12-11 10:00:00'),
+(1, 'SEGMENT_PREPROCESSING','SEGMENT_CALCULATING',  '2022-12-11 11:00:00'),
+(1, 'SEGMENT_CALCULATING',  'GROUPS_READY',         '2022-12-11 14:00:00'),
+
+-- not frozen period, NOT FROZEN
+(2, 'READY',                'SEGMENT_PREPROCESSING','2022-12-12 11:50:00'),
+(2, 'SEGMENT_PREPROCESSING','SEGMENT_CALCULATING',  '2022-12-12 11:51:00'),
+(2, 'SEGMENT_CALCULATING',  'GROUPS_READY',         '2022-12-12 12:00:00'),
+
+-- not frozen, NOT FROZEN
+(3, 'READY',                'SEGMENT_PREPROCESSING','2022-12-12 11:50:00'),
+(3, 'SEGMENT_PREPROCESSING','SEGMENT_CALCULATING',  '2022-12-12 11:51:00'),
+
+-- not frozen, check seconds, NOT FROZEN
+(4, 'READY',                'SEGMENT_PREPROCESSING','2022-12-12 11:40:00'),
+(4, 'SEGMENT_PREPROCESSING','SEGMENT_CALCULATING',  '2022-12-12 11:50:00')
+;

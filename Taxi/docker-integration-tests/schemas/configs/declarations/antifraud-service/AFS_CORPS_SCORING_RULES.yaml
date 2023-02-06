@@ -1,0 +1,242 @@
+default:
+    activeness:
+        company:
+            enabled: true
+        entrepreneur:
+            enabled: true
+    amocrm_blacklist:
+        company:
+            enabled: true
+        entrepreneur:
+            enabled: true
+    bankruptcy:
+        company:
+            enabled: true
+        entrepreneur:
+            enabled: true
+    defendant_arbitration_cases:
+        company:
+            arbit_cases_num: 0
+            arbit_sum: 0
+            enabled: true
+        entrepreneur:
+            arbit_cases_num: 0
+            arbit_sum: 0
+            enabled: true
+    failure_score:
+        high:
+            desc: Высокий риск
+            enabled: true
+            use_val: false
+            val: 66
+        low:
+            desc: Низкий риск
+            enabled: true
+            use_val: false
+            val: 33
+    leaders_rotation:
+        during_last_months: 6
+        enabled: true
+        leader_changes_limit: 3
+    main_activity_type:
+        company:
+            enabled: true
+            okved_codes:
+              - '60.21'
+              - '60.22'
+              - '60.23'
+              - '49.32'
+              - '63.99'
+        entrepreneur:
+            enabled: true
+            okved_codes:
+              - '60.21'
+              - '60.22'
+              - '60.23'
+              - '49.32'
+              - '63.99'
+    registration_date:
+        company:
+            earlier_than_months_ago: 12
+            enabled: true
+        entrepreneur:
+            earlier_than_months_ago: 12
+            enabled: true
+    same_address:
+        enabled: true
+        limit: 10
+    same_leader:
+        enabled: true
+        limit: 10
+    spark_blacklist:
+        company:
+            enabled: true
+        entrepreneur:
+            enabled: true
+    thresholds:
+        company:
+            rating_a: 4
+        entrepreneur:
+            rating_a: 1
+description: Настройки правил скоринга корпов
+tags: ['notfallback']
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        activeness:
+            $ref: '#/definitions/common_config'
+        amocrm_blacklist:
+            $ref: '#/definitions/common_config'
+        bankruptcy:
+            $ref: '#/definitions/common_config'
+        fssp_check:
+            $ref: '#/definitions/common_config'
+        spark_blacklist:
+            $ref: '#/definitions/common_config'
+        same_address:
+            $ref: '#/definitions/limited_config'
+        same_leader:
+            $ref: '#/definitions/limited_config'
+        thresholds:
+            company:
+                $ref: '#/definitions/rating_a_config'
+            entrepreneur:
+                $ref: '#/definitions/rating_a_config'
+        registration_date:
+            company:
+                $ref: '#/definitions/earlier_than_months_ago_config'
+            entrepreneur:
+                $ref: '#/definitions/earlier_than_months_ago_config'
+        main_activity_type:
+            company:
+                $ref: '#/definitions/okved_codes_config'
+            entrepreneur:
+                $ref: '#/definitions/okved_codes_config'
+        leaders_rotation:
+            type: object
+            additionalProperties: false
+            properties:
+                during_last_months:
+                    type: integer
+                    minimum: 0
+                enabled:
+                    type: boolean
+                leader_changes_limit:
+                    type: integer
+                    minimum: 0
+        failure_score:
+            high:
+                $ref: '#/definitions/failure_score_config'
+            low:
+                $ref: '#/definitions/failure_score_config'
+        defendant_arbitration_cases:
+            company:
+                $ref: '#/definitions/defendant_arbitration_cases_config'
+            entrepreneur:
+                $ref: '#/definitions/defendant_arbitration_cases_config'
+        place_changing:
+            $ref: '#/definitions/common_config'
+        reorganization:
+            $ref: '#/definitions/common_config'
+        egrpo_activeness:
+            $ref: '#/definitions/common_config'
+        liquidated:
+            $ref: '#/definitions/common_config'
+        liquidation:
+            $ref: '#/definitions/common_config'
+        liquidation_risk:
+            $ref: '#/definitions/common_config'
+        to_liquidate:
+            $ref: '#/definitions/common_config'
+        frozen_accounts:
+            $ref: '#/definitions/common_config'
+        execution_proceedings:
+            company:
+                $ref: '#/definitions/execution_proceedings_limit'
+            entrepreneur:
+                $ref: '#/definitions/execution_proceedings_limit'
+    definitions:
+        execution_proceedings_limit:
+            type: object
+            additionalProperties: false
+            properties:
+                execution_proceedings_limit:
+                    type: integer
+                    minimum: 0
+                enabled:
+                    type: boolean
+        common_config:
+            type: object
+            additionalProperties: false
+            properties:
+                company:
+                    $ref: '#/definitions/trivial_config'
+                entrepreneur:
+                    $ref: '#/definitions/trivial_config'
+        trivial_config:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+        rating_a_config:
+            type: object
+            additionalProperties: false
+            properties:
+                rating_a:
+                    type: integer
+                    minimum: 0
+        limited_config:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                limit:
+                    type: integer
+                    minimum: 0
+        earlier_than_months_ago_config:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                earlier_than_months_ago:
+                    type: integer
+                    minimum: 0
+        okved_codes_config:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                okved_codes:
+                    type: array
+                    items:
+                        type: string
+        failure_score_config:
+            type: object
+            additionalProperties: false
+            properties:
+                desc:
+                    type: string
+                enabled:
+                    type: boolean
+                use_val:
+                    type: boolean
+                val:
+                    type: integer
+                    minimum: 0
+        defendant_arbitration_cases_config:
+            type: object
+            additionalProperties: false
+            properties:
+                arbit_cases_num:
+                    type: integer
+                    minimum: 0
+                arbit_sum:
+                    type: integer
+                    minimum: 0
+                enabled:
+                    type: boolean

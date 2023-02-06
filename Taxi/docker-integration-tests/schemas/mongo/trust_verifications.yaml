@@ -1,0 +1,43 @@
+description: card verification objects received from trust
+settings:
+    collection: trust_verifications
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - expireAfterSeconds: 129600
+    key: start_ts
+  - key:
+      - name: uid
+        type: ascending
+      - name: binding_id
+        type: ascending
+      - name: verification_id
+        type: ascending
+    unique: true
+wiki_info: |
+    ####dbtaxi.trust_verifications - хранилище статуса верификации платёжных карт
+
+    В этой коллекции содержатся объекты, отражающие текущий статус процесса верификации карты.
+
+    ```python
+    card = {                                                      # Информация о статусе верификации:
+        'binding_id': 'card-x22c881',                             #   - payment id карты
+        'uid': 'yandex_uid',                                      #   - yandex_uid владельца
+        'verification_id': '57e979e03ea64927fd49a2f0cb002d65'     #   - id объекта верификации
+        'method': 'standard2'                                     #   - Метод верификации
+        'status': 'success'                                       #   - Статус процесса верификации
+        'start_ts': datetime                                      #   - Время начала верификации
+        'finish_ts': datetime                                     #   - Время окончания верификации
+        'random_amount_tries_left': ''                            #
+        'authorize_amount': ''                                    #
+        'authorize_amount_format': ''                             #
+        'authorize_currency': ''                                  #   - Валюта верифицируемой карты
+        'authorize_rc': 'declined_by_issuer'                      #   - результат авторизации
+        'authorize_rrn': '928220917868'                           #
+        '3ds_url': 'https://trust...'                             #   - url для авторизации 3ds карты
+        '3ds_method': ''                                          #
+        '3ds_params': ''                                          #
+        'finish_binding_url': 'https://taxi.yandex.ru/finish_3ds' #   - url для завершения привязки карты
+        'status_code': ''                                         #
+    }
+    ```

@@ -1,0 +1,87 @@
+id: test-corp-paymentmethods-old
+title: Проверка ответа /v1/corp_paymentmethods без cost_center_fields
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                corp:
+                    available_accounts:
+                      - id: some_payment_id
+                        name: "Yandex.Taxi Team"
+                        money_spent: 0
+                        money_limit: 0
+                        money_left: 0
+                        currency: RUB
+                        description: "Yandex.Taxi Team"
+                        cost_center: ""
+                        cost_centers:
+                            required: false
+                            format: mixed
+                            items:
+                              - name: "командировка"
+                              - name: "в центральный офис"
+
+                    payment_available: true
+                card:
+                    payment_available: true
+                    available_cards: []
+                    unverified_cards: []
+
+mocks:
+  - resource: corp-v1-corp_paymentmethods
+    response:
+        status-code: 200
+        body:
+            methods:
+              - id: some_payment_id
+                type:
+                label: "Yandex.Taxi Team"
+                description: "Yandex.Taxi Team"
+                currency: RUB
+                cost_center: ""
+                cost_centers:
+                    required: false
+                    format: mixed
+                    values:
+                      - "командировка"
+                      - "в центральный офис"
+                can_order: false
+
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: card-filter-v1-filteredcards-legacy
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: shared-internal-stats
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP:
+        yango_android: yango_application
+    PERSONAL_WALLET_ENABLED: false
+experiments:
+    values:
+        card_filter_legacy_enabled:
+            enabled: true

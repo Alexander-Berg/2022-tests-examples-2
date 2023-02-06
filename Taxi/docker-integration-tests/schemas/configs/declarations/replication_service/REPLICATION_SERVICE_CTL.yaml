@@ -1,0 +1,263 @@
+default: {}
+description: 'Параметры для отключения функционала и других настроек сервиса репликаций:
+    используйте bool параметр disable_all для полного отключения и список disabled
+    для частичного. Доступные опции: archiving, replication, quota, verifying, control.
+    Для репликации также доступны параметры: max_targets_gap, initial_mode_gap (задаются
+    в секундах), max_targets_gap_int (для репликации не по дате), max_group_size (максимальное
+    число тасок в одной группе), target_concurrency (параллельность при вставке),
+    confirm_sleep_time, confirm_sequentially, clear_confirms, max_partial_inactive_laps
+    (максимальное число неактивых итераций до перезапуска для таргетов с partial_update),
+    zendesk_timeout (таймауты для клиента зендеска в секундах), yt_retries (retries
+    - число ретраев, timeout и long_timeout - таймауты в секундах), yt_rpc_backend_enabled,
+    use_yt_replication_robot (использовать ли отдельного YT робота для репликации),
+    yt_sleep_timeouts (задается по правилам, выбирается случайным образом из диапазона
+    start/stop), yt_partitioning_limit (лимит на количество YT таблиц-партиций для
+    мода eternal), erase_queue_snapshot_sleep_time (сколько спать после очистки снапшота
+    очереди), erase_queue_snapshot_fast_drop (выполнять ли быструю очистку снапшота
+    очереди), parse_errors_ignore_list (имена правил для игнора ошибок при конструировании
+    в рантайме), no_progress_rounds_limit (количество попыток увеличить лимит в запросе),
+    sources - возможность указать дополнительные параметры для источников: для mongo,
+    queue_mongo: read_from_master, max_staleness_seconds, read_from_master_use_whitelists,
+    для postgres: use_pg_driver (нужно ли использовать новый драйвер pg), max_replication_delay,
+    aiopg_by_rules (имена правил, которые должны использовать библиотеку aiopg), time_overlaps
+    (past/future - можно указать для типов сурсов разные отступы, from_now_by_targets
+    - по именам таргетов). Для архивации: ttl_override (задаётся по правилам архивации
+    в секундах), disabled_targets_verifying: список отключенных сверок при архивации
+    (по rule_name), agg_chunk_size, yt_lookup_chunk_size, sleep_delays (по rule_name),
+    По квотам: quotas_enabled (для включения), quotas (задается по правилам в мегабайтах).
+    Расписание задач (schedule): by_rule_names (периоды в секундах по именам правил),
+    Для админки (control): validate_states (нужно ли требовать консистентность и валидность
+    каждого состояния при использовании ручки change_replication_state), read_data_limits
+    (min_limit/max_limit), read_data_map_chunk_size, sync_data_debug_level.'
+tags: [notfallback]
+maintainers:
+  - desire
+  - upnrunning
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: true
+        scheme:
+            archiving:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: true
+                    scheme:
+                        disable_all:
+                          - $boolean
+                        disabled:
+                          - $sequence_of:
+                              - $string
+                        sleep_delays:
+                          - $dictionary_of:
+                                value_validators:
+                                  - $integer
+                                  - $gt: 0
+                        ttl_override:
+                          - $dictionary_of:
+                                value_validators:
+                                  - $integer
+                                  - $gt: 0
+                        disabled_targets_verifying:
+                          - $sequence_of:
+                              - $string
+                        agg_chunk_size:
+                          - $integer
+                          - $gt: 0
+                        yt_lookup_chunk_size:
+                          - $integer
+                          - $gt: 0
+            quota:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: true
+                    scheme:
+                        quotas_enabled:
+                          - $boolean
+                        quotas:
+                          - $dictionary_of:
+                                value_validators:
+                                  - $integer
+                                  - $gt: 0
+            verifying:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: true
+                    scheme:
+                        disable_all:
+                          - $boolean
+            replication:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: true
+                    scheme:
+                        disable_all:
+                          - $boolean
+                        disabled:
+                          - $sequence_of:
+                              - $string
+                        initial_mode_gap:
+                          - $integer
+                          - $gte: 0
+                        max_targets_gap:
+                          - $integer
+                          - $gt: 0
+                        max_targets_gap_int:
+                          - $integer
+                          - $gt: 0
+                        max_group_size:
+                          - $integer
+                          - $gt: 0
+                        target_concurrency:
+                          - $integer
+                          - $gt: 0
+                        confirm_sleep_time:
+                          - $number
+                          - $gt: 0
+                        confirm_sequentially:
+                          - $boolean
+                        clear_confirms:
+                          - $boolean
+                        max_partial_inactive_laps:
+                          - $integer
+                          - $gt: 0
+                        zendesk_timeout:
+                          - $integer
+                          - $gt: 0
+                        no_progress_rounds_limit:
+                          - $integer
+                          - $gte: 10
+                        yt_retries:
+                          - $dictionary:
+                                extra_ok: false
+                                missing_ok: false
+                                scheme:
+                                    retries:
+                                      - $integer
+                                      - $gt: 0
+                                    timeout:
+                                      - $number
+                                      - $gt: 0
+                                    long_timeout:
+                                      - $number
+                                      - $gt: 0
+                        yt_rpc_backend_enabled:
+                          - $boolean
+                        use_yt_replication_robot:
+                          - $boolean
+                        yt_sleep_timeouts:
+                          - $dictionary_of:
+                                value_validators:
+                                  - $dictionary:
+                                        extra_ok: false
+                                        missing_ok: false
+                                        scheme:
+                                            start:
+                                              - $number
+                                              - $gte: 0
+                                            stop:
+                                              - $number
+                                              - $gte: 0
+                        yt_partitioning_limit:
+                          - $integer
+                          - $gt: 0
+                        time_overlaps:
+                          - $dictionary:
+                                extra_ok: false
+                                missing_ok: true
+                                scheme:
+                                    past:
+                                      - $dictionary_of:
+                                            value_validators:
+                                              - $integer
+                                              - $gte: 0
+                                    future:
+                                      - $dictionary_of:
+                                            value_validators:
+                                              - $integer
+                                              - $gte: 0
+                                    from_now_by_targets:
+                                      - $dictionary_of:
+                                            value_validators:
+                                              - $integer
+                                              - $gte: 0
+                        erase_queue_snapshot_sleep_time:
+                          - $integer
+                          - $gte: 0
+                        erase_queue_snapshot_fast_drop:
+                          - $boolean
+                        parse_errors_ignore_list:
+                          - $sequence_of:
+                              - $string
+                        sources:
+                          - $dictionary:
+                                extra_ok: false
+                                missing_ok: true
+                                scheme:
+                                    postgres:
+                                      - $dictionary:
+                                            extra_ok: false
+                                            missing_ok: true
+                                            scheme:
+                                                aiopg_by_rules:
+                                                  - $sequence_of:
+                                                      - $string
+                                                use_pg_driver:
+                                                  - $boolean
+                                                max_replication_delay:
+                                                  - $number
+                                                  - $gt: 0
+                                    mongo:
+                                      - $dictionary:
+                                            extra_ok: false
+                                            missing_ok: true
+                                            scheme:
+                                                max_staleness_seconds:
+                                                  - $integer
+                                                  - $gte: 90
+                                    queue_mongo:
+                                      - $dictionary:
+                                            extra_ok: false
+                                            missing_ok: true
+                                            scheme:
+                                                read_from_master_use_whitelists:
+                                                  - $boolean
+                                                read_from_master:
+                                                  - $boolean
+                                                max_staleness_seconds:
+                                                  - $integer
+                                                  - $gte: 90
+            control:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: true
+                    scheme:
+                        validate_states:
+                          - $boolean
+                        read_data_limits:
+                          - $dictionary:
+                                extra_ok: false
+                                missing_ok: true
+                                scheme:
+                                    min_limit:
+                                      - $integer
+                                      - $gte: 100
+                                    max_limit:
+                                      - $integer
+                        read_data_map_chunk_size:
+                          - $integer
+                          - $gte: 1
+                        sync_data_debug_level:
+                          - $integer
+                          - $gte: 0
+                          - $lte: 2
+            schedule:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: true
+                    scheme:
+                        by_rule_names:
+                          - $dictionary_of:
+                                value_validators:
+                                  - $integer
+                                  - $gte: 0

@@ -1,0 +1,40 @@
+default-response: resp-ok
+allow-unauthorized: true
+sources:
+  - query#xget: /request/query
+    enabled#taxi-config: A_ENABLED
+    headers#xget: /request/headers
+    id: A
+    resource: upstream-a
+    fail-policy:
+      - selector: "404"
+        action: return
+        response: resp-not-found
+      - selector: any
+        action: ignore
+    content-type: application/json
+  - query:
+        params#xget: /request/query/data
+    enabled#taxi-config: B_ENABLED
+    headers#xget: /request/headers
+    id: B
+    resource: upstream-b
+    fail-policy:
+      - selector: "404"
+        action: return
+        response: resp-not-found
+      - selector: any
+        action: ignore
+    content-type: application/json
+responses:
+  - body#if:
+        condition#taxi-config: A_ENABLED
+        then#source-response-body: A
+        else#source-response-body: B
+    id: resp-ok
+    content-type: application/json
+  - body#xget: /request/body
+    id: resp-not-found
+    status-code: 404
+    content-type: application/json
+enabled: true

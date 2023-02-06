@@ -1,0 +1,79 @@
+group:
+  type: rtc
+  name: some_dorblu_name
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  some.test.hostname.net:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/__ping_GET:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/ping" }
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/api/testing_one/ping_GET:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - Regex: { request_url: "/api/testing_one/ping/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  some.test.hostname.net/api/testing_two/load_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/api/testing_two/load/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 411 # Length required
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  some.test.hostname.net/seek_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/seek/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request

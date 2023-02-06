@@ -1,0 +1,101 @@
+insert into
+    clownductor.services (
+        project_id,
+        name,
+        artifact_name,
+        cluster_type,
+        requester,
+        abc_service,
+        deleted_at
+    )
+values (
+    1,
+    'taxi_service_1_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    1,
+    'taxi_service_2_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    1,
+    'taxi_service_3_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    1,
+    'taxi_service_4_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    2,
+    'eda_service_1_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    2,
+    'eda_service_3_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    2,
+    'eda_service_5_smth',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    null
+),
+(
+    4,
+    'deleted_service',
+    'ubuntu',
+    'nanny',
+    'unit_test',
+    null,
+    123
+),
+(
+    5,
+    'market_service',
+    'ubuntu',
+    'market_service',
+    'unit_test',
+    null,
+    null
+),
+(
+    6,
+    'new_market_service',
+    'ubuntu',
+    'market_service',
+    'unit_test',
+    null,
+    null
+)
+;

@@ -1,0 +1,29 @@
+settings:
+    collection: driver_weariness
+    connection: status_history
+    database: dbstatus_history
+indexes:
+  - key:
+      - name: _id
+        type: hashed
+  - key: is_tired
+  - key: tired_status
+  - expireAfterSeconds: 86400
+    key: updated
+wiki_info: |
+    ####dbstatus_history.driver_weariness - усталость водителей
+    ```python
+    driver_weariness = {
+       '_id': ObjectId("5ab0c1ee174934eb1a0aff54"),          # уникальный id водителя из dbtaxi.unique_drivers.id
+       'created' : ISODate("2018-03-29T13:47:16.204Z"),      # время создания документа
+       'updated' : ISODate("2018-04-04T03:59:41.509Z"),      # время последнего изменения документа
+       'working_time' : 1342,                                # время работа водителя за промежуток времени DRIVER_WEARINESS_MAX_WORK_CHECK_PERIOD_MINUTES (в секундах)
+       'working_time_no_rest' : 1342,                        # время работы водителя без отдыха длиной DRIVER_WEARINESS_REST_MINUTES за период (DRIVER_WEARINESS_MAX_WORK_NO_REST_MINUTES + DRIVER_WEARINESS_REST_TIME_MINUTES) (в секундах)
+       'remaining_time' : 1342,                              # оставшееся время работы водителя (в секундах)
+       'tired_status' : 'not_tired',                         # статус усталости. 'not_tired' - не устал , 'hours_exceed' - устал по времени работы , 'no_long_rest'- устал из-за отсутствия длительного отдыха, 'block_expired' - блок снят из-за того ,что он просрочен (нужен был для отладки бага, но оставил на всякий).
+       'block_time': ISODate("2018-04-04T01:59:41.509Z"),    # время блокировки водителя, нужно для синхронизации трекера и driver-protocol'a
+       'block_till': ISODate("2018-04-04T03:59:41.509Z"),    # время до которого заблокирован водитель
+       'last_online' : ISODate("2018-04-03T09:59:50Z")       # время последнего выхода водителя на линию
+       'is_multi_app_block': false                           # true - если водитель попал под эксперимент и у него другие конфиги усталости.
+    }
+    ```

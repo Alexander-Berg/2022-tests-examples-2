@@ -1,0 +1,85 @@
+description: Тарифы для тестирования в лабах
+default: []
+tags: [notfallback]
+maintainers: [pavelnekrasov]
+schema:
+    type: array
+    items:
+        $ref: "#/definitions/Lab"
+
+    definitions:
+
+        Point:
+            description: геокоординаты точки [long, lat]
+            type: array
+            items:
+                type: number
+                minimum: -180.0
+                maximum: 180.0
+            minItems: 2
+            maxItems: 2
+            example: "[37.62, 55.75]"
+
+        Address:
+            type: object
+            additionalProperties: false
+            properties:
+                position:
+                    $ref: "#/definitions/Point"
+                text:
+                    type: string
+                locality_id:
+                    type: integer
+                    description: geo_id населенного пункта
+                title:
+                    type: string
+                subtitle:
+                    type: string
+            required:
+              - position
+              - text
+              - title
+              - subtitle
+              - locality_id
+
+        Test:
+            type: object
+            additionalProperties: false
+            properties:
+                id:
+                    type: string
+                tests_per_day:
+                    type: integer
+            required:
+              - id
+              - tests_per_day
+
+        Lab:
+            type: object
+            additionalProperties: false
+            properties:
+                id:
+                    type: string
+                entity_id:
+                    type: string
+                name:
+                    type: string
+                address:
+                    $ref: "#/definitions/Address"
+                bucket_owners:
+                    type: array
+                    description: логины владельцев бакетов
+                    items:
+                        type: string
+                tests:
+                    type: array
+                    description: список тестов, которые умеет лаба
+                    items:
+                        $ref: "#/definitions/Test"
+            required:
+              - id
+              - entity_id
+              - name
+              - address
+              - bucket_owners
+              - tests

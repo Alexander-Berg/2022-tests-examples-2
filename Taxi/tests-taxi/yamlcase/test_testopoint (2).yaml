@@ -1,0 +1,81 @@
+type: apitest
+version: 0
+service: mockserver_client
+testpoint:
+  - name: foo
+    data:
+        reason: "abc"
+tests:
+  - name: basic
+    request:
+        path: /testpoint
+        body: {"name": "empty", "data": {"reason": 123}}
+    response:
+        body:
+            handled: false
+            data:
+  - name: data
+    request:
+        path: /testpoint
+        body: {"name": "foo", "data": {"reason": "abc"}}
+    response:
+        body:
+            handled: true
+            data:
+  - name: testpoint-called
+    request:
+        path: /testpoint
+        body: {"name": "foo", "data": {"reason": "abc"}}
+    assertions:
+      - type: testpoint-called
+        name: "foo"
+  - name: testpoint-called-times
+    request:
+        path: /testpoint
+        body: {"name": "foo", "data": {"reason": "abc"}}
+    assertions:
+      - type: testpoint-called
+        name: "foo"
+        times: 1
+  - name: testpoint-not-called
+    request:
+        path: /testpoint
+        body: {"name": "bar", "data": {"reason": "abc"}}
+    assertions:
+      - type: testpoint-called
+        name: "foo"
+        times: 0
+  - name: testpoint-calls
+    testpoint:
+      - name: foo
+    request:
+        path: /testpoint
+        body: {"name": "foo", "data": {"reason": "bar"}}
+    assertions:
+      - type: testpoint-called
+        name: foo
+        calls:
+          - {"reason": "bar"}
+
+  - name: returns
+    testpoint:
+      - name: foo
+        returns: {"message": "testpoint return value"}
+    request:
+        path: /testpoint
+        body: {"name": "foo", "data": {}}
+    response:
+        body:
+            data: {"message": "testpoint return value"}
+            handled: true
+
+  - name: wait_call
+    testpoint:
+      - name: foo
+    request:
+        path: /testpoint
+        body: {"name": "foo", "data": {}}
+    assertions:
+      - type: testpoint-called
+        name: foo
+        wait_call: true

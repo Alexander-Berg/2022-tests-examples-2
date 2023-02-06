@@ -1,0 +1,48 @@
+---
+host: eda_core_testing
+telegram: warn_default
+type: rtc
+templates:
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+services:
+- service: rabbitmq_timings
+  telegram: eda-sre-alerts
+  flaps:
+    stable_time: 300
+    critical_time: 900
+  times:
+  - days: Mon-Fri
+    time: 9-18
+    warn: 0
+    crit: 0
+  - days: Sat-Sun
+    time: 9-18
+    warn: 101%
+    crit: 101%
+  - days: Mon-Sun
+    time: 19-8
+    warn: 101%
+    crit: 101%
+  children:
+  - eda-m1
+  - m1-vla
+- service: redis_timings
+  telegram: eda-sre-alerts
+  times:
+  - days: Mon-Fri
+    time: 9-18
+    warn: 0
+    crit: 0
+  - days: Sat-Sun
+    time: 9-18
+    warn: 101%
+    crit: 101%
+  - days: Mon-Sun
+    time: 19-8
+    warn: 101%
+    crit: 101%
+  children:
+  - eda-m1
+  - m1-vla

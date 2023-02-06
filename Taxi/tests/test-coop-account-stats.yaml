@@ -1,0 +1,82 @@
+id: test-coop-account-stats
+title: Проверка ответа shared-payments/internal/stats
+source:
+    request:
+        method: post
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+            X-Remote-IP: amazing_ip
+    expectations:
+        response:
+            status-code: 200
+            body:
+                corp:
+                    available_accounts: []
+                    payment_available: false
+                card:
+                    payment_available: true
+                    available_cards: []
+                    unverified_cards: []
+                coop_account:
+                    accounts:
+                      - id: some_account_id
+                        type: 'family'
+                        is_active: true
+                        member_role: 'owner'
+                        description: 'description'
+                        error_description: ''
+                        has_rides: false
+                    payment_methods:
+                      - id: 'payment_method_id'
+                        type: 'family'
+                        accepted: true
+                        description: 'description'
+                        details: {}
+                    payment_available: true
+
+mocks:
+  - resource: shared-internal-stats
+    response:
+        status-code: 200
+        body:
+            accounts:
+              - id: 'some_account_id'
+                type: 'family'
+                is_active: true
+                member_role: 'owner'
+                description: 'description'
+                error_description: ''
+                has_rides: false
+            payment_methods:
+              - id: 'payment_method_id'
+                type: 'family'
+                accepted: true
+                description: 'description'
+                details: {}
+    expectations:
+        request:
+            headers:
+                X-Remote-IP: amazing_ip
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: true
+    BILLING_COOP_ACCOUNT_ENABLED: true

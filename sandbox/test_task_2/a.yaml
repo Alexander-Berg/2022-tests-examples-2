@@ -1,0 +1,79 @@
+service: sandbox
+title: Service for building
+ci:
+  secret: sec-01ergkjj229pm18rzncmxdrz42
+  runtime:
+    sandbox-owner: SANDBOX
+  actions:
+    build_test_task_2:
+      title: Building resource TEST_TASK_2 task
+      flow: build-test_task_2
+      triggers:
+        - on: commit
+          filters:
+            - discovery: any
+              abs-paths:
+                - sandbox/agentr/**
+                - sandbox/bin/**
+                - sandbox/common/**
+                - sandbox/etc/**
+                - sandbox/projects/sandbox/test_task_2/**
+                - sandbox/sandboxsdk/**
+                - sandbox/sdk2/**
+                - sandbox/taskbox/**
+    test_test_task_2:
+      title: Testing TEST_TASK_2
+      flow: test-test_task_2
+      triggers:
+        - on: commit
+          filters:
+            - discovery: any
+              abs-paths:
+                - sandbox/**
+  flows:
+    build-test_task_2:
+      jobs:
+        build_py3:
+          title: Build binary TEST_TASK_2 on python 3
+          task: common/sandbox/deploy_binary_task
+          input:
+            target: "${context.config_info.dir}/test_task_2_py3"
+            attrs:
+              postcommit_check: true
+              python: 3
+              sync_upload_to_mds: true
+              task_type: TEST_TASK_2
+            check_types:
+              - TEST_TASK_2
+            use_yt_cache: true
+            integrational_check: true
+            auto_deploy_to_preproduction: true
+
+        build_windows:
+          title: Build binary TEST_TASK_2 on windows
+          task: common/sandbox/deploy_binary_task
+          input:
+            target: "${context.config_info.dir}/test_task_2_py2"
+            attrs:
+              postcommit_check: true
+              target_platform: windows
+              sync_upload_to_mds: true
+              task_type: TEST_TASK_2
+            check_types:
+              - TEST_TASK_2
+            build_system: ya
+            use_yt_cache: true
+            target_platform: windows
+            auto_deploy_to_preproduction: true
+
+    test-test_task_2:
+      jobs:
+        test-task_2_with_child:
+          title: Run TEST_TASK_2 with child
+          task: projects/sandbox/test_task_2
+          input:
+            live_time: 0
+            create_sub_task: true
+            save_stages: true
+            overwrite_client_tags: true
+            client_tags: "GENERIC | MULTISLOT | SERVER"

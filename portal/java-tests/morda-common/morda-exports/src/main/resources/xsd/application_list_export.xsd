@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:application_list.exports.beans.morda.autotests.yandex.ru"
+            xmlns:ns="urn:application_list.exports.beans.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="application_list_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.MapListDeserializer
+                    &lt;ru.yandex.autotests.morda.beans.exports.application_list.ApplicationListEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="application_list_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.annotations.exports.MordaExportDescription"
+                                    name="application_list"
+                                    clazz="ru.yandex.autotests.morda.beans.exports.application_list.ApplicationListExport"/>
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.AbstractMordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.beans.exports.application_list.ApplicationListExport,
+                    ru.yandex.autotests.morda.beans.exports.application_list.ApplicationListEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:application_list_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.beans.exports.application_list.ApplicationListDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="application_list_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.beans.exports.AbstractEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithId</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithPlatform</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithGeoAndLang</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="platform" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.StringListDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="lang">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:property>
+                            <jaxb:baseType name="ru.yandex.autotests.morda.exports.filters.MordaLanguageFilter"/>
+                        </jaxb:property>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.MordaLanguageFilterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="geo">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:property>
+                            <jaxb:baseType name="ru.yandex.autotests.morda.exports.filters.MordaGeoFilter"/>
+                        </jaxb:property>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.MordaGeoFilterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="weight" type="xsd:string"/>
+            <xsd:element name="img" type="xsd:string"/>
+            <xsd:element name="title" type="xsd:string"/>
+            <xsd:element name="desc" type="xsd:string"/>
+            <xsd:element name="url" type="xsd:string"/>
+            <xsd:element name="urlscheme" type="xsd:string"/>
+            <xsd:element name="icon" type="xsd:string"/>
+            <xsd:element name="name" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

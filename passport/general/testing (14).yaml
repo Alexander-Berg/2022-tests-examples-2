@@ -1,0 +1,69 @@
+blackbox:
+  get_hidden_aliases: false
+emitter:
+  args:
+    client_id: passport/passport-ufo-testing
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    decompress: true
+    per_host_config:
+      '.*?':
+        targets:
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-auth-challenge-testing-log
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-auth-challenge-testing-log
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-auth-challenge-testing-log
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-auth-challenge-testing-log
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-auth-challenge-testing-log
+    workers_count: 12
+  class: passport.backend.logbroker_client.core.consumers.simple.native_emitter.PartitionsCountNativeEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/ufo/
+workers:
+  args:
+    handler:
+      args:
+        contact_points:
+          - ufo-test.sezam.yandex.net
+        consistency_level_name: ONE
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.ufo.handler.UfoHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.native_worker.NativeLogbrokerWorker
+  count: 12
+
+ydb:
+  clients:
+    - endpoint: ydb-ru-prestable.yandex.net:2135
+      database: /ru-prestable/passport-data/prestable/passport-users
+      name: ydb-ru-prestable
+      table_name: profile-testing
+      timeout: 2
+      retries: 3

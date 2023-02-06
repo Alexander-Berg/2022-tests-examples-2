@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+/taxi/tools/run.py \
+    --wait \
+        http://cardstorage.taxi.yandex.net/ping \
+        http://feedback.taxi.yandex.net/ping/ \
+        http://taxi-protocol.taxi.yandex.net/ping/ \
+        http://tc.mobile.yandex.net/ping \
+        http://mock-server.yandex.net/ping/ \
+        http://reposition.taxi.yandex.net/ping \
+        http://candidates.taxi.yandex.net/ping \
+        http://yagr.taxi.yandex.net/ping \
+        http://driver-trackstory.taxi.yandex.net/ping \
+        http://driver-eta.taxi.yandex.net/ping \
+        http://taxi-approvals.taxi.yandex.net/ping \
+        http://driver-ui-profile.taxi.yandex.net/ping \
+        http://driver-categories-api.taxi.yandex.net/ping \
+        http://driver-orders-app-api.taxi.yandex.net/ping \
+        http://driver-orders-builder.taxi.yandex.net/ping \
+        http://contractor-orders-polling.taxi.yandex.net/ping \
+        http://authproxy-manager.taxi.yandex.net/ping \
+        http://taxi-api-admin.taxi.yandex.net/ping \
+        http://order-core.taxi.yandex.net/ping \
+        http://processing.taxi.yandex.net/ping \
+        http://py2-order-processing.taxi.yandex.net/ping \
+        http://envoy-exp-alpha.taxi.yandex.net/ping \
+        http://envoy-exp-bravo.envoy-only.taxi.yandex.net/ping \
+        http://envoy-exp-charlie.envoy-only.taxi.yandex.net/ping \
+        http://envoy-exp-delta.envoy-only.taxi.yandex.net/ping \
+        http://scout.taxi.yandex.net/ping \
+        http://clownductor.taxi.yandex.net/ping \
+        http://clowny-perforator.taxi.yandex.net/ping \
+        http://uconfigs.taxi.yandex.net/ping \
+        http://driver-status.taxi.yandex.net/ping \
+        http://geo-pipeline-control-plane.taxi.yandex.net/ping \
+        http://configs-admin.taxi.yandex.net/ping \
+     --run echo 'Services started'

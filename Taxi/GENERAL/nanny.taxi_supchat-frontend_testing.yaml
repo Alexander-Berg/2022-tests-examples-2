@@ -1,0 +1,50 @@
+group:
+  type: rtc
+  name: taxi_supchat-frontend_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  supchat-frontend.taxi.tst.yandex.net/ping_GET:
+    And:
+      - Equals: { http_host: "supchat-frontend.taxi.tst.yandex.net" }
+      - Equals: { request_method: "GET" }
+      - Or:
+        - Equals: {request_url: "/ping"}
+        - Equals: {request_url: "/ping/"}
+        - StartsWith: {request_url: "/ping?"}
+        - StartsWith: {request_url: "/ping/?"}
+
+  supchat.taxi.tst.yandex-team.ru:
+    And:
+      - Equals: { http_host: "supchat.taxi.tst.yandex-team.ru" }
+      - Not: [StartsWith: {request_url: "/chatterbox-api/"}]
+      - Not: [StartsWith: {request_url: "/chatterbox-api-t/"}]
+      - Not: [StartsWith: {request_url: "/chatterbox-api-u/"}]
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  supchat.taxi.tst.yandex-team.ru/chatterbox-api:
+    And:
+      - Equals: { http_host: "supchat.taxi.tst.yandex-team.ru" }
+      - Or:
+        - StartsWith: {request_url: "/chatterbox-api/"}
+        - StartsWith: {request_url: "/chatterbox-api-t/"}
+        - StartsWith: {request_url: "/chatterbox-api-u/"}
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429

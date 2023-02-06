@@ -1,0 +1,179 @@
+<!doctype html>
+<style>
+    h1,h2 {
+        font-family: Serif;
+    }
+    body {
+        font-family: Arial, sans-serif;
+    }
+    .fail:before {
+        content: '\2717';
+        color: red;
+        margin-right: 0.5em;
+    }
+    .ok:before {
+        content: '\2713';
+        color: green;
+        margin-right: 0.5em;
+    }
+    ul {
+        list-style: none;
+    }
+</style>
+<h1>Чистим домен&nbsp;[% HomePageNoArgs %]</h1>
+<ul class="storage">
+</ul>
+<h2>indexedDB</h2>
+<ul class="db">
+</ul>
+<h2>Кеш воркеров</h2>
+<ul class="cache">
+</ul>
+<h2 class="redirtitle">Осталось доменов</h2>
+<ol class="info">
+</ol>
+<script>
+var isOk = clearItems(clearStorage, '.storage') &&
+    clearItems(clearCaches, '.cache') &&
+    clearItems(clearDB, '.db');
+setRedirect(isOk);
+function clearItems(func, selector) {
+    var result = func();
+
+    if (result.then) {
+        return result
+            .then(writeResult);
+    } else {
+        return writeResult(result);
+    }
+
+    function writeResult(arr) {
+        var isOk = true;
+        var container = document.querySelector(selector);
+        if (arr.length) {
+            container.innerHTML = arr.map(function (item) {
+                var cls = 'ok';
+                if (item instanceof Error) {
+                    cls = 'fail';
+                    isOk = false;
+                }
+                return '<li class="' + cls + '">' + item + '</li>';
+            }).join('');
+        } else {
+            container.innerText = 'Нечего чистить';
+        }
+        return isOk;
+    }
+}
+
+function clearStorage() {
+    var storages = ['localStorage', 'sessionStorage'];
+    return storages.map(function (name) {
+        try {
+            if (typeof window[name] !== 'undefined') {
+                window[name].clear();
+            }
+            return name;
+        } catch (e) {
+            return e;
+        }
+    });
+}
+
+function clearDB() {
+    var items = ['zen-db'];
+    if (typeof window.indexedDB === 'undefined') {
+        return ['нет indexedDB в браузере'];
+    }
+    return Promise.all(items.map(function (name) {
+        return new Promise(function (resolve, reject) {
+            var req = window.indexedDB.deleteDatabase(name);
+            req.onsuccess = function () {
+                resolve(name);
+            };
+            req.onerror = function () {
+                reject(name);
+            };
+        });
+    }));
+}
+
+function clearCaches() {
+    if (typeof window.caches !== 'undefined') {
+        var rmCache = function (name) {
+            return window.caches['delete'](name)
+                .then(function () {
+                    return name;
+                });
+        };
+
+        return window.caches.keys()
+            .then(function (names) {
+                return Promise.all(names.map(rmCache));
+            });
+    } else {
+        return ['нет поддержки кешей в браузере'];
+    }
+}
+
+function setRedirect(autoRedirect) {
+    var thisTld,
+        path = location.pathname,
+        thisDomain = '[% HomePageNoArgs %]'
+            .replace(/(.*yandex)\.(.+)/, function (match, p, tld) {
+                thisTld = tld;
+                return p;
+            }),
+        domains = [
+            'ru',
+            'ua',
+            'by',
+            'kz',
+            'com',
+            'com.tr',
+            'com.ge',
+            'az',
+            'com.am',
+            'co.il',
+            'kg',
+            'lv',
+            'lt',
+            'md',
+            'tj',
+            'tm',
+            'ee',
+            'fr'
+        ],
+        info = document.querySelector('.info');
+
+    while (domains[0] !== thisTld && domains.length) {
+        domains.shift();
+    }
+
+    domains.shift();
+    if (!domains.length) {
+        document.querySelector('.redirtitle').innerText = 'Чистка завершена';
+        info.innerHTML = '<a href="' + thisDomain + '.ru' + path + '">Почистить ещё раз</a>';
+        return;
+    }
+    domains = domains.map(function (x) {
+        return [thisDomain, x].join('.');
+    });
+
+    info.innerHTML = domains.map(function (x) {
+        return '<li>' + x + '</li>';
+    }).join('');
+
+    if (autoRedirect) {
+        setTimeout(function () {
+            var next = domains[0] + path;
+            window.location = next;
+        }, 100);
+    } else {
+        document.querySelector('.redirtitle').innerText = 'Чистка не удалась';
+        info.innerHTML = '<a href="' + thisDomain + '.ru' + path + '">Начать с начала</a></br>' +
+            '<a href="' + location.href + '">Попробовать ещё раз</a><br/>' + info.innerHTML;
+    }
+
+}
+</script>

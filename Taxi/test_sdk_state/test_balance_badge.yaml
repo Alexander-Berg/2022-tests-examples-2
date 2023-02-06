@@ -1,0 +1,172 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3-services_menu-empty.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+mockserver:
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "0.0000"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+tests:
+  - name: overrides
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:balance_badge"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                menu_badge:
+                    show_glyph: true
+                    placeholder_key: "plus_sweet_home.menu.balance_badge.placeholder"
+                    subtitle_key: "plus_sweet_home.menu.balance_badge.subtitle"
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    placeholder: "кастомный плейсхолдер"
+                    subtitle: "кастомная подпись под беджиком"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: subtitle_hidden
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:balance_badge"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                menu_badge:
+                    show_glyph: true
+                    placeholder_key: "plus_sweet_home.menu.balance_badge.placeholder"
+                    subtitle_key: ""
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    placeholder: "кастомный плейсхолдер"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: fallbacks
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:balance_badge"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                menu_badge:
+                    show_glyph: true
+                    placeholder_key: "bad_key"
+                    subtitle_key: "bad_key_2"
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    # default keys
+                    placeholder: "плюс"
+                    subtitle: "баллы, музыка и кино"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []

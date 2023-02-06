@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <tx:annotation-driven/>
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="mysql"/>
+    </bean>
+
+    <bean id="txManager2" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="mysql2"/>
+    </bean>
+
+    <bean id="chainedTransactionManager" class="org.springframework.data.transaction.ChainedTransactionManager">
+        <constructor-arg name="transactionManagers">
+            <list>
+                <ref bean="txManager"/>
+                <ref bean="txManager2"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean class="com.mysql.cj.jdbc.MysqlDataSource" id="mysql">
+        <property name="url" value="jdbc:mysql:replication://man-ps6k90ab5arucnob.db.yandex.net:3306,sas-wncppreva11rt97b.db.yandex.net:3306,vla-xmcu19z2vedhh0bx.db.yandex.net:3306/test_slave_read?allowSlavesDownConnections=true&amp;profileSQL=true&amp;Level=TRACE&amp;traceProtocol=true"/>
+        <property name="user" value="slave_read_user"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean class="com.mysql.cj.jdbc.MysqlDataSource" id="mysql2">
+        <property name="url" value="jdbc:mysql:replication://man-ps6k90ab5arucnob.db.yandex.net:3306,sas-wncppreva11rt97b.db.yandex.net:3306,vla-xmcu19z2vedhh0bx.db.yandex.net:3306/test_slave_read?allowSlavesDownConnections=true&amp;profileSQL=true&amp;Level=TRACE&amp;traceProtocol=true"/>
+        <property name="user" value="slave_read_user"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.metr40148.ReadWriteFromSlaveDao"/>
+</beans>

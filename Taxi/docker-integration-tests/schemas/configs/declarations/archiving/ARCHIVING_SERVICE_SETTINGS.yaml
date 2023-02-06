@@ -1,0 +1,61 @@
+default: {}
+description: |
+    Настройки архивации:
+    archiving_admin_retrieve_enabled: использовать ли админку архивации
+    для получения информации о состояниях правил,
+    sleep_delays (по правилам),
+    sync_rate_bulk_size (частота синка с админкой),
+    agg_chunk_size_by_rules,
+    mongo_max_staleness_by_rules (__default__ для значения по умолчанию, 90 минимум),
+    replication: sync_bulk_size_default, sync_bulk_size_by_rules
+tags: [notfallback]
+maintainers:
+  - desire
+  - upnrunning
+schema:
+    type: object
+    properties:
+        archiving_admin_retrieve_enabled:
+            description: |
+                Использовать ли админку архивации
+                для получения информации о состояниях правил
+            type: boolean
+        sleep_delays:
+            type: object
+            patternProperties:
+                ^[a-z_]+$:
+                    type: integer
+                    minimum: 0
+            additionalProperties: false
+        sync_rate_bulk_size:
+            type: integer
+            minimum: 100
+        mongo_max_staleness_by_rules:
+            type: object
+            patternProperties:
+                ^[a-z_]+$:
+                    type: integer
+                    minimum: 90
+            additionalProperties: false
+        agg_chunk_size_by_rules:
+            type: object
+            additionalProperties: false
+            patternProperties:
+                ^[a-z_]+$:
+                    type: integer
+                    minimum: 1
+        replication:
+            type: object
+            additionalProperties: false
+            properties:
+                sync_bulk_size_default:
+                    type: integer
+                    minimum: 1
+                sync_bulk_size_by_rules:
+                    type: object
+                    additionalProperties: false
+                    patternProperties:
+                        ^[a-z_]+$:
+                            type: integer
+                            minimum: 1
+    additionalProperties: false

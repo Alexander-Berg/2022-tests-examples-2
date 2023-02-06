@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <context:component-scan base-package="ru.yandex.metrika.visor3d.steps"/>
+
+    <import resource="classpath:ru/yandex/metrika/common/test/medium/common-test-medium.xml"/>
+
+    <bean id="logbrokerProxyParamsHolder" class="ru.yandex.metrika.lb.ProxyParamsHolder"/>
+
+    <bean id="logbrokerProxyBalancer" class="ru.yandex.kikimr.persqueue.proxy.ProxyBalancer" depends-on="logbrokerProxyParamsHolder">
+        <constructor-arg name="balancerHost" value="#{lbProxyParamsHolder.host}"/>
+        <constructor-arg name="balancerPort" value="#{lbProxyParamsHolder.balancerPort}"/>
+        <constructor-arg name="proxyPort" value="#{lbProxyParamsHolder.proxyPort}"/>
+    </bean>
+
+    <bean id="logbrokerClientAsyncFactory" class="ru.yandex.kikimr.persqueue.LogbrokerClientAsyncFactory">
+        <constructor-arg index="0" ref="logbrokerProxyBalancer"/>
+    </bean>
+
+    <bean id="event2YtDescriptor" class="ru.yandex.metrika.visord.process.yt.Event2YtDescriptor">
+        <property name="tabletCellBundle" value="default"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.app.ZooSettingsImpl" id="zookeeperSettings"/>
+
+    <bean id="zooClient" class="ru.yandex.metrika.dbclients.zookeeper.ZooClient">
+        <property name="settings" ref="zookeeperSettings"/>
+    </bean>
+
+</beans>

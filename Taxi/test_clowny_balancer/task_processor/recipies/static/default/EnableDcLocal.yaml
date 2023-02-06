@@ -1,0 +1,37 @@
+data:
+    name: EnableDcLocal
+    provider_name: clowny-balancer
+    job_vars:
+      - entry_point_id
+      - upstream_id
+    stages:
+      - name: AwacsBackendsCreateByDc
+        input:
+            entry_point_id: entry_point_id
+        output:
+            namespace_id: namespace_id
+            upstream_ids: upstream_ids
+            backend_ids_by_env: backend_ids_by_env
+        provider_name: clowny-balancer
+
+      - name: AwacsUpstreamCreateDcLocalYaml
+        input:
+            entry_point_id: entry_point_id
+            backend_ids_by_env: backend_ids_by_env
+        output:
+            dc_local_yaml: dc_local_yaml
+        provider_name: clowny-balancer
+
+      - name: AwacsUpstreamCreateFromYaml
+        input:
+            yaml: dc_local_yaml
+            upstream_id: upstream_id
+            namespace_id: namespace_id
+            entry_point_id: entry_point_id
+        provider_name: clowny-balancer
+
+      - name: AwacsBackendAddLinksToDB
+        input:
+            upstream_ids: upstream_ids
+            entry_point_id: entry_point_id
+        provider_name: clowny-balancer

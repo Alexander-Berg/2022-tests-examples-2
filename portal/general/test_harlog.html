@@ -1,0 +1,101 @@
+[% ttppNOMIN=1 %]
+<html>
+<head>
+<script type="text/javascript"src="//yastatic.net/jquery/1.4.2/jquery.min.js"></script>
+</head>
+
+<body>
+<a href="http://www.softwareishard.com/blog/har-12-spec/">HAR 1.2 (Http Archive) specification</a></br>
+<form method="post" enctype="multipart/form-data">
+<input type="file" name="har"/>
+<br/>
+<input type="submit"/>
+</form>
+
+[% FOR e IN har.log.entries %]
+<span name="request">
+    <br/>
+    <span name="show">[...]</span>
+    <span name="hide">[ - ]</span>
+    <span name="delete">[ X ]</span>
+    <span name="content">
+    [% e.startedDateTime | html %] -
+    [% e.time | html %]мс -
+    [% e.request.method | html %] [% e.request.url | html %] -
+    [% e.response.status | html %] -
+    [% e.response.bodySize | html %] -
+    </span>
+    <span name="details">
+        <pre>
+        Запрос:
+        [% e.request.method | html %] [% e.request.url | html %]
+        httpVersion: [% e.request.httpVersion | html %]
+        e.request.cookies: [% FOR c IN e.request.cookies %]
+            [% c.name | html %]: [% c.value | html %]
+        [%- END %]
+        e.request.headers: [% FOR h IN e.request.headers %]
+            [% h.name | html %]: [% h.value | html %]
+        [%- END %]
+        e.request.queryString: []
+        e.request.postData: {}
+        headersSize: [% e.request.headersSize | html %]
+        bodySize: [% e.request.bodySize | html %]
+        comment: [% e.request.comment | html %]
+        </pre>
+        <pre>
+        Ответ:
+        status: [% e.response.status | html %] - [% e.response.statusText | html %]
+        httpVersion: [% e.response.httpVersion | html %]
+        e.response.cookies: [% FOR c IN e.response.cookies %]
+            [% c.name %]: [% c.value | html %] (path: [% c.path | html %], domain: [% c.domain | html %], expires: [% c.expires | html %])
+        [%- END %],
+        e.response.headers: [% FOR h IN e.response.headers %]
+            [% h.name | html %]: [% h.value | html %]
+        [%- END %]
+        e.response.content": {}
+        redirectURL: [% e.response.redirectURL | html %]
+        headersSize: [% e.response.headersSize | html %]
+        bodySize: [% e.response.bodySize | html %]
+        comment: [% e.response.comment | html %]
+        </pre>
+    </span>
+</span>
+[% END %]
+
+
+<script>
+$('span[name=show]').hide();
+$('span[name=details]').hide();
+$('span[name=show]').click(function() {
+    $(this).parent().find('span[name=content]').show();
+    $(this).parent().find('span[name=hide]').show();
+    $(this).parent().find('span[name=show]').hide();
+});
+$('span[name=hide]').click(function() {
+    $(this).parent().find('span[name=content]').hide();
+    $(this).parent().find('span[name=details]').hide();
+    $(this).parent().find('span[name=hide]').hide();
+    $(this).parent().find('span[name=show]').show();
+});
+$('span[name=delete]').click(function() {
+    $(this).parent().remove();
+});
+$('span[name=content]').click(function() {
+    $(this).parent().find('span[name=details]').toggle();
+});
+//$('div[name=request]').click(function() {
+//    $(this).hide();
+// показать информацию о запросе + ответе
+//});
+//$('div[name=request]').hide();
+//$('div[name=request]').show();
+//each( function(index) {
+//     alert(index + ': ' + $(this).text());
+//});
+</script>
+
+
+[% IF DumpVariables %]<pre style="font-size: 12px; color: #666666; border: 1px dashed #666666; padding: 1em; margin: 0pt 0.5em;">[% DumpVariables | html %]</pre>[% END %]
+
+</body>
+</html>

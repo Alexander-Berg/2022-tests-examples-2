@@ -1,0 +1,36 @@
+emitter:
+  args:
+    balancer_host: 'logbroker.yandex.net:8999'
+    client: passport@lbc-cleanweb-toloka-testing
+    data_port: 8999
+    ident: passport
+    per_host_config:
+      .*?:
+        dc: myt
+        topics:
+        - rt3.myt--passport--cleanweb-toloka-testing
+        - rt3.man--passport--cleanweb-toloka-testing
+        - rt3.iva--passport--cleanweb-toloka-testing
+    workers_count: 4
+  class: passport.backend.logbroker_client.core.consumers.simple.emitter.PartitionsCountEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+passport:
+  url: https://passport-test-internal.yandex.ru
+  timeout: 3
+  retries: 2
+  use_tvm: true
+logpath: /var/log/yandex/logbroker-client/passport-toloka/
+dry_run:
+  avatars: false
+  display_name: false
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.passport_toloka.handler.PassportTolokaHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.worker.AutoBalancedLogbrokerWorker
+  count: 4
+

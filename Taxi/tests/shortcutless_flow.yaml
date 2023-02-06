@@ -1,0 +1,92 @@
+id: shortcutless_flow
+title: При screen_type = on_multiorder не прокручивать флоу шорткатов (попали под
+    эксперимент исключений)
+source:
+    request:
+        method: post
+        body: {"state": {"screen_type": "on_multiorder"}, "shortcuts": {"grids_support": [
+                    {"width": 6, "unit_width": 54.5}], "supported_features": [{"type": "taxi:route-input",
+                        "services": [], "prefetch_strategies": []}, {"type": "media-stories",
+                        "services": [], "prefetch_strategies": []}], "ndash_width": 9,
+                "mdash_width": 14}, "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+            body: {"modes": [{"layout": {"grid_id": "some_grid_id", "width": 6, "type": "linear_grid"},
+                        "mode": "taxi", "offers": {"items": [], "header": []}, "parameters": {}}],
+                "typed_experiments": {"version": -1, "items": []}, "products": []}
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            modes:
+              - mode: taxi
+                parameters: {}
+            products: []
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+experiments:
+    values#object:
+      - key: superapp_shortcuts_on_multiorder_screen_exp
+        value: {"enabled": true}
+        enabled: true
+      - key: superapp_persuggest_shortcuts_on_multiorder_screen_exp
+        value: {"enabled": true}
+        enabled: true

@@ -1,0 +1,31 @@
+[FSTAXI-TEST](!)
+type=endpoint
+transport=transport-udp-ipv6
+context=from-FSTAXI-TEST
+disallow=all
+allow=alaw
+allow=ulaw
+direct_media=no
+
+;---------------------------------------------------
+{% for item in fstaxi_test %}
+;{{ item.name }}
+;AORS
+[{{ item.name }}-aor]
+type=aor
+qualify_frequency=30
+contact=sip:[{{ lookup('dig', item.fqdn, 'qtype=AAAA', 'retry_servfail=True') }}]
+
+; IDENTITIES
+[{{ item.name }}-id]
+type=identify
+endpoint={{ item.endpoint }}
+match=[{{ lookup('dig', item.fqdn, 'qtype=AAAA', 'retry_servfail=True') }}]
+
+;ENDPOINTS
+[{{ item.endpoint }}](FSTAXI-TEST)
+type=endpoint
+aors={{ item.name }}-aor
+;---------------------------------------------------
+
+{%endfor%}

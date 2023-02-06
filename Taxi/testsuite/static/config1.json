@@ -1,0 +1,219 @@
+{
+  "test": {
+    "definitions": {
+      "data-sinks": {
+        "pp-test-adjusted": {
+          "config": {
+            "address": "channel:test-e:adjusted",
+            "channel-type": "adjusted",
+            "protocol": "edge",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-pedestrian": {
+          "config": {
+            "address": "channel:test-e:pedestrian",
+            "channel-type": "positions",
+            "protocol": "positions",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-positions": {
+          "config": {
+            "address": "channel:test-e:positions",
+            "channel-type": "positions",
+            "protocol": "positions",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-predicted": {
+          "config": {
+            "address": "channel:test-e:predicted",
+            "channel-type": "predicted",
+            "protocol": "edge",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-signal_v2": {
+          "config": {
+            "address": "channel:test-e:signal_v2",
+            "channel-type": "signals",
+            "protocol": "signal_v2",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        }
+      },
+      "data-streams": {
+        "pp-test-adjusted": {
+          "partitions": 2,
+          "protocol": "positions"
+        },
+        "pp-test-pedestrian": {
+          "partitions": 1,
+          "protocol": "positions"
+        },
+        "pp-test-positions": {
+          "partitions": 3,
+          "protocol": "positions"
+        },
+        "pp-test-predicted": {
+          "partitions": 6,
+          "protocol": "positions"
+        },
+        "pp-test-signal_v2": {
+          "partitions": 4,
+          "protocol": "positions"
+        }
+      },
+      "predicates": {
+        "is-pedestrian": {
+          "if_absent": true,
+          "operation": "exclude",
+          "sensor": "transport_type",
+          "type": "sensor-predicate",
+          "values": [
+            "pedestrian"
+          ]
+        },
+        "leave-only-graph-drivers": {
+          "predicates": {
+            "predicates": [
+              {
+                "ref": "is-pedestrian",
+                "type": "ref"
+              }
+            ]
+          },
+          "type": "none_of"
+        }
+      },
+      "signal-sources": {
+        "source-sets": {
+          "ReasonablyPrecise": [
+            "AndroidGps",
+            "YandexLbsWifi",
+            "YandexLbsGsm",
+            "IosLocation",
+            "Verified",
+            "Adjusted"
+          ]
+        },
+        "sources": [
+          "AndroidGps",
+          "AndroidNetwork",
+          "AndroidFused",
+          "AndroidPassive",
+          "YandexLbsWifi",
+          "YandexLbsGsm",
+          "YandexLbsIp",
+          "YandexMapkit",
+          "YandexNavi",
+          "FullGeometry",
+          "Realtime",
+          "IosLocation",
+          "Verified",
+          "Adjusted"
+        ]
+      }
+    },
+    "receiver": {
+      "destinations": {
+        "test-positions": {
+          "archive": true,
+          "data-sinks": [
+            "pp-test-positions"
+          ],
+          "data-streams": [
+            "pp-test-positions"
+          ],
+          "filters": [
+            {
+              "ref": "leave-only-graph-drivers",
+              "type": "ref"
+            }
+          ],
+          "processors": []
+        },
+        "test-signals-v2": {
+          "archive": false,
+          "data-sinks": [
+            "pp-test-signal_v2"
+          ]
+        }
+      }
+    },
+    "yaga": {
+      "subpipelines": [
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              0,
+              10
+            ],
+            "graph_type": "car"
+          },
+          "destinations": {
+            "adjust": {
+              "archive": false,
+              "data-sinks": [
+                "pp-test-adjusted"
+              ],
+              "data-streams": [
+                "pp-test-adjusted"
+              ],
+              "filters": [
+                {
+                  "operation": "include",
+                  "type": "signal-source-predicate",
+                  "values": [
+                    "Adjusted"
+                  ]
+                }
+              ]
+            },
+            "predict": {
+              "archive": false,
+              "data-sinks": [
+                "pp-test-predicted"
+              ],
+              "data-streams": [
+                "pp-test-predicted"
+              ],
+              "filters": [
+                {
+                  "operation": "include",
+                  "type": "signal-source-predicate",
+                  "values": [
+                    "Adjusted"
+                  ]
+                }
+              ]
+            }
+          },
+          "input": {
+            "test-positions": {
+              "data-streams": [
+                "pp-test-positions"
+              ]
+            }
+          },
+          "signal_source": "Adjusted"
+        }
+      ]
+    },
+    "yaga-metrolog": {
+      "input": {
+        "adjusted_driver_positions": {
+          "data-streams": [
+            "pp-test-adjusted"
+          ]
+        }
+      }
+    }
+  }
+}

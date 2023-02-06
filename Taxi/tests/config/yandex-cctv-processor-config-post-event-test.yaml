@@ -1,0 +1,118 @@
+logging:
+    type: file
+    level: info
+    path: /tmp/yandex/cctv/processor/cctv-processor.log
+
+streams:
+#  - name: default_camera
+#    description: Камера ноутбука
+#    type: camera
+#
+#  - name: single_image
+#    description: Поток, состоящий из одного и того же кадра
+#    type: image
+#    path: PATH TO IMAGE HERE
+#
+#  - name: sync_video_file
+#    description: Видеофайл с доступом к текущему кадру в момент обращения
+#    type: sync_video_file
+#    path: PATH TO FILE HERE
+#
+  - name: ffmpeg_video_file
+    description: none
+    type: ffmpeg_file
+    filename: tests/data/people_walking.mp4
+    segment_length_minutes: 1
+    segment_base_path: /tmp/yandex/cctv/processor/stored_videos
+    segmenting_accuracy_secs: 8
+    failures_to_reset: 2
+
+#  - name: network
+#    description: Видеопоток из сети
+#    type: network
+#    url: URL TO STREAM HERE
+#
+#  - name: sync_network
+#    description: Видеопоток из сети
+#    type: sync_network
+#    url: URL TO STREAM HERE
+
+#signature_index:
+#   path: /var/yandex/cctv/processor/signatures.json
+#   threshold: 0.5
+#   insertion_threshold: 0.15
+#   find_limit: 1
+
+storages:
+  - path: /tmp/yandex/cctv/processor/stored_videos
+    max_size_gb: 1
+    min_free_space_gb: 20
+    max_days_store: 31
+    paths:
+
+event_sender:
+    url: http://localhost:8080/cctv-processor-api/v1/events
+    max_batch_size: 2
+    max_batch_age_ms: 10000
+    transfer_timeout_ms: 100
+    queue_size: 10
+    logs:
+        path: /tmp/yandex/cctv/processor/events-log
+
+config_updater:
+    url: http://localhost:1234/cctv-processor-api/v1/trash
+    poll_interval_secs: 600
+
+general:
+    processor_id: processor1
+
+http_client:
+    ticket: INVALID
+
+#log_dump_rate_limiter:
+#  min_interval_ms: LOG & DUMP INTERVAL
+
+handlers:
+  # - name: show_whats_going_on
+  #   description: Вывод обрабатываемого кадра на экран
+  #   type: display
+
+  - name: progress_logger
+    description: Пишет в лог прогресс обработки
+    type: frame_counter
+    report_rate: 100
+
+  - name: find_signature
+    description: Обнаружение объектов в кадре
+    type: ffmpeg_find_signature
+    models_folder_path: build/engine-models/yandex-face-tflite
+    model_id: faceEmbedderBiometry_v5
+    runtime: CPU
+
+  # - name: identify_person
+  #   description: Обнаружение и идентификация объектов в кадре
+  #   type: identify_person
+  #   detection_model_path: /var/yandex/cctv/processor/engine-models/face-detection/scrfd_10g_bnkps_shape480x640.onnx
+  #   signature_model_path: /var/yandex/cctv/processor/engine-models/face-identification/r50webface_shape112x112.onnx
+  #   #runtime: CPU or CUDA (if enabled)
+
+  #  - name: store_to_disk
+  #    description: Сохранение потока на диск
+  #    type: store_to_disk
+  #    path: /tmp/yandex/cctv/processor/stored_videos
+  #    rotation_period_min: 1
+  #    fps: 30
+
+processors:
+  - name: demo
+    is_ffmpeg: true
+    description: Демонстрационный стенд
+    streams:
+      #- default_camera
+      - ffmpeg_video_file
+    handlers:
+      #- show_whats_going_on
+      - find_signature
+      #- identify_person
+      - progress_logger
+      #- store_to_disk

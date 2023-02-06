@@ -1,0 +1,44 @@
+console: {enabled: false, package: yandextank.plugins.Console}
+telegraf: {enabled: false, package: yandextank.plugins.Telegraf}
+phantom: {enabled: false, package: yandextank.plugins.Phantom}
+uploader:
+    api_address: https://lunapark.yandex-team.ru/
+    task: 'YANDEXTANK-1'
+    job_name: '[pandora][custom]'
+    operator: lunapark
+    ignore_target_lock: true
+shellexec:
+    prepare: chmod 764 /data/pandora_custom/bin/pandora
+pandora:
+    enabled: true
+    expvar: false
+    pandora_cmd: /data/pandora_custom/bin/pandora
+    config_content:
+        pools:
+          - id: HTTP pool
+            gun:
+                type: test_gun
+                target: 'localhost:80'
+                param: 'test'
+            ammo:
+                type: test_provider
+                source:
+                    type: file
+                    path: /data/pandora_custom/ammo.json
+            result:
+                type: phout
+                destination: /data/pandora_custom/run/phout.log
+            rps: [{duration: 30s, type: line, from: 1, to: 1500}]
+            startup:
+                type: once
+                times: 1000
+        log:
+            level: error
+        monitoring:
+            expvar:
+                enabled: true
+                port: 1234
+            cpuprofile:
+                enabled: false
+            memprofile:
+                enabled: false

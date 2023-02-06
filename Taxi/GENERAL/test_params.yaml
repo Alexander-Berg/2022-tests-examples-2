@@ -1,0 +1,49 @@
+type: apitest
+version: 0
+service: taxi_protocol
+mockserver:
+  - url: /test_protocol/test
+    response:
+        body:
+            foo:
+                $param:
+                    name: foo
+marks:
+  - name: foo
+    kwargs:
+        value:
+            $param:
+                name: foo
+params:
+    foo: root
+tests:
+  - name: root-value
+    request:
+        path: /test
+    response:
+        body:
+            foo: root
+  - name: local-value
+    params:
+        foo: local
+    request:
+        path: /test
+    response:
+        body:
+            foo: local
+  - name: marker-params-default
+    fixtures:
+      - mark_mock
+    request:
+        path: /mark
+    response:
+        body: {"args": [], "kwargs": {"value": "root"}}
+  - name: marker-params-override
+    fixtures:
+      - mark_mock
+    request:
+        path: /mark
+    params:
+        foo: toor
+    response:
+        body: {"args": [], "kwargs": {"value": "toor"}}

@@ -1,0 +1,92 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+  timeout: 1
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - fill_ok:
+      - css: input#first
+        value: just fill
+      - css: input#second
+        value: 123
+  - _inner_test:
+      success: True
+      tap_description: Passed most common fill.
+  - eq: [css:.log, Filled]
+  - _inner_test: [True, Really filled for most common fill.]
+
+  - fill_ok:
+      - xpath: //*[@id="first"]
+        value: fill by xpath
+      - css: input#second
+        value: 123
+  - _inner_test:
+      success: True
+      tap_description: Passed fill with locator.
+  - eq: [css:.log, Filled]
+  - _inner_test: [True, Really filled for xpath fill.]
+
+  - fill_ok:
+      - css: input#first
+        value: to submit
+      - css: input#second
+        value: wrong str value
+  - _inner_test: [True, Passed filling with wrong input value type.]
+
+  - fill_ok:
+      - css: input#first
+        value: to submit
+      - css: input#not-existing
+        value: wrong css value
+  - _inner_test:
+      success: False
+      message: Page has no element
+      tap_description: Failed filling with wrong input value type.
+
+  - fill_ok:
+    - css: input#first
+      value: to submit
+    - xpath: /html/body
+      value: not input element
+  - _inner_test: [True, Passed filling non text element.]
+
+  - fill_ok:
+    - css: p.text
+      value: to fill text
+  - _inner_test:
+      success: False
+      message: Can't fill not interactable
+      tap_description: Passed filling non text element.
+
+  - fill_ok:
+      desc: First / second
+      fields:
+        - css: input#first
+          value: just fill
+        - css: input#second
+          value: 123
+  - _inner_test:
+      success: True
+      tap_description: Full form.
+  - eq: [css:.log, Filled]
+  - _inner_test: [True, Full form really worked.]
+
+  - fill_ok:
+    - css: input#third-for-gap
+      value: bbb
+      gap: 0.15
+  - _inner_test:
+      success: True
+      tap_description: Fill with gap 0.15s
+  - eq:
+      css: input#third-for-gap
+      attr: value
+      value: bbb
+  - _inner_test: [True, Fill+gap really filled.]

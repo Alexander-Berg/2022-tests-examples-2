@@ -1,0 +1,13 @@
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v1.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v2.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v3.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v4.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v5.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v6.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v7.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v8.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v9.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v10.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v11.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v12.sql
+\ir ../../../taxi_strongbox/storage/postgresql/migrations/strongbox_v13.sql

@@ -1,0 +1,52 @@
+console: {enabled: false, package: yandextank.plugins.Console}
+telegraf: {enabled: false, package: yandextank.plugins.Telegraf}
+phantom: {enabled: false, package: yandextank.plugins.Phantom}
+pandora:
+  package: yandextank.plugins.Pandora
+  enabled: true
+  config_content:
+    pools:
+      - id: HTTP pool
+        gun:
+          type: http
+          target: localhost:443
+          ssl: true
+        ammo:
+          headers:
+            - '[Host: target.tank-testing.in.yandex-team.ru]'
+            - '[Connection: close]'
+          type: uri
+          uris:
+            - /test?sleep=1000
+        result:
+          type: phout
+          destination: /data/pandora_inline/run/phout.log
+        rps:
+          - {duration: 2s, type: step, from: 1, to: 1000, step: 2}
+        startup:
+          type: once
+          times: 100
+    log:
+      level: error
+    monitoring:
+      expvar:
+        enabled: true
+        port: 1234
+autostop:
+  enabled: true
+  package: yandextank.plugins.Autostop
+  autostop:
+    - instances(50%,10s)
+rcassert:
+  enabled: true
+  package: yandextank.plugins.RCAssert
+  pass: '24'
+monitoring:
+  enabled: false
+  package: yandextank.plugins.YASM
+uploader:
+  api_address: https://lunapark.yandex-team.ru/
+  task: YANDEXTANK-1
+  job_name: '[pandora][inline][autostop]'
+  operator: lunapark
+  ignore_target_lock: true

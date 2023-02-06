@@ -1,0 +1,45 @@
+id: test-invalid-body-post
+title: Тест ошибки ручки driver-v1-partner-priority (POST)
+
+parameters:
+  - param:
+      - request_body: {}
+        expected_code: 400
+      - request_body:
+          - position: [12.34, 56.78]
+        expected_code: 200
+      - request_body:
+          - no_position: 'test'
+        expected_code: 400
+
+source:
+    request:
+        method: post
+        headers:
+            X-Request-Application-Version#string: '10.10'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+        body#xget: /test-params/param/request_body
+    expectations:
+        response:
+            status-code#xget: /test-params/param/expected_code
+            headers: {}
+
+mocks:
+  - resource: driver-priority-v1-priority-value-post
+    expectations:
+        call-count: 1
+    response:
+        status-code#xget: /test-params/param/expected_code
+  - resource: client-events-push
+    expectations:
+        call-count#if:
+            condition#equal:
+              - value#xget: /test-params/param/expected_code
+              - value#integer: 200
+            then#integer: 1
+            else#integer: 0
+    response:
+        status-code: 200
+        body:
+            version: 'event_1'

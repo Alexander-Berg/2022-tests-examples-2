@@ -1,0 +1,42 @@
+---
+- service: vgw-api_gateway_broken
+  description: |-
+    В течение последних 5 минут провайдер не прошел проверку работоспособности.
+    Провайдер: {{labels.gateway_id}}
+    Причина срабатывания: {{labels.disable_reason}}
+    Описание проверок: https://wiki.yandex-team.ru/taxi/backend/architecture/vgw-api/#proverkirabotosposobnostiprovajjderov
+    Метрики по провайдерам: https://grafana.yandex-team.ru/d/v7ZXUmeiz/taxi_voice_gateways_vgw_api
+    Админка Софтсвича: https://tariff-editor.taxi.yandex-team.ru/voice-gateways2/providers
+  alert_type: expression
+  period: 300
+  program: |
+    let selector = {cluster="testing_uservices", host!="cluster|Man|Sas|Vla|Myt|Iva",
+        project="taxi", application="vgw-api", service="uservices",
+        sensor="vgw.gateway_broken"};
+    let max_series_diff = max(diff(selector));
+  checkExpression: max_series_diff > 0
+  groupByLabels:
+    - host
+    - gateway_id
+    - disable_reason
+- service: vgw-api_ya-tel-preprod_disabled
+  description: |-
+    Провайдер ya-tel-preprod отключен.
+    Причина отключения: {{labels.disable_reason}}
+    Описание причин отключения: https://wiki.yandex-team.ru/taxi/backend/architecture/vgw-api/#proverkirabotosposobnostiprovajjderov
+    Метрики по провайдерам: https://grafana.yandex-team.ru/d/v7ZXUmeiz/taxi_voice_gateways_vgw_api
+    Админка Софтсвича: https://tariff-editor.taxi.yandex-team.ru/voice-gateways2/providers
+  alert_type: threshold
+  selectors: |
+    {cluster='testing_uservices', host!='cluster|Man|Sas|Vla|Myt|Iva',
+    project='taxi', application='vgw-api', service='uservices',
+    sensor='vgw.gateway.ya-tel-preprod.enabled'}
+  period: 300
+  predicateRules:
+  - timeAggregation: Last
+    comparison: LT
+    threshold: 1
+    targetStatus: ALARM
+  groupByLabels:
+    - host
+    - disable_reason

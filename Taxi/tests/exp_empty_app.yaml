@@ -1,0 +1,48 @@
+id: exp_empty_app
+title: test exp behaviour with empty app
+
+experiments:
+    values#object:
+      - key: integration_maps_estimate_authorization
+        value:
+            enabled: true
+            unauthorized_apps: [kEmptyApplication]
+        enabled: true
+
+source:
+    request:
+        method: post
+        body:
+            some: 'request'
+            fields: 123
+        headers:
+            content-type: 'application/json'
+            X-Yandex-UID: 'test_yandex_uid'
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+            X-YaTaxi-UserId: 'test_user_id'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                some: 'fields'
+                from: 'int-api'
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body:
+            some: 'fields'
+            from: 'int-api'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                some: 'request'
+                fields: 123
+
+taxi_config:
+    YANDEX_MAPS_ESTIMATE_FALLBACK_ENABLED: false

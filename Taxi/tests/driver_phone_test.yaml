@@ -1,0 +1,115 @@
+id: driver_phone_test
+title: Получаем телефон водителя из сервиса персональных данных
+
+parameters:
+  - personal-phone:
+      - status-code: 200
+        override-phone: true
+      - status-code: 500
+        override-phone: false
+  - tariff-classes:
+      - class: econom
+        override-phone: true
+      - class: selfdriving
+        override-phone: false
+  - voice-forwarding:
+      - has-voice-forwarding: true
+        override-phone: false
+      - has-voice-forwarding: false
+        override-phone: true
+  - order-core:
+      - has-personal-id: true
+      - has-personal-id: false
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            break: 'user'
+            cancel_state: 'free'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid#string: '12345'
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - additional_buttons#object:
+              - feedback#object:
+              - key: driver
+                value#object:
+                  - key: forwarding
+                    enabled#xget: /test-params/voice-forwarding/has-voice-forwarding
+                    value#object:
+                  - key: phone
+                    value#if:
+                        condition#and:
+                          - value#xget: /test-params/voice-forwarding/override-phone
+                          - value#xget: /test-params/tariff-classes/override-phone
+                          - value#xget: /test-params/personal-phone/override-phone
+                          - value#xget: /test-params/order-core/has-personal-id
+                        then#string: '+79998887766'
+                        else#string: 'default_phone'
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: api_proxy_totw_driver_phones_personal
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body#object:
+          - key: driver
+            value#object:
+              - key: forwarding
+                enabled#xget: /test-params/voice-forwarding/has-voice-forwarding
+                value#object:
+              - key: phone
+                value#string: 'default_phone'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: personal-data-type-phones-retrieve
+    response:
+        status-code#xget: /test-params/personal-phone/status-code
+        body#object:
+          - key: value
+            value#string: '+79998887766'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        request:
+            method: post
+            body:
+                id: 'personal_id'
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#object:
+          - status#string: driving
+          - key: driver
+            value#object:
+              - key: phone_personal_id
+                enabled#xget: /test-params/order-core/has-personal-id
+                value#string: 'personal_id'
+          - tariff#object:
+              - class#xget: /test-params/tariff-classes/class
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

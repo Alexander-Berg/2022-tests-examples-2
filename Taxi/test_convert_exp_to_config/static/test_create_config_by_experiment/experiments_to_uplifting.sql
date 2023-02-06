@@ -1,0 +1,107 @@
+INSERT INTO clients_schema.consumers (name) VALUES ('test_consumer');
+INSERT INTO clients_schema.applications (name) VALUES ('android');
+INSERT INTO clients_schema.applications (name) VALUES ('ios');
+
+
+-- experiment with apps
+INSERT INTO clients_schema.experiments (id, name, date_from, date_to,
+                                        enabled,
+                                        closed,
+                                        rev,
+                                        default_value,
+                                        clauses,
+                                        predicate,
+                                        description,
+                                        schema,
+                                        is_technical)
+    VALUES
+        (5, 'exp_with_pred_with_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[{"title": "clause_title", "value": {}, "predicate": {"type": "true"}}]'::jsonb,
+            '{"type": "not_null", "init": {"arg_name": "phone_id"}}'::jsonb,
+            'Experiment with apps',
+            'additionalProperties: true',
+            NULL)
+        ,(6, 'exp_with_pred_no_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[{"title": "clause_title", "value": {}, "predicate": {"type": "true"}}]'::jsonb,
+            '{"type": "not_null", "init": {"arg_name": "phone_id"}}'::jsonb,
+            'Experiment without apps',
+            'additionalProperties: true',
+            NULL)
+        ,(7, 'exp_no_pred_with_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[{"title": "clause_title", "value": {}, "predicate": {"type": "true"}}]'::jsonb,
+            '{"type": "true"}'::jsonb,
+            'Experiment with apps',
+            'additionalProperties: true',
+            NULL)
+        ,(8, 'exp_no_pred_no_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[{"title": "clause_title", "value": {}, "predicate": {"type": "true"}}]'::jsonb,
+            '{"type": "true"}'::jsonb,
+            'Experiment without apps',
+            'additionalProperties: true',
+            NULL)
+        ,(9, 'exp_no_clauses_with_pred_with_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[]'::jsonb,
+            '{"type": "not_null", "init": {"arg_name": "phone_id"}}'::jsonb,
+            'Experiment with apps',
+            'additionalProperties: true',
+            NULL)
+        ,(10, 'exp_no_clauses_with_pred_no_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[]'::jsonb,
+            '{"type": "not_null", "init": {"arg_name": "phone_id"}}'::jsonb,
+            'Experiment without apps',
+            'additionalProperties: true',
+            NULL)
+        ,(11, 'exp_no_clauses_no_pred_with_apps', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[]'::jsonb,
+            '{"type": "true", "init": {}}'::jsonb,
+            'Experiment with apps',
+            'additionalProperties: true',
+            NULL)
+        ,(12, 'exp_no_clauses_no_nothing', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            TRUE,
+            FALSE,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[]'::jsonb,
+            '{"type": "true", "init": {}}'::jsonb,
+            'Experiment without apps',
+            'additionalProperties: true',
+            NULL)
+        ;
+INSERT INTO clients_schema.experiments_applications (experiment_id,
+                                                     application_id,
+                                                     version_from,
+                                                     version_to)
+    VALUES
+        (5, 1, '1.1', '100.100'),
+        (7, 1, '1.1', '100.100'),
+        (9, 1, '1.1', '100.100'),
+        (11, 1, '1.1', '100.100');

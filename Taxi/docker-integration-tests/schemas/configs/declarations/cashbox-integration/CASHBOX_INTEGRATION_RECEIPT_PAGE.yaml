@@ -1,0 +1,71 @@
+description: Разметка страницы с чеком
+default:
+    html: |
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <title>Чек</title>
+          </head>
+          <body>
+            <h1>{content}</h1>
+          </body>
+        </html>
+    receipt_endpoint: 'https://taximeter-core.tst.mobile.yandex.net/v1/parks/orders/receipt'
+    substitutions:
+        not_found:
+            content: 'Чек не найден'
+        processing:
+            content: 'Чек формируется'
+        failed:
+            content: 'Не удалось сформировать чек'
+        succeed:
+            content: '<a href="{receipt_url}">Чек</a>'
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - html
+      - receipt_endpoint
+      - substitutions
+    properties:
+        html:
+            $ref: '#/definitions/HTML'
+        receipt_endpoint:
+            $ref: '#/definitions/ReceiptEndpoint'
+        substitutions:
+            $ref: '#/definitions/Substitutions'
+    definitions:
+        HTML:
+            type: string
+            description: HTML разметка страницы с подстановками вида {name}
+        ReceiptEndpoint:
+            type: string
+            description: публичный адрес страницы с чеком без параметров
+        PageSubstitutions:
+            type: object
+            additionalProperties:
+                type: string
+                description: подстановки для конкретной страницы
+        Substitutions:
+            type: object
+            description: подстановки для всех типов страниц
+            required:
+              - not_found
+              - processing
+              - failed
+              - succeed
+            properties:
+                not_found:
+                    $ref: '#/definitions/PageSubstitutions'
+                processing:
+                    $ref: '#/definitions/PageSubstitutions'
+                failed:
+                    $ref: '#/definitions/PageSubstitutions'
+                succeed:
+                    $ref: '#/definitions/PageSubstitutions'
+                invalid:
+                    $ref: '#/definitions/PageSubstitutions'
+                expired:
+                    $ref: '#/definitions/PageSubstitutions'
+            additionalProperties: false

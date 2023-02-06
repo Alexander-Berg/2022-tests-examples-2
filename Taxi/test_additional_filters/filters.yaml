@@ -1,0 +1,53 @@
+filters:
+  - name: park_name
+    type: keyword
+    title: Название парка
+    preformatter: get_park_id
+    es_name: park_id
+
+  - name: type
+    type: keyword
+    title: Тип логов
+    es_name: meta_type
+    allow_array: true
+    q_type: custom_wildcards
+    important: true
+    suggest_from: log_types
+    search_in:
+
+  - name: user_phone  # имя поля фильтра в ручке
+    type: keyword # имя типа в эластике
+    title: Телефон пассажира  # Описание фильтра для фронта (шапка для формы)
+    es_name: user_phone_id  # имя поля в эластике (если отличается)
+    # имя функции, которая должна импортироваться из определённого модуля
+    preformatter: get_user_phone_id
+    placeholder: '+70000000000'  # плейсхолдер для формы
+
+  - name: cgroups
+    type: keyword
+    title: Кондукторная группа
+    allow_array: true  # возможность фильтровать списком
+
+  - name: http_code
+    type:
+        integer:
+            coerce: true # дополнительные параметры маппинга для поля
+    title: HTTP код
+    es_name: meta_code
+    preformatter: clear_http_code
+    search_in: request
+
+  - name: useragent
+    type: text
+    title: UserAgent
+    q_type: wildcard  # тип квери для эластика (влияет на запрос, дефолт term)
+    order: 0
+
+  - name: stq_task
+    type: keyword
+    title: STQ таска
+    es_name: queue
+    allow_array: true
+    suggest_from: stq_task_names
+    important: true
+    search_in:

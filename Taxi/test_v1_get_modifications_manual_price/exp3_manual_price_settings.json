@@ -1,0 +1,124 @@
+{
+  "configs": [
+    {
+      "biz_revision": 1,
+      "clauses": [
+        {
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "country",
+                    "arg_type": "string",
+                    "value": "isr"
+                  },
+                  "type": "eq"
+                },
+                {
+                  "init": {
+                    "arg_name": "category",
+                    "arg_type": "string",
+                    "value": "comfortplus"
+                  },
+                  "type": "eq"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "Израиль Комфорт+, допускаем уменьшение итоговой стоимости",
+          "value": {
+            "allow_when_decoupling": false,
+            "allow_when_prices_differ": false,
+            "input": {
+              "calc": "user",
+              "meta_keys": {
+                "max": "max_manual_price",
+                "min": "min_manual_price",
+                "start": "start_manual_price"
+              },
+              "mode": "buttons",
+              "step": 0.1
+            }
+          }
+        },
+        {
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "country",
+                    "arg_type": "string",
+                    "value": "isr"
+                  },
+                  "type": "eq"
+                },
+                {
+                  "init": {
+                    "arg_name": "category",
+                    "arg_type": "string",
+                    "value": "econom"
+                  },
+                  "type": "eq"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "Израиль Эконом, ручной ввод стоимости всегда",
+          "value": {
+            "allow_when_decoupling": true,
+            "allow_when_prices_differ": true,
+            "input": {
+              "mode": "keyboard"
+            }
+          }
+        }
+      ],
+      "created": "2021-02-02T19:32:32.694213+03:00",
+      "default_value": {},
+      "description": "Настройки ручного ввода цены на Таксометре",
+      "enable_debug": false,
+      "last_manual_update": "2021-02-15T23:42:36.179141+03:00",
+      "last_modified_at": 392589,
+      "match": {
+        "action_time": {},
+        "consumers": [
+          {
+            "name": "pricing-data-preparer/get_modifications"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "init": {},
+          "type": "true"
+        },
+        "schema": "description: Настройки ручного ввода цены на Таксометре\ntype: object\nadditionalProperties: false\nproperties:\n    input:\n        oneOf:\n          - $ref: '#/definitions/ManualPriceInputKeyboard'\n          - $ref: '#/definitions/ManualPriceInputButtons'\n        # discriminator не поддерживается, ждём TAXIEXP-795\n    allow_when_prices_differ:\n        type: boolean\n        description: Разрешать ручное редактирование, когда расчётные цены водителя\n            и пользователя отличаются\n        default: true\n    allow_when_decoupling:\n        type: boolean\n        description: Разрешать при декаплинге\n        default: true\n\ndefinitions:\n    ManualPriceInputKeyboard:\n        type: object\n        description: Таксометр покажет экран для ввода цены с клавиатурой, без ограничений\n            и изначального значения\n        additionalProperties: false\n        required:\n          - mode\n        properties:\n            mode:\n                type: string\n                enum:\n                  - keyboard\n\n    ManualPriceInputButtons:\n        type: object\n        description: Таксометр покажет экран для корректирования цены кнопками плюс/минус\n        additionalProperties: false\n        required:\n          - mode\n          - calc\n          - meta_keys\n          - step\n        properties:\n            mode:\n                type: string\n                enum:\n                  - buttons\n            calc:\n                type: string\n                description: Из чьего расчёта брать значения (из водительского или\n                    из пользовательского)\n                enum:\n                  - driver\n                  - user\n            meta_keys:\n                type: object\n                additionalProperties: false\n                required:\n                  - start\n                  - min\n                  - max\n                properties:\n                    start:\n                        type: string\n                        description: Какой emit даст начальное значение для корректировки\n                    min:\n                        type: string\n                        description: Какой emit даст минимально допустимое значение\n                            при корректировке\n                    max:\n                        type: string\n                        description: Какой emit даст максимально допустимое значение\n                            при корректировке\n            step:\n                type: number\n                description: Шаг корректировки\n                minimum: 0\n                exclusiveMinimum: true"
+      },
+      "name": "manual_price_settings",
+      "notifications": [],
+      "owners": [
+        "ioann-v",
+        "lejust",
+        "pmalyshev"
+      ],
+      "removed": false,
+      "self_ok": false,
+      "st_tickets": [
+        "EFFICIENCYDEV-9279"
+      ],
+      "trait_tags": [],
+      "watchers": []
+    }
+  ]
+}

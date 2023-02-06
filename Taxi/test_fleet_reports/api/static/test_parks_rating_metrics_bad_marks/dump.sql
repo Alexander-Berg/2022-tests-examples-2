@@ -1,0 +1,32 @@
+INSERT INTO yt.report_parks_rating (id, park_id, city, date_at, bad_marks_value,
+                                    new_cars_value, supply_hours_value,
+                                    churn_rate_value, bad_marks_points,
+                                    new_cars_points, supply_hours_points,
+                                    churn_rate_points, total_points,
+                                    max_bad_marks_points, max_new_cars_points,
+                                    max_supply_hours_points,
+                                    max_churn_rate_points, max_total_points,
+                                    rank, tier, next_tier_diff_points)
+VALUES (1, '7ad36bc7560449998acbe2c57a75c293', 'Томск', '2021-03-01', 135.71,
+        64.29, 35.71, 50.00, 285.71, 64.29, 35.71, 50.00, 285.71, 250.00,
+        250.00, 250.00, 250.00, 1000.00, 32, 'bronze', 378.58);
+
+INSERT INTO yt.report_parks_rating_bad_marks (id, park_id, city, date_at,
+                                              driver_id, rating, rating_change,
+                                              cancel_orders, complete_orders,
+                                              orders, bad_orders,
+                                              perfect_orders,
+                                              tag_bad_driving_orders,
+                                              tag_car_condition_orders,
+                                              tag_no_trip_orders,
+                                              tag_rude_driver_orders,
+                                              tag_smell_car_orders)
+VALUES (1, '7ad36bc7560449998acbe2c57a75c293', 'Томск', '2021-03-01',
+        'feddb2299044aaa654e2e4851ed43ed4', 4.76, -0.01, 2, 12, 14, 0, 2, 0, 0,
+        3, 0, 1),
+       (2, '7ad36bc7560449998acbe2c57a75c293', 'Томск', '2021-03-01',
+        'a57d409d08a044fc9faab63aca100145', 4.83, 0.01, 0, 44, 48, 0, 9, 0, 1,
+        0, 0, 0),
+       (3, '7ad36bc7560449998acbe2c57a75c293', 'Томск', '2021-03-01',
+        'f760b273bd63a89fa835527d63cf1615', 4.88, -0.08, 0, 108, 118, 1, 27, 0,
+        0, 0, 1, 0);

@@ -1,0 +1,33 @@
+# for running from docker
+# docker build -f docker/Dockerfile_test --network=host -t smoothie_test .
+# docker run -it -e ENV=DEV -v "$(pwd)"/t:/app/t -v "$(pwd)"/lib:/app/lib --link docker_1_wwax_mysql_1:mysql smoothie_test prove -lv
+
+FROM registry.yandex.net/ubuntu:trusty
+
+RUN apt-get update
+RUN apt-get install -y libconfig-general-perl libtext-diff-perl starman \
+                        liblib-abs-perl libwww-perl libjson-xs-perl \
+                        libdate-calc-xs-perl liblist-moreutils-perl \
+                        liblog-dispatch-perl python-nile python-requests libdbi-perl \
+                        libdbd-mysql-perl
+
+RUN apt-get install -y libtest-class-perl
+RUN apt-get install -y libtest-most-perl
+
+RUN apt-get install tzdata=2017c-0ubuntu0.14.04
+
+RUN echo Europe/Moscow >/etc/timezone && \
+    ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+COPY    lib	/app/lib
+COPY	t 	/app/t
+RUN     mkdir -p /etc/smoothie-secrets
+RUN echo some_token > /etc/smoothie-secrets/robot-morda-push-sup-token
+
+WORKDIR /app
+RUN chown -R www-data:www-data /app
+USER www-data
+
+COPY smoothie.conf /app/smoothie.conf
+COPY smoothie.psgi /app/smoothie.psgi

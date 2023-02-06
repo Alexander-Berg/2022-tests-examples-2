@@ -1,0 +1,14 @@
+- service: tinkoff_fallback_fails_check_testing
+  description: |-
+    Ошибки при использовании fallback токена Tinkoff
+  alert_type: expression
+  program:
+    let selector = { project="taxi", cluster="testing_uservices", service="uservices",
+      application="eats-picker-payments", sensor="tinkoff-fallback-client-fails",
+      host="Man|Vla|Sas|Myt|Iva" }
+    let fails_count = sum(drop_below(diff(selector), 0));
+    alarm_if(fails_count > 0);
+    ok_if(fails_count == 0)
+  checkExpression: 'false'
+  period: 300
+  delay: 30

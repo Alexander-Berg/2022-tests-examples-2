@@ -1,0 +1,147 @@
+INSERT INTO signal_device_api.video_chunks (
+    device_id,
+    file_id,
+    offset_bytes,
+    size_bytes,
+    s3_path,
+    concat_status
+  )
+VALUES
+(
+    1,
+    'test2',
+    0,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test2/0_5.part',
+    'concatenated'
+),
+(
+    1,
+    'test2',
+    5,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test2/5_5.part',
+    'concatenated'
+),
+(
+    1,
+    'test1',
+    0,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test1/0_5.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test1',
+    5,
+    2,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test1/5_2.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test1',
+    7,
+    3,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test1/7_3.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test3',
+    0,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test3/0_5.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test3',
+    5,
+    2,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test3/5_2.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test3',
+    7,
+    3,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test3/7_3.part',
+    'in_progress'
+),
+(
+    1,
+    'test_now',
+    0,
+    3,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test_now/0_3.part',
+    'not_concatenated'
+),
+(
+    1,
+    'missing_start',
+    5,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/missing_start/5-5.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test4',
+    0,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test4/0_5.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test4',
+    5,
+    5,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test4/5_10.part',
+    'not_concatenated'
+),(
+    1,
+    'test5',
+    0,
+    6,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test5/0_5.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test6',
+    0,
+    7,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test6/0_5.part',
+    'not_concatenated'
+),
+(
+    1,
+    'test7',
+    0,
+    8,
+    'v1/e58e753c44e548ce9edaec0e0ef9c8c1/videos/partitions/test7/0_5.part',
+    'not_concatenated'
+);
+
+INSERT INTO signal_device_api.videos (
+  device_id,
+  file_id,
+  size_bytes,
+  s3_path,
+  started_at,
+  created_at
+)
+VALUES
+(1, 'test1', 10, NULL, current_timestamp, current_timestamp),
+(1, 'test2', 10, NULL, current_timestamp, current_timestamp),
+(1, 'test3', 10, NULL, current_timestamp, current_timestamp),
+(1, 'test4', 10, NULL, current_timestamp, current_timestamp),
+(1, 'test5', 6, NULL, current_timestamp, current_timestamp),
+(1, 'test6', 7, NULL, current_timestamp, current_timestamp),
+(1, 'test7', 8, NULL, current_timestamp, current_timestamp),
+(1, 'missing_start', 10, NULL, current_timestamp, current_timestamp),
+(1, 'test_now', 3, NULL, current_timestamp, current_timestamp);

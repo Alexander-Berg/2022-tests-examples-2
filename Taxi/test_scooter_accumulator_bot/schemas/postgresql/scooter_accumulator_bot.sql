@@ -1,0 +1,10 @@
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V01__init.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V02__change_state_default.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V03__role.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V04__users.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V05__drop_clients_table.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V06__add_cabinet_name.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V07__add_scooter_number_and_depot_id.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V08__add_repair_fields.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V09__add_region.sql
+\ir ../../../scooter_accumulator_bot/storage/postgresql/scooter_accumulator_bot/migrations/V10__set_pd_id_username_not_null.sql

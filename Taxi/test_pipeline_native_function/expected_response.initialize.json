@@ -1,0 +1,414 @@
+{
+  "js_source_code": "\nconst is_base_class = category === base_class;\n\nlet reason = (is_base_class && balance) ? 'pins_free' : 'no';\n\nif (method === 'none') {\n  if (!is_base_class) {\n    reason = 'no';\n  } else {\n    log.warning(\"Bad settings: method 'none' for base class - ignoring\");\n  }\n}\n\nif (method === 'linear') {\n  if (!is_base_class) {\n    reason = 'linear_dependency';\n  } else {\n    log.warning(\"Bad settings: method 'linear' for base class - ignoring\");\n  }\n}\n\nif (method === 'utilization') {\n  if (balance) {\n    reason = 'pins_free';\n  } else {\n    log.info(\"balance not active: no params\");\n  }\n}\n\nif (fixed_surge_value) {\n  return {\n    class_info: {\n      name: category,\n      surge: {\n        value: 1.0,\n      },\n      value_raw: fixed_surge_value,\n      calculation_meta: {\n        reason: fixed_reason || \"no\",\n      },\n    },\n  };\n}\n\nreturn {\n  class_info: {\n    name: category,\n    surge: {\n      value: 1.0,\n    },\n    value_raw: 1.0,\n    calculation_meta: {\n      reason: reason,\n    },\n  },\n};\n",
+  "signature": {
+    "arguments": [
+      {
+        "name": "category",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "method",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "fixed_reason",
+        "schema": {
+          "type": "string"
+        }
+      },
+      {
+        "name": "fixed_surge_value",
+        "schema": {
+          "type": "number"
+        }
+      },
+      {
+        "name": "balance",
+        "schema": {
+          "additionalProperties": false,
+          "description": "правила для расчета сурджа по формуле баланса",
+          "properties": {
+            "add_free": {
+              "description": "свободный член для free в расчете коэффициента утилизации",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "add_total": {
+              "description": "свободный член для total в расчете коэффициента утилизации",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "avg_cost": {
+              "description": "Средний чек",
+              "minimum": 0,
+              "type": "number"
+            },
+            "chain_factor": {
+              "description": "множитель для free_chain в расчете коэффициента утилизации",
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            "custom_properties": {
+              "additionalProperties": true,
+              "description": "дополнительные параметры для настройки для подсчёта",
+              "type": "object"
+            },
+            "f_delta_left": {
+              "description": "параметр f' = f_delta_left * (f_equal - f(t)) при f < f_equal",
+              "type": "number"
+            },
+            "f_delta_right": {
+              "description": "параметр f' = f_delta_right * (f_equal - f(t)) при f >= f_equal",
+              "type": "number"
+            },
+            "f_equal": {
+              "description": "параметр для определения f_delta: f < f_equal ? f_delta_left : f_delta_right",
+              "type": "number"
+            },
+            "f_equal_dyn": {
+              "additionalProperties": false,
+              "description": "Настройки динамического таргета",
+              "properties": {
+                "enabled": {
+                  "description": "включен ли динамический таргет",
+                  "type": "boolean"
+                },
+                "table": {
+                  "description": "2D таблица задающая сплайн",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "x": {
+                        "description": "x компонента",
+                        "type": "number"
+                      },
+                      "y": {
+                        "description": "y компонента",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "x",
+                      "y"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "description": "тип динамического таргета",
+                  "enum": [
+                    "time",
+                    "total"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "enabled",
+                "type",
+                "table"
+              ],
+              "type": "object"
+            },
+            "f_init": {
+              "description": "минимальная доля, при которой не происходит расчет по формуле баланса",
+              "minimum": 0,
+              "type": "number"
+            },
+            "fs_coef_chain": {
+              "description": "множитель для free_chain в скорости изменения пинов для уравнении баланса",
+              "minimum": 0,
+              "type": "number"
+            },
+            "fs_coef_total": {
+              "description": "множитель для total в скорости изменения пинов для уравнении баланса",
+              "minimum": 0,
+              "type": "number"
+            },
+            "fs_intercept": {
+              "description": "свободный член для скорости изменения пинов в уранении баланса",
+              "minimum": 0,
+              "type": "number"
+            },
+            "fs_pins_driver": {
+              "description": "коэффициент New Free fs_pins_driver",
+              "type": "number"
+            },
+            "fs_pins_order": {
+              "description": "коэффициент New Free fs_pins_order",
+              "type": "number"
+            },
+            "graph_surge": {
+              "additionalProperties": false,
+              "description": "математические параметры для формулы баланса",
+              "properties": {
+                "add_free": {
+                  "description": "свободный член для free в расчете коэффициента утилизации",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "add_total": {
+                  "description": "свободный член для total в расчете коэффициента утилизации",
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "chain_factor": {
+                  "description": "множитель для free_chain в расчете коэффициента утилизации",
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "f_delta_left": {
+                  "description": "параметр f' = f_delta_left * (f_equal - f(t)) при f < f_equal",
+                  "type": "number"
+                },
+                "f_delta_right": {
+                  "description": "параметр f' = f_delta_right * (f_equal - f(t)) при f >= f_equal",
+                  "type": "number"
+                },
+                "f_equal": {
+                  "description": "параметр для определения f_delta: f < f_equal ? f_delta_left : f_delta_right",
+                  "type": "number"
+                },
+                "f_init": {
+                  "description": "минимальная доля, при которой не происходит расчет по формуле баланса",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "fs_coef_chain": {
+                  "description": "множитель для free_chain в скорости изменения пинов для уравнении баланса",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "fs_coef_total": {
+                  "description": "множитель для total в скорости изменения пинов для уравнении баланса",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "fs_intercept": {
+                  "description": "свободный член для скорости изменения пинов в уранении баланса",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "min_pins": {
+                  "description": "минимальное число пинов для подсчета сурджа на основе уравнения баланса",
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "min_total": {
+                  "description": "минимальное число машина для подсчета сурджа на основе уравнения баланса. Активно только для эконома",
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "reposition_discount": {
+                  "description": "множитель для водителей, находящихся в reposition, в расчете surge",
+                  "maximum": 1.0,
+                  "minimum": 0.0,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "min_pins",
+                "f_init",
+                "f_equal",
+                "f_delta_left",
+                "f_delta_right",
+                "add_free",
+                "add_total",
+                "fs_intercept",
+                "fs_coef_chain",
+                "fs_coef_total"
+              ],
+              "type": "object"
+            },
+            "min_pins": {
+              "description": "минимальное число пинов для подсчета сурджа на основе уравнения баланса",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_total": {
+              "description": "минимальное число машина для подсчета сурджа на основе уравнения баланса. Активно только для эконома",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "ps_corr": {
+              "additionalProperties": false,
+              "description": "Настройки корректировки конверсии",
+              "properties": {
+                "coef": {
+                  "description": "Коэффициент корректировки конверсии",
+                  "type": "number"
+                },
+                "enabled": {
+                  "description": "Включить корректировку конверсии",
+                  "type": "boolean"
+                },
+                "max_corr": {
+                  "description": "Максимальная коррекция",
+                  "type": "number"
+                },
+                "min_corr": {
+                  "description": "Минимальная коррекция",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "enabled",
+                "min_corr",
+                "max_corr",
+                "coef"
+              ],
+              "type": "object"
+            },
+            "reposition_discount": {
+              "description": "множитель для водителей, находящихся в reposition, в расчете surge",
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            "script": {
+              "description": "название скрипта уравнения баланса",
+              "type": "string"
+            },
+            "surcharge_step": {
+              "description": "Шаг сурчарджа",
+              "minimum": 0,
+              "type": "number"
+            },
+            "table_coef_ps": {
+              "description": "таблица соотвествия p(s) и сурджа",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "alpha": {
+                    "default": 1,
+                    "description": "коэффициент надбавки",
+                    "type": "number"
+                  },
+                  "beta": {
+                    "default": 0,
+                    "description": "коэффициент надбавки",
+                    "type": "number"
+                  },
+                  "coeff": {
+                    "description": "значение суржа",
+                    "exclusiveMinimum": true,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "ps": {
+                    "description": "p(s)",
+                    "exclusiveMinimum": true,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "ps_b": {
+                    "description": "p(s) для пинов с точкой B",
+                    "exclusiveMinimum": true,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "surcharge": {
+                    "default": 0,
+                    "description": "слагаемое надбавки",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "coeff",
+                  "ps"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "utilization_for_non_econom": {
+              "default": false,
+              "description": "включать ли функцию утилизацию для классов, отличных от базового",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "table_coef_ps",
+            "min_pins",
+            "f_init",
+            "f_equal",
+            "f_delta_left",
+            "f_delta_right",
+            "add_free",
+            "add_total",
+            "fs_intercept",
+            "fs_coef_chain",
+            "fs_coef_total"
+          ],
+          "type": "object"
+        }
+      },
+      {
+        "name": "base_class",
+        "schema": {
+          "type": "string"
+        }
+      }
+    ],
+    "return_value": {
+      "schema": {
+        "additionalProperties": false,
+        "properties": {
+          "class_info": {
+            "additionalProperties": false,
+            "properties": {
+              "calculation_meta": {
+                "additionalProperties": false,
+                "properties": {
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "type": "object"
+              },
+              "name": {
+                "type": "string"
+              },
+              "surge": {
+                "additionalProperties": false,
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "value"
+                ],
+                "type": "object"
+              },
+              "value_raw": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "name",
+              "surge",
+              "value_raw",
+              "calculation_meta"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "class_info"
+        ],
+        "type": "object"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+id: error
+title: errors in int-api
+
+parameters:
+  - error:
+      - code: 400
+        message: bad request
+      - code: 500
+        message: server error
+
+source:
+    request:
+        method: post
+        url: /fleet/integration/turboapp/v1/orders/commit
+        headers:
+            X-YaTaxi-UserId: user_id
+            X-Park-Id: park_id
+        body:
+            some: request
+    expectations:
+        response:
+            status-code#xget: /test-params/error/code
+            body:
+                error#xget: /test-params/error/message
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code#xget: /test-params/error/code
+        body:
+            error#xget: /test-params/error/message
+    expectations:
+        call-count: 1

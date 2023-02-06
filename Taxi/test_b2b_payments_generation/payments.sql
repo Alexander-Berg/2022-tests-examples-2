@@ -1,0 +1,20 @@
+INSERT INTO signalq_billing.b2b_payments_info
+(
+    tin,
+    payments_date,
+    active_devices_count,
+    details,
+    payment_amount,
+    created_at,
+    updated_at 
+)
+VALUES
+(
+    'tin1',
+    '2021-10-01',
+    2,
+    'serial_number,amount\ns11,40.0000\ns12,40.0000\n',
+    '80.0000',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);

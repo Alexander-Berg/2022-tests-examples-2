@@ -1,0 +1,90 @@
+default:
+    __default__:
+        chunk_size: 20000
+        one_run_limit: 500000
+        stat_intervals:
+            1min:
+                till_days_from_now: 14
+            1hour:
+                till_days_from_now: 60
+            1day:
+                till_days_from_now: 182
+    aggregated_stat:
+        1min:
+          - till_days_from_now: 7
+            names:
+              - backlog_average_by_line_and_status
+
+
+description: Настройки гибкой очистки агрегированной статы
+tags: []
+schema:
+    type: object
+    properties:
+        __default__:
+            type: object
+            additionalProperties: false
+            properties:
+                chunk_size:
+                    $ref: "#/definitions/ChunkSize"
+                one_run_limit:
+                    $ref: "#/definitions/OneRunLimit"
+                stat_intervals:
+                    type: object
+                    additionalProperties:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            till_days_from_now:
+                                $ref: "#/definitions/TillDaysFromNow"
+                        required:
+                          - till_days_from_now
+
+            required:
+              - chunk_size
+              - one_run_limit
+              - stat_intervals
+
+    additionalProperties:
+        $ref: "#/definitions/TableFlushConditions"
+
+
+    definitions:
+        TableFlushConditions:
+            type: object
+            additionalProperties:
+                $ref: "#/definitions/StatIntervalConditions"
+
+        StatIntervalConditions:
+            type: array
+            items:
+                type: object
+                properties:
+                    till_days_from_now:
+                        $ref: "#/definitions/TillDaysFromNow"
+                    names:
+                        $ref: "#/definitions/CalculatorNames"
+                required:
+                  - till_days_from_now
+
+        ChunkSize:
+            description: Размер чанка (один запрос)
+            type: integer
+            minimum: 0
+
+        OneRunLimit:
+            description: Максимальное количество удаленных записей за 1 запуск крон-таски
+            type: integer
+            minimum: 0
+
+        TillDaysFromNow:
+            description: Сколько дней храним стату
+            type: integer
+            minimum: 0
+
+        CalculatorNames:
+            description: См. поле 'name' в базе. Удалятся будут только эти события
+            type: array
+            items:
+                type: string
+            minItems: 1

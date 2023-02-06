@@ -1,0 +1,59 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+sources:
+  - id: ext-source
+    content-type: application/json
+    resource: test-resource
+    body#object:
+      - key: foo
+        value#string: bar
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#object:
+      - key: data
+        value#get:
+            object#source-response-body: ext-source
+            key#string: data-from-ext-handler
+      - key: exp
+        enabled#experiment-effective: test_experiment
+        value#get:
+            object#source-response-body: ext-source
+            key#string: experiment-value
+experiments:
+    consumer: api-proxy/tc_3_0_paymentmethods
+    kwargs:
+      - key: foo1
+        value#boolean: true
+        type: boolean
+        whitelisted: true
+      - key: foo2
+        value#request-header: X-Test-Header
+        type: string
+        whitelisted: true
+      - key: foo3
+        value#get:
+            key#string: property
+            object#request-body: {}
+        enabled#contains:
+            key#string: property
+            object#request-body: {}
+        type: string
+        whitelisted: true
+      - key: foo4
+        value:
+          - 55.42
+          - 37.43
+        type: point
+        whitelisted: true
+      - key: foo5
+        value: "55.42, 37.43"
+        type: point
+        whitelisted: true
+      - key: foo6
+        value:
+            lon: 55.42
+            lat: 37.43
+        type: point
+        whitelisted: true

@@ -1,0 +1,5 @@
+START TRANSACTION;
+
+ALTER TABLE clownductor.branches ADD COLUMN endpointsets JSONB NOT NULL DEFAULT '[]'::JSONB;
+
+COMMIT;

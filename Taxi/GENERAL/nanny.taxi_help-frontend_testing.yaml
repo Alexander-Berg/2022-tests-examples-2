@@ -1,0 +1,194 @@
+group:
+  type: rtc
+  name: taxi_help-frontend_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  help-frontend.taxi.tst.yandex.net/ping_GET:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.net" }
+      - Equals: { request_method: "GET" }
+      - Or:
+        - Equals: {request_url: "/ping"}
+        - Equals: {request_url: "/ping/"}
+        - StartsWith: {request_url: "/ping?"}
+        - StartsWith: {request_url: "/ping/?"}
+
+  help-frontend.taxi.tst.yandex.ru:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      
+      # nginx proxy_pass
+      - Not: [StartsWith: { request_url: "/utils/" }]
+      - Not: [StartsWith: { request_url: "/3.0/" }]
+      - Not: [StartsWith: { request_url: "/eats/v1/support_chat/" }]
+      - Not: [StartsWith: { request_url: "/lavka_storages/" }]
+      - Not: [StartsWith: { request_url: "/uc/" }]
+      - Not: [StartsWith: { request_url: "/api/restapp/" }]
+      - Not: [StartsWith: { request_url: "/api/b2b/" }]
+      
+      # nodejs proxy
+      - Not: [StartsWith: { request_url: "/4.0/" }]
+      - Not: [StartsWith: { request_url: "/api/yp/" }]
+
+      # nodejs internal api
+      - Not: [StartsWith: { request_url: "/api/help/" }]
+      - Not: [StartsWith: { request_url: "/api/help-uber/" }]
+
+      # ping
+      - Not: [StartsWith: { request_url: "/ping" }]
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  help-frontend.taxi.tst.yandex.ru_nodejs_proxy:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - Or:
+        - StartsWith: { request_url: "/4.0/" }
+        - StartsWith: { request_url: "/api/yp/" }
+
+  help-frontend.taxi.tst.yandex.ru_nodejs_internal_api:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - Or:
+        - StartsWith: { request_url: "/api/help/" }
+        - StartsWith: { request_url: "/api/help-uber/" }
+
+  help-frontend.taxi.tst.yandex.ru_nginx_proxy_pass:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - Or:
+        - StartsWith: { request_url: "/utils/" }
+        - StartsWith: { request_url: "/3.0/" }
+        - StartsWith: { request_url: "/eats/v1/support_chat/" }
+        - StartsWith: { request_url: "/lavka_storages/" }
+        - StartsWith: { request_url: "/uc/" }
+        - StartsWith: { request_url: "/api/restapp/" }
+        - StartsWith: { request_url: "/api/b2b/" }
+
+  # ridetech
+  help-frontend.taxi.tst.yandex.ru/ridetech/uber/pa/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/uber/pa/" }
+
+  help-frontend.taxi.tst.yandex.ru/ridetech/vezet/pa/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/vezet/pa/" }
+
+  help-frontend.taxi.tst.yandex.ru/ridetech/yandex/pa/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/yandex/pa/" }
+  
+  help-frontend.taxi.tst.yandex.ru/ridetech/yandex/yp/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/yandex/yp/" }
+
+  help-frontend.taxi.tst.yandex.ru/ridetech/yandex/ya/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/yandex/ya/" }
+
+  help-frontend.taxi.tst.yandex.ru/ridetech/yango/pa/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/yango/pa/" }
+
+  help-frontend.taxi.tst.yandex.ru/ridetech/yango/ya/*/:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ridetech/yango/ya/" }
+
+  # ecom
+  help-frontend.taxi.tst.yandex.ru/ecom/yandex/yp/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ecom/yandex/yp/" }
+
+  help-frontend.taxi.tst.yandex.ru/ecom/yango/ylb/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/ecom/yango/ylb/" }
+
+  # media
+  help-frontend.taxi.tst.yandex.ru/media/yandex/yp/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/media/yandex/yp/" }
+
+  # delivery
+  help-frontend.taxi.tst.yandex.ru/delivery/yandex/yp/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/delivery/yandex/yp/" }
+
+  help-frontend.taxi.tst.yandex.ru/delivery/yandex/da/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/delivery/yandex/da/" }
+
+  # foodtech
+  help-frontend.taxi.tst.yandex.ru/foodtech/yandex/pa/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yandex/pa/" }
+
+  help-frontend.taxi.tst.yandex.ru/foodtech/yandex/ea/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yandex/ea/" }
+
+  help-frontend.taxi.tst.yandex.ru/foodtech/yandex/qbt/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yandex/qbt/" }
+
+  help-frontend.taxi.tst.yandex.ru/foodtech/yandex/ya/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yandex/ya/" }
+
+  help-frontend.taxi.tst.yandex.ru/foodtech/yandex/xt/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yandex/xt/" }
+
+  help-frontend.taxi.tst.yandex.ru/foodtech/yango/pa/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yango/pa/" }
+
+  help-frontend.taxi.tst.yandex.ru/foodtech/yango/ya/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/foodtech/yango/ya/" }
+
+  # hiring
+  help-frontend.taxi.tst.yandex.ru/hiring/yandex/yp/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/hiring/yandex/yp/" }
+
+  # common-doc
+  help-frontend.taxi.tst.yandex.ru/common-doc/yandex/no/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/common-doc/yandex/no/" }
+
+  help-frontend.taxi.tst.yandex.ru/common-doc/yango/no/*:
+    And:
+      - Equals: { http_host: "help-frontend.taxi.tst.yandex.ru" }
+      - StartsWith: { request_url: "/common-doc/yango/no/" }

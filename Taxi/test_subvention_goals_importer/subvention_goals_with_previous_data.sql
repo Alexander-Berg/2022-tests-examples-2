@@ -1,0 +1,13 @@
+INSERT INTO eats_performer_subventions.performer_subvention_order_goals
+(source, performer_id, starts_at, finishes_at, timezone, status, target_orders_count, actual_orders_count, money_to_pay, currency,  performer_group,
+ last_checked_at, created_at, updated_at)
+VALUES ('yt_dxgy', '1', '2022-02-01T00:00:00+03:00', '2022-02-07T23:59:59+03:00', 'Europe/Moscow', 'in_progress', 34, 0, 9217, 'rub', 'send', NULL,
+        '2022-01-01 00:00:00', '2022-01-01 00:00:00'),
+       ('yt_dxgy', '2', '2022-02-02T00:00:00+03:00', '2022-01-07T23:59:59+03:00', 'Europe/Moscow', 'finished', 66, 0, 8233, 'rub', 'not_send',
+        '2022-01-07 00:00:00', '2022-01-01 00:00:00', '2021-01-01 00:00:00'),
+       ('yt_dxgy', '3', '2022-02-03T00:00:00+03:00', '2022-01-07T23:59:59+03:00', 'Europe/Moscow', 'failed', 97, 0, 6793, 'rub', 'not_send', '2021-01-07T00:00:00+03:00',
+        '2022-01-01 00:00:00', '2022-01-01 00:00:00'),
+       ('yt_dxgy', '4', '2022-02-04T00:00:00+05:00', '2022-02-09T23:59:59+05:00', 'Asia/Yekaterinburg', 'in_progress', 97, 0, 6795, 'rub', 'send', '2021-01-07T00:00:00+05:00',
+        '2022-01-01 00:00:00', '2022-01-01 00:00:00'),
+       ('yt_dxgy', '5', '2022-02-05T00:00:00+03:00', '2022-02-08T23:59:59+03:00', 'Europe/Moscow', 'in_progress', 98, 0, 6796, 'rub', 'send', '2022-02-05T00:00:00+03:00',
+        '2022-01-01 00:00:00', '2022-01-01 00:00:00');

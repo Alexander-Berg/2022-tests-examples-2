@@ -1,0 +1,40 @@
+id: is_lavka_active
+title: Проверяем выбор эндпоинта
+
+parameters:
+  - case:
+      - expected_code: 200
+        expected_response: {"isActive": false}
+      - expected_code: 403
+        expected_response: BAD
+
+source:
+    request:
+        method: get
+        query:
+            personal_phone_id: 52d8dee797f1426fbcd6f20568d1a481
+            minutes_before_shift: 10
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                isActive: true
+                shiftService: lavka
+
+mocks:
+  - resource: lavka-wms-external-couriers-state
+    response:
+        status-code: 200
+        body: {"isActive": true, "shiftService": "lavka"}
+    expectations:
+        call-count: 1
+        request:
+            body: {"personal_phone_id": "52d8dee797f1426fbcd6f20568d1a481", "minutes_before_shift": 10}
+  - resource: eats-performer-shifts-courier-shift-states-info-retrieve-by-phone-get
+    response:
+        status-code#xget: /test-params/case/expected_code
+        body#xget: /test-params/case/expected_response
+    expectations:
+        call-count: 1

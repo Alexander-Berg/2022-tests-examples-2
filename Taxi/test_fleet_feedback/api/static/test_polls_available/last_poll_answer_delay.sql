@@ -1,0 +1,74 @@
+INSERT INTO fleet_feedback.polls
+(
+    "id",
+    "type",
+    "started_at",
+    "offset",
+    "periodicity",
+    "enable",
+    "distribution_duration",
+    "filters",
+    "type_settings",
+    "created_at",
+    "updated_at"
+)
+VALUES
+(
+    '1',
+    'main',
+    '2019-01-01T00:00:00+03:00',
+    0,
+    0,
+    true,
+    null,
+    null,
+    '{"questions": [{"id": "1", "text_key": "fleet_polls.questions_1"}, {"id": "2", "text_key": "fleet_polls.questions_2"}, {"id": "3", "text_key": "fleet_polls.questions_3"}], "labels": { "title": "fleet_polls.title", "button": "fleet_polls.button", "comment": "fleet_polls.comment"}}'::jsonb,
+    '2019-01-01T00:00:00+03:00',
+    '2019-01-01T00:00:00+03:00'
+),
+(
+    '2',
+    'main',
+    '2019-01-01T00:00:00+03:00',
+    0,
+    0,
+    true,
+    null,
+    null,
+    '{"questions": [{"id": "1", "text_key": "fleet_polls.questions_1"}, {"id": "2", "text_key": "fleet_polls.questions_2"}, {"id": "3", "text_key": "fleet_polls.questions_3"}], "labels": { "title": "fleet_polls.title", "button": "fleet_polls.button", "comment": "fleet_polls.comment"}}'::jsonb,
+    '2019-01-01T01:00:00+03:00',
+    '2019-01-01T01:00:00+03:00'
+);
+
+INSERT INTO fleet_feedback.poll_answers
+(
+    "id",
+    "park_id",
+    "poll_id",
+    "poll_type",
+    "passport_uid",
+    "user_group",
+    "user_is_superuser",
+    "country_id",
+    "city_eng",
+    "type_data",
+    "yt_status",
+    "created_at",
+    "updated_at"
+)
+VALUES
+(
+    1,
+    '7ad36bc7560449998acbe2c57a75c293',
+    1,
+    'main',
+    '123',
+    'test_user_group',
+    true,
+    'rus',
+    'Moscow',
+    '{"rating": 5, "comment": null, "additional_questions": [{"id": "1", "rating": 4}, {"id": "2", "rating": 3}, {"id": "3", "rating": 5}]}',
+    0,
+    '2019-01-01T00:00:00+03:00',
+    '2019-01-01T00:00:00+03:00'
+);

@@ -1,0 +1,549 @@
+<test>
+    <variables>
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="method">
+            <instance id="sessionid">sessionid</instance>
+            <instance id="editsession">editsession</instance>
+            <instance id="decrease_sessionid_lifetime">decrease_sessionid_lifetime</instance>
+        </cgi>
+
+        <cgi name="format">
+            <instance id="xml">xml</instance>
+            <instance id="json">json</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="internal">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">yandex.ru</instance>
+        </cgi>
+
+        <cgi name="op">
+            <instance id="add">add</instance>
+        </cgi>
+
+        <cgi name="keyspace">
+            <instance id="ru">yandex.ru</instance>
+        </cgi>
+
+        <cgi name="uid">
+            <instance id="some_uid">70500</instance>
+        </cgi>
+<!--
+    we look at uids: 10015, 10016, 1130000000000015, 1130000000000016
+    authid ip is 95.108.148.135 (clean, goodip) and 8.8.8.8 (logouted, badip)
+
+    for users 10015 and 1130000000000015 we set logout time to now-10 (baduid, badpdd -> logouted)
+    for users 10016 and 1130000000000016 we set logout time to now+60 (gooduid, goodpdd -> not logouted)
+
+    for each uid we create session before logout (now-110) and after logout (now-5)
+    then check that usert who relogined after logout time are fine
+    and sessions created/logined before are logouted for user with now-10 (logouted)
+    -->
+        <cgi name="sessionid" func="gensessid">
+            <arg name="type">valid</arg>
+            <arg name="host">yandex.ru</arg>
+            <arg name="flag">permanent</arg>
+            <arg name="authtime">1432300000000</arg>
+            <arg name="authid">7f</arg>
+
+            <!-- single user cookies, good authid -->
+
+            <instance id="gooduid_single_before_logout_goodip">
+                <arg name="uid">10016</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+            <instance id="gooduid_single_after_logout_goodip">
+                <arg name="uid">10016</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+
+            <instance id="baduid_single_before_logout_goodip">
+                <arg name="uid">10015</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+            <instance id="baduid_single_after_logout_goodip">
+                <arg name="uid">10015</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+
+            <instance id="goodpdd_single_before_logout_goodip">
+                <arg name="uid">1130000000000016</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+            <instance id="goodpdd_single_after_logout_goodip">
+                <arg name="uid">1130000000000016</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+
+            <instance id="badpdd_single_before_logout_goodip">
+                <arg name="uid">1130000000000015</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+            <instance id="badpdd_single_after_logout_goodip">
+                <arg name="uid">1130000000000015</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+            </instance>
+
+            <!-- single user cookies, bad authid -->
+
+            <instance id="gooduid_single_before_logout_badip">
+                <arg name="uid">10016</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+            <instance id="gooduid_single_after_logout_badip">
+                <arg name="uid">10016</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+
+            <instance id="baduid_single_before_logout_badip">
+                <arg name="uid">10015</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+            <instance id="baduid_single_after_logout_badip">
+                <arg name="uid">10015</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+
+            <instance id="goodpdd_single_before_logout_badip">
+                <arg name="uid">1130000000000016</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+            <instance id="goodpdd_single_after_logout_badip">
+                <arg name="uid">1130000000000016</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+
+            <instance id="badpdd_single_before_logout_badip">
+                <arg name="uid">1130000000000015</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+            <instance id="badpdd_single_after_logout_badip">
+                <arg name="uid">1130000000000015</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+            </instance>
+
+            <!-- multi user cookies, good authid -->
+
+            <instance id="gooduid_multi_before_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">10016</arg>
+            </instance>
+            <instance id="gooduid_multi_after_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">10016</arg>
+            </instance>
+
+            <instance id="baduid_multi_before_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">10015</arg>
+            </instance>
+            <instance id="baduid_multi_after_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">10015</arg>
+            </instance>
+
+            <instance id="goodpdd_multi_before_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">1130000000000016</arg>
+            </instance>
+            <instance id="goodpdd_multi_after_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">1130000000000016</arg>
+            </instance>
+
+            <instance id="badpdd_multi_before_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">1130000000000015</arg>
+            </instance>
+            <instance id="badpdd_multi_after_logout_goodip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">95.108.148.135</arg>
+                <arg name="uid_1">1130000000000015</arg>
+            </instance>
+
+            <!-- multi user cookies, bad authid -->
+
+            <instance id="gooduid_multi_logouted_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10016</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+            <instance id="gooduid_multi_logouted_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10016</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+
+            <instance id="baduid_multi_logouted_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10015</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+            <instance id="baduid_multi_logouted_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10015</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+
+            <instance id="goodpdd_multi_logouted_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000016</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+            <instance id="goodpdd_multi_logouted_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000016</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+
+            <instance id="badpdd_multi_logouted_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000015</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+            <instance id="badpdd_multi_logouted_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000015</arg>
+                <arg name="login_time_1">-160</arg>
+            </instance>
+
+            <instance id="gooduid_multi_relogined_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10016</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+            <instance id="gooduid_multi_relogined_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10016</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+
+            <instance id="baduid_multi_relogined_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10015</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+            <instance id="baduid_multi_relogined_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">10015</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+
+            <instance id="goodpdd_multi_relogined_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000016</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+            <instance id="goodpdd_multi_relogined_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000016</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+
+            <instance id="badpdd_multi_relogined_old_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-110</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000015</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+            <instance id="badpdd_multi_relogined_new_badip">
+                <arg name="uid">70502</arg>
+                <arg name="time">-5</arg>
+                <arg name="authip">8.8.8.8</arg>
+                <arg name="uid_1">1130000000000015</arg>
+                <arg name="login_time_1">-2</arg>
+            </instance>
+
+        </cgi>
+
+        <header name="X-Ya-Service-Ticket" func="get_service_ticket">
+            <instance id="passport_dev">
+                <arg name="dst">242</arg>
+            </instance>
+        </header>
+
+        <result name="id_valid">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+            </body>
+        </result>
+
+        <result name="id_created">
+            <body func="matchxpath">
+                <arg name="count(/doc/default_uid)">1</arg>
+                <arg name="count(/doc/new-session[@domain='.yandex.ru'])">1</arg>
+                <arg name="count(/doc/authid/@time)">1</arg>
+            </body>
+        </result>
+
+        <result name="id_logged_out">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='5']">INVALID</arg>
+                <arg name="/doc/error" comp="starts_with">session logged out</arg>
+            </body>
+        </result>
+
+        <result name="id_invalid_params">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Sessionid cookie not valid: session logged out</arg>
+            </body>
+        </result>
+
+        <result name="valid_decreesed_session">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session" func="checksessid">
+                    <arg name="uid">10016</arg>
+                    <arg name="host">yandex.ru</arg>
+                    <arg name="time">-259200</arg>
+                    <arg name="flag">permanent</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session" func="checksessid">
+                    <arg name="uid">10016</arg>
+                    <arg name="host">yandex.ru</arg>
+                    <arg name="time">-259200</arg>
+                    <arg name="flag">permanent</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </jsonBody>
+        </result>
+        <result name="invalid_decreesed_session">
+            <body func="matchxpath">
+                <arg name="/doc/status">INVALID</arg>
+                <arg name="/doc/comment">session was glogouted</arg>
+                <arg name="/doc/new-session"></arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">INVALID</arg>
+                <arg name="/comment">session was glogouted</arg>
+                <arg name="/new-session"></arg>
+            </jsonBody>
+        </result>
+
+    </variables>
+
+    <node>
+        <description> Blackbox test for logouted sessions</description>
+        <url>http://passdev-precise64.yandex.net</url>
+        <pre-test>
+        set -e
+        if [ -z $RECIPE_SESSKILL_PORT ]; then
+            T=`date +%s`;
+            stmt="BEGIN BATCH"
+            for uid in 10015 1130000000000015; do
+                stmt+=" INSERT INTO blackbox.ses_kills (authid,uid,ts) VALUES ('1432300000000:CAgICA:7f',$uid,$(($T-10))) USING TTL 600;"
+            done
+            for uid in 10016 1130000000000016; do
+                stmt+=" INSERT INTO blackbox.ses_kills (authid,uid,ts) VALUES ('1432300000000:CAgICA:7f',$uid,$(($T+60))) USING TTL 600;"
+            done
+            stmt+=" APPLY BATCH;"
+            cqlsh -e "$stmt" ufo-test.sezam.yandex.net
+            echo "Done writing to cassandra, errcode" $?
+        fi
+        </pre-test>
+
+        <case lastid="sessionid">
+            <description>Testing method=sessionid</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="sessionid">*</cgi>
+
+            <check>
+                <cgi name="sessionid">
+                    <!-- single user with clean session id ==> all valid -->
+                    gooduid_single_before_logout_goodip; gooduid_single_after_logout_goodip;
+                    baduid_single_before_logout_goodip; baduid_single_after_logout_goodip;
+                    goodpdd_single_before_logout_goodip; goodpdd_single_after_logout_goodip;
+                    badpdd_single_before_logout_goodip; badpdd_single_after_logout_goodip;
+
+                    <!-- single user with logouted session id ==> all valid except baduid/badpdd who logouted before lag -->
+                    gooduid_single_before_logout_badip; gooduid_single_after_logout_badip;
+                    goodpdd_single_before_logout_badip; goodpdd_single_after_logout_badip;
+
+                    <!-- multi user with clean session id ==> all valid -->
+                    gooduid_multi_before_logout_goodip; gooduid_multi_after_logout_goodip;
+                    baduid_multi_before_logout_goodip; baduid_multi_after_logout_goodip;
+                    goodpdd_multi_before_logout_goodip; goodpdd_multi_after_logout_goodip;
+                    badpdd_multi_before_logout_goodip; badpdd_multi_after_logout_goodip;
+
+                    <!-- multi user with logouted session id who relogined later ==> all valid -->
+                    gooduid_multi_relogined_old_badip; gooduid_multi_relogined_new_badip;
+                    baduid_multi_relogined_old_badip; baduid_multi_relogined_new_badip;
+                    goodpdd_multi_relogined_old_badip; goodpdd_multi_relogined_new_badip;
+                    badpdd_multi_relogined_old_badip; badpdd_multi_relogined_new_badip;
+
+                    <!-- multi user with logouted session id who didn't relogin ==> kill baduid/badpdd no matter if cookie is fresh -->
+                    gooduid_multi_logouted_old_badip; gooduid_multi_logouted_new_badip;
+                    goodpdd_multi_logouted_old_badip; goodpdd_multi_logouted_new_badip;
+
+                </cgi>
+                <result>id_valid</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">
+                    baduid_single_before_logout_badip; baduid_single_after_logout_badip;
+                    badpdd_single_before_logout_badip; badpdd_single_after_logout_badip;
+
+                    baduid_multi_logouted_old_badip; baduid_multi_logouted_new_badip;
+                    badpdd_multi_logouted_old_badip; badpdd_multi_logouted_new_badip;
+                </cgi>
+                <result>id_logged_out</result>
+            </check>
+
+        </case>
+
+        <case lastid="editsession">
+            <description>Testing method=editsession</description>
+            <path>blackbox</path>
+            <cgi name="method">editsession</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="sessionid">*</cgi>
+            <cgi name="op">*</cgi>
+            <cgi name="uid">*</cgi>
+
+            <check>
+                <cgi name="sessionid">
+                    <!-- single user with clean session id ==> all valid -->
+                    gooduid_single_before_logout_goodip; gooduid_single_after_logout_goodip;
+                    baduid_single_before_logout_goodip; baduid_single_after_logout_goodip;
+                    goodpdd_single_before_logout_goodip; goodpdd_single_after_logout_goodip;
+                    badpdd_single_before_logout_goodip; badpdd_single_after_logout_goodip;
+
+                    <!-- single user with logouted session id ==> all valid except baduid/badpdd who logouted before lag -->
+                    gooduid_single_before_logout_badip; gooduid_single_after_logout_badip;
+                    goodpdd_single_before_logout_badip; goodpdd_single_after_logout_badip;
+
+                    <!-- multi user with clean session id ==> all valid -->
+                    gooduid_multi_before_logout_goodip; gooduid_multi_after_logout_goodip;
+                    baduid_multi_before_logout_goodip; baduid_multi_after_logout_goodip;
+                    goodpdd_multi_before_logout_goodip; goodpdd_multi_after_logout_goodip;
+                    badpdd_multi_before_logout_goodip; badpdd_multi_after_logout_goodip;
+
+                    <!-- multi user with logouted session id who relogined later ==> all valid -->
+                    gooduid_multi_relogined_old_badip; gooduid_multi_relogined_new_badip;
+                    baduid_multi_relogined_old_badip; baduid_multi_relogined_new_badip;
+                    goodpdd_multi_relogined_old_badip; goodpdd_multi_relogined_new_badip;
+                    badpdd_multi_relogined_old_badip; badpdd_multi_relogined_new_badip;
+
+                    <!-- multi user with logouted session id who didn't relogin ==> kill baduid/badpdd no matter if cookie is fresh -->
+                    gooduid_multi_logouted_old_badip; gooduid_multi_logouted_new_badip;
+                    goodpdd_multi_logouted_old_badip; goodpdd_multi_logouted_new_badip;
+
+                </cgi>
+                <result>id_created</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">
+                    baduid_single_before_logout_badip; baduid_single_after_logout_badip;
+                    badpdd_single_before_logout_badip; badpdd_single_after_logout_badip;
+
+                    baduid_multi_logouted_old_badip; baduid_multi_logouted_new_badip;
+                    badpdd_multi_logouted_old_badip; badpdd_multi_logouted_new_badip;
+                </cgi>
+                <result>id_invalid_params</result>
+            </check>
+
+        </case>
+
+        <case>
+            <description>Check method=decrease_sessionid_lifetime</description>
+            <path>blackbox</path>
+            <cgi name="method">decrease_sessionid_lifetime</cgi>
+            <cgi name="sessionid">gooduid_single_before_logout_goodip; baduid_single_before_logout_badip</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <cgi name="sessionid">gooduid_single_before_logout_goodip</cgi>
+                <result>valid_decreesed_session</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">baduid_single_before_logout_badip</cgi>
+                <result>invalid_decreesed_session</result>
+            </check>
+        </case>
+
+    </node>
+</test>

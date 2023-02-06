@@ -1,0 +1,45 @@
+id: 404_order_core
+title: Не нашли заказ в order-core
+source:
+    request:
+        method: post
+        body:
+            id: some_user_id
+            orderid: some_order_id
+            rating: 5
+            msg: 'some_msg'
+            tips:
+                type: flat
+                decimal_value#string: 50
+            call_me: true
+            app_comment: true
+            choices:
+                low_rating_reason: [foo, bar]
+                cancelled_reason: [foo, bar]
+                rating_reason: [foo, bar]
+            created_time: 2020-12-14T13:24:59.799127484+0000
+    expectations:
+        response:
+            status-code: 404
+
+taxi_config:
+    FEEDBACK_SAVE_WITH_API_PROXY: true
+
+mocks:
+  - resource: order-v1-tc-order-fields
+    expectations:
+        request:
+            body:
+                order_id: some_order_id
+                fields:
+                  - order.created
+                  - order.nz
+                  - order.performer.driver_license_personal_id
+                  - order.performer.tariff.currency
+                  - order.personal_phone_id
+                  - order.status
+                  - order.taxi_status
+                  - order.user_phone_id
+                  - reorder.id
+    response:
+        status-code: 404

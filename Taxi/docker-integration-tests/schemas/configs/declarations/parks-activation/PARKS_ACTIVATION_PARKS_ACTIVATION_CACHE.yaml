@@ -1,0 +1,42 @@
+default:
+    statement_db_timeout_ms: 1000
+    network_db_timeout_ms: 1000
+    db_request_limit: 5000
+    missed_revision_ttl: 600
+    between_chunk_sleep: 0
+description: Конфиги кэша активации парков
+tags: []
+schema:
+    type: object
+    properties:
+        network_db_timeout_ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+            description: network таймаут запроса в БД, получающего обновления парков
+        statement_db_timeout_ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+            description: statement таймаут запроса в БД, получающего обновления парков
+        between_chunk_sleep:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 0
+            description: sleep между запросами к базе
+        db_request_limit:
+            type: integer
+            minimum: 1
+            description: максимальное число запрашиваемых парков из базы
+        missed_revision_ttl:
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            minimum: 1
+            description: время жизни пропущенных ревизий
+    required:
+      - statement_db_timeout_ms
+      - network_db_timeout_ms
+      - between_chunk_sleep
+      - db_request_limit
+      - missed_revision_ttl
+    additionalProperties: false

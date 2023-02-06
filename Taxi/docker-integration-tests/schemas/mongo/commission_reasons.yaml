@@ -1,0 +1,203 @@
+settings:
+    collection: commission_reasons
+    connection: subvention_reasons
+    database: dbsubvention_reasons
+indexes:
+  - expireAfterSeconds: 604800
+    key: created
+  - key: order_id
+wiki_info: |
+    #### commission_reasons
+
+    *Назначение: коллекция хранит всю информацию, связанную с выплатой комиссий:
+    все проценты, коэффициенты и прочие настройки, которые были использованы для её вычисления,
+    а также все вычисленные суммы: коммиссия с НДС, без НДС, дополнительная комиссия итд итп.
+
+    Позволяет разобраться в будущем, почему была выплачена та или иная комиссия.
+    И почему именно в таком размере, на основе каких формул и чисел. Льётся в YT.
+
+    На один заказ может быть несколько документов.
+    Уникальные записи по (order_id, created), хотя уникального индекса нет.
+    Есть индекс по order_id.
+    По одной записи на каждый рассчёт или пересчёт комиссии (чаще всего всего одна запись).
+
+    Все числа в коллекции - это изначально питонячий Decimal, переведенный во внутренний формат
+    (целое число, x * 10000).
+
+    *Структура документов:*
+
+
+    ```python
+    {
+        # id записи.
+        'id': '5a8d7c99e48d533003166b8a',
+        # id заказа
+        'order_id': '61585c205a24492b997d9ff7dd253e91',
+        # Дата создания записи в UTC unix timestamp
+        'created': 1519221913.721,
+        # id договора (ObjectId либо unicode)
+        'contract_id': '58b571ddde29f93d658ba539',
+        # тип договора, фактически тип формулы. Пока один из:
+        # 'fixed_percent', 'asymptotic_formula', 'absolute_value', 'pool_htan'
+        # (см commission_manager.py)
+        'contract_type': 'pool_htan',
+
+        # decimal.Decimal (во внутреннем формате)
+        'cancel_percent': 0,
+        # decimal.Decimal (во внутреннем формате)
+        'commission_with_vat': 250695,
+        # Настройки скидок из сommission_contracts. Для каждого marketing_level есть value.
+        # value - значение скидки во внутреннем формате,
+        # marketing_level - список брендингов, которые должны быть, чтобы получить скидку на комиссию.
+        # Смотри также поле marketing_level.
+        'branding_discounts': [
+          {
+            'marketing_level': [
+              'lightbox'
+            ],
+            'value': 300
+          },
+          {
+            'marketing_level': [
+              'co_branding',
+              'lightbox'
+            ],
+            'value': 500
+          },
+          {
+            'marketing_level': [
+              'sticker'
+            ],
+            'value': 600
+          },
+          {
+            'marketing_level': [
+              'co_branding'
+            ],
+            'value': 500
+          },
+          {
+            'marketing_level': [
+              'sticker',
+              'lightbox'
+            ],
+            'value': 600
+          }
+        ],
+        # decimal.Decimal (во внутреннем формате)
+        'acquiring_percent': 0,
+        # decimal.Decimal (во внутреннем формате)
+        'sum_of_costs': 1230000,
+        # decimal.Decimal (во внутреннем формате)
+        'expired_percent': 1100,
+        # bool
+        'is_billable': True,
+        # decimal.Decimal (во внутреннем формате)
+        'expired_cost': 8000000,
+        # bool
+        'not_billable_user_cancel': False,
+        # decimal.Decimal (во внутреннем формате)
+        'max_order_cost': 150000000,
+        # bool
+        'has_workshift': False,
+        # bool
+        'has_driver_promocode': False,
+        # decimal.Decimal (во внутреннем формате)
+        'extra_commission': 0,
+        # decimal.Decimal (во внутреннем формате)
+        'percent': 0,
+        # bool
+        'has_fixed_cancel_percent': False,
+        # decimal.Decimal (во внутреннем формате)
+        'commission': 212453,
+        # decimal.Decimal (во внутреннем формате)
+        'order_cost': 1240000,
+        # decimal.Decimal (во внутреннем формате)
+        'min_order_cost': 0,
+        # decimal.Decimal (во внутреннем формате)
+        'commission_without_discount_with_vat': 250695,
+        # Виды биллинга. Сейчас всегда только такой. Бывают:
+        # 'normal_billing_type', 'cancel_billing_type', 'expired_billing_type'
+        'billing_type': 'normal_billing_type',
+        # Коэффициенты формулы для конкретного contract_type. Произвольные поляю
+        'extra_data': {
+          'kc': 4000,
+          'max_commission_percent': 1600,
+          'numerator': 3741000,
+          'ks': 27000,
+          'max_rel_profit': 10000,
+          'start_of_dyn_calc_cost': 340920,
+          'asymp': 160000,
+          'max_diff': 20000000,
+          'cost_norm': 107107,
+          'min_rel_profit': 10000
+        },
+        # bool
+        'paid_cancel': False,
+        # decimal.Decimal (во внутреннем формате)
+        'vat': 11800,
+        # Тип оплаты: 'pool', 'card', 'applepay', 'googlepay', 'corp', 'cash'
+        'payment_type': 'pool',
+        # decimal.Decimal (во внутреннем формате)
+        'commission_without_discount': 212453,
+        # decimal.Decimal (во внутреннем формате)
+        'agent_percent': 1,
+        # decimal.Decimal (во внутреннем формате)
+        'corp_vat': None,
+        # decimal.Decimal (во внутреннем формате)
+        'discount': 0,
+        # decimal.Decimal (во внутреннем формате)
+        # Полная цена заказа (для пула), от которой считается субсидия
+        'full_order_cost_for_subvention': 1240000,
+        # decimal.Decimal (во внутреннем формате)
+        'taximeter_payment': 55000,
+        # decimal.Decimal (во внутреннем формате)
+        'callcenter_commission_percent': 15000,
+        # decimal.Decimal (во внутреннем формате)
+        'voucher_commission_percent': 500,
+        # bool
+        'has_commission': True,
+        # decimal.Decimal (во внутреннем формате)
+        'precise_real_cost': 1240000,
+        # bool
+        'not_billable_park_cancel': False,
+        # decimal.Decimal (во внутреннем формате).
+        # Цена от которой считается комиссия
+        'cost_for_commission': 1240000,
+        # int
+        'park_cancel_min_td': 420,
+        # int
+        'user_cancel_min_td': 120,
+        # int
+        'park_cancel_max_td': 600,
+        # int
+        'user_cancel_max_td': 600,
+        # Брендинги водителя на момент заказа. Упорядоченный набор из:
+        # 'lightbox', 'sticker', 'co_branding', 'franchise'
+        'performer_brandings': [
+          'lightbox',
+          'sticker'
+        ],
+        # Брендинги доступные парку на момент заказа. Упорядоченный набор из:
+        # 'lightbox', 'sticker', 'co_branding', 'franchise'
+        'park_brandings': [
+          'lightbox',
+          'sticker',
+          'co_branding'
+        ],
+        # Упорядоченный список, пересечение performer_brandings и park_brandings.
+        # (плюс добавляется 'franchise', если она есть у парка, поскольку performer статуса франшизы не бывает).
+        # По нему считается скидка на комиссию из branding_discounts.
+        'marketing_level': [
+          'sticker',
+          'lightbox'
+        ],
+        # decimal.Decimal (во внутреннем формате).
+        'hacky_commission_without_vat_for_billing': 212453,
+        # decimal.Decimal (во внутреннем формате).
+        'full_order_cost': 1240000
+        },
+        # заказ отменили из статуса ожидание, при этом перешли в ожидание через капчу
+        cancelled_with_captcha: false
+    }
+    ```

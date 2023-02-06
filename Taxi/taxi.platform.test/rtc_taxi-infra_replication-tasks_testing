@@ -1,0 +1,92 @@
+---
+host: taxi_replication-tasks_testing
+telegram: warn_default
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+
+
+services:
+- service: replication-yt-backups
+  # Сервис replication: проверка успешного завершения скрипта YT бекапов
+  # Обращаться к группе хранения и обработки данных
+  flaps:
+    stable_time: 600
+    critical_time: 0
+  telegram: taxi-yt-testing-alerts
+  rtime: 3600
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+- service: replication-archiving-delay
+  # Разница времени последней успешной архивации и текущего момента
+  # Обращаться к группе хранения и обработки данных
+  flaps:
+    stable_time: 600
+    critical_time: 0
+  telegram: taxi-yt-testing-alerts
+  rtime: 600
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+- service: replication-consistency
+  # Сервис replication: совместимость правил репликации с базой и секдистом
+  # Обращаться к группе хранения и обработки данных
+  flaps:
+    stable_time: 600
+    critical_time: 0
+  telegram: taxi-yt-testing-alerts
+  rtime: 600
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+- service: replication-grocery_order_log-delay
+  # Насколько давно не было успешных репликаций истории заказов Лавки
+  # Стафф: https://staff.yandex-team.ru/departments/yandex_rkub_taxi_5151_8501_dep41202_dep48321_dep59572/
+  telegram: grocery-test-alerts
+
+  flaps:
+    stable_time: 600
+    critical_time: 0
+
+  rtime: 600
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+
+- service: replication-hosts-alive
+  # Проверка, что хост жив
+  # Обращаться к группе хранения и обработки данных
+  telegram: taxi-yt-testing-alerts
+  ttl: 1200
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+- service: replication-secrets-daemon
+  # Проверка работоспособности таски с секретами
+  # Обращаться к группе хранения и обработки данных
+  telegram: taxi-yt-testing-alerts
+  ttl: 1200
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%

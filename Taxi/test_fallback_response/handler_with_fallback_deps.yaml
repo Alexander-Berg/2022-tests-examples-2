@@ -1,0 +1,23 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+sources:
+  - id: test-source1
+    content-type: application/json
+    resource: resource1
+    fail-policy:
+      - selector: fallbacking
+        action: fallback
+        fallback: resource-fallback
+  - id: test-source2
+    content-type: application/json
+    resource: resource2
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#xget: /sources/test-source/response/body
+fallbacks:
+  - id: resource-fallback
+    status-code: 200
+    body:
+        fallback#xget: /sources/source2/body

@@ -1,0 +1,17 @@
+\ir 01_initial_schema.sql
+\ir 02_add_invalid_and_hostname_and_tvm_name.sql
+\ir 03_add_output_parameters_cubes.sql
+\ir 04_add_triggers_to_recipes_and_recipes_cubes.sql
+\ir 05_rename_recipes_cubes_into_stages.sql
+\ir 06_cascade_delete_for_stages_table.sql
+\ir 07_add_version_column_to_recipes.sql
+\ir 08_add_change_doc_id_for_jobs.sql
+\ir 09_add_unique_index_idempotency_token_jobs.sql
+\ir 10_add_task_deps_index.sql
+\ir 11_use_update_at_trigger.sql
+\ir 12_tasks_started_at.sql
+\ir 13_tasks_actual_time_total_time.sql
+\ir 14_add_table_entities_types.sql
+\ir 15_add_entity_types_unique_index.sql
+\ir 16_add_task_job_links_table.sql
+\ir 17_jobs_real_time_total_time.sql

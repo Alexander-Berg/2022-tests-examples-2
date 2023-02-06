@@ -1,0 +1,55 @@
+emitter:
+  args:
+    client_id: passport/lbc-logbroker-test
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    per_host_config:
+      '^passport-test-f1.passport.yandex.net$':
+        targets:
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: passport/logbroker-test-testing
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: passport/logbroker-test-testing
+      '^passport-test-s1.passport.yandex.net$':
+        targets:
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: passport/logbroker-test-testing
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: passport/logbroker-test-testing
+      '^passport-test-v1.passport.yandex.net$':
+        targets:
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: passport/logbroker-test-testing
+    workers_count: 10
+  class: passport.backend.logbroker_client.core.consumers.simple.native_emitter.PartitionsCountNativeEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+blackbox:
+  url: https://pass-test.yandex.ru/
+  timeout: 1
+  retries: 2
+  use_tvm: false
+  get_hidden_aliases: false
+passport:
+  url: https://passport-test-internal.yandex.ru
+  timeout: 3
+  retries: 2
+  use_tvm: true
+logpath: /var/log/yandex/logbroker-client/logbroker-test/
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+        message_class: passport.backend.core.protobuf.logbroker_test.logbroker_test_pb2.LogbrokerTestMessage
+      class: passport.backend.logbroker_client.logbroker_test.handler.LogbrokerTestHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.native_worker.NativeLogbrokerWorker
+  count: 10

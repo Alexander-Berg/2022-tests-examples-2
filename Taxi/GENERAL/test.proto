@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package taxi.crm.omnichat;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_package = "ru.yandex.taxi.proto.crm.omnichat.v1";
+option java_multiple_files = true;
+
+// OmniChat service API.
+service OmniChatService {
+
+    // Register message into OmniChat.
+    rpc PutMessage(PutMessageRequest) returns (google.protobuf.Empty) {};
+
+    // Get initial chat page with latest messages
+    rpc GetLastPage(GetLastPageRequest) returns (PagerResponse) {};
+
+    // Receive previous page of messages.
+    rpc GetPrevPage(GetPrevPageRequest) returns (PagerResponse) {};
+
+    // Receive next page of messages.
+    rpc GetNextPage(GetNextPageRequest) returns (PagerResponse) {};
+
+    // Receive next page of messages.
+    rpc RegisterOperator(RegisterOperatorRequest) returns (google.protobuf.Empty) {};
+
+    // Receive next page of messages.
+    rpc UnregisterOperator(UnregisterOperatorRequest) returns (google.protobuf.Empty) {};
+}
+
+message RegisterOperatorRequest {
+
+    string chat_id = 1;
+
+    string operator_id = 2;
+}
+
+message UnregisterOperatorRequest {
+
+    string chat_id = 1;
+
+    string operator_id = 2;
+}
+
+message PutMessageRequest {
+
+    string chat_id = 1;
+
+    Message message = 2;
+}
+
+message GetLastPageRequest {
+
+    string chat_id = 1;
+}
+
+message GetNextPageRequest {
+
+    Pager pager = 1;
+}
+
+message GetPrevPageRequest {
+
+    Pager pager = 1;
+}
+
+message PagerResponse {
+
+    Pager pager = 1;
+
+    repeated Message messages = 2;
+}
+
+message Attachment {
+
+    string url = 1;
+}
+
+message Contact {
+
+    string contact_id = 1;
+
+    string address = 2;
+
+    string display_name = 3;
+}
+
+message Pager {
+
+    // Pager meta
+    string value = 1;
+}
+
+message Message {
+
+    // Message identity
+    string message_id = 1;
+
+    // Message creation timestamp
+    google.protobuf.Timestamp timestamp = 3;
+
+    Contact from = 4;
+
+    Contact to = 5;
+
+    string in_reply_to = 6;
+
+    map<string, string> meta = 7;
+
+    Content content = 8;
+}
+
+message Content {
+
+    string text = 1;
+
+    Attachements attachments = 2;
+}
+
+message Attachements {
+
+    repeated Attachment items = 1;
+}

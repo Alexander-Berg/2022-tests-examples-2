@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:disaster.exports.morda.autotests.yandex.ru"
+            xmlns:ns="urn:disaster.exports.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="disaster_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.AllEntriesDeserializer
+                    &lt;ru.yandex.autotests.morda.exports.disaster.DisasterEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="disaster_v12_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.exports.annotations.MordaExportDescription"
+                                    name="disaster_v12"
+                                    clazz="ru.yandex.autotests.morda.exports.disaster.DisasterV12Export"
+                                    needApprove="false"
+                            />
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.MordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.exports.disaster.DisasterV12Export,
+                    ru.yandex.autotests.morda.exports.disaster.DisasterEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:disaster_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.disaster.DisasterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="disaster_mobile_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.exports.annotations.MordaExportDescription"
+                                    name="disaster_mobile"
+                                    clazz="ru.yandex.autotests.morda.exports.disaster.DisasterMobileExport"
+                                    needApprove="false"
+                            />
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.MordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.exports.disaster.DisasterMobileExport,
+                    ru.yandex.autotests.morda.exports.disaster.DisasterEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:disaster_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.disaster.DisasterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="disaster_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.exports.MordaExportEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithDomain</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithContent</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithGeosAndLang</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="domain" type="xsd:string"/>
+            <xsd:element name="content" type="xsd:string"/>
+            <xsd:element name="lang" type="xsd:string"/>
+            <xsd:element name="geos" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.IntListDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="title" type="xsd:string"/>
+            <xsd:element name="text" type="xsd:string"/>
+            <xsd:element name="link" type="xsd:string"/>
+            <xsd:element name="from" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.FromDateTimeDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="till" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.TillDateTimeDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="popup_flag" type="xsd:int"/>
+            <xsd:element name="popup_text" type="xsd:string"/>
+            <xsd:element name="counter" type="xsd:string"/>
+            <xsd:element name="bgcolor" type="xsd:string"/>
+            <xsd:element name="no_promo" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

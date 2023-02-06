@@ -1,0 +1,346 @@
+insert into eats_nomenclature_collector.brands(
+    id,
+    slug
+)
+values (
+    '1',
+    'brand1'
+),
+(
+    '2',
+    'brand2'
+),
+(
+    '3',
+    'brand3'
+),
+(
+    '4',
+    'brand4'
+);
+
+insert into eats_nomenclature_collector.place_groups(
+    id,
+    name,
+    parser_days_of_week,
+    parser_hours,
+    stop_list_enabled,
+    is_vendor
+)
+values (
+    '1',
+    'place_group1',
+    '1111111',
+    '0:00',
+    true,
+    false
+),
+(
+    '2',
+    'place_group1',
+    '1111111',
+    '0:00',
+    true,
+    false
+),
+(
+    '3',
+    'place_group1',
+    '1111111',
+    '0:00',
+    true,
+    false
+),
+(
+    '4',
+    'place_group1',
+    '1111111',
+    '0:00',
+    true,
+    false
+);
+
+insert into eats_nomenclature_collector.brands_place_groups(
+    brand_id,
+    place_group_id,
+    is_enabled
+)
+values (
+   '1',
+   '1',
+   true
+),
+(
+   '2',
+   '2',
+   true
+),
+(
+   '3',
+   '3',
+   true
+),
+(
+   '4',
+   '4',
+   true
+);
+
+insert into eats_nomenclature_collector.places(
+    id,
+    slug,
+    brand_id,
+    place_group_id,
+    is_enabled,
+    is_parser_enabled
+)
+values (
+   '1',
+   'place1',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '2',
+   'place2',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '3',
+   'place3',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '4',
+   'place4',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '5',
+   'place5',
+   '2',
+   '2',
+   true,
+   true
+),
+(
+   '6',
+   'place6',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '7',
+   'place7',
+   '1',
+   '1',
+   true,
+   false
+),
+(
+   '8',
+   'place8',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '9',
+   'place9',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '10',
+   'place10',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '11',
+   'place11',
+   '1',
+   '1',
+   true,
+   true
+),
+(
+   '12',
+   'place12',
+   '1',
+   '1',
+   true,
+   true
+)
+,
+(
+   '13',
+   'place13',
+   '1',
+   '1',
+   true,
+   true
+);
+
+insert into eats_nomenclature_collector.nomenclature_brand_tasks(
+    id, brand_id, status
+)
+values (
+   'brand-task-1-created',
+   '1',
+   'created'
+),
+(
+   'brand-task-1-failed',
+   '1',
+   'failed'
+),
+(
+   'brand-task-1-finished',
+   '1',
+   'finished'
+),
+(
+   'brand-task-2-finished',
+   '2',
+   'finished'
+),
+(
+   'brand-task-1-processed',
+   '1',
+   'processed'
+);
+
+insert into eats_nomenclature_collector.nomenclature_place_tasks(
+    id, place_id, nomenclature_brand_task_id, status, file_path
+)
+values
+-- tasks with same hash (1)
+(
+   'place_task_1_finished',
+   '1',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test1.json'
+),
+(
+   'place_task_2_finished',
+   '2',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test2.json'
+),
+(
+   'place_task_3_finished',
+   '3',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test3.json'
+),
+(
+   'place_task_6_linked_to_processed',
+   '6',
+   'brand-task-1-processed',
+   'processed',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test1.json'
+),
+(
+   'place_task_8_finished',
+   '8',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test8.json'
+),
+(
+   'place_task_12_finished',
+   '12',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test12.json'
+),
+(
+   'place_task_13_finished',
+   '13',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test13.json'
+),
+-- tasks with same hash (2)
+(
+   'place_task_4_finished',
+   '4',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test4.json'
+),
+(
+   'place_task_10_finished',
+   '10',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test10.json'
+),
+-- tasks with same hash (3)
+(
+   'place_task_5_finished',
+   '5',
+   'brand-task-2-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test5.json'
+),
+-- tasks with same hash (4)
+(
+   'place_task_9_finished',
+   '9',
+   'brand-task-1-finished',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test9.json'
+),
+-- tasks with same hash (5)
+(
+    'place_task_11_finished',
+    '11',
+    'brand-task-1-finished',
+    'finished',
+    'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test11.json'
+),
+-- tasks not taken in processing
+(
+   'place_task_3_linked_to_created',
+   '3',
+   'brand-task-1-created',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test1.json'
+),
+(
+   'place_task_3_linked_to_failed',
+   '3',
+   'brand-task-1-failed',
+   'finished',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test1.json'
+),
+(
+   'place_task_7_linked_to_processed',
+   '7',
+   'brand-task-1-processed',
+   'processed',
+   'https:\/\/eda-integration.s3.mdst.yandex.net\/some_path\/test1.json'
+);

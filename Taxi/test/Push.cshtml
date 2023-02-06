@@ -1,0 +1,165 @@
+﻿@using Yandex.Taximeter.Core.Services.Push
+@model Yandex.Taximeter.Admin.Areas.test.Models.TestPushModel
+@{
+    var allPushTypes = EnumExtensions.GetEnumValues<PushMessageAction>().ToArray();
+    var topicPushTypes = new[]
+    {
+        PushMessageAction.WallChanged,
+        PushMessageAction.DriverSpam
+    };
+}
+@section scripts
+{
+    <script type="text/javascript">
+        $("#@Html.IdFor(x => x.Db)").autocomplete({
+            paramName: "q",
+            serviceUrl: "/services/search",
+            minChars: 1,
+            maxHeight: 220,
+            width: "auto",
+            zIndex: 9999,
+            deferRequestBy: 250,
+            onSelect: function(suggestion) {
+                $("#@Html.IdFor(x => x.Db)").val(suggestion.data);
+            }
+        });
+
+        $("#@Html.IdFor(x => x.Driver)").autocomplete({
+            paramName: "q",
+            serviceUrl: "/services/search/driver",
+            minChars: 1,
+            maxHeight: 220,
+            width: "auto",
+            zIndex: 9999,
+            deferRequestBy: 250,
+            onSearchStart: function() {
+                return {"db": $("#@Html.IdFor(x => x.Db)").val()}
+            },
+            onSelect: function(suggestion) {
+                $("#@Html.IdFor(x => x.Driver)").val(suggestion.data);
+            }
+        });
+
+        $("#btnReset").click(function() {
+            $("#@Html.IdFor(x=>x.Json)").prop("disabled", true).text("");
+        });
+
+        function updateTopicParameter() {
+            var isTopic = $("option:selected", $('.topic-selector')).hasClass('topic-action');
+            if (isTopic) {
+                $('.topic-push-parameter').show();
+            } else {
+                $('.topic-push-parameter').hide();
+                $('.topic-push-parameter').val('');
+            }
+        }
+        
+        $('.topic-selector').on('change', updateTopicParameter);
+        updateTopicParameter();
+    </script>
+}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-sm-offset-2">
+            <h2>Тест отправки пушей</h2>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                @Html.ValidationSummary("Ошибка", new {@class = "alert alert-danger", role = "alert"}, "div")
+            }
+            @using (Html.BeginForm("Push", "Test", FormMethod.Post))
+            {
+                <table class="table table-bordered table-hover table-center">
+                    <colgroup>
+                        <col width="30%"/>
+                        <col width="70%"/>
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <td>
+                            Тип пуша
+                        </td>
+                        <td>
+                            <select class="form-control topic-selector" asp-for="PushType">
+                                <option value="0">---</option>
+                                @{
+                                    foreach (var action in allPushTypes.OrderBy(p => (int) p))
+                                    {
+                                        var isTopicType = topicPushTypes.Contains(action);
+                                        <option value="@((int) action)"
+                                                class="@(isTopicType ? "topic-action" : "")">
+                                            @action (@((int) action))@(isTopicType ? " topic" : "")
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            ID парка
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" asp-for="Db"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            ID водителя
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" asp-for="Driver"/>
+                        </td>
+                    </tr>
+                    <tr class="topic-push-parameter">
+                        <td>
+                            Топик
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" asp-for="Topic"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Провайдер
+                        </td>
+                        <td>
+                            <select class="form-control" asp-for="Provider">
+                                <option value="">Все</option>
+                                <option value="communications">Communications</option>
+                                <option value="client-notify">Client-Notify</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Данные
+                        </td>
+                        <td>
+                            <textarea class="form-control" asp-for="Json" rows="15" cols="80">@Model.Json</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Отправить через очередь (работает только для некоторых пушей)
+                        </td>
+                        <td>
+                            <input type="checkbox" asp-for="UseMessageQueue"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="nav-buttons bottom text-center">
+                    <button type="submit" class="btn btn-success btn-lg">Отправить</button>
+                    <button type="submit" class="btn btn-success btn-lg" id="btnReset">Сформировать</button>
+                </div>
+            }
+            @if (Model.Result != null)
+            {
+                <h3>Результат</h3>
+                <div>
+                    <pre>@Model.Result</pre></div>
+            }
+
+        </div>
+    </div>
+</div>

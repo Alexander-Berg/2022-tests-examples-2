@@ -1,0 +1,37 @@
+#pragma once
+
+#include <tuple>
+
+namespace geobus::test {
+
+inline bool PositionsTestPlugin::PositionCompare::operator()(
+    const types::DriverPosition& first,
+    const types::DriverPosition& second) const {
+  return std::tie(first.signal.timestamp, first.driver_id) <
+         std::tie(second.signal.timestamp, second.driver_id);
+}
+
+inline void PositionsTestPlugin::TestDriverPositionsAreClose(
+    const types::DriverPosition& first, const types::DriverPosition& second,
+    ComparisonPrecision requestedPrecision) {
+  SCOPED_TRACE(__FUNCTION__);
+  TestGpsSignalsAreClose(first.signal, second.signal, requestedPrecision);
+  EXPECT_EQ(first.driver_id, second.driver_id);
+}
+
+template <typename Iterator>
+inline void PositionsTestPlugin::TestDriverPositionsArrayAreEqual(
+    Iterator start1, Iterator end1, Iterator start2, Iterator end2,
+    ComparisonPrecision requestedPrecision) {
+  SCOPED_TRACE(__FUNCTION__);
+  using namespace ::testing;
+  size_t iteration = 0;
+  for (; start1 != end1 && start2 != end2; ++start1, ++start2, ++iteration) {
+    SCOPED_TRACE(std::string("iterarion: ") + std::to_string(iteration));
+    TestDriverPositionsAreClose(*start1, *start2, requestedPrecision);
+  }
+
+  EXPECT_EQ((start1 == end1), (start2 == end2));
+}
+
+}  // namespace geobus::test

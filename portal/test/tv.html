@@ -1,0 +1,218 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %]
+[% ttppspace_in_html_tag=1 %]
+[% space_in_html_tag=1 %]
+<h1>tv + stream</h1>
+<div class="channels">
+<style>
+    .live {
+        width: auto;
+        position: relative;
+        height: 20px;
+        border: 1px solid #ccc;
+        overflow:hidden;
+    }
+    .live span.glyphicon {
+        position: absolute;
+    }
+
+</style>
+</div>
+
+<script src="https://yastatic.net/jquery/3.1.1/jquery.js"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/sockjs/1/sockjs.js"></script>
+<script>
+    let xiva;
+    let connected;
+    let channles;
+    let get_ch;
+    let move = {};
+    let SPEED = 15 ;
+    SockJS.prototype.sendjs = function( data ){
+        console.log('SEND', data);
+
+        this.send( JSON.stringify(data) );
+    }
+
+
+    setInterval( moveEmoji, 50 );
+    let deltaServerMs;
+    try {
+        xiva = SockJS('https://xiva-f5.wdevx.yandex.ru/xiva');
+
+        connected = new Promise((resolve,reject) => {
+            xiva.onopen = function()  {
+                console.info('connection to xiva open');
+                resolve( 'connected' );
+                //xiva.send( JSON.stringify( {'subscribe': [ 'stream_1'] }) );
+            };
+
+        });
+        xiva.onmessage = function( json ){
+            let data;
+            try{
+                data = JSON.parse( json.data );
+
+                if(data.mts){
+                    deltaServerMs = data.mts - (new Date).getTime();
+                }
+
+
+            let ch = data.ch;
+            if( data && data.emoji && !data.ok ){
+                for( let ts in data.emoji ){
+                    for( let type in data.emoji[ts] ){
+                        if( type === 'test' && deltaServerMs){
+                            let serverMts = (new Date()).getTime() + deltaServerMs ;
+
+                            this.send( JSON.stringify( {
+                                "stats" : 1,
+                                "emojiCount": 1,
+                                "emojiTime": (serverMts/1000 - ts) }
+                            ))
+                        }
+                        addEmoji( ch, ts * 1000, type, data.emoji[ts][type] );
+                    }
+                }
+            }
+
+        } catch( e){
+            console.error(e );
+        };
+
+            console.log('message', data );
+       };
+    } catch ( e ){
+        console.error( e );
+    }
+
+    channles = new Promise((resolve,reject) => {
+        jQuery.ajax({
+            url: 'https://frontend.vh.yandex.ru/channels.json',
+            success: function( data ){
+                console.info(data);
+                get_ch = data.set;
+                resolve( get_ch );
+            },
+            error: function( error ){
+                console.log(error);
+                reject(error);
+            }
+        })
+    });
+
+    function add_channel(i, title ){
+        let t =  $('div.stream.template')
+            .clone()
+            .removeClass('template')
+            .addClass('stream_' + i)
+        t.find('.title').html(title);
+        $('.channels').append(t);
+        t.data('channel', 'stream_' + i );
+
+
+    }
+    Promise.all( [connected, channles] ).then( values => {
+        let subscribe = [];
+        $( get_ch ).each( (i, el) => {
+
+            if( el.channel_type == 'regional' && !el.title.match(/ТЕСТ/)){
+                subscribe.push( 'stream_' + el.channel_id );
+                add_channel( el.channel_id, el.title );
+            }
+
+        });
+        xiva.sendjs({'subscribe': subscribe})
+    });
+    $('.channels').on('click', '.send button',
+        function(){
+            let str = $( this ).parents('.stream')
+            let ch = str.data('channel');
+            let emoji = $( this ).data('type');
+            xiva.sendjs({ ch: ch, emoji: emoji });
+            addEmoji( ch, new Date().getTime(), emoji, 1 );
+
+    });
+    function addEmoji( ch, mts, type, size ){
+        if( type === 'test' ) return;
+        if(!move[ch] ){ move[ ch ] = { items: [] } }
+        let item = {
+            mts: mts,
+            type: type,
+            size: size,
+        };
+        let ico = $(`<span class="glyphicon glyphicon-${type}"/>`).css('position', 'relative');
+        item.ico = ico;
+        ico.hide();
+        $('.channels .' + ch +' .live').append(ico);
+        move[ch].items.push(item);
+    }
+    function moveEmoji(){
+        //tick each time, and move each item
+        let mts = new Date().getTime();
+        let w = $('.channels').width()
+        let ico_w;
+        for( let ch in move ){
+            if(move[ch] && move[ch].items && move[ch].items.length ){
+                let items = move[ch].items;
+                for( let i in items ){
+                    let item = items[i];
+                    let ico = item.ico;
+                    ico_w = ico_w || ico.width();
+                    let left = Math.round( (mts - item.mts)  * SPEED / 100 ) / 10 ;
+                    console.log('MOVE', ch, i, left);
+
+                    ico.css('opacity', left / 50);
+                    ico.css('left', w - left - ico_w);
+                    if( !item.state ){
+                        item.state = 1;
+                        ico.show();
+                    } else
+                    if( left > w + 50 ){
+                        ico.hide();
+                    }
+
+                }
+            }
+        }
+    }
+
+
+</script>
+<hr>
+<div class="stream template">
+    <h3 class="title">title </h3>
+    <div class="live">
+    </div>
+    <div class="send">
+        <button class="btn" data-type='search'>
+            <span class="glyphicon glyphicon-search" aria-hidden=""></span>
+        </button>
+        <button class="btn" data-type='fire'>
+            <span class="glyphicon glyphicon-fire" aria-hidden=""></span>
+        </button>
+        <button class="btn" data-type='thumbs-up'>
+            <span class="glyphicon glyphicon-thumbs-up" />
+        </button>
+        <button class="btn" data-type='thumbs-down'>
+            <span class="glyphicon glyphicon-thumbs-down" />
+        </button>
+        <button class="btn" data-type='flash'>
+            <span class="glyphicon glyphicon-flash" />
+        </button>
+        <button class="btn" data-type='test'>
+            <span class="glyphicon glyphicon-dashboard" />
+        </button>
+
+    </div>
+</div>

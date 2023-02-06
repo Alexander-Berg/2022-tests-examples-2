@@ -1,0 +1,49 @@
+file:
+    discover_interval: 5s
+    ignore_older: 1d
+    path: /my/nice/file.log
+    read_interval: 500ms
+    sincedb_path: /var/cache/taxi-pilorama/pilorama-test-service-00-file-log.sincedb
+    start_from_begin: false
+filter:
+    add_from_env:
+      - from: NANNY_SERVICE_ID
+        to: ngroups
+    additions: '"tags":["_pilorama_parsed"]'
+    cgroups: false
+    defaults:
+      - key: type
+        value: log
+    drop_empty_fields: true
+    escaping: escape-all
+    max_read_size: 16777216
+    put_message: true
+    removals:
+      - timestamp
+      - metadata
+      - host
+      - timezone
+      - coro_id
+      - task_id
+      - thread_id
+    renames:
+      - from: _type
+        to: type
+    timezone: 'Europe/Moscow'
+    transform_date: true
+output:
+    balancing_group: main
+    elastic_version: 7
+    error_index: 'errors-yandex-taxi-%Y.%m.%d'
+    hosts:
+      - http://elastic-logs-vla-04.taxi.tst.yandex.net:9200/_bulk
+      - http://elastic-logs-sas-04.taxi.tst.yandex.net:9200/_bulk
+      - http://elastic-logs-vla-05.taxi.tst.yandex.net:9200/_bulk
+      - http://elastic-logs-sas-05.taxi.tst.yandex.net:9200/_bulk
+    index: 'yandex-taxi-rtc-%Y.%m.%d.%H'
+    initial_retry_delay: 500ms
+    limit_all_retries: false
+    max_in_flight_requests: 5
+    max_retries: 5
+    max_retry_delay: 5s
+    send_timeout: 120s

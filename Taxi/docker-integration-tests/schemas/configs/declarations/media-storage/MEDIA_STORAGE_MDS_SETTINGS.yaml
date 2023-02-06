@@ -1,0 +1,42 @@
+default:
+    secret:
+        retries: 1
+        timeout: 1000
+    public:
+        retries: 1
+        timeout: 1000
+description: Настройки доступа к Mds
+tags: []
+schema:
+    type: object
+    properties:
+        secret:
+            description: Настройки доступа в шифрованный Mds
+            $ref: '#/definitions/Mds'
+        public:
+            description: Настройки доступа в публичный Mds
+            $ref: '#/definitions/Mds'
+    required:
+      - public
+      - secret
+    additionalProperties: false
+    definitions:
+        Timeout:
+            description: Настройки таймаута (в мс)
+            type: integer
+            minimum: 50
+            x-taxi-cpp-type: std::chrono::milliseconds
+        Mds:
+            description: Настройки клиент Mds
+            type: object
+            properties:
+                retries:
+                    description: Количество перезапросов к Mds
+                    type: integer
+                    minimum: 1
+                timeout:
+                    $ref: '#/definitions/Timeout'
+            additionalProperties: false
+            required:
+              - retries
+              - timeout

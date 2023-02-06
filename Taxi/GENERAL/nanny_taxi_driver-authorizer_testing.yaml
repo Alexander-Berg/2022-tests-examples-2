@@ -1,0 +1,37 @@
+clownductor_config: taxi:driver-authorizer:testing
+awacs_namespace: driver-authorizer-lb.taxi.tst.yandex.net
+http_hosts:
+  - driver-authorizer.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http_basic
+  - userver_common:
+      uservice_name: &uservice_name driver-authorizer
+      hide:
+        - tvm2
+        - httpclient
+        - redis_client
+        - redis_subscribe_client
+  - userver_redis_client:
+      uservice_name: *uservice_name
+      hide_shard_groups:
+        - taximeter-base
+  - http:
+      methods:
+        - id: driver_session
+          title: /driver_session
+        - id: driver_sessions_check
+          title: /driver/sessions/check
+        - id: GET_driver_sessions
+          title: GET /driver/sessions
+        - id: POST_driver_sessions
+          title: POST /driver/sessions
+        - id: PUT_driver_sessions
+          title: PUT /driver/sessions
+        - id: DELETE_driver_sessions
+          title: DELETE /driver/sessions
+        - id: driver_sessions_expired
+          title: /driver/sessions/expired
+        - id: driver_sessions_bulk_retrieve
+          title: /driver/sessions/bulk_retrieve

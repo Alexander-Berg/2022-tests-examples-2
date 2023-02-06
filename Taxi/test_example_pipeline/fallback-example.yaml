@@ -1,0 +1,57 @@
+module: testsuite_single_pipelines_fallback_example
+operators:
+  - id: main
+    visibility: public
+    value#processing-single-pipeline:
+        scope: testsuite_single_pipelines
+        single_pipeline: fallback_example
+        stq-queue: testsuite_single_pipelines_fallback_example
+        pipeline:
+            shared-state-init:
+                example-key: example-value
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: foo
+                    testpoints:
+                      - testpoint-name: handle-default
+              - id: stage-2
+                handlers:
+                  - id: deadline-fallback
+                    requests:
+                      - id: deadline-fallback-src
+                        resource: deadline-fallback-resource
+                    resources:
+                      - id: deadline-fallback-resource
+                        url: $deadline_fallback_resource_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        deadline-handler-result#xget: /sources/deadline-fallback-src/response/body
+                    handler-fallback-policy:
+                        strategy: deadline
+                        deadline: 5m
+                        result:
+                            deadline-handler-result: {"result": "fallback"}
+                  - id: bar
+                    requests:
+                      - id: example-request-a
+                        resource: example-resource-a
+                    resources:
+                      - id: example-resource-a
+                        url: $example_resource_a
+                        method: get
+                    result:
+                        foo#xget: /sources/example-request-a/response/body/foo
+              - id: stage-3
+                handlers:
+                  - id: baz
+                    requests:
+                      - id: example-request-b
+                        resource: example-resource-b
+                        body:
+                            shared-state#xget: /shared-state
+                    resources:
+                      - id: example-resource-b
+                        url: $example_resource_b
+                        method: post

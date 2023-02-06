@@ -1,0 +1,73 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at,
+    is_drive_device
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'd1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'SERIAL1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE
+);
+
+INSERT INTO signal_device_api.events
+(
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    public_event_id,
+    event_at,
+    event_type,
+    gnss_latitude,
+    gnss_longitude,
+    park_id
+)
+VALUES
+(
+    1,
+    '2027-02-27T23:55:00',
+    '2027-02-27T23:55:00',
+    'id-1',
+    '54b3d7ec-30f6-xxx6-94a8-afs6e8fe404c',
+    '2005-02-26T00:12:59+00:00',
+    'test',
+    54.99550072,
+    72.94622044,
+    'p1'
+);

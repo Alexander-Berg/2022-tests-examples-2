@@ -1,0 +1,32 @@
+{% extends "tasks/view.html" %}
+
+
+{% block additional %}
+    <br />
+    {% if 'requests_per_sec' in task.ctx %}
+    {% set best = task.ctx['requests_per_sec']|sort|last|round(3) %}
+    <h3>Best rps: <b style="color: forestgreen">{{best}}</b></h3>
+    <h4>Execution info:</h4>
+    <div id="release_list_wrap" class="release_list_wrap">
+        {% for resource in task.list_resources('EXECUTOR_STAT', file_mask='thumb_daemon') %}
+  <span>
+    [<a onclick="$('#bl_{{resource.id}}').each(function(i){$(this).toggleClass('collapsed').toggleClass('expanded');});" href="javascript: void(0);">show/hide</a>]&nbsp;
+  </span>
+        <b style="line-height: 1.5em">{{resource.name}} |
+            {% set v = task.ctx['requests_per_sec'][loop.index0] %}
+            <i style="color: {% if v == best %}forestgreen{% else %}firebrick{% endif %}">RPS: {{v}}</i>
+        </b>
+        <br/>
+        {% if resource %}
+        <div class="pre collapsed" id="bl_{{resource.id}}">
+    <pre class="verbose">
+      <span class="resource" id="{{resource.id}}">Loading...</span>
+    </pre>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {% endif %}
+
+{% endblock %}

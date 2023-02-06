@@ -1,0 +1,55 @@
+default:
+    "/v1/categories/get":
+        enable: false
+        dbs: []
+        dbs_disable: []
+    "/v1/categories/set":
+        enable: false
+        dbs: []
+        dbs_disable: []
+description: |
+    Настройки проксирования ручек driver/robot в их аналоги в сервисе
+    driver-categories-api:
+    enable: true - запросы перенаправляются в driver-categories-api, если
+    выполняются условия, иначе - выполняется код C#
+    enable: false - выполняется код C#
+maintainers: [unpaleness, azinoviev]
+tags: [notfallback]
+schema:
+    $ref: '#/definitions/ProxySettingsMap'
+    definitions:
+        ProxySettings:
+            type: object
+            additionalProperties: false
+            required:
+              - enable
+              - dbs
+              - dbs_disable
+            properties:
+                enable:
+                    description: Проксировать ли ручку в driver-categories-api
+                    type: boolean
+                dbs:
+                    description: |
+                        Список парков, для которых осуществляется
+                        проксирование в сервис driver-categories-api
+                        Если список пустой - разрешаем для всех
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set
+                    items:
+                        type: string
+                dbs_disable:
+                    description: |
+                        Список парков, для которых проксирование в сервис
+                        driver-categories-api не осуществляется
+                        Может переопределять парки в dbs
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set
+                    items:
+                        type: string
+        ProxySettingsMap:
+            type: object
+            description: Словарь, где ключи - ручки в driver-categories-api
+            additionalProperties:
+                $ref: '#/definitions/ProxySettings'
+            properties: {}

@@ -1,0 +1,92 @@
+id: test_debts_internal_payment_filters
+title: Проверка на то, что можно получать долги из сервиса debts
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-YaTaxi-PhoneId: phone_id
+            X-Request-Application: app_brand=yataxi,app_name=yataxi_android
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: user_id
+                authorized: true
+                client_geo_params:
+                    enabled: false
+                orders: []
+                orders_state:
+                    orders: []
+                typed_experiments: {}
+                payment_statuses_filter: ["debt"]
+
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+
+experiments:
+    values:
+        protocol_launch_get_debts_from_service: {}
+
+mocks:
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: true
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+            method: post
+  - resource: taxi-3.0-launch
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post
+    response:
+        status-code: 200
+        body:
+            typed_experiments: {}
+            payment_statuses_filter: ["debt", "need_cvn"]
+        headers:
+            content-type: application/json
+  - resource: feedback-wanted
+    response:
+        status-code: 501
+        body: "Not implemented yet"
+        headers:
+            content-type: "text/plain"
+  - resource: order-v1-tc-active-orders
+    response:
+        status-code: 200
+        body:
+            orders: []
+            orders_state:
+                orders: []
+  - resource: debts-internal-payment-filters
+    expectations:
+        request:
+            method: get
+            query:
+                phone_id: phone_id
+                brand: yataxi
+            content-type: application/json
+        call-count: 1
+    response:
+        status-code: 200
+        body: {"payment_filters": ["debt"]}

@@ -1,0 +1,77 @@
+type: apitest
+version: 0
+service: taxi_card_filter
+
+mockserver:
+  - url: /cardstorage/v1/payment_methods
+    response:
+        body:
+            available_cards: []
+            yandex_accounts:
+              - yandex_account_id: "w/1234"
+                balance: "123"
+                currency: "RUB"
+  - url: /card-antifraud/v1/payment/availability
+    response:
+        body:
+            all_payments_available: true
+            available_cards: []
+  - url: /uantifraud/v1/card/verification/required
+    response:
+        body:
+            unavailable_cards: []
+
+tests:
+  - name: filteredcards
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "experiments3_uantifraud_enabled.json"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /uantifraud/v1/card/verification/required
+        times: 0
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets: []
+
+  - name: filteredcards-legacy
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "experiments3_uantifraud_enabled.json"
+    request:
+        method: POST
+        path: /v1/filteredcards/legacy
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /uantifraud/v1/card/verification/required
+        times: 0
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets: []

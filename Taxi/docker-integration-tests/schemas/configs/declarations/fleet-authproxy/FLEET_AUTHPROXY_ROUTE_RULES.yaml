@@ -1,0 +1,70 @@
+description: |
+    Правила роутинга запросов для fleet-authproxy.
+default: []
+tags: []
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/Rule'
+    definitions:
+        Rule:
+            type: object
+            additionalProperties: false
+            required:
+              - input
+              - output
+              - proxy
+            properties:
+                input:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - http-path-prefix
+                    properties:
+                        http-path-prefix:
+                            type: string
+                output:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - upstream
+                      - tvm-service
+                    properties:
+                        upstream:
+                            description: |
+                                URL, на который будут посылаться запросы.
+                                Учтите, что http-path-prefix будет отправляться as-is и
+                                не будет вырезаться.
+                            type: string
+                        tvm-service:
+                            description: Имя TVM-сервиса из TVM_SERVICES
+                            type: string
+                        timeout-ms:
+                            description: Таймаут для одного HTTP-запроса
+                            type: integer
+                            minimum: 1
+                            default: 100
+                            x-taxi-cpp-type: std::chrono::milliseconds
+                        attempts:
+                            description: Максимальное число попыток HTTP-запросов
+                            type: integer
+                            minimum: 1
+                            default: 1
+                proxy:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - server-hosts
+                    properties:
+                        server-hosts:
+                            description: |
+                                Массив хостов, на которых должно применяться правило.
+                                "*" без кавычек означает "все хосты".
+                                Применяется для выкатки опасных правил.
+                            type: array
+                            items:
+                                type: string
+                        proxy-401:
+                            description: Проксировать ли неавторизованные запросы
+                            type: boolean
+                            default: false

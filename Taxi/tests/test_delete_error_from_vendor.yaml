@@ -1,0 +1,53 @@
+id: test_delete_error_from_vendor
+title: Проверка получения ответа от бэкенда ресторанного приложения
+
+parameters:
+  - group:
+      - experiment:
+            enabled: true
+            proxy_write: false
+      - experiment:
+            enabled: false
+            proxy_write: false
+      - experiment:
+            enabled: true
+            proxy_write: true
+      - experiment:
+            enabled: false
+            proxy_write: true
+
+source:
+    request:
+        method: delete
+        url: /api/v1/server/users/1
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - code: some_code
+                    message: some_message
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-user-delete
+    response:
+        status-code: 400
+        body:
+            isSuccess: false
+            errors:
+              - code: some_code
+                message: some_message
+    expectations:
+        call-count: 1
+
+  - resource: eats-partners-internal-v1-block
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write#xget: /test-params/group/experiment/proxy_write
+        enabled#xget: /test-params/group/experiment/enabled

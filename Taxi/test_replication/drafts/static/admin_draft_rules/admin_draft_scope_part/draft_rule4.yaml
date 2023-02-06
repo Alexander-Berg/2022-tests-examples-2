@@ -1,0 +1,32 @@
+name: admin_draft4
+replication_type: queue
+source:
+    type: mongo
+    collection_name: test_coll
+    replicate_by: updated
+destinations:
+  - admin_draft4_raw_part:
+        type: yt
+        mapper: $raw
+        target:
+            cluster_groups:
+              - map_reduce
+            path: raw/crm_policy/messages_history
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: int64
+                    sort_order: ascending
+                    description: Идентификатор
+                  - input_column: valid_till
+                    name: utc_created_dttm
+                    cast: datetime_to_datetime_format
+                    type: string
+                    description: Дата создания в UTC
+                partitioning:
+                    rotate_policy: eternal
+                    type: by_years
+                    cast_to_date: utc_from_isostring
+                    field_name: utc_created_dttm
+queue_data:
+    db_cluster: replication_queue_mdb_0

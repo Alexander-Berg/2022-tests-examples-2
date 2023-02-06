@@ -1,0 +1,75 @@
+default:
+    __default__:
+        __default__:
+            hosts: [".*"]
+            clusters_by_hash: 100.0
+description: |
+    Настройки для дполнительного критерия режима работы api-over-data.
+    Хранится в формате карты {consumer-name -> {consumer-specialization-name -> external-criterion}}
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/settings_by_consumer'
+    properties:
+        __default__:
+            $ref: '#/definitions/settings_by_consumer'
+    required:
+      - __default__
+    definitions:
+        clusters_by_hash:
+            type: number
+            minimum: 0
+        hosts:
+            type: array
+            items:
+                type: string
+        parks_activation_clusterization:
+            type: object
+            properties:
+                threshold:
+                    type: number
+                    minimum: 0
+                old_way_on_default:
+                    type: boolean
+            additionalProperties: false
+            required:
+              - threshold
+              - old_way_on_default
+        consumer_specialization_settings:
+            type: object
+            properties:
+                clusters_by_hash:
+                    $ref: '#/definitions/clusters_by_hash'
+                hosts:
+                    $ref: '#/definitions/hosts'
+                parks_activation_clusterization:
+                    $ref: '#/definitions/parks_activation_clusterization'
+            additionalProperties: false
+        settings_by_consumer:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/consumer_specialization_settings'
+            properties:
+                __default__:
+                    $ref: '#/definitions/consumer_specialization_settings'
+            required:
+              - __default__
+samples:
+  - __default__:
+        __default__:
+            hosts: [".*"]
+            clusters_by_hash: 100.0
+    parks-activation-client:
+        __default__:
+            clusters_by_hash: 100.0
+        tracker:
+            clusters_by_hash: 10.0
+        protocol:
+            parks_activation_clusterization:
+                threshold: 20.0
+                old_way_on_default: true
+    protocol:
+        __default__:
+            hosts: [".*"]
+        sharedroute:
+            hosts: [".*"]

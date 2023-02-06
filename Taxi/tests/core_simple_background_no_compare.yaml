@@ -1,0 +1,42 @@
+id: core_simple_background_no_compare
+title: core_simple_background_no_compare
+source:
+    request:
+        method: post
+        body:
+            zone_name: 'moscow'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                the_field: 'protocol_value'
+
+experiments:
+    values#object:
+      - key: use_zoneinfo_core_in_background_no_compare
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-zoneinfo
+    response:
+        status-code: 200
+        body:
+            the_field: 'protocol_value'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+  - resource: zoneinfo-core
+    response:
+        status-code: 200
+        body:
+            the_field: 'core_value'
+    expectations:
+        call-count: 1
+  - resource: zoneinfo-compare
+    expectations:
+        call-count: 0

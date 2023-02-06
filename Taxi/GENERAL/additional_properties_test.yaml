@@ -1,0 +1,175 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'Dummy API'
+
+basePath: /test_ap
+
+paths:
+    /primitive:
+        post:
+            operationId: AdditionalProperties
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    $ref: '#/definitions/PrimitiveAdditionalProperties'
+                required: true
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        type: integer
+
+    /parameters_schemed:
+        post:
+            operationId: AdditionalPropertiesModels
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    $ref: '#/definitions/SchemedAdditionalProperties'
+                required: true
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        type: integer
+
+    /responses_schemed:
+        post:
+            operationId: AdditionalPropertiesResp
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    type: string
+                required: true
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        $ref: '#/definitions/SchemedAdditionalProperties'
+
+    /parameters_dynamic:
+        post:
+            operationId: AdditionalPropertiesDynamicParams
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    $ref: '#/definitions/DynamicAdditionalProperties'
+                required: true
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        type: integer
+
+    /responses_dynamic:
+        post:
+            operationId: AdditionalPropertiesDynamicResp
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    type: string
+                required: true
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        $ref: '#/definitions/DynamicAdditionalProperties'
+
+    /parameters_dict:
+        post:
+            operationId: AdditionalPropertiesDictParams
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    $ref: '#/definitions/OnlyDynamicAdditionalProperties'
+                required: true
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        type: array
+                        items:
+                            type: string
+
+    /responses_dict:
+        post:
+            operationId: AdditionalPropertiesDictResp
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    type: string
+                required: true
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        $ref: '#/definitions/OnlyDynamicAdditionalProperties'
+
+    /keys_intersection:
+        get:
+            operationId: AdditionalPropertiesExtraKeysIntersection
+            parameters:
+              - in: query
+                name: hack-size
+                type: integer
+                required: true
+              - in: query
+                name: named-size
+                type: integer
+                required: true
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        $ref: '#/definitions/PrimitiveAdditionalProperties'
+
+
+definitions:
+    PrimitiveAdditionalProperties:
+        type: object
+        properties:
+            size:
+                type: integer
+        additionalProperties:
+            type: string
+
+    SchemedAdditionalProperties:
+        type: object
+        properties:
+            size:
+                type: integer
+        additionalProperties:
+            $ref: '#/definitions/PrimitiveAdditionalProperties'
+
+    DynamicAdditionalProperties:
+        type: object
+        properties:
+            size:
+                type: integer
+        additionalProperties: true
+        x-taxi-additional-properties-true-reason: testing purposes
+
+    OnlyDynamicAdditionalProperties:
+        type: object
+        additionalProperties: true
+        x-taxi-additional-properties-true-reason: testing purposes

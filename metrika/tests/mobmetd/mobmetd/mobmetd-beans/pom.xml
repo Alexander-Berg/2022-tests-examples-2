@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mobmetd-beans</artifactId>
+
+    <name>AppMetrica API: бины</name>
+
+    <parent>
+        <groupId>ru.yandex.autotests.appmetrica.mobmetd</groupId>
+        <artifactId>mobmetd</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<!--        <schemas.server>http://localhost:8084</schemas.server>-->
+        <schemas.server>https://mobmetd-autobeta.test.metrika.yandex.net</schemas.server>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>ru.yandex.autotests.appmetrica</groupId>
+            <artifactId>commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>uk.com.robust-it</groupId>
+            <artifactId>cloning</artifactId>
+            <version>1.9.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>ru.yandex.autotests.metrika</groupId>
+                <artifactId>json-schema-downloader-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <id>download-schemes-paths</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>download-json-schemas</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <schemasEndpoint>${schemas.server}/internal/schema</schemasEndpoint>
+                    <outputDirectory>target/generated-sources/schemas</outputDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jsonschema2pojo</groupId>
+                <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                <version>0.4.32</version>
+                <configuration>
+                    <sourceDirectory>${project.basedir}/target/generated-sources/schemas</sourceDirectory>
+                    <outputDirectory>${project.basedir}/target/generated-sources/beans</outputDirectory>
+                    <targetPackage>ru.yandex.autotests.metrika.appmetrica.beans.schemes</targetPackage>
+                    <generateBuilders>true</generateBuilders>
+                    <includeDynamicAccessors>false</includeDynamicAccessors>
+                    <targetVersion>1.8</targetVersion>
+                    <useLongIntegers>true</useLongIntegers>
+                    <useJodaDates>true</useJodaDates>
+                    <useCommonsLang3>true</useCommonsLang3>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>yandex_qa_releases</id>
+            <name>Releases</name>
+            <url>${releases-repo}</url>
+        </repository>
+        <snapshotRepository>
+            <id>yandex_qa_snapshots</id>
+            <name>Snapshots</name>
+            <url>${snapshots-repo}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+</project>

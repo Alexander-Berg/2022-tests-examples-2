@@ -1,0 +1,38 @@
+---
+services:
+- service: elasticsearch-cluster
+  methods: phone_escalation
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 1
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 1
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 50%
+  unreach:
+    mode: force_ok
+    service:
+    - check: :elasticsearch-alive
+- service: elasticsearch-flapping
+    # Мониторинг отслеживает ноды, которые периодически отваливаются от кластера и возвращаются.
+    # Помогает перезагрузка сервиса elasticsearch на флапающей ноде.
+  methods: phone_escalation
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 0
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 0
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 101%

@@ -1,0 +1,30 @@
+id: test_check_routing_rf
+title: Проверяем что роутинг по апи тегу работает
+
+
+source:
+    request:
+        method: post
+        body: {"vehicle_numbers": ["12345"], "user_position": [0, 0], "payment_methods": [
+                {"account_id": "card", "card": "some_id"}], "insurance_type": "standart"}
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-Scooters-Tag: rf
+    expectations:
+        response:
+            status-code: 200
+            body#any:
+
+mocks:
+  - resource: talaria-offers-create
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0
+  - resource: u-scooters-v2-offers-create
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1

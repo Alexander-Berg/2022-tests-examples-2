@@ -1,0 +1,33 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:ride-discounts:testing
+
+http_hosts:
+  - ride-discounts.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        uservice_name: ride-discounts
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: ride-discounts-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - include:
+        collapsed: true
+        path: ride-discounts/metrics.json
+        title: discounts-match library metrics
+        variables:
+          - cluster: testing_uservices
+  - include:
+        collapsed: false
+        path: ride-discounts/discount-stats.json
+        title: Number and value of given discounts
+        variables:
+          - cluster: testing_uservices
+  - stq:
+        queues:
+          - ride_discounts_discount_usages_by_id
+  - http

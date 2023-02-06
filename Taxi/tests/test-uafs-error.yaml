@@ -1,0 +1,68 @@
+id: test-uafs-error
+title: >
+    Проверка стандартного флоу взаимодействия с антифродом, 200 и allow
+
+source:
+    request:
+        method: post
+        query:
+            with_warnings: true
+            with_form: true
+            source: orders
+        body:
+            skip: 0
+            limit: 50
+            phone#string: 79160123456
+            ticket: https://st.yandex-team.ru/TAXIFRAUD-1488
+            ticket_type: afs
+            comment: some comment
+        headers:
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+
+    expectations:
+        response:
+            status-code: 200
+            body:
+                items:
+                  - application: cargo
+                    city: Moscow
+                    cost: 135
+                warnings: []
+
+mocks:
+  - resource: admin-orders-v1-orders-list
+    expectations:
+        request:
+            body:
+                skip: 0
+                limit: 50
+                phone#string: 79160123456
+            query:
+                with_warnings#string: true
+    response:
+        status-code: 200
+        headers:
+            content-type: 'application/json; charset=utf-8'
+        body:
+            items:
+              - application: cargo
+                city: Moscow
+                cost: 135
+            warnings: []
+  - resource: uantifraud-v1-user-admin-orders-list-check-access
+    expectations:
+        request:
+            body:
+                ticket: https://st.yandex-team.ru/TAXIFRAUD-1488
+                ticket_type: afs
+                comment: some comment
+                user_phone#string: 79160123456
+    response:
+        status-code: 500
+
+taxi_config:
+    UAFS_USER_ADMIN_ORDERS_LIST_CHECK_ACCESS_ENABLED: true
+    UAFS_USER_ADMIN_ORDERS_LIST_CHECK_REQUEST_VALID_ENABLED: true
+    UAFS_USER_ADMIN_ORDERS_CHATTERBOX_CHECK_ENABLED: true
+experiments: {}

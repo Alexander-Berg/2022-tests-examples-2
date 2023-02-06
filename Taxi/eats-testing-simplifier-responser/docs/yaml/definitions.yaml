@@ -1,0 +1,1097 @@
+components:
+    schemas:
+        EmptyResponse:
+            type: object
+            additionalProperties: false
+            properties: {}
+        ErrorResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+                code:
+                    type: string
+                    description: Machine readable error code
+                message:
+                    type: string
+                    description: Human readable error message
+
+        Service:
+            description: Идентификтор сервиса, который пользуется eats-payments (лавка/еда/итд
+                итп)
+            type: string
+            enum:
+              - grocery
+              - eats
+        Currency:
+            type: string
+            description: Валюта заказа
+        PaymentMethodId:
+            description: Идентификатор метода оплаты
+            type: string
+        OrderId:
+            type: string
+            description: Уникальный идентификатор заказа
+        InvoiceId:
+            type: string
+            description: Идентификатор инвойса
+        InvoiceStatus:
+            type: string
+            description: Статус инвойса
+            enum:
+              - init
+              - holding
+              - held
+              - hold-failed
+              - clearing
+              - cleared
+              - clear-failed
+              - refunding
+        DebtPaymentType:
+            type: string
+            description: |
+                Название способа оплаты, которым
+                должен быть оплачен данный элемент
+            enum:
+              - card
+              - applepay
+              - googlepay
+              - corp
+              - personal_wallet
+              - badge
+              - cash
+              - coop_account
+              - prepaid
+              - agent
+        DebtItem:
+            type: object
+            additionalProperties: false
+            required:
+              - item_id
+            properties:
+                item_id:
+                    type: string
+                    description: Идентификатор айтема
+                    pattern: '^[a-z0-9_:-]+$'
+                product_id:
+                    type: string
+                amount:
+                    $ref: '#/components/schemas/Decimal'
+                quantity:
+                    $ref: '#/components/schemas/Decimal'
+                price:
+                    $ref: '#/components/schemas/Decimal'
+        DebtPaymentItems:
+            type: object
+            required:
+              - payment_type
+              - items
+            additionalProperties: false
+            properties:
+                payment_type:
+                    $ref: '#/components/schemas/DebtPaymentType'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DebtItem'
+        OperationId:
+            type: string
+            description: Идентификатор операции, используется для обеспечения идемпотентности
+        Version:
+            type: integer
+            description: Версия данных в запросе, используется для защиты от гонок
+        Revision:
+            type: string
+            description: Идентификатор изменения, выступающий также в роли токена
+                идемпотентности
+
+        ItemType:
+            description: Тип позиции
+            type: string
+            enum:
+              - delivery
+              - product
+              - retail
+              - option
+              - tips
+              - restaurant_tips
+              - assembly
+              - donation
+              - service_fee
+
+        Item:
+            type: object
+            additionalProperties: false
+            description: |
+                Элемент заказа.
+                В запросе нужно передать или amount или и price и quantity одновременно.
+                В запросе нельзя передать одновременно amount и price либо quantity.
+            required:
+              - item_id
+              - product_id
+            properties:
+                item_id:
+                    $ref: '#/components/schemas/ItemId'
+                product_id:
+                    $ref: '#/components/schemas/ProductId'
+                fiscal_receipt_info:
+                    $ref: '#/components/schemas/FiscalReceiptInfo'
+                billing_info:
+                    $ref: '#/components/schemas/BillingInfo'
+                amount:
+                    $ref: '#/components/schemas/Decimal'
+                quantity:
+                    $ref: '#/components/schemas/Decimal'
+                price:
+                    $ref: '#/components/schemas/Decimal'
+                commission_category:
+                    type: integer
+                    description: Категория комиссии для заказа. Процент комиссии *
+                        100, то есть 2% = 200. (https://wiki.yandex-team.ru/trust/payments/apiv1/reference/extra/)
+                item_type:
+                    $ref: '#/components/schemas/ItemType'
+        ItemId:
+            type: string
+            description: Идентификатор айтема
+            pattern: '^[a-z0-9_-]+$'
+        ProductId:
+            type: string
+            description: Идентификатор продукта
+        Decimal:
+            type: string
+            description: Сумма
+            pattern: '^(\d+)(.\d+)?$'
+        FiscalReceiptInfo:
+            type: object
+            additionalProperties: false
+            description: |
+                Данные для чека.
+                Используются при создании новый транзакций в Трасте.
+            required:
+              - personal_tin_id
+              - vat
+              - title
+            properties:
+                personal_tin_id:
+                    description: Идентификатор ИНН в сервисе ПД
+                    type: string
+                vat:
+                    description: Тип НДС (https://wiki.yandex-team.ru/TRUST/Payments/API/Baskets/)
+                    type: string
+                    enum:
+                      - nds_20
+                      - nds_18
+                      - nds_10
+                      - nds_0
+                      - nds_none
+                      - nds_20_120
+                      - nds_18_118
+                      - nds_10_110
+                title:
+                    description: Наименование услуги
+                    type: string
+        BillingInfo:
+            type: object
+            additionalProperties: false
+            description: |
+                Дополнительная метаинформация для биллинга Еды
+            required:
+              - place_id
+              - balance_client_id
+              - item_type
+            properties:
+                place_id:
+                    description: Идентификатор ресторана
+                    type: string
+                balance_client_id:
+                    description: Идентификатор юр. лица, оказавшего услугу, в Балансе
+                    type: string
+                item_type:
+                    $ref: '#/components/schemas/ItemType'
+        ClientPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+            properties:
+                id:
+                    $ref: '#/components/schemas/PaymentMethodId'
+                type:
+                    $ref: '#/components/schemas/ClientPaymentType'
+        ClientPaymentType:
+            type: string
+            enum:
+              - card
+              - applepay
+              - googlepay
+              - corp
+              - personal_wallet
+              - postpayment
+              - sbp
+            description: |
+                Тип метода оплаты для заказа. Note: оплата бейджом будет иметь тип corp
+                (так было сделано, чтобы не поддерживать ещё один тип оплаты на всех клиентах).
+        AddItemPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - type
+            properties:
+                id:
+                    $ref: '#/components/schemas/PaymentMethodId'
+                type:
+                    $ref: '#/components/schemas/AddItemPaymentType'
+        AddItemPaymentType:
+            type: string
+            enum:
+              - card
+              - applepay
+              - googlepay
+              - corp
+              - personal_wallet
+            description: |
+                Тип метода оплаты для заказа. Note: оплата бейджом будет иметь тип corp
+                (так было сделано, чтобы не поддерживать ещё один тип оплаты на всех клиентах).
+        PaymentType:
+            type: string
+            enum:
+              - card
+              - applepay
+              - googlepay
+              - corp
+              - badge
+              - personal_wallet
+
+        ComplementPayment:
+            type: object
+            additionalProperties: false
+            required:
+              - payment_method
+              - amount
+            properties:
+                payment_method:
+                    $ref: '#/components/schemas/ClientPaymentMethod'
+                amount:
+                    description: Сколько максимум можно списать данным методом
+                    type: string
+
+        MCC:
+            type: integer
+            description: Код вида торговой точки (Merchant Category Code)
+        OrderItems:
+            type: array
+            items:
+                $ref: '#/components/schemas/Item'
+        YandexUID:
+            type: string
+            description: Yandex UID пользователя
+        Business:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - specification
+            properties:
+                type:
+                    type: string
+                    description: тип бизнеса для заказа (аптеки, заправки, магазины
+                        и т.д.)
+                specification:
+                    type: array
+                    description: |
+                        Уточнение по типу бизнеса. Например, для заправки
+                        Роснефть будет содержать значение rosneft
+                    items:
+                        type: string
+        TerminalMerchant:
+            type: string
+            enum:
+              - default
+              - lavka
+              - eda
+              - magnit
+
+        TerminalBusiness:
+            type: string
+            enum:
+              - default
+              - retail
+              - restaurant
+
+        Vat:
+            description: Тип НДС
+            type: string
+            enum:
+              - nds_20
+              - nds_18
+              - nds_10
+              - nds_0
+              - nds_none
+              - nds_20_120
+              - nds_18_118
+              - nds_10_110
+
+        Money:
+            description: Decimal(18, 4)
+            type: string
+            example: '12.5000'
+            x-taxi-cpp-type: decimal64::Decimal<4>
+            pattern: '^-?[0-9]+(\.[0-9]{1,4})?$'
+
+        INN:
+            description: ИНН пользователя (10 или 12 цифр)
+            type: string
+            example: 9705114405
+            pattern: '^(\d{10}|\d{12})$'
+
+        Payment:
+            type: object
+            additionalProperties: false
+            description: Технические данные платежа.
+            required:
+              - created
+              - updated
+              - status
+              - sum
+              - external_payment_id
+            properties:
+                payment_type:
+                    type: string
+                payment_method_id:
+                    type: string
+                created:
+                    type: string
+                    format: date-time
+                updated:
+                    type: string
+                    format: date-time
+                held:
+                    type: string
+                    format: date-time
+                cleared:
+                    type: string
+                    format: date-time
+                status:
+                    $ref: '#/components/schemas/PaymentStatus'
+                sum:
+                    description: Сколько по факту (будет) списано при клире
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PaymentItem'
+                external_payment_id:
+                    type: string
+                terminal_id:
+                    type: string
+                error_reason_code:
+                    description: описание ошибки в случае ошибки, как его вернул биллинг
+                    type: string
+
+        PaymentItem:
+            type: object
+            additionalProperties: false
+            description: Элемент платежа
+            required:
+              - item_id
+              - amount
+            properties:
+                item_id:
+                    type: string
+                    description: Идентификатор позиции
+                    pattern: '^[a-z0-9_-]+$'
+                amount:
+                    type: string
+                    description: Сумма позиции
+
+        PaymentStatus:
+            type: string
+            description: Статус платежа
+            enum:
+              - hold_init
+              - hold_pending
+              - hold_success
+              - hold_resize
+              - hold_fail
+              - unhold_init
+              - unhold_pending
+              - clear_init
+              - clear_pending
+              - clear_success
+              - clear_fail
+              - refund_pending
+              - refund_waiting
+              - refund_success
+              - refund_fail
+              - compensation_init
+              - compensation_pending
+              - compensation_success
+              - compensation_fail
+        PaymentItemsList:
+            type: array
+            description: |
+                Списки покупок в разрезе способов оплаты.
+                Один способ оплаты не может быть указан
+                более одного раза
+            items:
+                $ref: '#/components/schemas/PaymentItems'
+        PaymentItems:
+            type: object
+            additionalProperties: false
+            description: Способ оплаты и его список покупок
+            required:
+              - payment_type
+              - items
+            properties:
+                payment_type:
+                    $ref: '#/components/schemas/PaymentType'
+                items:
+                    type: array
+                    description: Список покупок по данному способу оплаты
+                    items:
+                        $ref: '#/components/schemas/RetrieveOrderItem'
+        RetrieveOrderItem:
+            type: object
+            additionalProperties: false
+            required:
+              - item_id
+            properties:
+                item_id:
+                    $ref: '#/components/schemas/ItemId'
+                product_id:
+                    $ref: '#/components/schemas/ProductId'
+                fiscal_receipt_info:
+                    $ref: '#/components/schemas/RetrieveOrderFiscalReceiptInfo'
+                amount:
+                    $ref: '#/components/schemas/Decimal'
+                quantity:
+                    $ref: '#/components/schemas/Decimal'
+                price:
+                    $ref: '#/components/schemas/Decimal'
+        RetrieveOrderFiscalReceiptInfo:
+            type: object
+            additionalProperties: false
+            description: |
+                Данные для чека.
+                Используются при создании новый транзакций в Трасте.
+            required:
+              - vat
+              - title
+            properties:
+                personal_tin_id:
+                    description: Идентификатор ИНН в сервисе ПД
+                    type: string
+                vat:
+                    $ref: '#/components/schemas/Vat'
+                title:
+                    description: Наименование услуги
+                    type: string
+
+        Point:
+            type: array
+            description: геокоординаты точки [lon, lat]
+            items:
+                type: number
+                minimum: -180.0
+                maximum: 180.0
+            minItems: 2
+            maxItems: 2
+            example: "[37.62, 55.75]"
+            x-taxi-cpp-type: geometry::Position
+        RegionId:
+            type: integer
+        PaymentMethodName:
+            description: Human readable payment method name
+            type: string
+            example: Команда Яндекс.Такси
+        ItemsSet:
+            type: object
+            additionalProperties: false
+            required:
+              - items_type
+              - amount
+            properties:
+                amount:
+                    $ref: '#/components/schemas/Decimal'
+                items_type:
+                    description: виды товаров
+                    type: string
+                    enum:
+                      - food
+                      - other
+
+        PaymentMethodsAvailabilityRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - sender_point
+              - destination_point
+              - region_id
+              - order_info
+              - place_info
+            properties:
+                sender_point:
+                    description: Координаты ресторана или магазина
+                    $ref: '#/components/schemas/Point'
+                destination_point:
+                    description: Координаты клиента
+                    $ref: '#/components/schemas/Point'
+                phone_id:
+                    type: string
+                region_id:
+                    $ref: '#/components/schemas/RegionId'
+                order_info:
+                    type: object
+                    additionalProperties: false
+                    description: информация о заказе, валюта заказа, суммы по видам
+                        товаров, сумма заказа
+                    required:
+                      - currency
+                      - item_sets
+                    properties:
+                        currency:
+                            $ref: '#/components/schemas/Currency'
+                        item_sets:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/ItemsSet'
+                        business:
+                            $ref: '#/components/schemas/Business'
+                        total_cost:
+                            $ref: '#/components/schemas/Decimal'
+                place_info:
+                    type: object
+                    additionalProperties: false
+                    description: особенности ресторана
+                    properties:
+                        accepts_cash:
+                            description: true - ресторан принимает наличку
+                            type: boolean
+                    required:
+                      - accepts_cash
+                brand_id:
+                    type: string
+                    description: ID бренда
+
+        PaymentMethodsAvailabilityResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - payment_methods
+            properties:
+                payment_methods:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PaymentMethod'
+                last_used_payment_method:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - type
+                    properties:
+                        type:
+                            type: string
+                        id:
+                            type: string
+                region_id:
+                    type: integer
+                    description: Country code from geobase
+
+        PaymentMethodsPaymentType:
+            type: string
+            description: Тип метода оплаты приходящий от сервиса
+            enum:
+              - cash
+              - card
+              - applepay
+              - googlepay
+              - corp
+              - badge
+              - personal_wallet
+              - coop_account
+              - sbp
+              - yandex_bank
+              - create_yandex_bank
+
+
+        PaymentMethod:
+            oneOf:
+              - $ref: '#/components/schemas/CardPaymentMethod'
+              - $ref: '#/components/schemas/PersonalWalletPaymentMethod'
+              - $ref: '#/components/schemas/CorpPaymentMethod'
+              - $ref: '#/components/schemas/ApplePayPaymentMethod'
+              - $ref: '#/components/schemas/GooglePayPaymentMethod'
+              - $ref: '#/components/schemas/AddNewCardMethod'
+              - $ref: '#/components/schemas/CashPaymentMethod'
+              - $ref: '#/components/schemas/SbpPaymentMethod'
+              - $ref: '#/components/schemas/YandexBankPaymentMethod'
+              - $ref: '#/components/schemas/CreateYandexBankPaymentMethod'
+
+        CardPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - name
+              - short_title
+              - id
+              - bin
+              - currency
+              - system
+              - number
+              - availability
+              - service_token
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - card
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+                short_title:
+                    $ref: '#/components/schemas/PaymentMethodShortTitle'
+                id:
+                    $ref: '#/components/schemas/PaymentMethodId'
+                bin:
+                    type: string
+                currency:
+                    $ref: '#/components/schemas/Currency'
+                system:
+                    type: string
+                    description: VISA, MasterCard
+                number:
+                    type: string
+                    description: Yes, it is like 447624****6581
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                service_token:
+                    type: string
+                    description: Токен для инициализации PaymentSDK
+        PersonalWalletPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - name
+              - id
+              - availability
+              - description
+              - currency_rules
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - personal_wallet
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+                id:
+                    $ref: '#/components/schemas/PaymentMethodId'
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                money_left:
+                    $ref: '#/components/schemas/Decimal'
+                description:
+                    description: money_left_as_str
+                    type: string
+                currency_rules:
+                    $ref: '#/components/schemas/CurrencyRules'
+                is_complement:
+                    description: |
+                        Признак того, является ли данный способ оплаты второстепенным,
+                        то есть можно ли его использовать в дополнение к другому способу
+                        оплаты, который является основным.
+                    type: boolean
+                complement_attributes:
+                    $ref: '#/components/schemas/ComplementAttributes'
+        CorpPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - name
+              - id
+              - currency
+              - availability
+              - description
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - corp
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+                id:
+                    $ref: '#/components/schemas/PaymentMethodId'
+                currency:
+                    $ref: '#/components/schemas/Currency'
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                description:
+                    description: Arbitrary method example
+                    type: string
+                    example: 203.00 из 6000.00 руб
+                balance_left:
+                    description: Amount of money left
+                    type: string
+                    example: 203.03
+        ApplePayPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - name
+              - merchant_id_list
+              - service_token
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - applepay
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                merchant_id_list:
+                    type: array
+                    items:
+                        type: string
+                service_token:
+                    type: string
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+        GooglePayPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - merchant_id
+              - service_token
+              - name
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - googlepay
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                merchant_id:
+                    type: string
+                service_token:
+                    type: string
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+        AddNewCardMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - binding_service_token
+              - name
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - add_new_card
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                binding_service_token:
+                    type: string
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+        SbpPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - name
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - sbp
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                trackingSettings:
+                    $ref: "#/components/schemas/TrackingSettings"
+                sbpSettings:
+                    $ref: "#/components/schemas/SbpSettings"
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+        CashPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - name
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - cash
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                trackingSettings:
+                    $ref: "#/components/schemas/TrackingSettings"
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+
+        YandexBankPaymentMethod:
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: for allOf
+            properties:
+                cashback_rule:
+                    $ref: "#/components/schemas/CashbackRule"
+                type:
+                    type: string
+                    enum:
+                      - yandex_bank
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+
+        CreateYandexBankPaymentMethod:
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: for allOf
+            properties:
+                cashback_rule:
+                    $ref: "#/components/schemas/CashbackRule"
+                type:
+                    type: string
+                    enum:
+                      - create_yandex_bank
+                availability:
+                    $ref: '#/components/schemas/PaymentMethodAvailability'
+                name:
+                    $ref: '#/components/schemas/PaymentMethodName'
+
+
+        PaymentMethodAvailability:
+            type: object
+            required:
+              - available
+              - disabled_reason
+            properties:
+                available:
+                    description: true if method can be used, false otherwise
+                    type: boolean
+                disabled_reason:
+                    description: Human readable description of why method is unavailable
+                    type: string
+                    example: Услуга отключена
+                view:
+                    $ref: '#/components/schemas/PaymentMethodView'
+            additionalProperties: false
+        PaymentMethodView:
+            type: object
+            description: Параметры, которые отвечают за отображение платежного метода
+            required:
+              - can_show
+            properties:
+                can_show:
+                    type: boolean
+                    description: Можно ли показывать этот платежный метод пользователю
+                text:
+                    $ref: '#/components/schemas/ColoredText'
+                button:
+                    $ref: '#/components/schemas/PaymentMethodButton'
+            additionalProperties: false
+        PaymentMethodButton:
+            type: object
+            description: Объект описывает контрол рядом c платежным методом (кнопка/ссылка)
+            required:
+              - title
+              - color
+              - id
+            additionalProperties: false
+            properties:
+                title:
+                    $ref: '#/components/schemas/ColoredText'
+                    description: Текст кнопки
+                deeplink:
+                    type: string
+                color:
+                    $ref: '#/components/schemas/ThemedColor'
+                id:
+                    type: string
+                    description: Идентификатор кнопки (для аналитики)
+        ColoredText:
+            type: object
+            description: Окрашенный текст
+            required:
+              - color
+              - text
+            properties:
+                color:
+                    $ref: '#/components/schemas/ThemedColor'
+                text:
+                    type: string
+            additionalProperties: false
+        ThemedColor:
+            type: array
+            description: |
+                Цвет элемента для разных тем (светлой / темной).
+            items:
+                type: object
+                required:
+                  - theme
+                  - value
+                additionalProperties: false
+                properties:
+                    theme:
+                        $ref: '#/components/schemas/Theme'
+                    value:
+                        $ref: '#/components/schemas/Color'
+        Theme:
+            type: string
+            description: Цветовая тема приложения (светлая / темная).
+            enum:
+              - light
+              - dark
+        Color:
+            type: string
+            example: '#ffffff'
+            description: Цвет элемента.
+        ComplementAttributes:
+            description: |
+                Атрибуты метода оплаты, который может выступать в качестве
+                второстепенного.
+            type: object
+            properties:
+                name:
+                    description: Название метода оплаты для окна списка оплат.
+                    type: string
+                compatibility_description:
+                    description: Cтрока с описанием совместимых основных методов оплаты.
+                    type: string
+                payment_types:
+                    description: Список совместимых основных методов оплаты.
+                    type: array
+                    items:
+                        type: string
+            required:
+              - payment_types
+            additionalProperties: false
+            example:
+                name: Плюс - потратить на поездку
+                compatibility_description: Работает с картой или ApplePay
+                payment_types: [card, applepay, googlepay]
+        CurrencyRules:
+            type: object
+            additionalProperties: false
+            properties:
+                code:
+                    description: код валюты
+                    type: string
+                    example: "RUB"
+                sign:
+                    description: символ валюты для отображения
+                    type: string
+                    example: "₽"
+                template:
+                    description: шаблон для текста с этой валютой
+                    type: string
+                    example: "$VALUE$ $SIGN$$CURRENCY$"
+                text:
+                    type: string
+                    example: "руб."
+            required:
+              - code
+              - template
+              - text
+        TrackingSettings:
+            type: object
+            additionalProperties: false
+            description: Определяет параметры запросов в ручку трекинга и отображения
+                экрана прозрачной оплаты
+            required:
+              - enabled
+            properties:
+                enabled:
+                    type: boolean
+                    description: Нужно ли ходить в ручку трекинга
+                    example: false
+                maxRetryCount:
+                    type: integer
+                    description: Сколько раз можно делать повторный запрос в случае
+                        ошибки
+                    example: 2
+                errorDelay:
+                    type: integer
+                    description: Задержка перед повторным запросом после ошибки в
+                        секундах
+                    example: 5
+
+        SbpSettings:
+            type: object
+            description: Содержит настройки СБП
+            additionalProperties: false
+            required:
+              - members
+              - continueButtonDelay
+            properties:
+                members:
+                    type: array
+                    description: Список банков-участников
+                    items:
+                        $ref: "#/components/schemas/SbpMember"
+                continueButtonDelay:
+                    type: integer
+                    description: Время появления кнопки продолжения после клика на
+                        банк в секундах
+        SbpMember:
+            type: object
+            additionalProperties: false
+            description: Параметры банка для передачи на фронт из схемы https://qr.nspk.ru/proxyapp/c2bmembers.json
+            required:
+              - bankName
+              - logoURL
+              - schema
+            properties:
+                bankName:
+                    type: string
+                    description: Название банка
+                logoURL:
+                    type: string
+                    description: Ссылка на логотип
+                schema:
+                    type: string
+                    description: Название схемы предоставленной СБП
+                packageName:
+                    type: string
+                    description: Название пакета предоставленного СБП
+        PaymentMethodShortTitle:
+            description: Сокращённое отображение метода оплаты в приложении
+            type: string
+            example: •• 1234
+        CashbackRule:
+            type: object
+            additionalProperties: false
+            required:
+              - percent
+              - max_amount
+              - rule_ids
+            properties:
+                percent:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        amount:
+                            type: string
+                    required:
+                      - amount
+                max_amount:
+                    type: string
+                rule_ids:
+                    description: |
+                        Массив идентификаторов маркетинговых правил,
+                        согласно которым был подсчитан кэшбек
+                    type: array
+                    items:
+                        type: string

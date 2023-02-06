@@ -1,0 +1,65 @@
+id: test_promocodes_post_payment
+title: Проверяем что правильно меняем payment
+
+parameters:
+  - case:
+      - intput_body: {}
+        exp_value: true
+        output_body: {}
+      - intput_body:
+            payment: {}
+        exp_value: true
+        output_body:
+            payment:
+                type: "any"
+      - intput_body:
+            payment: {}
+        exp_value: false
+        output_body:
+            payment: {}
+
+source:
+    request:
+        method: post
+        body#xget: /test-params/case/intput_body
+        headers:
+            X-Device-Id: device_id
+            X-Eats-User: personal_phone_id=phone_id
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: eats-user-promocodes-post
+    response:
+        status-code: 200
+        body:
+            promocodes: []
+    expectations:
+        call-count: 1
+
+  - resource: eats-coupons-couponlist
+    response:
+        status-code: 200
+        body:
+            promocodes: []
+    expectations:
+        request:
+            body#xget: /test-params/case/output_body
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: fill_default_payment
+        value:
+            enabled#xget: /test-params/case/exp_value
+        enabled: true
+    expectations:
+        consumer: eats-api-proxy/eats-coupons
+        kwargs:
+          - key: device_id
+            type: string
+            value: device_id
+          - key: personal_phone_id
+            type: string
+            value: phone_id

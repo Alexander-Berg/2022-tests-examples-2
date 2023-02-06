@@ -1,0 +1,95 @@
+id: ucommunications-user-notification-subscribe
+title: Тест для проверки использования ucommunications-user-notification-subscribe
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            apns_token: 'TOKEN'
+            apns_type: 'inhouse-distr'
+            push_settings: {"enabled_by_system": true, "included_tags": ["tag1"],
+                "excluded_tags": ["tag2"]}
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-Request-Application: 'app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2'
+            X-YaTaxi-PhoneId: 'phone_id'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                authorized: false
+                client_geo_params:
+                    enabled: false
+                typed_experiments:
+                    any: 'json'
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+experiments:
+    values:
+        user_push_subscribe: {}
+
+mocks:
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body:
+            any: 'json'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        called-after:
+          - taxi-3.0-launch
+        call-count: 1
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: false
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+                apns_token: 'TOKEN'
+                apns_type: 'inhouse-distr'
+            method: post
+  - resource: taxi-3.0-launch
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post
+  - resource: ucommunications-user-notification-subscribe
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        request:
+            body:
+                user_id: 'user_id'
+                hms_token: ''
+                application: 'iphone'
+                build_type: 'inhouse-distr'
+                apns_token: 'TOKEN'
+                gcm_token: ''
+                push_settings: {"enabled_by_system": true, "included_tags": ["tag1"],
+                    "excluded_tags": ["tag2"]}
+        call-count: 1
+        called-after:
+          - zalogin-v1-launch-auth
+

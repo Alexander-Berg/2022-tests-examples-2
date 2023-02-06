@@ -1,0 +1,123 @@
+service: home
+title: Cypress Testcop Plugin
+
+arcanum:
+  review:
+    auto_assign: true
+    required: true
+    skip_review_for: "robots"
+    min_approvers_count: 1
+    groups:
+      - name: adept-of-automation
+        roles: adept_of_automation
+
+    rules:
+      - subpaths: "src/**, test/**"
+        reviewers:
+          - name: adept-of-automation
+            ship: 1
+            assign: 1
+
+  auto_merge:
+    enabled: false
+    requirements:
+      - system: arcanum
+        type: approved
+        data:
+          min_approvers_count: 1
+          ignore_self_ship: false
+
+      - system: arcanum
+        type: comment_issues_closed
+
+      - system: arcanum
+        type: st_issue_linked
+        data:
+            in_commit_message: true
+
+      - system: portal/frontend/cypress-testcop-plugin
+        type: EslintFullChecks
+        disabling_policy: denied
+
+      - system: portal/frontend/cypress-testcop-plugin
+        type: EslintChecks
+        disabling_policy: denied
+
+      - system: portal/frontend/cypress-testcop-plugin
+        type: Jest
+        disabling_policy: denied
+
+      - system: portal/frontend/cypress-testcop-plugin
+        type: Typecheck
+        disabling_policy: denied
+
+shared:
+  sandbox: &sandbox
+    client_tags: GENERIC & LINUX & SSD & LXC
+    container_resource: 3097593303
+    dns: dns64
+
+  requirements-checks: &requirements-checks
+    cores: 2
+    ram: 8 GB
+    disk: 8 GB
+    sandbox: *sandbox
+
+  config: &config
+    arc_mount_config:
+      enabled: true
+
+    logs_config:
+      stdout_ci_badge: true
+      redirect_stderr_to_stdout: true
+
+  secretEnvVars: &secretEnvVars
+    secret_environment_variables:
+      - key: ARCANUM_API_OAUTH_TOKEN
+        secret_spec:
+          # robot-morda-releaser
+          key: ci.token
+
+      - key: SANDBOX_TOKEN
+        secret_spec:
+          #robot-morda-releaser
+          uuid: sec-01fzdb2ps0d6re0qrqfsmn9pn7
+          key: SANDBOX_TOKEN
+
+ci:
+  secret: sec-01fxctddc9qp8pjjsh9k4hc6pw
+  runtime:
+    sandbox-owner: HOME
+
+  actions:
+    pr-checks:
+      title: PR Checks
+      flow: checks
+      triggers:
+        - on: pr
+          into:
+            - trunk
+            - release-branch
+
+  flows:
+    checks:
+      title: Checks
+      jobs:
+        run:
+          title: run checks
+          task: common/misc/run_command
+          requirements: *requirements-checks
+
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+                cd ${context.config_info.dir}
+
+                npm ci
+                node ./ci/checks.js

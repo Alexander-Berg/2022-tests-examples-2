@@ -1,0 +1,33 @@
+description: >
+    TTL запросов на отправку писем в очереди, все в часах. Для всех указанных явно
+    статусов используется явно заданное
+    значение, для всех остальных expire не происходит.
+
+default:
+  - status: SCHEDULED
+    max_age: 2
+  - status: FAILED
+    max_age: 2
+  - status: PENDING
+    max_age: 24
+
+schema:
+    type: array
+    items:
+        schema:
+            additionalProperties: false
+            required:
+              - status
+              - max_age
+
+            status:
+                oneOf:
+                  - PENDING
+                  - PROCESSING
+                  - TO_RETRY
+                  - SCHEDULED
+                  - FAILED
+
+            max_age:
+                type: integer
+                minimum: 1

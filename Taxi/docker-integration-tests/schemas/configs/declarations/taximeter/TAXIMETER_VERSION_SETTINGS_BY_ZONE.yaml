@@ -1,0 +1,66 @@
+default: {}
+description: Настройки версий Таксометра в зависимости от тарифной зоны. названия
+    билдов all lowercase min - если версия меньше, то потребует обновиться
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ZoneSettings'
+    properties: {}
+
+    definitions:
+        TaximeterVersion:
+            type: string
+            pattern: ^\d{1,2}\.\d{2}$
+            examples:
+              - "9.01"
+              - "9.10"
+              - "15.22"
+
+        BuildSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                min:
+                    $ref: '#/definitions/TaximeterVersion'
+
+        ZoneSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                taximeter:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-az:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-beta:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-dev:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-sdc:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-x:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-yango:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-uber:
+                    $ref: '#/definitions/BuildSettings'
+                taximeter-vezet:
+                    $ref: '#/definitions/BuildSettings'
+
+samples:
+  - spb:
+        taximeter:
+            min: "9.00"
+        taximeter-x:
+            min: "9.24"
+
+invalid-samples:
+  - spb:
+        taximeter-ios:
+            min: "9.00"
+  - moscow:
+        __default__:
+            min: "9.12"
+  - spb:
+        taximeter-dev:
+            typo: "9.22"

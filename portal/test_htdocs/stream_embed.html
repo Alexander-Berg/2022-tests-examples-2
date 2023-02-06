@@ -1,0 +1,156 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no">
+    <title>Тестируем встраиваемый плеер</title>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        .stream__frame {
+            width: 100%;
+            min-height: 100%;
+            border: none;
+        }
+
+        .stream__container {
+            width:  100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow-y: hidden;
+        }
+
+        .stream__paranja {
+            height: 100%;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border: none;
+            background: rgba(0,0,0,0.9);
+            fontSize: 20px;
+            color: #fff;
+            textAlign: #fff;
+        }
+
+        .yandex__embed-stream {
+            display: block;
+            margin: 1em;
+            width: 80%;
+        }
+
+    </style>
+</head>
+<body>
+<!--<iframe src="/portal/stream" frameborder="0" style="width: 100%; height: 100%"></iframe>-->
+
+<script src="https://yastatic.net/jquery/2.1.4/jquery.js"></script>
+<script>
+$.ajax({
+    url: '/portal/tvstream_json/channels?locale=ru&from=morda',
+    dataType: 'json'
+}).then(function (channels) {
+    var html = channels.set.map(function (channel) {
+        return '<button class="yandex__embed-stream" data-stream_id="' + channel.content_id + '">' + channel.title + '</button>';
+    });
+
+    $(document.body).append(html);
+});
+
+$(document.body).on('click', '.yandex__embed-stream', loadYaStream);
+/**
+ * Подготавливает iframe.
+ */
+function loadYaStream(event) {
+    var dev = true,
+        target = $(event.target),
+        // Словарь прописанных в div параметров
+        params = $.extend({
+            counters: '1',
+            ignore_sk: '1',
+            from: 'morda',
+            inframe: 1
+        }, target.data()),
+        paramsStr = [];
+
+    for (var key in params) {
+        if (params[key]) {
+            paramsStr.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+        }
+    }
+    paramsStr = '?' + paramsStr.join('&');
+
+    yaStreamParanja = $('<div class="stream__paranja">Загрузка...</div>');
+    $(document.body).append(yaStreamParanja);
+
+    event.preventDefault();
+
+    streamContainer = $('<div class="stream__container"></div>');
+    $(document.body).append(streamContainer);
+
+
+    yaStreamIframe = $('<iframe class="stream__frame" allowfullscreen></iframe>');
+    yaStreamIframe.attr('src', (dev ? '' : 'https://yandex.ru/') + '/portal/tvstream' + paramsStr);
+
+    streamContainer.append(yaStreamIframe);
+
+    document.body.style.overflow = 'hidden';
+
+    $(window).on('message', yaStreamMsgHandler);
+
+    window.logEtherDebugInfo = function () {
+        var etherWindow = window.frames[0];
+
+        etherWindow.postMessage({
+            namespace: 'ether',
+            type: 'getDebugInfo',
+            data: {}
+        })
+
+    };
+}
+
+/**
+ * Обработчик сообщений от iframe со стрелкой;
+ *
+ * @param {Object} e jQuery событие
+ * @param {Object} e.originalEvent Объект с данными события получения postMessage
+ */
+function yaStreamMsgHandler(e) {
+    var msg = e.originalEvent;
+    console.log(msg);
+
+    if (
+//                    msg.origin !== 'https://yandex.ru' ||
+        typeof msg.data !== 'object' ||
+        !('type' in msg.data)
+    ) {
+        return;
+    }
+
+    if (msg.data.type === 'show') {
+        // Тут прячем загрузку
+        yaStreamParanja.html('');
+    }
+
+    if (msg.data.type === 'hide') {
+        streamContainer.remove();
+        yaStreamParanja.remove();
+        document.body.style.overflow = '';
+    }
+
+    if (msg.data.type === 'debugInfo') {
+        console.log(msg.data.data);
+    }
+
+}
+</script>
+</body>
+</html>

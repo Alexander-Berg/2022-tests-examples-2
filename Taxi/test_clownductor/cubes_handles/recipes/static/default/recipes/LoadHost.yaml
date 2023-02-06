@@ -1,0 +1,70 @@
+data:
+    name: LoadHost
+    provider_name: clownductor
+    job_vars:
+      - ammo_file
+      - ammo_description
+      - target_address
+      - schedule
+      - operator_name
+      - st_task
+      - fire_title
+      - fire_description
+      - monitoring_config
+    stages:
+      - name: LoadCreateUploadAmmoTaskCube
+        provider_name: clownductor
+        input:
+            ammo_file: ammo_file
+            description: ammo_description
+        output:
+            sandbox_upload_ammo_task_id: sandbox_upload_ammo_task_id
+      - name: LoadStartSandboxTaskCube
+        provider_name: clownductor
+        input:
+            sandbox_id: sandbox_upload_ammo_task_id
+      - name: LoadWaitSandboxTaskCube
+        provider_name: clownductor
+        input:
+            sandbox_id: sandbox_upload_ammo_task_id
+      - name: LoadGetSandboxResourceLinkCube
+        provider_name: clownductor
+        input:
+            sandbox_id: sandbox_upload_ammo_task_id
+        output:
+            ammo_link: ammo_link
+      - name: LoadCreateTankConfigCube
+        provider_name: clownductor
+        input:
+            target_address: target_address
+            ammo_link: ammo_link
+            schedule: schedule
+            operator_name: operator_name
+            st_task: st_task
+            title: fire_title
+            description: fire_description
+        output:
+            tank_config: tank_config
+      - name: LoadCreateFireTaskCube
+        provider_name: clownductor
+        input:
+            tank_config: tank_config
+            monitoring_config: monitoring_config
+            operator: operator_name
+        output:
+            sandbox_fire_task_id: sandbox_fire_task_id
+      - name: LoadStartSandboxTaskCube
+        provider_name: clownductor
+        input:
+            sandbox_id: sandbox_fire_task_id
+      - name: LoadWaitSandboxTaskCube
+        provider_name: clownductor
+        input:
+            sandbox_id: sandbox_fire_task_id
+      - name: LoadGetLunaparkIdCube
+        provider_name: clownductor
+        input:
+            sandbox_id: sandbox_fire_task_id
+        output:
+            lunapark_id: lunapark_id
+            lunapark_message: lunapark_message

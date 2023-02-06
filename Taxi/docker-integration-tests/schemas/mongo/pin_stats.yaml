@@ -1,0 +1,135 @@
+settings:
+    collection: pin_stats
+    connection: pinstats
+    database: dbpinstats
+indexes:
+  - expireAfterSeconds: 1200.0
+    key: created
+  - key: geohash
+  - key: user_id
+wiki_info: |
+    ####dbpinstats.pin_stats - Статистика по пинам routestats
+    Коллекция, в которой хранится информация по пинам, которые мы выдаем в методе routestats.
+    На поле created установлен индекс с параметром expireAfterSeconds: 1200 (https://st.yandex-team.ru/TAXIADMIN-2548[ --Увеличить размер capped коллекции pin_stats-- ](  ))
+
+    ```python
+    doc = {
+        'created': datetime.datetime(2014, 1, 13, 5, 16, 52, 729000),  # время создания записи
+        'geopoint': [lon, lat],  # координаты пользователя
+        'geopoint_b': [lon, lat], # координата конечной точки
+        'geohash': 'asdf',        # геохэш
+        'position_accuracy': 200, # точность определения местоположения клиента в метрах
+        'estimated_waiting': {   # Время ожидания с разбивкой по классам
+            'econom': 300,
+            'business': 420,
+            'vip': 600,
+        },
+        'user_id': 'user_id',  # идентификатор пользователя
+        'forced_surges': {     # Предложения о принудительном сурже
+            'econom': 1.5,
+            'business': 2.4,
+        },
+        'forced_surges_info': [{    # Расширенная информация о принудительном сурже (с 2016-08-03)
+            'category': 'econom',   # тариф
+            'value': 1.5,           # величина суржа пользователя
+            'value_raw': 1.5,       # величина суржа до применения модификаторов расстояния или сглаживания
+            'value_raw_ml': 1.3,    # величина сырого суржа с учётом поправки из MLAAS
+            'value_smooth': 1.5,    # величина суржа после сглаживания
+            'value_smooth_b': 1.5,  # величина суржа после сглаживания для точки назначения
+            'value_graph_raw': 1.2, # величина суржа на графе (поле может отсутствовать)
+            'surcharge_alpha': 0.7, # параметр alpha надбавки
+            'surcharge_beta': 0.3,  # параметр beta надбавки
+            'surcharge': 100,       # слагаемое надбавки
+            'pins': 100,            # количество пинов
+            'free': 20,             # количество свободных водителей
+            'free_chain': 15,       # количество водителей, освобождающихся по цепочке
+            'total': 150,           # общее количество водителей
+            'reposition' : {        # количество водителей в reposition
+              'free': 1,
+              'free_chain': 0,
+              'total': 1
+            }
+            'radius': 2300,         # половина стороны квадрата, по которому считаются эти значения
+            'bl': [lon, lat],       # левая нижняя точка квадрата
+            'tr': [lon, lat],       # правая верхняя точка квадрата
+            'antisurge': False,     # флаг, что в этой зоне слишком много свободных машин
+            'value_b': 1.4,         # величина суржа в точке Б
+            'cost': 199,            # расчётная стоимость поездки
+            'time': 600,            # расчётное время поездки в секундах
+            'distance': 5000,       # расчётное расстояние в метрах
+            'f_derivative': -0.07,  # значение производной в уравнении баланса
+            'ps': 0.93,             # значение коэффициента p(s) в уравнении баланса
+            'ps_ml': 0.77,          # значение коэффициента p(s) с поправкой из MLAAS
+        }, ...],
+        'surge_id': 'MSK-Sadovoe',  # Сурж зона
+        'is_fake': False,  # Это точка по умолчанию для города
+        'order_id': 'db5e2716834a4a1eb829a80512b6873e', # Идентификатор заказа, если пин создан при создании заказа, либо None
+        'offer_id': "c362211f71544767a5284979a3a89bfb", # Идентификатор предложения, если пин создан при создании заказа, с которым связано предложение,
+                                                        # или если предложение было создано при обработке routestats
+                                                        # иначе None
+        'selected_class': "econom",  # Выбранный класс, либо минимальный из нескольких выбранных
+        'payment_type': "cash",  # Выбранный способ оплаты
+        'is_experimental_ghost_city': false,  # пин из экспериментального ghost city? (неoбязательное)
+        'forced_surges_experiments_info' : [ # Расширенная информация о принудительном сурже по экспериментам (необязательное)
+            {
+                'experiment_id' : 'uuid',
+                'experiment_name' : 'name',
+                'calculated_for_experimental_ghost_city': true, # Сурж расчитан для экспериментального ghost city?
+                'classes' : [
+                    {
+                        'category' : 'econom',
+                        'value' : 1,
+                        'value_raw' : 0.78,
+                        'antisurge' : False,
+                        'surcharge_alpha' : 0.2,
+                        'surcharge_beta' : 0.8,
+                        'surcharge' : 0,
+                        'pins' : 422,
+                        'free' : 69,
+                        'free_chain' : 25,
+                        'total' : 258,
+                        'reposition' : {
+                            'free' : 45,
+                            'free_chain' : 0,
+                            'total' : 90
+                        },
+                        'by_statuses' : {
+                            'verybusy,busy,other' : 40,
+                            'free,free,driving' : 2,
+                            'verybusy,order_free,other' : 4,
+                            'free,free,other' : 69,
+                            'verybusy,order_busy,transporting' : 35,
+                            'verybusy,order_free,waiting' : 23,
+                            'free,free,transporting' : 3,
+                            'verybusy,order_busy,driving' : 3,
+                            'verybusy,order_busy,waiting' : 5,
+                            'verybusy,order_free,transporting' : 126,
+                            'verybusy,order_free,driving' : 38
+                        },
+                        'point_b_surge_adjustment' : None,
+                        'f_derivative' : -0.047033093525179856,
+                        'ps' : 0.47119758600702377
+                    },
+                    {
+                        'category' : 'minivan',
+                        'value' : 1,
+                        'value_raw' : 0.52,
+                        'antisurge' : False,
+                        'surcharge_alpha' : 0.2,
+                        'surcharge_beta' : 0.8,
+                        'surcharge' : 0,
+                        'pins' : None,
+                        'free' : None,
+                        'free_chain' : None,
+                        'total' : None,
+                        'point_b_surge_adjustment' : None,
+                        'f_derivative' : None,
+                        'ps' : None
+                    },
+                    ...
+                ]
+            },
+            ...
+        ]
+    }
+    ```

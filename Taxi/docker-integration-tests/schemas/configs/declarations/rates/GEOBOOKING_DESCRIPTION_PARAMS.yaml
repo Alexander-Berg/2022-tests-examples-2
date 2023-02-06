@@ -1,0 +1,67 @@
+default:
+    __default__:
+        __default__:
+            orders_sum: 600
+            bonus: 200
+            currency: "RUB"
+description: "Параметры динамического текста \"Подробнее\" (по локалям и геозонам)\
+    \ для субсидий геобукинга: сумма за заказы, доплата и, опционально, валюта (если\
+    \ не указано, берётся из настроек зоны)"
+tags: []
+schema:
+    additionalProperties:
+        $ref: '#/definitions/locale_dict'
+    properties:
+        __default__:
+            $ref: '#/definitions/locale_dict'
+    required:
+      - __default__
+    type: object
+    definitions:
+        locale_dict:
+            additionalProperties:
+                $ref: '#/definitions/zone_dict'
+            properties:
+                __default__:
+                    $ref: '#/definitions/zone_dict'
+            required:
+              - __default__
+            type: object
+        zone_dict:
+            type: object
+            additionalProperties: false
+            properties:
+                orders_sum:
+                    minimum: 0
+                    type: number
+                bonus:
+                    minimum: 0
+                    type: number
+                currency:
+                    type: string
+            required:
+              - orders_sum
+              - bonus
+samples:
+  - __default__:
+        __default__:
+            orders_sum: 1800
+            bonus: 200
+    ru:
+        __default__:
+            orders_sum: 1800
+            bonus: 200
+            currency: "RUB"
+        moscow:
+            orders_sum: 3800
+            bonus: 1200
+            currency: "RUB"
+invalid-samples:
+  - moscow:
+        orders_sum: 3800
+        bonus: 1200
+        currency: "RUB"
+  - __default__:
+        __default__:
+            orders_sum: 1800
+            currency: "RUB"

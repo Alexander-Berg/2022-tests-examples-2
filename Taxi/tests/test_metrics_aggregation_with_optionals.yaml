@@ -1,0 +1,53 @@
+id: test_metrics_aggregation_with_optionals
+title: тест с отправкой метрик с опциональными параметрами (lat/lon и dry_run)
+
+source:
+    request:
+        method: post
+        headers:
+            session_id: SESSION_ID
+            lon#string: "1.00"
+            lat#string: "1.00"
+        body:
+            tag_name: TAG_NAME
+            dry_run: true
+    expectations:
+        response:
+            status-code: 200
+            body:
+                key: VALUE
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code: 200
+        body:
+            key: VALUE
+    expectations:
+        call-count: 1
+
+  - resource: scooters-misc-metrics-aggregate
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            body:
+                metrics_item:
+                    status_code: 200
+                    position:
+                      - 1.0
+                      - 1.0
+                    meta:
+                        tag: TAG_NAME
+                        endpoint: tag/evolve
+                        dry_run: true
+                        evolution_mode: default
+                        bluetooth_flow_enabled: false
+                        bluetooth_flow_enabled_forced: false
+                        ble_flow_is_used: false
+
+experiments:
+    values#object:
+      - scooters-metrics-aggregation:
+            enabled: true

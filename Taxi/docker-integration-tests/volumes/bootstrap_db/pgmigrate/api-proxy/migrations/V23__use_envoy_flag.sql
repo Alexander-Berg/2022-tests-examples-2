@@ -1,0 +1,2 @@
+ALTER TABLE api_proxy.resources
+ADD COLUMN use_envoy BOOLEAN NOT NULL DEFAULT FALSE;

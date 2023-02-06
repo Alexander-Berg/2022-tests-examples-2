@@ -1,0 +1,30 @@
+import "library/cpp/monlib/encode/legacy_protobuf/protos/metric_meta.proto";
+import "robot/library/actors/proto/counters.proto";
+import "robot/library/counters/dynamic_counters/protos/common_counters.proto";
+import "robot/library/counters/mergeable_counters/protos/merge_params.proto";
+
+package NPingerCounters;
+
+message TPingerCounters {
+    optional string Component = 1;
+    optional uint64 NPings = 2 [ (NMonProto.Metric).Type = GAUGE ];
+    optional uint64 NPingers = 3 [ (NMonProto.Metric).Type = GAUGE ];
+    optional uint64 ProcessedPings = 4 [ (NMonProto.Metric).Type = RATE ];
+    optional uint64 NotAnsweredProxyPings = 5 [ (NMonProto.Metric).Type = GAUGE ];
+    repeated NRobotCounters.TNamedCounter PingTimingsMks = 6 [ (NMonProto.Metric).Path = true, (NMonProto.Metric).Keys = "LessMks:Name" ];
+}
+
+message TPingerAppCounters {
+    message TAppCounters {
+        optional string Name = 1;
+        optional uint64 Uptime = 2 [ (NMonProto.Metric).Type = GAUGE ];
+        optional uint64 Alive = 3 [ (NMonProto.Metric).Type = GAUGE ];
+
+        optional TPingerCounters PingerCounters = 4 [ (NMonProto.Metric).Path = true, (NMonProto.Metric).Keys = "Component:Component" ];
+        optional NRobotCounters.TActorSystemCounters ActorSystem = 5 [ (NMonProto.Metric).Path = true, (NMonProto.Metric).Keys = "Component:Component" ];
+    }
+
+    optional TAppCounters Counters = 1 [ (NMonProto.Metric).Keys = "AppName:Name" ];
+}
+
+

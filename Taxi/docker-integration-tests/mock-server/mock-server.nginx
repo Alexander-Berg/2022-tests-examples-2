@@ -1,0 +1,20 @@
+server {
+    listen [::]:443 ssl;
+    listen 443 ssl;
+
+    ssl_certificate /etc/ssl/certs/server.crt;
+    ssl_certificate_key /etc/ssl/private/server.key;
+    ssl_client_certificate /usr/local/share/ca-certificates/rootCA.crt;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_pass http://mock-server.yandex.net;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_ignore_client_abort on;
+        proxy_read_timeout 300;
+        proxy_send_timeout  300;
+        proxy_connect_timeout  300;
+    }
+}

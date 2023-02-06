@@ -1,0 +1,80 @@
+[% ttppnomin=1 %]
+<!DOCTYPE html>
+<!-- https://github.yandex-team.ru/morda/xiva/blob/master/tests/browser_test.html -->
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+</head>
+<body>
+
+
+<script src="https://yastatic.net/jquery/2.2.3/jquery.min.js" type="text/javascript"></script>
+<script src="//cdn.jsdelivr.net/sockjs/1.0.3/sockjs.min.js"></script>
+<script type="text/javascript">
+    var sock = new SockJS('//[% XivaUrl %]/xiva', null, {debug: true});
+    var result = {};
+    sock.onopen = function() {
+        $('#connection_status').text('Connected!');
+        subscribe_parse($('#channels').val());
+    };
+    sock.onmessage = function(e) {
+        try{
+            var command = JSON.parse(e.data);
+        var ch = command.ch + '_' + command.key;
+        /*var ch = command.ch.replace(/\./g,"\\\\.");*/
+             /*$('#' + ch).text(JSON.stringify(command.dt));*/
+            result[ch] = command;
+            $('div[id="' + ch + '"]').text(format_out(ch));
+        }
+        catch(err){
+            console.log('exception while command', err);
+        }    
+    };
+
+    sock.onclose = function() {
+        $('#connection_status').text('Disconnected :(');
+    };
+
+    function format_out (ch)  {
+        return ch + ' = ' + JSON.stringify(result[ch]||'');
+    }
+
+    function subscribe_parse (str) {
+        var arr = str.split(/[,;\s]+/)
+        var hash = {};
+        var html = '';
+        for (i in arr) {
+            var ch = arr[i];
+            if (!ch.length)
+                continue;
+            hash[ch] = 1;
+            html += '<div id="' + ch + '">' + format_out(ch) + '</div>';
+        }
+        $('#out').html(html);
+        var command = {subscribe: hash };
+        sock.send(JSON.stringify(command));
+    }
+
+</script>
+
+<a href="//[% XivaUrl %]/xiva">[% XivaUrl %]</a><br/>
+<input id="channels" type="text" size="100" onchange="subscribe_parse($(this).val());location.hash=$(this).val();" name="some label" value="XDATA.rapid_control XDATA.rapid_control_tr rapid_control stocks_6 stocks_23 XDATA.stocks_64_10000 XDATA.stocks_1006_10000 XDATA.stocks_40042_20545" />
+<div id='status'>
+    <pre>
+    Connection: <span id="connection_status">disconnected</span>;<br>
+    </pre>
+</div>
+<div id='out' ></div>
+</body>
+</html>
+
+<script type="text/javascript">
+    var hash = location.hash;
+    hash = hash.replace(/^#/, '');
+    console.log(hash);
+    if (hash) {
+        $('#channels').val(hash)
+    }
+
+</script>

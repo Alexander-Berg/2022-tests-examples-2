@@ -1,0 +1,739 @@
+type: apitest
+version: 0
+service: taxi_zalogin
+
+marks:
+  - name: now
+    args:
+      - "2019-10-31T11:30:00+0300"
+  - name: config
+    kwargs:
+        PORTAL_AUTH_PHONE_CONFIRMATION_PERIODS_SECONDS:
+            __default__: 315360000
+        ZALOGIN_AUTH_MONGO_SOURCE_ENABLED:
+            $param:
+                name: "mongo_source_enabled"
+                default: true
+
+mockserver:
+  - url: /social/api/special/who_shares_taxi_data_v2
+    request:
+        query_params:
+            consumer: "taxi-zalogin"
+            provider: "ya"
+            userid: "12345"
+    response:
+        body:
+            status: "ok"
+
+  - url: /blackbox
+    request:
+        query_params:
+            method: "userinfo"
+            format: "json"
+            dbfields: "subscription.suid.669"
+            aliases: "all"
+            uid: "12345"
+            userip: "127.0.0.1"
+            getphones: "bound"
+            phone_attributes: "102,107,4,108"
+    response:
+        body:
+            users:
+              - uid:
+                    value: "12345"
+                aliases:
+                    1: "portal-account"
+                dbfields:
+                    subscription.suid.669: ""
+                phones:
+                  - id: "1111"
+                    attributes:
+                        102: "+71111111111"
+                        4: "1556681850"
+                  - id: "2222"
+                    attributes:
+                        102: "+72222222222"
+                        107: "1"
+                        4: "1556681858"
+
+  - url: /user-api/user_phones/bulk
+    request:
+        body:
+            items:
+              - phone: "+72222222222"
+                type: "yandex"
+              - phone: "+71111111111"
+                type: "yandex"
+            validate_phones: false
+    response:
+        body:
+            items:
+              - id: "000000000000000000000000"
+                phone: "+72222222222"
+                type: "yandex"
+                personal_phone_id: "my-personal-id"
+                phone_hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+                phone_salt: "cHVibGljIHNhbHQ="
+              - id: "000000000000000000000001"
+                phone: "+71111111111"
+                type: "yandex"
+                personal_phone_id: "my-personal-id-1"
+                phone_hash: "862e994f450624e17fac8fda6c45c9acafa2405809ab9a78d6344a51226dc666"
+                phone_salt: "cHVibGljIHNhbHQ="
+
+tests:
+  - name: sync-passport-phones-confirmations
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "portal"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "portal"
+  - name: sync-passport-phones-confirmations-lite
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "userinfo"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                uid: "12345"
+                userip: "127.0.0.1"
+                getphones: "bound"
+                phone_attributes: "102,107,4,108"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        5: "lite-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    phones:
+                      - id: "1111"
+                        attributes:
+                            102: "+71111111111"
+                            4: "1556681850"
+                      - id: "2222"
+                        attributes:
+                            102: "+72222222222"
+                            107: "1"
+                            4: "1556681858"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "lite"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "lite"
+  - name: sync-passport-phones-confirmations-social
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "userinfo"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                uid: "12345"
+                userip: "127.0.0.1"
+                getphones: "bound"
+                phone_attributes: "102,107,4,108"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        6: "social-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    phones:
+                      - id: "1111"
+                        attributes:
+                            102: "+71111111111"
+                            4: "1556681850"
+                      - id: "2222"
+                        attributes:
+                            102: "+72222222222"
+                            107: "1"
+                            4: "1556681858"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "social"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "social"
+
+  - name: sync-passport-phones-confirmations-pdd
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "userinfo"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                uid: "12345"
+                userip: "127.0.0.1"
+                getphones: "bound"
+                phone_attributes: "102,107,4,108"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        7: "pdd-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    phones:
+                      - id: "1111"
+                        attributes:
+                            102: "+71111111111"
+                            4: "1556681850"
+                      - id: "2222"
+                        attributes:
+                            102: "+72222222222"
+                            107: "1"
+                            4: "1556681858"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "pdd"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "pdd"
+  - name: sync-passport-phones-confirmations-neophonish
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "userinfo"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                uid: "12345"
+                userip: "127.0.0.1"
+                getphones: "bound"
+                phone_attributes: "102,107,4,108"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        21: "neophonish-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    phones:
+                      - id: "1111"
+                        attributes:
+                            102: "+71111111111"
+                            4: "1556681850"
+                      - id: "2222"
+                        attributes:
+                            102: "+72222222222"
+                            107: "1"
+                            4: "1556681858"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "neophonish"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "neophonish"
+
+  - name: sync-passport-phones-confirmations-mongo-fallback
+    params:
+        mongo_source_enabled: false
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "portal"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "portal"
+
+  - name: sync-social-phones-confirmations
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+                accounts:
+                    ya:
+                      - userid: "100"
+                        phones:
+                          - number: "+72222222222"
+                            confirmed: 1556681858
+                          - number: "+73333333333"
+                            confirmed: 1556681858
+      - url: /user-api/user_phones/bulk
+        request:
+            body:
+                items:
+                  - phone: "+73333333333"
+                    type: "yandex"
+                  - phone: "+72222222222"
+                    type: "yandex"
+                  - phone: "+71111111111"
+                    type: "yandex"
+                validate_phones: false
+        response:
+            body:
+                items:
+                  - id: "000000000000000000000000"
+                    phone: "+72222222222"
+                    type: "yandex"
+                    personal_phone_id: "my-personal-id"
+                    phone_hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+                    phone_salt: "cHVibGljIHNhbHQ="
+                  - id: "000000000000000000000001"
+                    phone: "+71111111111"
+                    type: "yandex"
+                    personal_phone_id: "my-personal-id-1"
+                    phone_hash: "862e994f450624e17fac8fda6c45c9acafa2405809ab9a78d6344a51226dc666"
+                    phone_salt: "cHVibGljIHNhbHQ="
+                  - id: "000000000000000000000003"
+                    phone: "+73333333333"
+                    type: "yandex"
+                    personal_phone_id: "my-personal-id-2"
+                    phone_hash: "3fa0b9be4894ba59f59388de60cae71fc6743fb1b1e425f21f6532fbffcd2bb6"
+                    phone_salt: "cHVibGljIHNhbHQ="
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        sort:
+          - ["phone_id", 1]
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "portal"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "portal"
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            bound_portal_uid: "12345"
+            uid_type: "phonish"
+        projection:
+            _id: false
+            updated: false
+        sort:
+          - ["phone_id", 1]
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "100"
+            uid_type: "phonish"
+            bound_portal_uid: "12345"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+          - phone_id: {$oid: "000000000000000000000003"}
+            uid: "100"
+            uid_type: "phonish"
+            bound_portal_uid: "12345"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+
+  - name: sync-social-status-error
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "error"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        sort:
+          - ["phone_id", 1]
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "portal"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "portal"
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            bound_portal_uid: "12345"
+            uid_type: "phonish"
+        projection:
+            _id: false
+            updated: false
+        sort:
+          - ["phone_id", 1]
+        expected:
+          - phone_id: {$oid: "000000000000000000001000"}
+            uid: "100"
+            uid_type: "phonish"
+            bound_portal_uid: "12345"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2018-10-31T11:30:00.0+03:00"}
+
+  - name: sync-social-request-failed
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            status: 500
+            body: {}
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "portal"
+        projection:
+            _id: false
+            updated: false
+        sort:
+          - ["phone_id", 1]
+        expected:
+          - phone_id: {$oid: "000000000000000000000000"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+            portal_type: "portal"
+          - phone_id: {$oid: "000000000000000000000001"}
+            uid: "12345"
+            uid_type: "portal"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:30.0+03:00"}
+            portal_type: "portal"
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            bound_portal_uid: "12345"
+            uid_type: "phonish"
+        projection:
+            _id: false
+            updated: false
+        sort:
+          - ["phone_id", 1]
+        expected:
+          - phone_id: {$oid: "000000000000000000001000"}
+            uid: "100"
+            uid_type: "phonish"
+            bound_portal_uid: "12345"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2018-10-31T11:30:00.0+03:00"}

@@ -1,0 +1,74 @@
+--- Assuming now is 2020-01-03 10:00+05
+INSERT INTO rent.affiliations
+(record_id, state,
+ park_id, local_driver_id,
+ original_driver_park_id, original_driver_id,
+ creator_uid, created_at_tz, modified_at_tz)
+VALUES ('basic_aff_id', 'active',
+        'park_id5', 'driver_id',
+        'driver_park_id', 'driver_id',
+        'creator_uid', '2020-01-01+00', '2020-01-01+00');
+
+INSERT INTO rent.records
+(record_id, idempotency_token,
+ owner_park_id, owner_serial_id, asset_type, asset_params,
+ driver_id, affiliation_id,
+ begins_at_tz, ends_at_tz,
+ charging_type,
+ charging_params,
+ charging_starts_at_tz,
+ creator_uid, created_at_tz,
+ accepted_at_tz,
+ transfer_order_number,
+ use_event_queue,
+ use_arbitrary_entries)
+VALUES ('basic_rent_id', 'idempotency_token',
+        'park_id5', 1, 'other', '{"subtype": "misc"}',
+        'driver_id', 'basic_aff_id',
+        '2020-01-01 12:00+05', '2020-01-31+00',
+        'daily',
+        '{"daily_price": "100", "time":"12:00", "periodicity": {"type": "constant", "params": null}}',
+        '2020-01-01 12:00+05',
+        'creator_uid', '2020-01-01+00',
+        '2020-01-01+00',
+        'park_id_1',
+        TRUE, TRUE);
+
+INSERT INTO rent.rent_history(rent_id, version,
+                              modification_source,
+                              owner_park_id,
+                              owner_serial_id,
+                              asset_type,
+                              asset_params,
+                              driver_id,
+                              affiliation_id,
+                              begins_at, ends_at,
+                              charging_type, charging_params,
+                              charging_starts_at,
+                              creator_uid, created_at,
+                              modified_at,
+                              accepted_at,
+                              transfer_order_number,
+                              use_event_queue,
+                              use_arbitrary_entries)
+VALUES ('basic_rent_id', 1,
+        '{"kind":"dispatcher", "uid": "hello"}',
+        'park_id5', 1, 'other', '{"subtype": "misc"}',
+        'driver_id', 'basic_aff_id',
+        '2020-01-01 12:00+05', '2020-01-31+00',
+        'daily',
+        '{"daily_price": "100", "time":"12:00", "periodicity": {"type": "constant", "params": null}}',
+        '2020-01-01 12:00+05',
+        'creator_uid', '2020-01-01+00',
+        '2020-01-01+00',
+        '2020-01-01+00',
+        'park_id_1',
+        TRUE, TRUE);
+
+INSERT INTO rent.event_queue(rent_id,
+                             event_number,
+                             event_at,
+                             executed_at)
+VALUES ('basic_rent_id', 1, '2020-01-01 12:00+05', '2020-01-01 12:00+05'),
+       ('basic_rent_id', 2, '2020-01-02 12:00+05', '2020-01-02 12:10+05'),
+       ('basic_rent_id', 3, '2020-01-03 12:00+05', NULL);

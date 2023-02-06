@@ -1,0 +1,59 @@
+id: test_old_service_post_response
+title: Проверка получения ответа из сервиса eats-restapp-marketing
+
+source:
+    request:
+        method: post
+        headers:
+            X-YaEda-PartnerId#string: 100
+            content-type: application/json
+        body:
+            type: plus_first_orders
+            place_ids: [1, 2, 3]
+            starts_at: 2021-10-11T00:00:00+0300
+            ends_at: 2022-10-11T00:00:00+0300
+            cashback: [12.21]
+    expectations:
+        response:
+            status-code: 200
+            body: {'bonuses': ['cashback': [12.21]], 'description': 'Привлечь новых
+                    пользователей, предложив им повышенный кешбек за первые заказы.',
+                'ends_at': '2022-10-10T21:00:00+00:00', 'id': 1, 'name': 'Повышенный
+                    кешбэк для новичков', 'place_ids': [1, 2, 3], 'requirements': [
+                    {}], 'starts_at': '2021-10-10T21:00:00+00:00', 'status': 'new',
+                'type': 'plus_first_orders'}
+
+mocks:
+  - resource: eats-restapp-promo-create-promo
+    expectations:
+        call-count: 0
+
+  - resource: eats-restapp-marketing-create-promo
+    response:
+        status-code: 200
+        body:
+            bonuses: ['cashback': [12.21]]
+            description: Привлечь новых пользователей, предложив им повышенный кешбек
+                за первые заказы.
+            ends_at: 2022-10-10T21:00:00+00:00
+            id: 1
+            name: Повышенный кешбэк для новичков
+            place_ids: [1, 2, 3]
+            requirements: [{}]
+            starts_at: 2021-10-10T21:00:00+00:00
+            status: new
+            type: plus_first_orders
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-new-promos-enabled
+        value:
+            enabled: false
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 100

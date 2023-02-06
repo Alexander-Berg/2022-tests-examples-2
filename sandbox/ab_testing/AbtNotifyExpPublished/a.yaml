@@ -1,0 +1,132 @@
+ci:
+  flows:
+    release_abt_notify_exp_published-flow:
+      title: ReleaseAbtNotifyExpPublished
+      jobs:
+        new_tag:
+          title: NewTag
+          task: projects/release_machine/create_arc_tag
+          needs: []
+          input:
+            config:
+              component_name: abt_notify_exp_published
+          stage: new_tag
+          needs-type: all
+        main_graph_entry:
+          title: MainGraphEntry
+          task: dummy
+          needs:
+          - new_tag
+          input: {}
+          stage: build
+          needs-type: all
+        create_changelog:
+          title: CreateChangelog
+          task: projects/release_machine/release_machine_changelog
+          needs:
+          - main_graph_entry
+          input:
+            candidate_path: ${tasks.new_tag.svn_data.svn_paths.tag}
+            major_release_num: ${context.version_info.major}
+            minor_release_num: ${not_null(context.version_info.minor, `0`)}
+            use_previous_branch_as_baseline: false
+            component_name: abt_notify_exp_published
+          stage: build
+          needs-type: all
+        build:
+          title: Build
+          task: common/sandbox/deploy_binary_task
+          needs:
+          - main_graph_entry
+          input:
+            arcadia_url: arcadia-arc:/#${context.target_revision.hash}
+            binary_executor_release_type: stable
+            release_ttl: 14
+            use_yt_cache: true
+            yt_token_vault: YT_STORE_TOKEN
+            target: sandbox/projects/ab_testing/AbtNotifyExpPublished/bin
+            attrs:
+              task_type: ABT_NOTIFY_EXP_PUBLISHED
+          stage: build
+          needs-type: all
+        release_sb_testing__abt_notify_exp_published:
+          title: ReleaseSbTesting AbtNotifyExpPublished
+          task: common/releases/release_rm_component_2
+          needs:
+          - build
+          - create_changelog
+          input:
+            component_resources:
+              ABT_NOTIFY_EXP_PUBLISHED: ${tasks.build.resources | [?type == 'SANDBOX_TASKS_BINARY'] | [0].id}
+            deploy_system: kosher_sandbox_release
+            component_name: abt_notify_exp_published
+            where_to_release: testing
+            major_release_num: ${context.version_info.major}
+            minor_release_num: ${not_null(context.version_info.minor, `0`)}
+          stage: test
+          needs-type: all
+        release_sb_stable__abt_notify_exp_published:
+          title: ReleaseSbStable AbtNotifyExpPublished
+          task: common/releases/release_rm_component_2
+          needs:
+          - release_sb_testing__abt_notify_exp_published
+          input:
+            component_resources:
+              ABT_NOTIFY_EXP_PUBLISHED: ${tasks.build.resources | [?type == 'SANDBOX_TASKS_BINARY'] | [0].id}
+            deploy_system: kosher_sandbox_release
+            component_name: abt_notify_exp_published
+            where_to_release: stable
+            major_release_num: ${context.version_info.major}
+            minor_release_num: ${not_null(context.version_info.minor, `0`)}
+          stage: release
+          needs-type: all
+  releases:
+    release_abt_notify_exp_published:
+      title: release_abt_notify_exp_published
+      description: ''
+      flow: release_abt_notify_exp_published-flow
+      auto: true
+      branches:
+        pattern: releases/abt_notify_exp_published/stable-${version}
+        auto-create: true
+        forbid-trunk-releases: false
+        independent-stages: false
+        auto: true
+      stages:
+      - id: new_tag
+        title: New_Tag
+        displace: &id001
+          on-status:
+          - FAILURE
+          - RUNNING_WITH_ERRORS
+          - WAITING_FOR_STAGE
+        rollback: false
+      - id: build
+        title: Build
+        displace: *id001
+        rollback: false
+      - id: test
+        title: Test
+        displace: *id001
+        rollback: false
+      - id: release
+        title: Release
+        displace: *id001
+        rollback: true
+      filters:
+      - discovery: any
+        abs-paths:
+        - sandbox/projects/ab_testing/AbtNotifyExpPublished/**
+        - sandbox/projects/release_machine/components/configs/**
+  actions: {}
+  secret: sec-01desry8fbgvnkbeybem81ferv
+  runtime:
+    sandbox:
+      owner: RELEASE_MACHINE
+      tags:
+      - RM_CI
+      - RM_COMPONENT:abt_notify_exp_published
+  config-edit-approvals:
+  - service: releasemachine
+service: releasemachine
+title: ABT_NOTIFY_EXP_PUBLISHED (Sandbox Task)

@@ -1,0 +1,114 @@
+{
+  "name": "default",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.experiment.rules[tariff].surge_value"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.type"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.local_time_shift"
+        }
+      ],
+      "name": "main",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[tariff]"
+        },
+        {
+          "alias": "extra",
+          "query": "extra"
+        }
+      ],
+      "source_code": "log.info('calc ' + tariff); return {extra: {type: type, local_time_shift: local_time_shift}, data: {name: tariff, value_raw: 1.0, surge: {value: surge_value}}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        }
+      ],
+      "name": "failable",
+      "optional": true,
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[tariff]"
+        }
+      ],
+      "source_code": "return {data: {name: tariff, value_raw: 'should be number'}};"
+    },
+    {
+      "args": [],
+      "in_bindings": [],
+      "name": "always_true",
+      "source_code": "log.info_ex('important info in predicate call'); return true;"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "always_true",
+          "type": "predicate"
+        }
+      ],
+      "name": "group0",
+      "stages": [
+        {
+          "conditions": [],
+          "in_bindings": [],
+          "name": "test_predicate_logs",
+          "optional": true,
+          "out_bindings": [],
+          "source_code": "log.info('logic information'); return null;"
+        }
+      ]
+    },
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "fetch_but_fail",
+      "optional": true,
+      "resources": [
+        {
+          "field": "surge_map",
+          "name": "surge_value_map"
+        }
+      ],
+      "source_code": "log.info('get ready for exception'); throw 'you better catch that';"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        }
+      ],
+      "name": "test_non_object_return_fail",
+      "optional": true,
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[tariff]"
+        }
+      ],
+      "source_code": "return 42;"
+    }
+  ],
+  "state": "active"
+}

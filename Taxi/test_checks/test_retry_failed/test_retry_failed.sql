@@ -1,0 +1,20 @@
+INSERT INTO fleet_drivers_scoring.checks
+(
+    park_id,
+    check_id,
+    idempotency_token,
+    created_at,
+    updated_at,
+    license_pd_id,
+    status
+)
+VALUES
+(
+    'park1',
+    '100000000',
+    '100000000',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    'license_pd_id',
+    'internal_error'
+)

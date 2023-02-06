@@ -1,0 +1,2 @@
+PLACE_ID_1 = 1
+ALGORITHM_NAME_THRESHOLD = 'threshold'

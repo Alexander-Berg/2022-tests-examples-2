@@ -1,0 +1,50 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:driver-mode-subscription:testing
+
+http_hosts:
+  - driver-mode-subscription.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        hide:
+          - mongo
+          - redis_client
+          - redis_subscribe_client
+          - logbroker_producer
+        uservice_name: driver-mode-subscription
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: driver-mode-subscription-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - stq:
+        queues:
+          - subscription_saga
+          - subscription_sync
+  - http
+  - include:
+        path: driver-mode-subscription/available_offers.json
+        title: available offers metrics
+        variables:
+            application: driver-mode-subscription
+            cluster: testing_uservices
+  - include:
+        path: driver-mode-subscription/mode_resubscribe.json
+        title: mode resubscribe metrics
+        variables:
+            application: driver-mode-subscription
+            cluster: testing_uservices
+  - include:
+        path: driver-mode-subscription/subscription_saga.json
+        title: subscription saga metrics
+        variables:
+            application: driver-mode-subscription
+            cluster: testing_uservices
+  - include:
+        path: driver-mode-subscription/workers_errors.json
+        title: Workers statistics
+        variables:
+            cluster: testing_uservices

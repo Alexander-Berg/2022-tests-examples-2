@@ -1,0 +1,68 @@
+# AUTHOR: chernomorets@yandex-team.ru
+
+- name: nocdev-test-mysql
+  description: nocdev-test-mysql monitoring
+  juggler_namespace: nocdev-test
+  hosts: cgroup:nocdev-test-mysql
+  defaults:
+    juggler_host: nocdev-test-mysql
+ 
+  aggregates:
+    - templates:
+      - autov6here: &template_agg
+          override:
+            flaps:
+              critical: 3600
+              stable: 1800
+              boost: 0
+            tags:
+              - crit_telegram_all
+      - cert_domain
+      - cert_expires
+      - cert_internal
+      - rsyslog
+      - mysql-status:
+          override:
+            tags:
+              - crit_telegram_all
+              - crit_phone_working
+      - coredump:
+          <<: *template_agg
+      - cron:
+          <<: *template_agg
+      - dns-local:
+          <<: *template_agg
+      - la:
+          <<: *template_agg
+      - la-per-core:
+          <<: *template_agg
+      - logrotate:
+          <<: *template_agg
+      - META:
+          <<: *template_agg
+      - mtu-diff:
+          <<: *template_agg
+      - network_load:
+          <<: *template_agg
+      - ntp-stratum:
+          <<: *template_agg
+      - oom_killer:
+          <<: *template_agg
+      - pkgver:
+          <<: *template_agg
+      - postfix:
+          <<: *template_agg
+      - postfix-queue:
+          <<: *template_agg
+      - salt-state:
+          override:
+            flaps:
+              critical: 86400
+              stable: 3600
+              boost: 0
+      - unispace:
+          <<: *template_agg
+      - cauth-cache:
+          <<: *template_agg
+      - systemd-flaps:
+          <<: *template_agg

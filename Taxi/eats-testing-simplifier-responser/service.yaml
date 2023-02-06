@@ -1,0 +1,87 @@
+python_service:
+    service_name: eats-testing-simplifier-responser
+maintainers:
+  - Oleg Savinov <olegsavinov@yandex-team.ru>
+tvm:
+    service_name: eats-testing-simplifier-responser
+teamcity:
+    conductor-disabled: true
+docker-deploy: {}
+debian:
+    source_package_name: yandex-eda-eats-testing-simplifier-responser
+    maintainer_name: Oleg Savinov
+    maintainer_login: olegsavinov
+units:
+  - name: web
+    web:
+        api-coverage:
+            enabled: true
+            non-decreasing: true
+        log_file_max_size: 5G
+        description: Yandex.Taxi eats-testing-simplifier-responser web package
+        hostname:
+            production:
+              - eats-testing-simplifier-responser.eda.yandex.net
+            testing:
+              - eats-testing-simplifier-responser.eda.tst.yandex.net
+        num_procs:
+            production: 4
+            testing: 2
+    debian:
+        binary_package_name: yandex-eda-eats-testing-simplifier-responser-web
+    api-4.0: true
+    pg:
+        policies:
+          - name: master_policy
+            type: Master
+            settings:
+                check_host_timeout: 1.0
+                max_replication_delay: 10.0
+                max_time_between_checks:
+          - name: round_robin_policy
+            type: RoundRobin
+            settings:
+                master_mode: allow
+                max_time_between_checks: 5.0
+        databases:
+          - name: eats_testing_simplifier_responser
+            pools:
+              - name: master_pool
+                policy_name: master_policy
+                settings:
+                    default:
+                        max_size: 5
+                    production:
+                        max_size: 10
+              - name: slave_pool
+                policy_name: round_robin_policy
+                close_timeout: 5
+                settings:
+                    default:
+                        min_size: 0
+                        max_size: 5
+    sqlt: true
+
+wiki: https://wiki.yandex-team.ru/TODO
+clownductor_service_info:
+    description: TODO
+    clownductor_project: eda
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    disk_profile: default
+    design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-992
+    duty_group_id: eda-backend-duty-order-cycle
+dashboards:
+    service_group:
+        rtc:
+            name: eats-testing-simplifier-responser
+stq-client:
+    queues:
+      - eda_order_processing_payment_events_callback
+
+config:
+  - EATS_TESTING_SIMPLIFIER_RESPONSER_DEFAULT_PAYMENT_METHODS_NEW
+  - EATS_TESTING_SIMPLIFIER_RESPONSER_DEFAULT_MOCK_USAGE

@@ -1,0 +1,71 @@
+id: test_post2
+title: Проверка, на реальном запросе/ответе
+
+
+source:
+    request:
+        method: post
+        body:
+            params:
+                service: "rtxaron"
+            order_id: "47e474176cb3c7a58ad56f39a4d54dc1"
+            timestamp: "2021-12-10T14:00:30.788000+04:00"
+            user_id: "c0a0cb1a577144ec8a0fb39378dd5a62"
+            user_personal_phone_id: "fd2d052d66114cab90b3e7da6ec89be9"
+            user_device_id: "D9F724E9-D6E2-47FC-90B0-C63060004E56"
+            driver_license_personal_id: "665232b3719c42b18e0af92de16a6904"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                jsonrpc: "2.0"
+                id: 1
+                result#array:
+                  - value:
+                        source: antifraud
+                        subsource: rtxaron
+                        entity: user_id
+                        key: c0a0cb1a577144ec8a0fb39378dd5a62
+                        name#string: "taxi_good_user_refunds"
+                        value#boolean: true
+
+mocks:
+  - resource: fury-rtxaron
+    response:
+        status-code: 200
+        body:
+            jsonrpc: "2.0"
+            id: 1
+            result#array:
+              - value:
+                    source: antifraud
+                    subsource: rtxaron
+                    entity: user_id
+                    key: c0a0cb1a577144ec8a0fb39378dd5a62
+                    name#string: "taxi_good_user_refunds"
+                    value#boolean: true
+              - value:
+                    name#string: "value_not_existing_in_config"
+                    value#boolean: true
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                params:
+                    service: "rtxaron"
+                order_id: "47e474176cb3c7a58ad56f39a4d54dc1"
+                timestamp: "2021-12-10T14:00:30.788000+04:00"
+                user_id: "c0a0cb1a577144ec8a0fb39378dd5a62"
+                user_personal_phone_id: "fd2d052d66114cab90b3e7da6ec89be9"
+                user_device_id: "D9F724E9-D6E2-47FC-90B0-C63060004E56"
+                driver_license_personal_id: "665232b3719c42b18e0af92de16a6904"
+
+  - resource: personal-data-type-phones-find
+    expectations:
+        call-count: 0
+
+taxi_config:
+    CHATTERBOX_ANTIFRAUD_RULES_FOR_META#array:
+      - value#string: "taxi_good_user_refunds"
+      - value#string: "unexisting_field"

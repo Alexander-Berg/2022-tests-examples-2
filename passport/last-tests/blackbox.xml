@@ -1,0 +1,428 @@
+<test>
+
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="format">
+            <instance id="xml">xml</instance>
+            <instance id="json">json</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="morda_by">213.180.194.68</instance>
+            <instance id="good">213.180.194.68</instance>
+            <instance id="banned">123.45.67.89</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="morda_by">beta.yandex.by</instance>
+            <instance id="morda_ru">beta.yandex.ru</instance>
+        </cgi>
+
+        <cgi name="method">
+            <instance id="login">login</instance>
+            <instance id="sessionid">sessionid</instance>
+        </cgi>
+
+        <cgi name="login">
+            <instance id="good">ko-shaki</instance>
+            <instance id="banned">banned'loser</instance>
+            <instance id="disabled">bbtst_disabled</instance>
+         </cgi>
+
+        <cgi name="password">
+            <instance id="good">shshshsh</instance>
+         </cgi>
+
+        <cgi name="full_info">
+            <instance id="1">1</instance>
+            <instance id="empty"></instance>
+            <instance id="yes">YES</instance>
+            <instance id="false">false</instance>
+        </cgi>
+
+        <cgi name="dbfields">
+            <instance id="empty"/>
+            <instance id="accounts">accounts.login.uid</instance>
+            <instance id="accounts_and_uid_and_ena">accounts.login.uid,account_info.fio.uid,accounts.ena.uid</instance>
+            <instance id="plus_subscription_sid2">accounts.login.uid,account_info.fio.uid,accounts.ena.uid,subscription.login.2</instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <arg name="uid">70497</arg>
+            <instance id="ru_noauth">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">noauth</arg>
+                <arg name="time">-10</arg>
+            </instance>
+            <instance id="ru_valid">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="time">-10</arg>
+            </instance>
+            <instance id="ru_need_reset">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">need_reset</arg>
+            </instance>
+            <instance id="ru_expired">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">expired</arg>
+            </instance>
+            <instance id="ru_invalid">
+                <arg name="host">beta.yandex.by</arg>
+                <arg name="type">valid</arg>
+            </instance>
+        </cgi>
+
+        <result name="ignore">
+            <body func="ignore"/>
+            <jsonBody func="ignore"/>
+        </result>
+
+        <!-- SESSIONID -->
+
+        <result name="id_valid_no_dbfields">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="/doc/age" comp="relation" min="9" max="11"></arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">0</arg>
+                <arg name="/status/value">VALID</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/uid/value">70497</arg>
+                <arg name="/age" comp="relation" min="9" max="11"></arg>
+                <arg name="/dbfield">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="id_need_reset">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='1']">NEED_RESET</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="/doc/age" comp="relation" min="3599" max="3601"></arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">1</arg>
+                <arg name="/status/value">NEED_RESET</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">70497</arg>
+                <arg name="/age" comp="relation" min="3599" max="3601"></arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="id_expired">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">EXPIRED</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/age">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">2</arg>
+                <arg name="/status/value">EXPIRED</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid">dontmatch</arg>
+                <arg name="/age">dontmatch</arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="id_noauth">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='3']">NOAUTH</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/age" comp="relation" min="9" max="11"></arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">3</arg>
+                <arg name="/status/value">NOAUTH</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid">dontmatch</arg>
+                <arg name="/age" comp="relation" min="9" max="11"></arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="id_invalid">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='5']">INVALID</arg>
+                <arg name="/doc/error" substitute="1">hostname &apos;\~`cgi:host`&apos; doesn't belong to sessionid domain</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/age">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">5</arg>
+                <arg name="/status/value">INVALID</arg>
+                <arg name="/error" substitute="1">hostname &apos;\~`cgi:host`&apos; doesn't belong to sessionid domain</arg>
+                <arg name="/uid">dontmatch</arg>
+                <arg name="/age">dontmatch</arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <!-- DBFIELDS -->
+
+        <result name="no_fields">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">0</arg>
+                <arg name="/status/value">VALID</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">70497</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="accounts">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">ko-shaki</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">0</arg>
+                <arg name="/status/value">VALID</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">70497</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/dbfields" res_mod="key_count">1</arg>
+                <arg name="/dbfields/accounts.login.uid">ko-shaki</arg>
+            </jsonBody>
+        </result>
+
+        <result name="accounts_and_uid_and_ena">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="count(/doc/dbfield)">3</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">ko-shaki</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">N June</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">0</arg>
+                <arg name="/status/value">VALID</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">70497</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/dbfields" res_mod="key_count">3</arg>
+                <arg name="/dbfields/accounts.login.uid">ko-shaki</arg>
+                <arg name="/dbfields/account_info.fio.uid">N June</arg>
+                <arg name="/dbfields/accounts.ena.uid">1</arg>
+            </jsonBody>
+        </result>
+
+        <result name="plus_subscription_sid2">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="count(/doc/dbfield)">4</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">ko-shaki</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">N June</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">ko-shaki</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">0</arg>
+                <arg name="/status/value">VALID</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">70497</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/dbfields" res_mod="key_count">4</arg>
+                <arg name="/dbfields/accounts.login.uid">ko-shaki</arg>
+                <arg name="/dbfields/account_info.fio.uid">N June</arg>
+                <arg name="/dbfields/accounts.ena.uid">1</arg>
+                <arg name="/dbfields/subscription.login.2">ko-shaki</arg>
+            </jsonBody>
+        </result>
+
+        <result name="disabled">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='1']">DISABLED</arg>
+                <arg name="/doc/error">Account disabled</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/age">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">1</arg>
+                <arg name="/status/value">DISABLED</arg>
+                <arg name="/error">Account disabled</arg>
+                <arg name="/uid">dontmatch</arg>
+                <arg name="/age">dontmatch</arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+        <result name="disabled_full">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='1']">DISABLED</arg>
+                <arg name="/doc/error">Account disabled</arg>
+                <arg name="/doc/uid[@hosted='0']">70499</arg>
+                <arg name="/doc/login">bbtst_Disabled</arg>
+                <arg name="/doc/age">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/id">1</arg>
+                <arg name="/status/value">DISABLED</arg>
+                <arg name="/error">Account disabled</arg>
+                <arg name="/uid/value">70499</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/login">bbtst_Disabled</arg>
+                <arg name="/age">dontmatch</arg>
+                <arg name="/dbfields">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>BlackBox</description>
+        <url>http://passdev2.yandex.ru</url>
+
+        <case>
+            <description>Method 'sessionid': no dbfields</description>
+            <path>blackbox</path>
+            <cgi name="userip">good</cgi>
+            <cgi name="host">morda_ru</cgi>
+            <cgi name="sessionid">*</cgi>
+            <cgi name="dbfields" withnull="1">empty</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="sessionid">ru_noauth</cgi>
+                <result>id_noauth</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_valid</cgi>
+                <result>id_valid_no_dbfields</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_need_reset</cgi>
+                <result>id_need_reset</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_expired</cgi>
+                <result>id_expired</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_invalid</cgi>
+                <result>id_invalid</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Method 'sessionid': dbfields</description>
+            <path>blackbox</path>
+            <cgi name="userip">good</cgi>
+            <cgi name="host">morda_ru</cgi>
+            <cgi name="sessionid">ru_valid</cgi>
+            <cgi name="dbfields">
+                accounts;
+                accounts_and_uid_and_ena;
+                plus_subscription_sid2;
+            </cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>plus_subscription_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="dbfields">accounts_and_uid_and_ena</cgi>
+                <result>accounts_and_uid_and_ena</result>
+            </check>
+
+            <check>
+                <cgi name="dbfields">accounts</cgi>
+                <result>accounts</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Method 'login' with dbfields</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good</cgi>
+            <cgi name="login">good</cgi>
+            <cgi name="password">good</cgi>
+            <cgi name="dbfields" withnull="1">
+                empty;
+                accounts;
+                accounts_and_uid_and_ena;
+                plus_subscription_sid2;
+            </cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>plus_subscription_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="dbfields">accounts_and_uid_and_ena</cgi>
+                <result>accounts_and_uid_and_ena</result>
+            </check>
+
+            <check>
+                <cgi name="dbfields">accounts</cgi>
+                <result>accounts</result>
+            </check>
+
+            <check>
+                <result>no_fields</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Test ena handling</description>
+
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good</cgi>
+            <cgi name="login">disabled</cgi>
+            <cgi name="password">good</cgi>
+            <cgi name="full_info" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="full_info">1;empty;yes</cgi>
+                <result>disabled_full</result>
+            </check>
+            <check>
+                <result>disabled</result>
+            </check>
+        </case>
+    </node>
+
+</test>

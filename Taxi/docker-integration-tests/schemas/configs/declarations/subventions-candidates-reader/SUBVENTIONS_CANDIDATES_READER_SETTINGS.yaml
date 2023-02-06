@@ -1,0 +1,97 @@
+default:
+    service_enabled: false
+    bs_rules_select_limit: 1000
+    bs_rules_select_active_from_now: 60
+description: настройки работы сервиса
+tags: [notfallback]
+maintainers: [kimlyk, vkanaev]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - service_enabled
+      - bs_rules_select_limit
+      - bs_rules_select_active_from_now
+    properties:
+        service_enabled:
+            type: boolean
+        bs_rules_select_limit:
+            type: integer
+            minimum: 0
+        bs_rules_select_active_from_now:
+            minimum: 0
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+        bs_rule_types:
+            type: array
+            items:
+                type: string
+        enable_sorting_candidates_by_dbid:
+            type: boolean
+        enable_filtering_by_tags:
+            type: boolean
+        enable_message_logging:
+            type: boolean
+        scheduler_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - scheduler_enabled
+              - schedule_interval_ms
+              - max_execute_duration_ms
+            properties:
+                scheduler_enabled:
+                    type: boolean
+                schedule_interval_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                max_execute_duration_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+        chunk_sizes:
+            type: object
+            additionalProperties: false
+            required:
+              - payment_type
+              - activity
+              - tags
+            properties:
+                payment_type:
+                    type: integer
+                    minimum: 0
+                activity:
+                    type: integer
+                    minimum: 0
+                tags:
+                    type: integer
+                    minimum: 0
+                write_message:
+                    type: integer
+                    minimum: 0
+        forward_to_queue:
+            description: Which queue the messages are sent to
+            type: string
+            enum:
+              - logbroker
+              - pgmq
+              - both
+        logbroker_producer_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - max_in_fly_messages
+              - commit_timeout
+              - partitions_number
+            properties:
+                max_in_fly_messages:
+                    description: number of messages that are published, but their
+                        commit has not been received yet. max_in_fly_messages*size_of_message
+                        should be < 8mb
+                    type: integer
+                commit_timeout:
+                    description: publish message timeout in ms
+                    type: integer
+                partitions_number:
+                    description: number of partitions in filtered-events topic. Producer
+                        uses this number to shard the stream of messages.
+                    type: integer

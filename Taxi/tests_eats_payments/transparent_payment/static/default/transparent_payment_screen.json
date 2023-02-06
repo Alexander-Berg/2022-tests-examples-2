@@ -1,0 +1,232 @@
+{
+  "clauses": [
+    {
+      "enabled": true,
+      "extension_method": "replace",
+      "is_paired_signal": false,
+      "is_signal": false,
+      "is_tech_group": false,
+      "predicate": {
+        "init": {
+          "predicates": [
+            {
+              "init": {
+                "arg_name": "error_reason_code"
+              },
+              "type": "is_null"
+            },
+            {
+              "init": {
+                "arg_name": "duration",
+                "arg_type": "int",
+                "value": 30
+              },
+              "type": "lte"
+            }
+          ]
+        },
+        "type": "all_of"
+      },
+      "title": "Оплата идет",
+      "value": {
+        "transparentPayment": {
+          "is_payment_in_progress": true,
+          "screen": {
+            "actions": [
+              {
+                "button": {
+                  "color": [
+                    {
+                      "theme": "light",
+                      "value": "#F1F0ED"
+                    },
+                    {
+                      "theme": "dark",
+                      "value": "#5500ff"
+                    }
+                  ],
+                  "id": "cancel_button",
+                  "title": {
+                    "color": [
+                      {
+                        "theme": "light",
+                        "value": "#21201F"
+                      },
+                      {
+                        "theme": "dark",
+                        "value": "#99aaff"
+                      }
+                    ],
+                    "text": "#eats-payments-tracking#cancel"
+                  }
+                },
+                "type": "cancel"
+              }
+            ],
+            "show_stopwatch": true,
+            "text": {
+              "color": [
+                {
+                  "theme": "light",
+                  "value": "#21201F"
+                },
+                {
+                  "theme": "dark",
+                  "value": "#99aaff"
+                }
+              ],
+              "text": "#eats-payments-tracking#ok_going"
+            },
+            "title": {
+              "color": [
+                {
+                  "theme": "light",
+                  "value": "#21201F"
+                },
+                {
+                  "theme": "dark",
+                  "value": "#99aaff"
+                }
+              ],
+              "text": "#eats-payments-tracking#pending-title"
+            }
+          }
+        }
+      }
+    },
+    {
+      "enabled": true,
+      "extension_method": "replace",
+      "is_paired_signal": false,
+      "is_signal": false,
+      "is_tech_group": false,
+      "predicate": {
+        "init": {
+          "predicates": [
+            {
+              "init": {
+                "arg_name": "error_reason_code",
+                "arg_type": "string",
+                "value": "not_enough_funds"
+              },
+              "type": "eq"
+            }
+          ]
+        },
+        "type": "all_of"
+      },
+      "title": "Оплата не прошла - not_enough_funds",
+      "value": {
+        "transparentPayment": {
+          "is_payment_in_progress": true,
+          "screen": {
+            "actions": [
+              {
+                "button": {
+                  "color": [
+                    {
+                      "theme": "light",
+                      "value": "#F1F0ED"
+                    },
+                    {
+                      "theme": "dark",
+                      "value": "#5500ff"
+                    }
+                  ],
+                  "id": "retry_payment_button",
+                  "title": {
+                    "color": [
+                      {
+                        "theme": "light",
+                        "value": "#21201F"
+                      },
+                      {
+                        "theme": "dark",
+                        "value": "#99aaff"
+                      }
+                    ],
+                    "text": "#eats-payments-tracking#pay"
+                  }
+                },
+                "type": "retry_payment"
+              },
+              {
+                "button": {
+                  "color": [
+                    {
+                      "theme": "light",
+                      "value": "#F1F0ED"
+                    },
+                    {
+                      "theme": "dark",
+                      "value": "#5500ff"
+                    }
+                  ],
+                  "id": "cancel_button",
+                  "title": {
+                    "color": [
+                      {
+                        "theme": "light",
+                        "value": "#21201F"
+                      },
+                      {
+                        "theme": "dark",
+                        "value": "#99aaff"
+                      }
+                    ],
+                    "text": "#eats-payments-tracking#cancel"
+                  }
+                },
+                "type": "cancel"
+              }
+            ],
+            "show_stopwatch": true,
+            "text": {
+              "color": [
+                {
+                  "theme": "light",
+                  "value": "#21201F"
+                },
+                {
+                  "theme": "dark",
+                  "value": "#99aaff"
+                }
+              ],
+              "text": "#eats-payments-tracking#not_enough_funds"
+            },
+            "title": {
+              "color": [
+                {
+                  "theme": "light",
+                  "value": "#21201F"
+                },
+                {
+                  "theme": "dark",
+                  "value": "#99aaff"
+                }
+              ],
+              "text": "#eats-payments-tracking#failed"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "default_value": {},
+  "enable_debug": false,
+  "match": {
+    "action_time": {},
+    "consumers": [
+      {
+        "name": "eats-payments/transparent_payment_screen"
+      }
+    ],
+    "enabled": true,
+    "predicate": {
+      "init": {},
+      "type": "true"
+    },
+    "schema": "type: object\nproperties:\n  transparentPayment:\n    type: object\n    additionalProperties: false\n    required:\n      - screen\n      - is_payment_in_progress\n    properties:\n      is_payment_in_progress:\n        type: boolean\n      screen:\n        $ref: '#/TransparentPaymentScreen'\nadditionalProperties: false\n\nTransparentPaymentScreen:\n  type: object\n  additionalProperties: false\n  required:\n    - title\n    - text\n    - show_stopwatch\n    - actions\n  properties:\n    title:\n      $ref: '#/ColoredText'\n      description: Заголовок экрана\n    show_stopwatch:\n      type: boolean\n      description: Нужно ли показывать секундомер\n    text:\n      $ref: '#/ColoredText'\n      description: Описание статуса оплаты\n    actions:\n      type: array\n      description: Кнопки с возможными действиями\n      items:\n        $ref: '#/TransparentPaymentAction'\n\nColoredText:\n  type: object\n  description: Окрашенный текст\n  required:\n    - color\n    - text\n  properties:\n    color:\n      $ref: '#/ThemedColor'\n    text:\n      type: string\n  additionalProperties: false\n  \nThemedColor:\n  type: array\n  description: |\n    Цвет элемента для разных тем (светлой / темной).\n  items:\n    type: object\n    required:\n      - theme\n      - value\n    additionalProperties: false\n    properties:\n      theme:\n        $ref: '#/Theme'\n      value:\n        $ref: '#/Color'\n        \nTheme:\n  type: string\n  description: Цветовая тема приложения (светлая / темная).\n  enum:\n    - light\n    - dark\n    \nColor:\n  type: string\n  example: '#ffffff'\n  description: Цвет элемента.\n\nTransparentPaymentAction:\n  oneOf:\n    - $ref: \"#/TransparentPaymentActionBase\"\n  discriminator:\n    propertyName: type\n    mapping:\n      retry_payment: \"#/TransparentPaymentActionBase\"\n      change_payment_type: \"#/TransparentPaymentActionBase\"\n      wait: \"#/TransparentPaymentActionBase\"\n      cancel: \"#/TransparentPaymentActionBase\"\n      cancel_and_create: \"#/TransparentPaymentActionBase\"\n\nTransparentPaymentActionBase:\n  type: object\n  additionalProperties: false\n  required:\n    - type\n    - button\n  properties:\n    type:\n      type: string\n      description: Тип экшена\n      enum:\n        - retry_payment\n        - change_payment_type\n        - wait\n        - cancel\n        - cancel_and_create\n    button:\n      $ref: \"#/TransparentPaymentActionButton\"\n      \nTransparentPaymentActionButton:\n  type: object\n  additionalProperties: false\n  description: Объект описывает контрол для отрисовки на экране прозрачной\n      оплаты\n  required:\n    - title\n    - color\n    - id\n  properties:\n    title:\n      $ref: '#/ColoredText'\n      description: Текст кнопки\n    color:\n      $ref: '#/ThemedColor'\n    id:\n      type: string\n      description: Идентификатор кнопки (для аналитики)\n"
+  },
+  "name": "eats_payments_transparent_payment_screen"
+}

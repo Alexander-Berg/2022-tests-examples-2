@@ -1,0 +1,59 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: processing
+        stq-queue: testsuite_processing
+        static-event-traits:
+            is-create#equal:
+              - value#xget:
+                    path: /event/payload/kind
+                    default-value#null:
+              - value#string: create
+        dynamic-event-traits:
+            reason#xget: /event/payload/kind
+        state-manager:
+            initial: {}
+        keys-mapping:
+            default-keys: [handle-default]
+        event-processor:
+          - id: handle-a
+            conditions:
+              - reason: a
+            stages:
+              - id: default
+                handlers:
+                  - id: default
+                    testpoints:
+                      - testpoint-name: event-processed
+                        extra-data:
+                            reason#xget: /event/reason
+          - id: handle-b
+            conditions:
+              - reason: b
+            stages:
+              - id: default
+                handlers:
+                  - id: default
+                    testpoints:
+                      - testpoint-name: event-processed
+                        extra-data:
+                            reason#xget: /event/reason
+          - id: handle-c
+            conditions:
+              - reason: c
+            stages:
+              - id: default
+                handlers:
+                  - id: default
+                    testpoints:
+                      - testpoint-name: event-processed
+                        extra-data:
+                            reason#xget: /event/reason
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            shared-state-init: {}
+            stages: []

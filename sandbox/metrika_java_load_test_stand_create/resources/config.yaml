@@ -1,0 +1,87 @@
+meta:
+  account_id: "abc:service:30740"
+  project_id: "metrika-java-load"
+spec:
+  account_id: "abc:service:30740"
+  deploy_units:
+    DeployUnit:
+      collect_portometrics_from_sidecars: true
+      endpoint_sets:
+        - port: 8083
+      images_for_boxes:
+        Box:
+          name: "load/yandex-tank-internal"
+          registry_host: "registry.yandex.net"
+          tag: "1.19.2"
+      network_defaults:
+        network_id: "_YMETRICTESTNETS_"
+      patchers_revision: 11
+      pod_agent_layer_sandbox_info: {}
+      pod_agent_sandbox_info:
+        revision: 2621390537
+      replica_set:
+        per_cluster_settings:
+          vla:
+            deployment_strategy:
+              max_unavailable: 1
+            pod_count: 1
+        replica_set_template:
+          constraints:
+            antiaffinity_constraints:
+              - key: "rack"
+                max_pods: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+                - id: "main-disk"
+                  labels:
+                    used_by_infra: true
+                  quota_policy:
+                    bandwidth_guarantee: 15728640
+                    bandwidth_limit: 31457280
+                    capacity: 42949672960
+                  storage_class: "hdd"
+              host_infra:
+                monitoring:
+                  labels:
+                    itype: "common"
+                  pod_agent:
+                    add_pod_agent_user_signals: true
+              pod_agent_payload:
+                spec:
+                  boxes:
+                    - cgroup_fs_mount_mode: "ro"
+                      compute_resources:
+                        memory_limit: 4294967296
+                        vcpu_limit: 2000
+                      id: "Box"
+                  mutable_workloads:
+                    - workload_ref: "tankapi"
+                    - workload_ref: "tankcron"
+                  workloads:
+                    - box_ref: "Box"
+                      id: "tankapi"
+                      readiness_check:
+                        tcp_check:
+                          port: 8083
+                      start:
+                        command_line: "/usr/bin/tankapi --ipv6 -p 8083"
+                      transmit_logs: true
+                    - box_ref: "Box"
+                      id: "tankcron"
+                      readiness_check:
+                        container:
+                          command_line: "/bin/bash -c \"ps aux | grep cron\""
+                      start:
+                        command_line: "/usr/sbin/cron -lf"
+                      transmit_logs: true
+              resource_requests:
+                memory_guarantee: 4294967296
+                memory_limit: 4294967296
+                network_bandwidth_guarantee: 10485760
+                vcpu_guarantee: 2000
+                vcpu_limit: 2000
+      revision: 1
+  revision: 1
+  revision_info:
+    description: null

@@ -1,0 +1,24 @@
+name: test_map_data
+queue_data:
+    db_cluster: replication_queue_mdb_0
+    shards_num: 2
+replication_type: queue
+source:
+    type: mongo
+    collection_name: test_coll
+    replicate_by: updated
+destinations:
+  - test_map_data_columns:
+        type: yt
+        mapper: columns_mapper
+        target:
+            path: test/map_data/test_struct
+            cluster_groups:
+              - map_reduce
+    test_map_data_premap:
+        type: yt
+        mapper: premap_mapper
+        target:
+            path: test/map_data/test_premap
+            cluster_groups:
+              - map_reduce

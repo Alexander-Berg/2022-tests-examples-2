@@ -1,0 +1,2415 @@
+<test>
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="format">
+            <instance id="xml">xml</instance>
+            <instance id="json">json</instance>
+        </cgi>
+
+        <cgi name="method">
+            <instance id="login">login</instance>
+            <instance id="userinfo">userinfo</instance>
+            <instance id="sessionid">sessionid</instance>
+            <instance id="oauth">oauth</instance>
+            <instance id="user_ticket">user_ticket</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="internal_user">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="user_port">
+            <instance id="valid1">1</instance>
+            <instance id="valid2">12345</instance>
+            <instance id="valid3">65535</instance>
+            <instance id="too_small">0</instance>
+            <instance id="too_big">65536</instance>
+            <instance id="negative">-1</instance>
+            <instance id="letters">foobar</instance>
+        </cgi>
+
+        <cgi name="aliases">
+            <instance id="all">all</instance>
+            <instance id="all_with_hidden">all_with_hidden</instance>
+        </cgi>
+
+        <cgi name="attributes">
+            <instance id="has_public_id">1024</instance>
+        </cgi>
+
+        <![CDATA[ Select users with different enable_search_by_phone alias settings:
+
+        mysql> select uid,al2.value as login,al.value as phone_alias,at.value as enable_search from aliases al left join (select * from aliases where type=1) al2 using(uid) left join (select uid, value from passportdbshard1.attributes where type=165) at using(uid) where uid >70480 and uid < 72000 and al.type=11 order by uid;
+        +-------+---------------------------+-------------+---------------+
+        | uid   | login                     | phone_alias | enable_search |
+        +-------+---------------------------+-------------+---------------+
+        | 70495 | malice                    | 79161112233 | NULL          | // no attr, search disabled
+        | 70500 | junit-test                | 79161603189 | 1             |
+        | 70501 | dot-user                  | 79161111111 | 1             |
+        | 70505 | NULL                      | 79162222222 | 1             |
+        | 71001 | addr-master               | 79032426488 | 2             | // attr==2, search enabled
+        | 71006 | addr-default-phone        | 76661112233 | 0             | // 0 attr, search disabled
+        | 71007 | addr-default-phone-denorm | 79637778899 | 1             |
+        +-------+---------------------------+-------------+---------------+
+        7 rows in set (0.00 sec)
+        ]]>
+
+        <cgi name="login">
+            <instance id="70495">malIce</instance>
+            <instance id="70496">Malice2</instance>
+            <instance id="70500">Junit.test</instance>
+            <instance id="70501">dot.user</instance>
+            <instance id="70502">BBtst_Staff</instance>
+
+            <instance id="malice_phone1">79161112233</instance>
+            <instance id="malice_phone2">8(916)-111_22=33</instance>
+            <instance id="malice_phone3">-8(916)-111#22:33@yandex.com</instance>
+            <instance id="malice_phone_gs">8_916+111/22\\33@galatasaray.net</instance>
+
+            <instance id="kino_phone1">8-916-22222+22</instance>
+            <instance id="kino_phone2">8-(916)-22222+22@kinoPoisk.RU</instance>
+            <instance id="kino_phone_e164">+79162222222</instance>
+            <instance id="kino_phone_norm">79162222222</instance>
+
+            <instance id="search_enabled"> 7 903 242 64 88  </instance>
+            <instance id="search_disabled">+ 76661112233</instance>
+
+            <instance id="local_phone_ru">9032426489</instance>
+            <instance id="local_phone_kg">0554123456</instance>
+            <instance id="local_phone_ua">0999123456</instance>
+            <instance id="local_phone_by">0172202555</instance>
+
+            <instance id="local_phone_kg_dom_ru">0554123456@yandex.ru</instance>
+            <instance id="local_phone_kg_dom_kg">0554123456@yandex.kg</instance>
+
+            <instance id="malice">malice</instance>
+            <instance id="junit-test">Junit-Test</instance>
+            <instance id="addr-master">addr.master</instance>
+
+            <instance id="scholar">ТЕСТОвыйшКОЛьник</instance>
+
+            <instance id="federal1">12345/federalalias</instance>
+            <instance id="federal2">12345/FEDERALalias</instance>
+            <instance id="federal3">12345/FEDERAL.alias</instance>
+            <instance id="federal4">12345/FEDERAL-alias</instance>
+            <instance id="federal_notfound">12345/Federalalias</instance>
+        </cgi>
+
+        <cgi name="password">
+            <instance id="valid">qwerty</instance>
+         </cgi>
+
+        <cgi name="uid">
+            <instance id="70495">70495</instance>
+            <instance id="70500">70500</instance>
+            <instance id="71001">71001</instance>
+            <instance id="scholar">71012</instance>
+        </cgi>
+
+        <cgi name="suid">
+            <instance id="malice">1120000000560289</instance>
+            <instance id="junit-test">1120000000553685</instance>
+            <instance id="addr-master">3002017645</instance>
+        </cgi>
+
+        <cgi name="sid">
+            <instance id="2">2</instance>
+            <instance id="bank">bank</instance>
+            <instance id="federal">federal</instance>
+        </cgi>
+
+        <cgi name="user_ticket" func="gen_user_ticket">
+            <instance id="70495">
+                <arg name="default_uid">70495</arg>
+            </instance>
+            <instance id="70496">
+                <arg name="default_uid">70496</arg>
+            </instance>
+            <instance id="70500">
+                <arg name="default_uid">70500</arg>
+            </instance>
+            <instance id="70501">
+                <arg name="default_uid">70501</arg>
+            </instance>
+            <instance id="70502">
+                <arg name="default_uid">70502</arg>
+            </instance>
+            <instance id="42">
+                <arg name="default_uid">42</arg>
+            </instance>
+            <instance id="kid">
+                <arg name="default_uid">4053749013</arg>
+            </instance>
+            <instance id="nobody">
+                <arg name="default_uid">0</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="oauth_token" func="gentoken">
+            <arg name="type">stateless</arg>
+            <arg name="client_id">2267</arg>
+            <instance id="ST_70495">
+                <arg name="uid">70495</arg>
+            </instance>
+            <instance id="ST_70496">
+                <arg name="uid">70496</arg>
+            </instance>
+            <instance id="ST_70500">
+                <arg name="uid">70500</arg>
+            </instance>
+            <instance id="ST_70501">
+                <arg name="uid">70501</arg>
+            </instance>
+            <instance id="ST_70502">
+                <arg name="uid">70502</arg>
+            </instance>
+
+            <instance id="ST_client_valid">
+            </instance>
+            <instance id="ST_uid_valid">
+                <arg name="uid">4001096104</arg>
+            </instance>
+            <instance id="ST_uid_valid_xtoken">
+                <arg name="uid">4001096104</arg>
+                <arg name="xtoken_id">256156</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <arg name="type">valid</arg>
+            <arg name="host">yandex.ru</arg>
+            <instance id="70495">
+                <arg name="uid">70495</arg>
+            </instance>
+            <instance id="70496">
+                <arg name="uid">70496</arg>
+            </instance>
+            <instance id="70500">
+                <arg name="uid">70500</arg>
+            </instance>
+            <instance id="70501">
+                <arg name="uid">70501</arg>
+            </instance>
+            <instance id="70502">
+                <arg name="uid">70502</arg>
+            </instance>
+            <instance id="known_authid">
+                <arg name="uid">70500</arg>
+                <arg name="authtime">1544252683198</arg>
+                <arg name="authip">2a02:6b8:0:107:60fd:f9c7:17ef:7eb</arg>
+                <arg name="authid">7f</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="public_id">
+            <instance id="70495">Malice.public</instance>
+            <instance id="70496">Malice</instance>
+            <instance id="70496_old1">old.Malice</instance>
+            <instance id="70496_old2">Real-malice</instance>
+            <instance id="70497">root-login</instance>
+            <instance id="70500_v0">2ykx3ef8ww9fc69q0p7uxpx269</instance>
+            <instance id="70500_v0caps">2YKX3EF8WW9FC69Q0P7UXPX269</instance>
+            <instance id="70500_v1">hvft198cqkbkhf1d58eb9dcn0n</instance>
+            <instance id="70500_custom">Junit-test.OLD</instance>
+            <instance id="70501">dot-user.public</instance>
+            <instance id="70502_v0">zmcnq7jeqmjtraq5b2qk60a2vn</instance>
+            <instance id="70502_v0_caps">ZMCNQ7JEQMJTRAQ5B2QK60A2VN</instance>
+            <instance id="70502_v1">wxbwya0fe14w3bvqgg8eby481h</instance>
+            <instance id="70502_v1caps">WXBWYA0FE14W3BVQGG8EBY481H</instance>
+            <instance id="70502_v2">f833nq5w3985dgwnk8ggymrrfn</instance>
+        </cgi>
+
+        <cgi name="country">
+            <instance id="ru">ru</instance>
+            <instance id="kg">Kg</instance>
+            <instance id="ua">uA</instance>
+            <instance id="by">BY</instance>
+            <instance id="us">us</instance>
+        </cgi>
+
+        <cgi name="find_by_phone_alias">
+            <instance id="on">force_on</instance>
+            <instance id="off">force_off</instance>
+            <instance id="empty"></instance>
+            <instance id="bad1">yes</instance>
+            <instance id="bad2">Force_On</instance>
+        </cgi>
+
+        <cgi name="get_billing_features">
+            <instance id="empty"></instance>
+            <instance id="yes">yes</instance>
+            <instance id="all">all</instance>
+        </cgi>
+
+        <cgi name="get_plus_subscriber_state">
+            <instance id="empty"></instance>
+            <instance id="yes">yes</instance>
+            <instance id="all">all</instance>
+        </cgi>
+
+        <cgi name="get_public_id">
+            <instance id="empty"></instance>
+            <instance id="yes">yes</instance>
+            <instance id="all">all</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">yandex.ru</instance>
+        </cgi>
+
+        <cgi name="get_user_ticket_for_kid">
+            <instance id="70502">70502</instance>
+            <instance id="42">42</instance>
+            <instance id="kid">4053749013</instance>
+            <instance id="nobody">0</instance>
+            <instance id="anotherkid">4054421055</instance>
+            <instance id="orphan">4054420843</instance>
+        </cgi>
+
+        <cgi name="get_family_info">
+            <instance id="yes">yes</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <cgi name="allow_scholar">
+            <instance id="yes">yes</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <header name="X-Ya-Service-Ticket" func="get_service_ticket">
+            <instance id="passport_dev">
+                <arg name="dst">242</arg>
+            </instance>
+        </header>
+
+        <result name="ignore">
+            <body func="ignore"/>
+            <jsonBody func="ignore"/>
+        </result>
+
+        <result name="illegal_find_by_phone_alias">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: Unknown value of find_by_phone_alias argument: '\~`cgi:find_by_phone_alias`'</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with" substitute="1">BlackBox error: Unknown value of find_by_phone_alias argument: '\~`cgi:find_by_phone_alias`'</arg>
+            </jsonBody>
+        </result>
+
+        <result name="illegal_sid_bank">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: unsupported sid=bank.</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: unsupported sid=bank.</arg>
+            </jsonBody>
+        </result>
+
+        <result name="not_found_login">
+            <body func="matchxpath">
+                <arg name="/doc/status">INVALID</arg>
+                <arg name="/doc/error">Login not found</arg>
+                <arg name="/doc/login">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/value">INVALID</arg>
+                <arg name="/status/id">2</arg>
+                <arg name="/login">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="not_found_userinfo">
+            <body func="matchxpath">
+                <arg name="/doc/uid"></arg>
+                <arg name="/doc/login">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users" res_mod="array_size">1</arg>
+                <arg name="/users/0/uid" res_mod="key_count">0</arg>
+                <arg name="/users/0/login">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="malice_userinfo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">4</arg>
+                <arg name="/doc/aliases/alias[@type='1']">malice</arg>
+                <arg name="/doc/aliases/alias[@type='2']">malice1</arg>
+                <arg name="/doc/aliases/alias[@type='3']">malice</arg>
+                <arg name="/doc/aliases/alias[@type='9']">malice-gs@galatasaray.net</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70495</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">malice</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">4</arg>
+                <arg name="/users/0/aliases/1">malice</arg>
+                <arg name="/users/0/aliases/2">malice1</arg>
+                <arg name="/users/0/aliases/3">malice</arg>
+                <arg name="/users/0/aliases/9">malice-gs@galatasaray.net</arg>
+            </jsonBody>
+        </result>
+        <result name="malice_userinfo_with_hidden">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">7</arg>
+                <arg name="/doc/aliases/alias[@type='1']">malice</arg>
+                <arg name="/doc/aliases/alias[@type='2']">malice1</arg>
+                <arg name="/doc/aliases/alias[@type='3']">malice</arg>
+                <arg name="/doc/aliases/alias[@type='9']">malice-gs@galatasaray.net</arg>
+                <arg name="/doc/aliases/alias[@type='11']">79161112233</arg>
+                <arg name="/doc/aliases/alias[@type='19']">malice-public</arg>
+                <arg name="/doc/aliases/alias[@type='25']">79162222222</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70495</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">malice</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">7</arg>
+                <arg name="/users/0/aliases/1">malice</arg>
+                <arg name="/users/0/aliases/2">malice1</arg>
+                <arg name="/users/0/aliases/3">malice</arg>
+                <arg name="/users/0/aliases/9">malice-gs@galatasaray.net</arg>
+                <arg name="/users/0/aliases/11">79161112233</arg>
+                <arg name="/users/0/aliases/19">malice-public</arg>
+                <arg name="/users/0/aliases/25">79162222222</arg>
+            </jsonBody>
+        </result>
+
+        <result name="federal_userinfo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">71013</arg>
+                <arg name="/doc/login">fbi@xaker.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='7']">fbi@xaker.ru</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/FEDERALalias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71013</arg>
+                <arg name="/users/0/uid/hosted">true</arg>
+                <arg name="/users/0/login">fbi@xaker.ru</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">2</arg>
+                <arg name="/users/0/aliases/7">fbi@xaker.ru</arg>
+                <arg name="/users/0/aliases/24">12345/FEDERALalias</arg>
+            </jsonBody>
+        </result>
+        <result name="federal_login">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">71013</arg>
+                <arg name="/doc/login">fbi@xaker.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='7']">fbi@xaker.ru</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/FEDERALalias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">71013</arg>
+                <arg name="/uid/hosted">true</arg>
+                <arg name="/login">fbi@xaker.ru</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/aliases" res_mod="key_count">2</arg>
+                <arg name="/aliases/7">fbi@xaker.ru</arg>
+                <arg name="/aliases/24">12345/FEDERALalias</arg>
+            </jsonBody>
+        </result>
+
+        <result name="federal_userinfo_with_dot">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">71014</arg>
+                <arg name="/doc/login">some.federal@xaker.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='7']">some-federal@xaker.ru</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/FEDERAL.alias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71014</arg>
+                <arg name="/users/0/uid/hosted">true</arg>
+                <arg name="/users/0/login">some.federal@xaker.ru</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">2</arg>
+                <arg name="/users/0/aliases/7">some-federal@xaker.ru</arg>
+                <arg name="/users/0/aliases/24">12345/FEDERAL.alias</arg>
+            </jsonBody>
+        </result>
+        <result name="federal_login_with_dot">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">71014</arg>
+                <arg name="/doc/login">some.federal@xaker.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='7']">some-federal@xaker.ru</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/FEDERAL.alias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">71014</arg>
+                <arg name="/uid/hosted">true</arg>
+                <arg name="/login">some.federal@xaker.ru</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/aliases" res_mod="key_count">2</arg>
+                <arg name="/aliases/7">some-federal@xaker.ru</arg>
+                <arg name="/aliases/24">12345/FEDERAL.alias</arg>
+            </jsonBody>
+        </result>
+
+        <result name="federal_userinfo_with_dash">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">71015</arg>
+                <arg name="/doc/login">some.other.federal@xaker.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='7']">some-other-federal@xaker.ru</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/FEDERAL-alias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71015</arg>
+                <arg name="/users/0/uid/hosted">true</arg>
+                <arg name="/users/0/login">some.other.federal@xaker.ru</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">2</arg>
+                <arg name="/users/0/aliases/7">some-other-federal@xaker.ru</arg>
+                <arg name="/users/0/aliases/24">12345/FEDERAL-alias</arg>
+            </jsonBody>
+        </result>
+        <result name="federal_login_with_dash">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">71015</arg>
+                <arg name="/doc/login">some.other.federal@xaker.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='7']">some-other-federal@xaker.ru</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/FEDERAL-alias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">71015</arg>
+                <arg name="/uid/hosted">true</arg>
+                <arg name="/login">some.other.federal@xaker.ru</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/aliases" res_mod="key_count">2</arg>
+                <arg name="/aliases/7">some-other-federal@xaker.ru</arg>
+                <arg name="/aliases/24">12345/FEDERAL-alias</arg>
+            </jsonBody>
+        </result>
+
+        <result name="all_aliases_userinfo">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4001025071</arg>
+                <arg name="/doc/login">alias.master</arg>
+                <arg name="count(/doc/aliases/alias)">21</arg>
+                <arg name="count(/doc/aliases/alias[@type='1'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='1']">alias-master</arg>
+                <arg name="count(/doc/aliases/alias[@type='2'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='2']">alias-mail</arg>
+                <arg name="count(/doc/aliases/alias[@type='3'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='3']">alias-narodmail</arg>
+                <arg name="count(/doc/aliases/alias[@type='5'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='5']">alias-lite@mail.ru</arg>
+                <arg name="count(/doc/aliases/alias[@type='6'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='6']">uid-deadbeef</arg>
+                <arg name="count(/doc/aliases/alias[@type='7'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='7']">pdd-master@domain.tst</arg>
+                <arg name="count(/doc/aliases/alias[@type='8'])">2</arg>
+                <arg name="/doc/aliases/alias[@type='8'][1]">pdd-alias2@domain.tst</arg>
+                <arg name="/doc/aliases/alias[@type='8'][2]">pdd-alias@domain.tst</arg>
+                <arg name="count(/doc/aliases/alias[@type='9'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='9']">alias-master@galatasaray.net</arg>
+                <arg name="count(/doc/aliases/alias[@type='10'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='10']">phne-deadbeef</arg>
+                <arg name="count(/doc/aliases/alias[@type='11'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='11']">78001010101</arg>
+                <arg name="count(/doc/aliases/alias[@type='12'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='12']">alias-mailish@mail.ru</arg>
+                <arg name="count(/doc/aliases/alias[@type='13'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='13']">alias-yandex-team</arg>
+                <arg name="count(/doc/aliases/alias[@type='15'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='15']">9963031091111</arg>
+                <arg name="count(/doc/aliases/alias[@type='16'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='16']">uber-alias-looking-like-guid</arg>
+                <arg name="count(/doc/aliases/alias[@type='17'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='17']">yambot-alias-test</arg>
+                <arg name="count(/doc/aliases/alias[@type='18'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='18']">alias-colonkish</arg>
+                <arg name="count(/doc/aliases/alias[@type='21'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='21']">nphne-alias</arg>
+                <arg name="count(/doc/aliases/alias[@type='22'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='22']">kid-napp3r</arg>
+                <arg name="count(/doc/aliases/alias[@type='23'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='23']">алиасшкольника</arg>
+                <arg name="count(/doc/aliases/alias[@type='24'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/federalalias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4001025071</arg>
+                <arg name="/users/0/login">alias.master</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">20</arg>
+                <arg name="/users/0/aliases/1">alias-master</arg>
+                <arg name="/users/0/aliases/2">alias-mail</arg>
+                <arg name="/users/0/aliases/3">alias-narodmail</arg>
+                <arg name="/users/0/aliases/5">alias-lite@mail.ru</arg>
+                <arg name="/users/0/aliases/6">uid-deadbeef</arg>
+                <arg name="/users/0/aliases/7">pdd-master@domain.tst</arg>
+                <arg name="/users/0/aliases/8" res_mod="array_size">2</arg>
+                <arg name="/users/0/aliases/8/0">pdd-alias2@domain.tst</arg>
+                <arg name="/users/0/aliases/8/1">pdd-alias@domain.tst</arg>
+                <arg name="/users/0/aliases/9">alias-master@galatasaray.net</arg>
+                <arg name="/users/0/aliases/10">phne-deadbeef</arg>
+                <arg name="/users/0/aliases/11">78001010101</arg>
+                <arg name="/users/0/aliases/12">alias-mailish@mail.ru</arg>
+                <arg name="/users/0/aliases/13">alias-yandex-team</arg>
+                <arg name="/users/0/aliases/15">9963031091111</arg>
+                <arg name="/users/0/aliases/16">uber-alias-looking-like-guid</arg>
+                <arg name="/users/0/aliases/17">yambot-alias-test</arg>
+                <arg name="/users/0/aliases/18">alias-colonkish</arg>
+                <arg name="/users/0/aliases/21">nphne-alias</arg>
+                <arg name="/users/0/aliases/22">kid-napp3r</arg>
+                <arg name="/users/0/aliases/23">алиасшкольника</arg>
+                <arg name="/users/0/aliases/24">12345/federalalias</arg>
+            </jsonBody>
+        </result>
+        <result name="all_aliases_login">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4001025071</arg>
+                <arg name="/doc/login">alias.master</arg>
+                <arg name="count(/doc/aliases/alias)">21</arg>
+                <arg name="count(/doc/aliases/alias[@type='1'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='1']">alias-master</arg>
+                <arg name="count(/doc/aliases/alias[@type='2'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='2']">alias-mail</arg>
+                <arg name="count(/doc/aliases/alias[@type='3'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='3']">alias-narodmail</arg>
+                <arg name="count(/doc/aliases/alias[@type='5'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='5']">alias-lite@mail.ru</arg>
+                <arg name="count(/doc/aliases/alias[@type='6'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='6']">uid-deadbeef</arg>
+                <arg name="count(/doc/aliases/alias[@type='7'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='7']">pdd-master@domain.tst</arg>
+                <arg name="count(/doc/aliases/alias[@type='8'])">2</arg>
+                <arg name="/doc/aliases/alias[@type='8'][1]">pdd-alias2@domain.tst</arg>
+                <arg name="/doc/aliases/alias[@type='8'][2]">pdd-alias@domain.tst</arg>
+                <arg name="count(/doc/aliases/alias[@type='9'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='9']">alias-master@galatasaray.net</arg>
+                <arg name="count(/doc/aliases/alias[@type='10'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='10']">phne-deadbeef</arg>
+                <arg name="count(/doc/aliases/alias[@type='11'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='11']">78001010101</arg>
+                <arg name="count(/doc/aliases/alias[@type='12'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='12']">alias-mailish@mail.ru</arg>
+                <arg name="count(/doc/aliases/alias[@type='13'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='13']">alias-yandex-team</arg>
+                <arg name="count(/doc/aliases/alias[@type='15'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='15']">9963031091111</arg>
+                <arg name="count(/doc/aliases/alias[@type='16'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='16']">uber-alias-looking-like-guid</arg>
+                <arg name="count(/doc/aliases/alias[@type='17'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='17']">yambot-alias-test</arg>
+                <arg name="count(/doc/aliases/alias[@type='18'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='18']">alias-colonkish</arg>
+                <arg name="count(/doc/aliases/alias[@type='21'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='21']">nphne-alias</arg>
+                <arg name="count(/doc/aliases/alias[@type='22'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='22']">kid-napp3r</arg>
+                <arg name="count(/doc/aliases/alias[@type='23'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='23']">алиасшкольника</arg>
+                <arg name="count(/doc/aliases/alias[@type='24'])">1</arg>
+                <arg name="/doc/aliases/alias[@type='24']">12345/federalalias</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">4001025071</arg>
+                <arg name="/login">alias.master</arg>
+                <arg name="/aliases" res_mod="key_count">20</arg>
+                <arg name="/aliases/1">alias-master</arg>
+                <arg name="/aliases/2">alias-mail</arg>
+                <arg name="/aliases/3">alias-narodmail</arg>
+                <arg name="/aliases/5">alias-lite@mail.ru</arg>
+                <arg name="/aliases/6">uid-deadbeef</arg>
+                <arg name="/aliases/7">pdd-master@domain.tst</arg>
+                <arg name="/aliases/8" res_mod="array_size">2</arg>
+                <arg name="/aliases/8/0">pdd-alias2@domain.tst</arg>
+                <arg name="/aliases/8/1">pdd-alias@domain.tst</arg>
+                <arg name="/aliases/9">alias-master@galatasaray.net</arg>
+                <arg name="/aliases/10">phne-deadbeef</arg>
+                <arg name="/aliases/11">78001010101</arg>
+                <arg name="/aliases/12">alias-mailish@mail.ru</arg>
+                <arg name="/aliases/13">alias-yandex-team</arg>
+                <arg name="/aliases/15">9963031091111</arg>
+                <arg name="/aliases/16">uber-alias-looking-like-guid</arg>
+                <arg name="/aliases/17">yambot-alias-test</arg>
+                <arg name="/aliases/18">alias-colonkish</arg>
+                <arg name="/aliases/21">nphne-alias</arg>
+                <arg name="/aliases/22">kid-napp3r</arg>
+                <arg name="/aliases/23">алиасшкольника</arg>
+                <arg name="/aliases/24">12345/federalalias</arg>
+            </jsonBody>
+        </result>
+
+        <result name="search_disabled_userinfo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71006</arg>
+                <arg name="/doc/login">addr.default.phone</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">1</arg>
+                <arg name="/doc/aliases/alias[@type='1']">addr-default-phone</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71006</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">addr.default.phone</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">1</arg>
+                <arg name="/users/0/aliases/1">addr-default-phone</arg>
+            </jsonBody>
+        </result>
+        <result name="search_disabled_userinfo_with_hidden">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71006</arg>
+                <arg name="/doc/login">addr.default.phone</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='1']">addr-default-phone</arg>
+                <arg name="/doc/aliases/alias[@type='11']">76661112233</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71006</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">addr.default.phone</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">2</arg>
+                <arg name="/users/0/aliases/1">addr-default-phone</arg>
+                <arg name="/users/0/aliases/11">76661112233</arg>
+            </jsonBody>
+        </result>
+
+        <result name="search_enabled_userinfo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">2</arg>
+                <arg name="/doc/aliases/alias[@type='1']">addr-master</arg>
+                <arg name="/doc/aliases/alias[@type='11']">79032426488</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71001</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">addr.master</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">2</arg>
+                <arg name="/users/0/aliases/1">addr-master</arg>
+                <arg name="/users/0/aliases/11">79032426488</arg>
+            </jsonBody>
+        </result>
+
+        <result name="kino_malice">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70505</arg>
+                <arg name="/doc/login">malice@kinopoisk.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">3</arg>
+                <arg name="/doc/aliases/alias[@type='9']">malice@kinopoisk.ru</arg>
+                <arg name="/doc/aliases/alias[@type='11']">79162222222</arg>
+                <arg name="/doc/aliases/alias[@type='12']">malice@yandex.ru</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70505</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">malice@kinopoisk.ru</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">3</arg>
+                <arg name="/users/0/aliases/9">malice@kinopoisk.ru</arg>
+                <arg name="/users/0/aliases/11">79162222222</arg>
+                <arg name="/users/0/aliases/12">malice@yandex.ru</arg>
+            </jsonBody>
+        </result>
+
+        <result name="kino_malice_login">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70505</arg>
+                <arg name="/doc/login">malice@kinopoisk.ru</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">3</arg>
+                <arg name="/doc/aliases/alias[@type='9']">malice@kinopoisk.ru</arg>
+                <arg name="/doc/aliases/alias[@type='11']">79162222222</arg>
+                <arg name="/doc/aliases/alias[@type='12']">malice@yandex.ru</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70505</arg>
+                <arg name="/uid/hosted">false</arg>
+                <arg name="/login">malice@kinopoisk.ru</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/aliases" res_mod="key_count">3</arg>
+                <arg name="/aliases/9">malice@kinopoisk.ru</arg>
+                <arg name="/aliases/11">79162222222</arg>
+                <arg name="/aliases/12">malice@yandex.ru</arg>
+            </jsonBody>
+        </result>
+
+        <result name="phone_alias_ru">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4009975216</arg>
+                <arg name="count(/doc/aliases/alias)">1</arg>
+                <arg name="/doc/aliases/alias[@type='11']">79032426489</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4009975216</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">1</arg>
+                <arg name="/users/0/aliases/11">79032426489</arg>
+            </jsonBody>
+        </result>
+        <result name="phone_alias_kg">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4009975154</arg>
+                <arg name="count(/doc/aliases/alias)">1</arg>
+                <arg name="/doc/aliases/alias[@type='11']">996554123456</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4009975154</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">1</arg>
+                <arg name="/users/0/aliases/11">996554123456</arg>
+            </jsonBody>
+        </result>
+        <result name="phone_alias_ua">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4009975156</arg>
+                <arg name="count(/doc/aliases/alias)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4009975156</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+        <result name="phone_alias_ua_with_hidden">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4009975156</arg>
+                <arg name="count(/doc/aliases/alias)">1</arg>
+                <arg name="/doc/aliases/alias[@type='11']">380999123456</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4009975156</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">1</arg>
+                <arg name="/users/0/aliases/11">380999123456</arg>
+            </jsonBody>
+        </result>
+        <result name="phone_alias_by">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4009975168</arg>
+                <arg name="count(/doc/aliases/alias)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4009975168</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+        <result name="phone_alias_by_with_hidden">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4009975168</arg>
+                <arg name="count(/doc/aliases/alias)">1</arg>
+                <arg name="/doc/aliases/alias[@type='11']">375172202555</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">4009975168</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">1</arg>
+                <arg name="/users/0/aliases/11">375172202555</arg>
+            </jsonBody>
+        </result>
+
+        <result name="bad_get_billing_features">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: Unsupported get_billing_features value: '\~`cgi:get_billing_features`'.</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/billing_features">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with" substitute="1">BlackBox error: Unsupported get_billing_features value: '\~`cgi:get_billing_features`'.</arg>
+                <arg name="/uid/value">dontmatch</arg>
+                <arg name="/billing_features">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="billing_features_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="/doc/billing_features"></arg>
+                <arg name="count(/doc/billing_features/feature)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70495</arg>
+                <arg name="/login">malice</arg>
+                <arg name="/billing_features" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="billing_features_70495_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="/doc/billing_features"></arg>
+                <arg name="count(/doc/billing_features/feature)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70495</arg>
+                <arg name="/users/0/login">malice</arg>
+                <arg name="/users/0/billing_features" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="billing_features_70500">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/login">Junit-Test</arg>
+                <arg name="count(/doc/billing_features/feature)">3</arg>
+                <arg name="count(/doc/billing_features/feature[@name='MusicPremium']/@*)">6</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@in_trial">1</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@paid_trial">0</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@region_id">213</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@trial_duration">12345678</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@brand">Apple_Music</arg>
+                <arg name="count(/doc/billing_features/feature[@name='Test_feature']/@*)">4</arg>
+                <arg name="/doc/billing_features/feature[@name='Test_feature']/@in_trial">0</arg>
+                <arg name="/doc/billing_features/feature[@name='Test_feature']/@trial_duration">100</arg>
+                <arg name="/doc/billing_features/feature[@name='Test_feature']/@brand"></arg>
+                <arg name="count(/doc/billing_features/feature[@name='an empty feature']/@*)">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70500</arg>
+                <arg name="/login">Junit-Test</arg>
+                <arg name="/billing_features" res_mod="key_count">3</arg>
+                <arg name="/billing_features/MusicPremium" res_mod="key_count">5</arg>
+                <arg name="/billing_features/MusicPremium/in_trial">true</arg>
+                <arg name="/billing_features/MusicPremium/paid_trial">false</arg>
+                <arg name="/billing_features/MusicPremium/region_id">213</arg>
+                <arg name="/billing_features/MusicPremium/trial_duration">12345678</arg>
+                <arg name="/billing_features/MusicPremium/brand">Apple_Music</arg>
+                <arg name="/billing_features/Test_feature" res_mod="key_count">3</arg>
+                <arg name="/billing_features/Test_feature/in_trial">false</arg>
+                <arg name="/billing_features/Test_feature/trial_duration">100</arg>
+                <arg name="/billing_features/Test_feature/brand"></arg>
+                <arg name="/billing_features/an empty feature" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="billing_features_70500_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/login">Junit-Test</arg>
+                <arg name="count(/doc/billing_features/feature)">3</arg>
+                <arg name="count(/doc/billing_features/feature[@name='MusicPremium']/@*)">6</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@in_trial">1</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@paid_trial">0</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@region_id">213</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@trial_duration">12345678</arg>
+                <arg name="/doc/billing_features/feature[@name='MusicPremium']/@brand">Apple_Music</arg>
+                <arg name="count(/doc/billing_features/feature[@name='Test_feature']/@*)">4</arg>
+                <arg name="/doc/billing_features/feature[@name='Test_feature']/@in_trial">0</arg>
+                <arg name="/doc/billing_features/feature[@name='Test_feature']/@trial_duration">100</arg>
+                <arg name="/doc/billing_features/feature[@name='Test_feature']/@brand"></arg>
+                <arg name="count(/doc/billing_features/feature[@name='an empty feature']/@*)">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70500</arg>
+                <arg name="/users/0/login">Junit-Test</arg>
+                <arg name="/users/0/billing_features" res_mod="key_count">3</arg>
+                <arg name="/users/0/billing_features/MusicPremium" res_mod="key_count">5</arg>
+                <arg name="/users/0/billing_features/MusicPremium/in_trial">true</arg>
+                <arg name="/users/0/billing_features/MusicPremium/paid_trial">false</arg>
+                <arg name="/users/0/billing_features/MusicPremium/region_id">213</arg>
+                <arg name="/users/0/billing_features/MusicPremium/trial_duration">12345678</arg>
+                <arg name="/users/0/billing_features/MusicPremium/brand">Apple_Music</arg>
+                <arg name="/users/0/billing_features/Test_feature" res_mod="key_count">3</arg>
+                <arg name="/users/0/billing_features/Test_feature/in_trial">false</arg>
+                <arg name="/users/0/billing_features/Test_feature/trial_duration">100</arg>
+                <arg name="/users/0/billing_features/Test_feature/brand"></arg>
+                <arg name="/users/0/billing_features/an empty feature" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="billing_features_70502">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70502</arg>
+                <arg name="/doc/login">bbtst_staff</arg>
+                <arg name="count(/doc/billing_features/feature)">1</arg>
+                <arg name="count(/doc/billing_features/feature[@name='an empty feature']/@*)">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70502</arg>
+                <arg name="/login">bbtst_staff</arg>
+                <arg name="/billing_features" res_mod="key_count">1</arg>
+                <arg name="/billing_features/an empty feature" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="billing_features_70502_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70502</arg>
+                <arg name="/doc/login">bbtst_staff</arg>
+                <arg name="count(/doc/billing_features/feature)">1</arg>
+                <arg name="count(/doc/billing_features/feature[@name='an empty feature']/@*)">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70502</arg>
+                <arg name="/users/0/login">bbtst_staff</arg>
+                <arg name="/users/0/billing_features" res_mod="key_count">1</arg>
+                <arg name="/users/0/billing_features/an empty feature" res_mod="key_count">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="no_billing_features">
+            <body func="matchxpath">
+                <arg name="/doc/uid" comp="starts_with">70</arg>
+                <arg name="/doc/login" comp="regex">.+</arg>
+                <arg name="/doc/billing_features">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value" comp="starts_with">70</arg>
+                <arg name="/login" comp="regex">.+</arg>
+                <arg name="/billing_features">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="no_billing_features_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid" comp="starts_with">70</arg>
+                <arg name="/doc/login" comp="regex">.+</arg>
+                <arg name="/doc/billing_features">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value" comp="starts_with">70</arg>
+                <arg name="/users/0/login" comp="regex">.+</arg>
+                <arg name="/users/0/billing_features">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="bad_get_plus_subscriber_state">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: Unsupported get_plus_subscriber_state value: '\~`cgi:get_plus_subscriber_state`'.</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/plus_subscriber_state">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with" substitute="1">BlackBox error: Unsupported get_plus_subscriber_state value: '\~`cgi:get_plus_subscriber_state`'.</arg>
+                <arg name="/uid/value">dontmatch</arg>
+                <arg name="/plus_subscriber_state">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="plus_subscriber_state_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature)">0</arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70495</arg>
+                <arg name="/login">malice</arg>
+                <arg name="/plus_subscriber_state/available_features" res_mod="array_size">0</arg>
+                <arg name="/plus_subscriber_state/frozen_features" res_mod="array_size">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="plus_subscriber_state_70495_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature)">0</arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70495</arg>
+                <arg name="/users/0/login">malice</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features" res_mod="array_size">0</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features" res_mod="array_size">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="plus_subscriber_state_70500">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/login">Junit-Test</arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature)">2</arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature[@id=111]/@*)">3</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=111]/@end">9876543210</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=111]/@value">foo</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=111]"></arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature[@id=222]/@*)">2</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=222]/@end">9876543219</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=222]"></arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature)">2</arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature[@id=333]/@*)">2</arg>
+                <arg name="/doc/plus_subscriber_state/frozen_features/feature[@id=333]/@value">bar</arg>
+                <arg name="/doc/plus_subscriber_state/frozen_features/feature[@id=333]"></arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature[@id=444]/@*)">1</arg>
+                <arg name="/doc/plus_subscriber_state/frozen_features/feature[@id=444]"></arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70500</arg>
+                <arg name="/login">Junit-Test</arg>
+                <arg name="/plus_subscriber_state/available_features" res_mod="array_size">2</arg>
+                <arg name="/plus_subscriber_state/available_features/0" res_mod="key_count">3</arg>
+                <arg name="/plus_subscriber_state/available_features/0/id">111</arg>
+                <arg name="/plus_subscriber_state/available_features/0/end">9876543210</arg>
+                <arg name="/plus_subscriber_state/available_features/0/value">foo</arg>
+                <arg name="/plus_subscriber_state/available_features/1" res_mod="key_count">2</arg>
+                <arg name="/plus_subscriber_state/available_features/1/id">222</arg>
+                <arg name="/plus_subscriber_state/available_features/1/end">9876543219</arg>
+                <arg name="/plus_subscriber_state/frozen_features" res_mod="array_size">2</arg>
+                <arg name="/plus_subscriber_state/frozen_features/0" res_mod="key_count">2</arg>
+                <arg name="/plus_subscriber_state/frozen_features/0/id">333</arg>
+                <arg name="/plus_subscriber_state/frozen_features/0/value">bar</arg>
+                <arg name="/plus_subscriber_state/frozen_features/1" res_mod="key_count">1</arg>
+                <arg name="/plus_subscriber_state/frozen_features/1/id">444</arg>
+            </jsonBody>
+        </result>
+
+        <result name="plus_subscriber_state_70500_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/login">Junit-Test</arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature)">2</arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature[@id=111]/@*)">3</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=111]/@end">9876543210</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=111]/@value">foo</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=111]"></arg>
+                <arg name="count(/doc/plus_subscriber_state/available_features/feature[@id=222]/@*)">2</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=222]/@end">9876543219</arg>
+                <arg name="/doc/plus_subscriber_state/available_features/feature[@id=222]"></arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature)">2</arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature[@id=333]/@*)">2</arg>
+                <arg name="/doc/plus_subscriber_state/frozen_features/feature[@id=333]/@value">bar</arg>
+                <arg name="/doc/plus_subscriber_state/frozen_features/feature[@id=333]"></arg>
+                <arg name="count(/doc/plus_subscriber_state/frozen_features/feature[@id=444]/@*)">1</arg>
+                <arg name="/doc/plus_subscriber_state/frozen_features/feature[@id=444]"></arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70500</arg>
+                <arg name="/users/0/login">Junit-Test</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features" res_mod="array_size">2</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/0" res_mod="key_count">3</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/0/id">111</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/0/end">9876543210</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/0/value">foo</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/1" res_mod="key_count">2</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/1/id">222</arg>
+                <arg name="/users/0/plus_subscriber_state/available_features/1/end">9876543219</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features" res_mod="array_size">2</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features/0" res_mod="key_count">2</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features/0/id">333</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features/0/value">bar</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features/1" res_mod="key_count">1</arg>
+                <arg name="/users/0/plus_subscriber_state/frozen_features/1/id">444</arg>
+            </jsonBody>
+        </result>
+
+        <result name="no_plus_subscriber_state">
+            <body func="matchxpath">
+                <arg name="/doc/uid" comp="starts_with">70</arg>
+                <arg name="/doc/login" comp="regex">.+</arg>
+                <arg name="/doc/plus_subscriber_state">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value" comp="starts_with">70</arg>
+                <arg name="/login" comp="regex">.+</arg>
+                <arg name="/plus_subscriber_state">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="no_plus_subscriber_state_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid" comp="starts_with">70</arg>
+                <arg name="/doc/login" comp="regex">.+</arg>
+                <arg name="/doc/plus_subscriber_state">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value" comp="starts_with">70</arg>
+                <arg name="/users/0/login" comp="regex">.+</arg>
+                <arg name="/users/0/plus_subscriber_state">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="/doc/public_id">malice-public</arg>
+                <arg name="/doc/attributes/attribute[@type='1024']">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70495</arg>
+                <arg name="/login">malice</arg>
+                <arg name="/public_id">malice-public</arg>
+                <arg name="/attributes/1024">1</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70495_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="/doc/public_id">malice-public</arg>
+                <arg name="/doc/aliases/alias[@type='19']">malice-public</arg>
+                <arg name="/doc/aliases/alias[@type='20']">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70495</arg>
+                <arg name="/users/0/login">malice</arg>
+                <arg name="/users/0/public_id">malice-public</arg>
+                <arg name="/users/0/aliases/19">malice-public</arg>
+                <arg name="/users/0/aliases/20">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70496">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="/doc/public_id">malice</arg>
+                <arg name="/doc/attributes/attribute[@type='1024']">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70496</arg>
+                <arg name="/login">Malice2</arg>
+                <arg name="/public_id">malice</arg>
+                <arg name="/attributes/1024">1</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70496_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="/doc/public_id">malice</arg>
+                <arg name="/doc/aliases/alias[@type='19']">malice</arg>
+                <arg name="/doc/aliases/alias[@type='20'][1]">old-malice</arg>
+                <arg name="/doc/aliases/alias[@type='20'][2]">real-malice</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70496</arg>
+                <arg name="/users/0/login">Malice2</arg>
+                <arg name="/users/0/public_id">malice</arg>
+                <arg name="/users/0/aliases/19">malice</arg>
+                <arg name="/users/0/aliases/20" res_mod="array_size">2</arg>
+                <arg name="/users/0/aliases/20/0">old-malice</arg>
+                <arg name="/users/0/aliases/20/1">real-malice</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70497">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70497</arg>
+                <arg name="/doc/login">ko-shaki</arg>
+                <arg name="/doc/public_id">59mdvk74ypranf298ctwvf57dx</arg>
+                <arg name="/doc/attributes/attribute[@type='1024']">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70497</arg>
+                <arg name="/login">ko-shaki</arg>
+                <arg name="/public_id">59mdvk74ypranf298ctwvf57dx</arg>
+                <arg name="/attributes/1024">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70497_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70497</arg>
+                <arg name="/doc/login">ko-shaki</arg>
+                <arg name="/doc/public_id">59mdvk74ypranf298ctwvf57dx</arg>
+                <arg name="/doc/aliases/alias[@type='19']">dontmatch</arg>
+                <arg name="/doc/aliases/alias[@type='20']">root-login</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70497</arg>
+                <arg name="/users/0/login">ko-shaki</arg>
+                <arg name="/users/0/public_id">59mdvk74ypranf298ctwvf57dx</arg>
+                <arg name="/users/0/aliases/19">dontmatch</arg>
+                <arg name="/users/0/aliases/20" res_mod="array_size">1</arg>
+                <arg name="/users/0/aliases/20/0">root-login</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70500">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/login">Junit-Test</arg>
+                <arg name="/doc/public_id">2ykx3ef8ww9fc69q0p7uxpx269</arg>
+                <arg name="/doc/attributes/attribute[@type='1024']">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70500</arg>
+                <arg name="/login">Junit-Test</arg>
+                <arg name="/public_id">2ykx3ef8ww9fc69q0p7uxpx269</arg>
+                <arg name="/attributes/1024">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70500_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/login">Junit-Test</arg>
+                <arg name="/doc/public_id">2ykx3ef8ww9fc69q0p7uxpx269</arg>
+                <arg name="/doc/aliases/alias[@type='19']">dontmatch</arg>
+                <arg name="/doc/aliases/alias[@type='20']">junit-test-old</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70500</arg>
+                <arg name="/users/0/login">Junit-Test</arg>
+                <arg name="/users/0/public_id">2ykx3ef8ww9fc69q0p7uxpx269</arg>
+                <arg name="/users/0/aliases/19">dontmatch</arg>
+                <arg name="/users/0/aliases/20" res_mod="array_size">1</arg>
+                <arg name="/users/0/aliases/20/0">junit-test-old</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70501">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70501</arg>
+                <arg name="/doc/login">dot.user</arg>
+                <arg name="/doc/public_id">Dot.User-public</arg>
+                <arg name="/doc/attributes/attribute[@type='1024']">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70501</arg>
+                <arg name="/login">dot.user</arg>
+                <arg name="/public_id">Dot.User-public</arg>
+                <arg name="/attributes/1024">1</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70501_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70501</arg>
+                <arg name="/doc/login">dot.user</arg>
+                <arg name="/doc/public_id">Dot.User-public</arg>
+                <arg name="/doc/aliases/alias[@type='19']">dot-user-public</arg>
+                <arg name="/doc/aliases/alias[@type='20']">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70501</arg>
+                <arg name="/users/0/login">dot.user</arg>
+                <arg name="/users/0/public_id">Dot.User-public</arg>
+                <arg name="/users/0/aliases/19">dot-user-public</arg>
+                <arg name="/users/0/aliases/20">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70502">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70502</arg>
+                <arg name="/doc/login">bbtst_staff</arg>
+                <arg name="/doc/public_id">wxbwya0fe14w3bvqgg8eby481h</arg>
+                <arg name="/doc/attributes/attribute[@type='1024']">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value">70502</arg>
+                <arg name="/login">bbtst_staff</arg>
+                <arg name="/public_id">wxbwya0fe14w3bvqgg8eby481h</arg>
+                <arg name="/attributes/1024">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="public_id_70502_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70502</arg>
+                <arg name="/doc/login">bbtst_staff</arg>
+                <arg name="/doc/public_id">wxbwya0fe14w3bvqgg8eby481h</arg>
+                <arg name="/doc/aliases/alias[@type='19']">dontmatch</arg>
+                <arg name="/doc/aliases/alias[@type='20']">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70502</arg>
+                <arg name="/users/0/login">bbtst_staff</arg>
+                <arg name="/users/0/public_id">wxbwya0fe14w3bvqgg8eby481h</arg>
+                <arg name="/users/0/aliases/19">dontmatch</arg>
+                <arg name="/users/0/aliases/20">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="no_public_id">
+            <body func="matchxpath">
+                <arg name="/doc/uid" comp="starts_with">70</arg>
+                <arg name="/doc/login" comp="regex">.+</arg>
+                <arg name="/doc/public_id">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/uid/value" comp="starts_with">70</arg>
+                <arg name="/login" comp="regex">.+</arg>
+                <arg name="/public_id">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="no_public_id_user">
+            <body func="matchxpath">
+                <arg name="/doc/uid" comp="starts_with">70</arg>
+                <arg name="/doc/login" comp="regex">.+</arg>
+                <arg name="/doc/public_id">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value" comp="starts_with">70</arg>
+                <arg name="/users/0/login" comp="regex">.+</arg>
+                <arg name="/users/0/public_id">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="valid_user_port">
+            <body func="matchxpath">
+                <arg name="/doc/exception">dontmatch</arg>
+            </body>
+        </result>
+        <result name="bad_user_port">
+            <body func="matchxpath">
+                <arg name="/doc/exception">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="regex">user_port</arg>
+            </body>
+        </result>
+
+        <result name="user_ticket_for_kid__src_not_found">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid">dontmatch</arg>
+            </jsonBody>
+        </result>
+        <result name="user_ticket_for_kid__src_no_family">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/user_ticket">dontmatch</arg>
+                <arg name="/doc/for_kid/error">User does not belong to any family</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/error">User does not belong to any family</arg>
+            </jsonBody>
+        </result>
+        <result name="user_ticket_for_kid__src_kid">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/user_ticket">dontmatch</arg>
+                <arg name="/doc/for_kid/error">Kid cannot get ticket for another kid</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/error">Kid cannot get ticket for another kid</arg>
+            </jsonBody>
+        </result>
+        <result name="user_ticket_for_kid__kid_not_found">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/user_ticket">dontmatch</arg>
+                <arg name="/doc/for_kid/error">Kid was not found</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/error">Kid was not found</arg>
+            </jsonBody>
+        </result>
+        <result name="user_ticket_for_kid__kid_is_orphan">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/user_ticket">dontmatch</arg>
+                <arg name="/doc/for_kid/error">'Kid' does not belong to any family</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/error">'Kid' does not belong to any family</arg>
+            </jsonBody>
+        </result>
+        <result name="user_ticket_for_kid__kid_is_not_kid">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/user_ticket">dontmatch</arg>
+                <arg name="/doc/for_kid/error">'Kid' from request is not kid actually</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/error">'Kid' from request is not kid actually</arg>
+            </jsonBody>
+        </result>
+        <result name="user_ticket_for_kid__family_mismatch">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/user_ticket">dontmatch</arg>
+                <arg name="/doc/for_kid/error">User belongs to family 'f2', kid belongs to family 'f1141'</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/error">User belongs to family 'f2', kid belongs to family 'f1141'</arg>
+            </jsonBody>
+        </result>
+
+        <result name="user_ticket_for_kid__ok">
+            <body func="matchxpath">
+                <arg name="/doc/for_kid/error">dontmatch</arg>
+                <arg name="/doc/for_kid/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4053749013</arg>
+                    <arg name="default_uid">4053749013</arg>
+                    <arg name="scopes">bb:kid</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/for_kid" res_mod="key_count">1</arg>
+                <arg name="/for_kid/user_ticket" func="check_user_ticket">
+                    <arg name="uid" res_mod="key_count">1</arg>
+                    <arg name="uid">4053749013</arg>
+                    <arg name="default_uid">4053749013</arg>
+                    <arg name="scopes">bb:kid</arg>
+                </arg>
+            </jsonBody>
+        </result>
+
+        <!-- family_info -->
+
+        <result name="no_family_info">
+            <body func="matchxpath">
+                <arg name="count(/doc/family_info)">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/family_info">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="family_info_70500">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70500</arg>
+                <arg name="/doc/family_info/family_id">f1</arg>
+                <arg name="/doc/family_info/admin_uid">70500</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70500</arg>
+                <arg name="/users/0/family_info/family_id">f1</arg>
+                <arg name="/users/0/family_info/admin_uid">70500</arg>
+            </jsonBody>
+        </result>
+        <result name="family_info_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid">71001</arg>
+                <arg name="/doc/family_info/family_id">f1</arg>
+                <arg name="/doc/family_info/admin_uid">70500</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71001</arg>
+                <arg name="/users/0/family_info/family_id">f1</arg>
+                <arg name="/users/0/family_info/admin_uid">70500</arg>
+            </jsonBody>
+        </result>
+        <result name="family_info_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/family_info/family_id">dontmatch</arg>
+                <arg name="/doc/family_info/admin_uid">dontmatch</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">70495</arg>
+                <arg name="/users/0/family_info/family_id">dontmatch</arg>
+                <arg name="/users/0/family_info/admin_uid">dontmatch</arg>
+            </jsonBody>
+        </result>
+
+        <result name="userinfo_scholar">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71012</arg>
+                <arg name="/doc/login">тестовыйшкольник</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="count(/doc/aliases/alias)">1</arg>
+                <arg name="/doc/aliases/alias[@type='23']">тестовыйшкольник</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/users/0/uid/value">71012</arg>
+                <arg name="/users/0/uid/hosted">false</arg>
+                <arg name="/users/0/login">тестовыйшкольник</arg>
+                <arg name="/users/0/dbfields">dontmatch</arg>
+                <arg name="/users/0/aliases" res_mod="key_count">1</arg>
+                <arg name="/users/0/aliases/23">тестовыйшкольник</arg>
+            </jsonBody>
+        </result>
+    </variables>
+
+    <node>
+        <pre-test>
+        set -e
+        if [ -z "$RECIPE_KOLMOGOR_PORT" ]; then sudo /etc/init.d/kolmogor restart; fi
+        </pre-test>
+        <description>BlackBox</description>
+
+        <case lastid="phone_alias">
+            <description>Searching user by phone alias</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="login">
+                malice_phone1; malice_phone2; malice_phone3; malice_phone_gs;
+                kino_phone1; kino_phone2; kino_phone_e164; kino_phone_norm;
+                search_enabled; search_disabled;
+                local_phone_ru; local_phone_kg; local_phone_by; local_phone_ua;
+                local_phone_kg_dom_ru; local_phone_kg_dom_kg</cgi>
+            <cgi name="country" withnull="1">*</cgi>
+            <cgi name="find_by_phone_alias" withnull="1">*</cgi>
+            <cgi name="aliases">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="find_by_phone_alias">empty; bad1; bad2</cgi>
+                <result>illegal_find_by_phone_alias</result>
+            </check>
+
+            <!-- phone aliases turned off -->
+            <check>
+                <cgi name="find_by_phone_alias">off</cgi>
+                <result>not_found_userinfo</result>
+            </check>
+
+            <!-- login with disabled search_by_phone_alias -->
+            <check>
+                <cgi name="login">malice_phone1; malice_phone2; malice_phone3; malice_phone_gs</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <cgi name="aliases">all_with_hidden</cgi>
+                <result>malice_userinfo_with_hidden</result>
+            </check>
+            <check>
+                <cgi name="login">malice_phone1; malice_phone2; malice_phone3; malice_phone_gs</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <result>malice_userinfo</result>
+            </check>
+
+            <check>
+                <cgi name="login">search_disabled</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <cgi name="aliases">all_with_hidden</cgi>
+                <result>search_disabled_userinfo_with_hidden</result>
+            </check>
+            <check>
+                <cgi name="login">search_disabled</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <result>search_disabled_userinfo</result>
+            </check>
+
+            <!-- login with enabled search_by_phone_alias -->
+            <check>
+                <cgi name="login">kino_phone1; kino_phone2; kino_phone_e164; kino_phone_norm</cgi>
+                <result>kino_malice</result>
+            </check>
+
+            <check>
+                <cgi name="login">search_enabled</cgi>
+                <result>search_enabled_userinfo</result>
+            </check>
+
+            <!-- login with incomplete (local) phone, needs country to find -->
+            <check>
+                <cgi name="login">local_phone_ru</cgi>
+                <cgi name="country">ru</cgi>
+                <result>phone_alias_ru</result>
+            </check>
+            <check>
+                <cgi name="login">local_phone_kg_dom_kg</cgi>
+                <result>phone_alias_kg</result>
+            </check>
+            <check>
+                <cgi name="login">local_phone_kg</cgi>
+                <cgi name="country">kg</cgi>
+                <result>phone_alias_kg</result>
+            </check>
+            <check>
+                <cgi name="login">local_phone_ua</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <cgi name="aliases">all_with_hidden</cgi>
+                <cgi name="country">ua</cgi>
+                <result>phone_alias_ua_with_hidden</result>
+            </check>
+            <check>
+                <cgi name="login">local_phone_ua</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <cgi name="country">ua</cgi>
+                <result>phone_alias_ua</result>
+            </check>
+            <check>
+                <cgi name="login">local_phone_by</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <cgi name="aliases">all_with_hidden</cgi>
+                <cgi name="country">by</cgi>
+                <result>phone_alias_by_with_hidden</result>
+            </check>
+            <check>
+                <cgi name="login">local_phone_by</cgi>
+                <cgi name="find_by_phone_alias">on</cgi>
+                <cgi name="country">by</cgi>
+                <result>phone_alias_by</result>
+            </check>
+
+            <check>
+                <!-- <cgi name="login">local_phone_ua; local_phone_by</cgi> -->
+                <result>not_found_userinfo</result>
+            </check>
+        </case>
+
+        <case lastid="bank_alias_userinfo">
+            <description>Searching user by bank alias, method=userinfo</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="login">
+                malice_phone1; malice_phone2; malice_phone3; malice_phone_gs;
+                kino_phone1; kino_phone2; kino_phone_e164; kino_phone_norm </cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="sid" withnull="1">2;bank</cgi>
+            <cgi name="userip">internal_user</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="login">malice_phone1</cgi>
+                <cgi name="sid">bank</cgi>
+                <result>all_aliases_userinfo</result>
+            </check>
+
+            <check>
+                <cgi name="login">kino_phone_norm</cgi>
+                <cgi name="sid">bank</cgi>
+                <result>malice_userinfo</result>
+            </check>
+
+            <check>
+                <cgi name="sid">bank</cgi>
+                <result>not_found_userinfo</result>
+            </check>
+
+            <check>
+                <cgi name="login">kino_phone1; kino_phone_e164; kino_phone_norm </cgi>
+                <result>kino_malice</result>
+            </check>
+
+            <check>
+                <cgi name="sid" withnull="1"></cgi>
+                <cgi name="login">kino_phone2</cgi>
+                <result>kino_malice</result>
+            </check>
+
+            <check>
+                <result>not_found_userinfo</result>
+            </check>
+        </case>
+
+        <case lastid="bank_alias_login">
+            <description>Searching user by bank alias, method=login</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="login">
+                kino_phone1; kino_phone2; kino_phone_e164; kino_phone_norm </cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="password">valid</cgi>
+            <cgi name="sid" withnull="1">2;bank</cgi>
+            <cgi name="userip">internal_user</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="sid">bank</cgi>
+                <result>illegal_sid_bank</result>
+            </check>
+
+            <check>
+                <cgi name="login">kino_phone1; kino_phone_e164; kino_phone_norm </cgi>
+                <result>kino_malice_login</result>
+            </check>
+
+            <check>
+                <cgi name="sid" withnull="1"></cgi>
+                <cgi name="login">kino_phone2</cgi>
+                <result>kino_malice_login</result>
+            </check>
+
+            <check>
+                <result>not_found_login</result>
+            </check>
+        </case>
+
+        <case lastid="federal_alias_userinfo">
+            <description>Searching user by FEDERAL alias, method=userinfo</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="login"> federal1; federal2; federal3; federal4; federal_notfound </cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="sid" withnull="1">*</cgi>
+            <cgi name="userip">internal_user</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="login">federal1</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>all_aliases_userinfo</result>
+            </check>
+
+            <check>
+                <cgi name="login">federal2</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>federal_userinfo</result>
+            </check>
+
+            <check>
+                <cgi name="login">federal3</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>federal_userinfo_with_dot</result>
+            </check>
+
+            <check>
+                <cgi name="login">federal4</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>federal_userinfo_with_dash</result>
+            </check>
+
+            <check>
+                <result>not_found_userinfo</result>
+            </check>
+        </case>
+
+        <case lastid="federal_alias_login">
+            <description>Searching user by FEDERAL alias, method=login</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="login"> federal1; federal2; federal3; federal4</cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="password">valid</cgi>
+            <cgi name="sid" withnull="1">federal</cgi>
+            <cgi name="userip">internal_user</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="login">federal1</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>all_aliases_login</result>
+            </check>
+
+            <check>
+                <cgi name="login">federal2</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>federal_login</result>
+            </check>
+
+            <check>
+                <cgi name="login">federal3</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>federal_login_with_dot</result>
+            </check>
+
+            <check>
+                <cgi name="login">federal4</cgi>
+                <cgi name="sid">federal</cgi>
+                <result>federal_login_with_dash</result>
+            </check>
+
+            <check>
+                <result>not_found_login</result>
+            </check>
+        </case>
+
+        <case lastid="billing_features">
+            <description>Billing features in sessionid/oauth</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid;oauth</cgi>
+            <cgi name="oauth_token">ST_70495;ST_70500;ST_70502</cgi>
+            <cgi name="sessionid">70495;70500;70502</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="get_billing_features" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="get_billing_features">empty;yes</cgi>
+                <result>bad_get_billing_features</result>
+            </check>
+
+            <check>
+                <cgi name="get_billing_features" withnull="1"></cgi>
+                <result>no_billing_features</result>
+            </check>
+
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70495</cgi>
+                <result>billing_features_70495</result>
+            </check>
+
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70500</cgi>
+                <result>billing_features_70500</result>
+            </check>
+
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70502</cgi>
+                <result>billing_features_70502</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70495</cgi>
+                <result>billing_features_70495</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70500</cgi>
+                <result>billing_features_70500</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70502</cgi>
+                <result>billing_features_70502</result>
+            </check>
+        </case>
+
+        <case lastid="billing_features_user">
+            <description>Billing features in userinfo/user_ticket</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo;user_ticket</cgi>
+            <cgi name="login">70495;70500;70502</cgi>
+            <cgi name="user_ticket">70495;70500;70502</cgi>
+            <cgi name="get_billing_features" withnull="1">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket">*</header>
+
+            <check>
+                <cgi name="get_billing_features">empty;yes</cgi>
+                <result>bad_get_billing_features</result>
+            </check>
+
+            <check>
+                <cgi name="get_billing_features" withnull="1"></cgi>
+                <result>no_billing_features_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70495</cgi>
+                <result>billing_features_70495_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70500</cgi>
+                <result>billing_features_70500_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70502</cgi>
+                <result>billing_features_70502_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70495</cgi>
+                <result>billing_features_70495_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70500</cgi>
+                <result>billing_features_70500_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70502</cgi>
+                <result>billing_features_70502_user</result>
+            </check>
+        </case>
+
+        <case lastid="plus_subscriber_state">
+            <description>Plus subscriber state in sessionid/oauth</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid;oauth</cgi>
+            <cgi name="oauth_token">ST_70495;ST_70500</cgi>
+            <cgi name="sessionid">70495;70500</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="get_plus_subscriber_state" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="get_plus_subscriber_state">empty;yes</cgi>
+                <result>bad_get_plus_subscriber_state</result>
+            </check>
+
+            <check>
+                <cgi name="get_plus_subscriber_state" withnull="1"></cgi>
+                <result>no_plus_subscriber_state</result>
+            </check>
+
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70495</cgi>
+                <result>plus_subscriber_state_70495</result>
+            </check>
+
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70500</cgi>
+                <result>plus_subscriber_state_70500</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70495</cgi>
+                <result>plus_subscriber_state_70495</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70500</cgi>
+                <result>plus_subscriber_state_70500</result>
+            </check>
+        </case>
+
+        <case lastid="plus_subscriber_state_user">
+            <description>Plus subscriber state in userinfo/user_ticket</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo;user_ticket</cgi>
+            <cgi name="login">70495;70500</cgi>
+            <cgi name="user_ticket">70495;70500</cgi>
+            <cgi name="get_plus_subscriber_state" withnull="1">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket">*</header>
+
+            <check>
+                <cgi name="get_plus_subscriber_state">empty;yes</cgi>
+                <result>bad_get_plus_subscriber_state</result>
+            </check>
+
+            <check>
+                <cgi name="get_plus_subscriber_state" withnull="1"></cgi>
+                <result>no_plus_subscriber_state_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70495</cgi>
+                <result>plus_subscriber_state_70495_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70500</cgi>
+                <result>plus_subscriber_state_70500_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70495</cgi>
+                <result>plus_subscriber_state_70495_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70500</cgi>
+                <result>plus_subscriber_state_70500_user</result>
+            </check>
+        </case>
+
+        <case lastid="public_id">
+            <description>PublicId in sessionid/oauth</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid;oauth</cgi>
+            <cgi name="oauth_token">ST_70495;ST_70496;ST_70500;ST_70501;ST_70502</cgi>
+            <cgi name="sessionid">70495;70496;70500;70501;70502</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="get_public_id" withnull="1">*</cgi>
+            <cgi name="attributes">has_public_id</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="get_public_id" withnull="1">all</cgi>
+                <result>no_public_id</result>
+            </check>
+
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70495</cgi>
+                <result>public_id_70495</result>
+            </check>
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70496</cgi>
+                <result>public_id_70496</result>
+            </check>
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70500</cgi>
+                <result>public_id_70500</result>
+            </check>
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70501</cgi>
+                <result>public_id_70501</result>
+            </check>
+            <check>
+                <cgi name="method">oauth</cgi>
+                <cgi name="oauth_token">ST_70502</cgi>
+                <result>public_id_70502</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70495</cgi>
+                <result>public_id_70495</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70496</cgi>
+                <result>public_id_70496</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70500</cgi>
+                <result>public_id_70500</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70501</cgi>
+                <result>public_id_70501</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">70502</cgi>
+                <result>public_id_70502</result>
+            </check>
+        </case>
+
+        <case lastid="public_id_user">
+            <description>PublicId in userinfo/user_ticket</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo;user_ticket</cgi>
+            <cgi name="login">70495;70496;70500;70501;70502</cgi>
+            <cgi name="user_ticket">70495;70496;70500;70501;70502</cgi>
+            <cgi name="get_public_id" withnull="1">*</cgi>
+            <cgi name="aliases">all_with_hidden</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket">*</header>
+
+            <check>
+                <cgi name="get_public_id" withnull="1">all</cgi>
+                <result>no_public_id_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70495</cgi>
+                <result>public_id_70495_user</result>
+            </check>
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70496</cgi>
+                <result>public_id_70496_user</result>
+            </check>
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70500</cgi>
+                <result>public_id_70500_user</result>
+            </check>
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70501</cgi>
+                <result>public_id_70501_user</result>
+            </check>
+            <check>
+                <cgi name="method">user_ticket</cgi>
+                <cgi name="user_ticket">70502</cgi>
+                <result>public_id_70502_user</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70495</cgi>
+                <result>public_id_70495_user</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70496</cgi>
+                <result>public_id_70496_user</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70500</cgi>
+                <result>public_id_70500_user</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70501</cgi>
+                <result>public_id_70501_user</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="login">70502</cgi>
+                <result>public_id_70502_user</result>
+            </check>
+        </case>
+
+        <case lastid="userinfo_by_public_id">
+            <description>Userinfo searching by public_id</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="public_id">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="get_public_id">yes</cgi>
+            <cgi name="aliases">all_with_hidden</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="public_id">70495</cgi>
+                <result>public_id_70495_user</result>
+            </check>
+
+            <check>
+                <cgi name="public_id">70496;70496_old1;70496_old2</cgi>
+                <result>public_id_70496_user</result>
+            </check>
+
+            <check>
+                <cgi name="public_id">70497</cgi>
+                <result>public_id_70497_user</result>
+            </check>
+
+            <check>
+                <cgi name="public_id">70500_v0; 70500_v0caps; 70500_custom</cgi>
+                <result>public_id_70500_user</result>
+            </check>
+
+            <check>
+                <cgi name="public_id">70501</cgi>
+                <result>public_id_70501_user</result>
+            </check>
+
+            <check>
+                <cgi name="public_id">70502_v1; 70502_v1caps</cgi>
+                <result>public_id_70502_user</result>
+            </check>
+
+            <check>
+                <result>not_found_userinfo</result>
+            </check>
+        </case>
+
+        <case lastid="user_port">
+            <description>user_port in sessionid/oauth</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid;oauth;userinfo</cgi>
+            <cgi name="oauth_token">ST_70495</cgi>
+            <cgi name="sessionid">70495</cgi>
+            <cgi name="login">70495</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="user_port">*</cgi>
+
+            <check>
+                <cgi name="method">sessionid;oauth;userinfo</cgi>
+                <cgi name="user_port">too_small;too_big;negative;letters</cgi>
+                <result>bad_user_port</result>
+            </check>
+
+            <check>
+                <result>valid_user_port</result>
+            </check>
+        </case>
+
+        <case lastid="get_user_ticket_for_kid">
+            <description>Get user_ticket for kid</description>
+            <path>blackbox</path>
+            <cgi name="method">user_ticket</cgi>
+            <cgi name="user_ticket">70502;42;kid;nobody</cgi>
+            <cgi name="get_user_ticket_for_kid">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket">*</header>
+
+            <check>
+                <cgi name="user_ticket">nobody</cgi>
+                <result>user_ticket_for_kid__src_not_found</result>
+            </check>
+            <check>
+                <cgi name="user_ticket">70502</cgi>
+                <result>user_ticket_for_kid__src_no_family</result>
+            </check>
+            <check>
+                <cgi name="user_ticket">kid</cgi>
+                <result>user_ticket_for_kid__src_kid</result>
+            </check>
+
+            <check>
+                <cgi name="get_user_ticket_for_kid">nobody</cgi>
+                <result>user_ticket_for_kid__kid_not_found</result>
+            </check>
+            <check>
+                <cgi name="get_user_ticket_for_kid">70502;42</cgi>
+                <result>user_ticket_for_kid__kid_is_not_kid</result>
+            </check>
+            <check>
+                <cgi name="get_user_ticket_for_kid">orphan</cgi>
+                <result>user_ticket_for_kid__kid_is_orphan</result>
+            </check>
+            <check>
+                <cgi name="get_user_ticket_for_kid">anotherkid</cgi>
+                <result>user_ticket_for_kid__family_mismatch</result>
+            </check>
+
+            <check>
+                <cgi name="get_user_ticket_for_kid">kid</cgi>
+                <result>user_ticket_for_kid__ok</result>
+            </check>
+        </case>
+
+        <case lastid="family_info">
+            <description>get_family_info from method=userinfo by uid</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="uid">
+                70500; <!-- family admin -->
+                71001; <!-- family member -->
+                70495  <!-- user without family -->
+            </cgi>
+            <cgi name="get_family_info" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="get_family_info" withnull="1"></cgi>
+                <result>no_family_info</result>
+            </check>
+
+            <check>
+                <cgi name="uid">70500</cgi>
+                <result>family_info_70500</result>
+            </check>
+
+            <check>
+                <cgi name="uid">71001</cgi>
+                <result>family_info_71001</result>
+            </check>
+
+            <check>
+                <cgi name="uid">70495</cgi>
+                <result>family_info_70495</result>
+            </check>
+        </case>
+
+        <case lastid="family_info">
+            <description>get_family_info from method=userinfo by login</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="login">
+                junit-test; <!-- family admin -->
+                addr-master; <!-- family member -->
+                malice  <!-- user without family -->
+            </cgi>
+            <cgi name="get_family_info" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="get_family_info" withnull="1"></cgi>
+                <result>no_family_info</result>
+            </check>
+
+            <check>
+                <cgi name="login">junit-test</cgi>
+                <result>family_info_70500</result>
+            </check>
+
+            <check>
+                <cgi name="login">addr-master</cgi>
+                <result>family_info_71001</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice</cgi>
+                <result>family_info_70495</result>
+            </check>
+        </case>
+
+        <case lastid="family_info">
+            <description>get_family_info from method=userinfo by suid</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="aliases">all</cgi>
+            <cgi name="suid">
+                junit-test; <!-- family admin -->
+                addr-master; <!-- family member -->
+                malice  <!-- user without family -->
+            </cgi>
+            <cgi name="sid">2</cgi>
+            <cgi name="get_family_info" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="get_family_info" withnull="1"></cgi>
+                <result>no_family_info</result>
+            </check>
+
+            <check>
+                <cgi name="suid">junit-test</cgi>
+                <result>family_info_70500</result>
+            </check>
+
+            <check>
+                <cgi name="suid">addr-master</cgi>
+                <result>family_info_71001</result>
+            </check>
+
+            <check>
+                <cgi name="suid">malice</cgi>
+                <result>family_info_70495</result>
+            </check>
+        </case>
+
+        <case lastid="userinfo_scholar">
+            <description>Userinfo searching for scholar account</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="login">scholar</cgi>
+            <cgi name="uid" withnull="1">scholar</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="allow_scholar" withnull="1">*</cgi>
+            <cgi name="aliases">all_with_hidden</cgi>
+            <cgi name="format">*</cgi>
+
+            <check>
+                <cgi name="uid">scholar</cgi>
+                <result>userinfo_scholar</result>
+            </check>
+
+            <check>
+                <cgi name="login">scholar</cgi>
+                <cgi name="allow_scholar">yes;empty</cgi>
+                <result>userinfo_scholar</result>
+            </check>
+
+            <check>
+                <result>not_found_userinfo</result>
+            </check>
+        </case>
+    </node>
+
+</test>

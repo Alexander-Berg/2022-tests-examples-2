@@ -1,0 +1,2030 @@
+type: apitest
+version: 0
+service: taxi_zalogin
+
+marks:
+  - name: now
+    args:
+      - "2019-10-31T11:30:00+0300"
+  - name: config
+    kwargs:
+        PORTAL_AUTH_PHONE_CONFIRMATION_PERIODS_SECONDS:
+            __default__: 315360000
+        ZALOGIN_AUTH_MONGO_SOURCE_ENABLED:
+            $param:
+                name: "mongo_source_enabled"
+                default: true
+  - name: experiments3
+    kwargs:
+        filename: "exp3_disable_plus_by_number.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_bind_zuser_to_portal.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_cashback_for_plus_by_app.json"
+  - name: experiments3
+    kwargs:
+        filename: "conf3_plus_by_app.json"
+
+testpoint:
+  - name: portal-check-confirmation-by-passport
+  - name: portal-not-confirmed-by-passport
+  - name: zalogin-sync-with-passport-stq-task-created
+
+mockserver:
+  - url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+    request:
+        body:
+            task_id: "12345"
+            eta: "2019-10-31T08:30:00+0000"
+            args: []
+            kwargs:
+                remote_ip:
+                    $match: "any-string"
+                log_extra:
+                    _link:
+                        $match: "uuid-string"
+    response:
+        body: {}
+
+  - url: /personal/v1/phones/retrieve
+    request:
+        body:
+            id: "my-personal-id"
+            primary_replica: false
+    response:
+        body:
+            id: "my-personal-id"
+            value: "+72222222222"
+
+  - url: /social/api/special/who_shares_taxi_data_v2
+    request:
+        query_params:
+            consumer: "taxi-zalogin"
+            provider: "ya"
+            userid: "12345"
+    response:
+        body:
+            status: "ok"
+
+  - url: /blackbox
+    request:
+        query_params:
+            method: "user_ticket"
+            format: "json"
+            dbfields: "subscription.suid.669"
+            aliases: "all"
+            getphones: "bound"
+            attributes: "1015,1025"
+            phone_attributes: "102,107,4,108"
+        form:
+            user_ticket: "my-user-ticket"
+    response:
+        body:
+            users:
+              - uid:
+                    value: "12345"
+                aliases:
+                    1: "portal-account"
+                dbfields:
+                    subscription.suid.669:
+                        $param:
+                            name: "bb_yandex_staff"
+                            default: ""
+                attributes:
+                    1015:
+                        $param:
+                            name: "bb_has_ya_plus"
+                            default: ""
+                    1025:
+                        $param:
+                            name: "bb_has_ya_plus"
+                            default: ""
+                phones:
+                  - id: "1111"
+                    attributes:
+                        102: "+71111111111"
+                        4:
+                            $param:
+                                name: "bb_confirmation_time"
+                                default: "1556681850"
+                  - id: "2222"
+                    attributes:
+                        102: "+72222222222"
+                        107: "1"
+                        4:
+                            $param:
+                                name: "bb_confirmation_time"
+                                default: "1556681858"
+
+  - url: /user-api/user_phones/get
+    request:
+        body:
+            id: "000000000000000000000000"
+            primary_replica: true
+    response:
+        body:
+            id: "000000000000000000000000"
+            phone: "+72222222222"
+            type: "yandex"
+            personal_phone_id: "my-personal-id"
+            stat:
+                big_first_discounts: 0
+                complete: 0
+                complete_card: 0
+                complete_apple: 0
+                complete_google: 0
+                fake: 0
+                total: 0
+            is_loyal: false
+            is_yandex_staff: false
+            is_taxi_staff: false
+            phone_hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+            phone_salt: "cHVibGljIHNhbHQ="
+
+  - url: /user-api/user_phones
+    request:
+        body:
+            phone: "+72222222222"
+            type: "yandex"
+            validate_phone: false
+    response:
+        body:
+            id: "000000000000000000000000"
+            phone: "+72222222222"
+            type: "yandex"
+            personal_phone_id: "my-personal-id"
+            stat:
+                big_first_discounts: 0
+                complete: 0
+                complete_card: 0
+                complete_apple: 0
+                complete_google: 0
+                fake: 0
+                total: 0
+            is_loyal: false
+            is_yandex_staff: false
+            is_taxi_staff: false
+            phone_hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+            phone_salt: "cHVibGljIHNhbHQ="
+
+  - url: /user-api/v3/users/update
+    request:
+        body:
+            id: "my-request-user-id-1111111111111"
+            application: "iphone"
+            application_version: "4.90.0"
+            authorized:
+                $param:
+                    name: "user_api_authorized"
+                    default: true
+            token_only: true
+            has_ya_plus:
+                $param:
+                    name: "user_api_has_ya_plus"
+                    default: false
+            has_cashback_plus:
+                $param:
+                    name: "user_api_has_ya_plus"
+                    default: false
+            yandex_staff:
+                $param:
+                    name: "user_api_yandex_staff"
+                    default: false
+            yandex_uid: "12345"
+            yandex_uid_type: "portal"
+            phone_id: "000000000000000000000000"
+            yandex_uuid: "my0yandex0uuid000000000000000000"
+    response:
+        body: {}
+
+  - url: /user-api/v3/userinfo
+    request:
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        body:
+            id: "my-request-user-id-1111111111111"
+            token_only: false
+            authorized: false
+            yandex_uid: "12345"
+            yandex_uuid: "my0yandex0uuid000000000000000000"
+            phone:
+                id: "000000000000000000000000"
+                personal_id: "my-personal-id"
+                phone_hash:
+                    hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+                    salt: "cHVibGljIHNhbHQ="
+
+tests:
+  - name: no-id-no-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            allow_full_account: true
+    response:
+        status: 500
+
+  - name: valid-id-no-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 500
+
+  - name: no-id-valid-uid
+    mockserver:
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: valid-id-valid-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+        times: 0
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: invalid-user-id
+    mockserver:
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-invalid-user-id"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: zuser-id-enabled
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_zuser.json"
+    mockserver:
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+                zuser_id: "zuser-my-request-user-id-1111111"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "zuser-my-request-user-id-1111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: zuser-enabled-but-real-user-in-request
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_zuser.json"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_exchange_user_for_zuser.json"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: zuser-id-disabled
+    mockserver:
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "zuser-my-request-user-id-1111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: user-not-found
+    mockserver:
+      - url: /user-api/v3/userinfo
+        request:
+            body:
+                id: "my-request-user-id-1111111111111"
+        response:
+            status: 404
+            body:
+                code: "404"
+                message: "not found"
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: old-account
+    mockserver:
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-request-user-id-1111111111111"
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+      - url: /user-api/user_phones
+        request:
+            body:
+                phone: "+72222222222"
+                type: "yandex"
+                validate_phone: false
+        response:
+            body:
+                id: "000000000000000000000000"
+                phone: "+72222222222"
+                type: "yandex"
+                personal_phone_id: "my-personal-id"
+                stat:
+                    big_first_discounts: 0
+                    complete: 0
+                    complete_card: 0
+                    complete_apple: 0
+                    complete_google: 0
+                    fake: 0
+                    total: 0
+                is_loyal: false
+                is_yandex_staff: false
+                is_taxi_staff: false
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+        times: 0
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+        times: 0
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: new-user-with-passport-flags
+    params:
+        bb_yandex_staff: "1"
+        bb_has_ya_plus: "1"
+        user_api_yandex_staff: true
+        user_api_has_ya_plus: true
+    mockserver:
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: true
+                has_cashback_plus: true
+                yandex_staff: true
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+                zuser_id: 'zuser-my-request-user-id-1111111'
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+                accounts:
+                    ya:
+                      - userid: "100"
+                        phones:
+                          - number: "+71111111111"
+                            confirmed: 1556681850
+                          - number: "+72222222222"
+                            confirmed: 1556681856
+      - url: /user-api/v3/users/last_zuser_by_uids
+        request:
+            body:
+                uids: ["100"]
+        response:
+            status: 200
+            body:
+                zuser_id: "zuser-my-request-user-id-1111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+            has_ya_plus: true
+            has_cashback_plus: true
+            yandex_staff: true
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: user-with-passport-flags
+    params:
+        bb_yandex_staff: "1"
+        bb_has_ya_plus: "1"
+        user_api_yandex_staff: true
+        user_api_has_ya_plus: true
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+            has_ya_plus: true
+            has_cashback_plus: true
+            yandex_staff: true
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+        times: 0
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: confirmation-expired
+    params:
+        user_api_authorized: false
+        bb_confirmation_time: "1257080862"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: false
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+
+  - name: confirmed-phone-from-social
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+                accounts:
+                    ya:
+                      - userid: "100"
+                        phones:
+                          - number: "+71111111111"
+                            confirmed: 1556681850
+                          - number: "+72222222222"
+                            confirmed: 1556681858
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+
+  - name: confirmed-phone-from-social-mongo-fallback
+    params:
+        mongo_source_enabled: false
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+                accounts:
+                    ya:
+                      - userid: "100"
+                        phones:
+                          - number: "+71111111111"
+                            confirmed: 1556681850
+                          - number: "+72222222222"
+                            confirmed: 1556681858
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+
+  - name: new-user-with-phone-from-social
+    mockserver:
+      - url: /user-api/v3/users/last_zuser_by_uids
+        request:
+            body:
+                uids: ["100", "200"]
+        response:
+            status: 200
+            body:
+                zuser_id: "zuser-my-request-user-id-1111111"
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+                accounts:
+                    ya:
+                      - userid: "100"
+                        phones:
+                          - number: "+71111111111"
+                            confirmed: 1556681850
+                          - number: "+72222222222"
+                            confirmed: 1556681858
+                      - userid: "200"
+                        phones:
+                          - number: "+73333333333"
+                            confirmed: 1556681850
+                          - number: "+74444444444"
+                            confirmed: 1556681858
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+                zuser_id: 'zuser-my-request-user-id-1111111'
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 1
+      - type: mockserver-called
+        url: /user-api/v3/users/last_zuser_by_uids
+        times: 1
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+
+  - name: new-user-with-phone-from-mongo
+    marks:
+      - name: filldb
+        kwargs:
+            phones_confirmations: "portal_cached"
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "error"
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: true
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uid_type: "portal"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+
+  - name: confirmed-portal-phone-from-mongo
+    marks:
+      - name: filldb
+        kwargs:
+            phones_confirmations: "portal_cached"
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "error"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+
+  - name: confirmed-phonish-phone-from-mongo
+    marks:
+      - name: filldb
+        kwargs:
+            phones_confirmations: "phonish_cached"
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "error"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+
+  - name: no-phones-confirmations
+    marks:
+      - name: filldb
+        kwargs:
+            phones_confirmations: "empty"
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: false
+                token_only: true
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            token_valid: true
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+        times: 0
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: uid-without-user-ticket
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "userinfo"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                uid: "12345"
+                userip: "::ffff:5.255.245.107"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    phones:
+                      - id: "1111"
+                        attributes:
+                            102: "+71111111111"
+                            4: "1556681850"
+                      - id: "2222"
+                        attributes:
+                            102: "+72222222222"
+                            107: "1"
+                            4: "1556681858"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: true
+            token_valid: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: testpoint_called
+        name: zalogin-sync-with-passport-stq-task-created
+        wait_call: true
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+        times: 0
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/get
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0
+
+  - name: invalid-user-ticket
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "userinfo"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                uid: "12345"
+                userip: "::ffff:5.255.245.107"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+        response:
+            body:
+                error: "invalid-ticket"
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-request-user-id-1111111111111"
+                application: "iphone"
+                application_version: "4.90.0"
+                authorized: false
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+            X-Request-Application: "app_name=iphone,app_ver1=4,app_ver2=90"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: false
+            token_valid: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /stq-agent/queues/api/add/zalogin_sync_with_passport
+        times: 0
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: testpoint-called
+        name: portal-check-confirmation-by-passport
+        times: 0
+      - type: testpoint-called
+        name: portal-not-confirmed-by-passport
+        times: 0

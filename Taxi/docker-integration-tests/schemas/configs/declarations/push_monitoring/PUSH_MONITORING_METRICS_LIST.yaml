@@ -1,0 +1,36 @@
+default:
+  - interval: 600
+    max: 4000
+    max_deviation: 0.2
+    min: 1000
+    name: all clients
+    target: cluster.geo.mobile.mobile_taxi.service_stats.production.push.all_clients.sent.total
+  - interval: 600
+    max_deviation: 0.2
+    name: difference between all clients and new clients
+    target: diffSeries(cluster.geo.mobile.mobile_taxi.service_stats.production.push.all_clients.sent.total,cluster.geo.mobile.mobile_taxi.service_stats.production.push.new_clients.sent.total)
+description: Список метрик для которых работает мониторинг с сообщениями в телеграмм
+tags: []
+validators:
+  - $sequence_of:
+      - $dictionary:
+            extra_ok: false
+            missing_ok: false
+            optional_keys:
+              - max
+              - min
+            scheme:
+                interval:
+                  - $integer
+                  - $gte: 0
+                max:
+                  - $number
+                max_deviation:
+                  - $number
+                  - $gte: 0
+                min:
+                  - $number
+                name:
+                  - $string
+                target:
+                  - $string

@@ -1,0 +1,899 @@
+type: apitest
+version: 0
+service: taxi_plus_wallet
+
+marks:
+  - name: config
+    kwargs:
+        PLUS_WALLET_WALLET_CURRENCIES:
+          - RUB
+          - EUR
+        CURRENCY_ROUNDING_RULES:
+            EUR:
+                __default__: 0.1
+            __default__:
+                10x: 10
+                __default__: 1
+  - name: pgsql
+    args:
+      - personal_wallet
+    kwargs:
+        files:
+          - wallets.sql
+
+tests:
+  - name: happy_split
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+                tips: "10"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "136"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "364"
+                tips:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "10"
+
+  - name: split_with_personal_wallet_withdraw_amount
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+                tips: "10"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+                    withdraw_amount: "33"
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "467"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "33"
+                tips:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "10"
+
+  - name: zwallet_split
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+                tips: "10"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: z28327e24391f7af3067d4116c6da979
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+                tips:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "10"
+
+  - name: negative_split
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+                tips: "10"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: negative_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: uid-uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+                tips:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "10"
+
+  - name: only_card
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+                tips: "10"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: merged_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: merged_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+                tips:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "10"
+
+  - name: taximeter_only_card
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+                tips: "10"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: false
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+                tips:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "10"
+
+  - name: fixed_price_transporting
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "136"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "364"
+
+  - name: cancelled_only_card
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: cancelled
+            status: finished
+            fixed_price: false
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+
+  - name: cancelled_fixed_only_card
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: cancelled
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+
+  - name: only_wallet
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "100"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "0"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "100"
+
+  - name: unknown_wallet
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "100"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: lolololo
+    response:
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "100"
+
+
+  - name: two_complements
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "100"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+                  - type: personal_wallet_2
+                    payment_method_id: fallback_wallet_2
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: lolololo
+    response:
+        status: 400
+        body:
+            code: too_many_complements
+            message: "Complements array must contain only one element or less"
+
+
+  - name: empty_complement_array
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements: []
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 400
+
+  - name: minimal_primary_sum_full_coverage
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "100"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "1"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "99"
+
+  - name: minimal_primary_sum_full_coverage_euro
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "12.3"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet_eur
+            currency: EUR
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: eur_uid
+    response:
+        status: 200
+        body:
+            currency: EUR
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "0.1"
+                  - payment_method_id: fallback_wallet_eur
+                    type: personal_wallet
+                    sum: "12.2"
+
+  - name: minimal_primary_sum_partial_coverage
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "136"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "364"
+
+  - name: minimal_primary_sum_sum_to_pay_zero
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "0"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "0"
+
+  - name: balances_from_billing_wallet
+    marks:
+      - name: config
+        kwargs:
+            SPLIT_BILLING_WALLET_ENABLED: true
+
+    mockserver:
+      - url: /billing-wallet/balance
+        request:
+            body:
+                wallet_id: "fallback_wallet"
+                yandex_uid: "fallback_uid"
+        response:
+            body:
+                balance: "364"
+                currency: "RUB"
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "136"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "364"
+
+
+  - name: billing_wallet_404
+    marks:
+      - name: config
+        kwargs:
+            SPLIT_BILLING_WALLET_ENABLED: true
+
+    mockserver:
+      - url: /billing-wallet/balance
+        response:
+            status: 404
+            body:
+                message: "ololo"
+                code: "wallet_not_found"
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            sum_to_pay:
+                ride: "500"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+
+  - name: split_previously_paid_order
+    marks:
+      - name: config
+        kwargs:
+            SPLIT_BILLING_WALLET_ENABLED: true
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    mockserver:
+      - url: /billing-wallet/balance
+        request:
+            body:
+                wallet_id: "fallback_wallet"
+                yandex_uid: "fallback_uid"
+        response:
+            body:
+                balance: "401"
+                currency: "RUB"
+      - url: /transactions/v2/invoice/retrieve
+        request:
+            body:
+                id: previously_paid_order_id
+                prefer_transactions_data: true
+        response:
+            body:
+                id: previously_paid_order_id
+                invoice_due: '2021-05-25T13:12:14+03:00'
+                created: '2021-05-25T13:12:14+03:00'
+                currency: RUB
+                status: held
+                payment_types: [card]
+
+                sum_to_pay:
+                  - payment_type: card
+                    items:
+                      - item_id: ride
+                        amount: "1"
+                      - item_id: tips
+                        amount: "12"
+                  - payment_type: personal_wallet
+                    items:
+                      - item_id: ride
+                        amount: "299"
+                held:
+                  - payment_type: card
+                    items:
+                      - item_id: ride
+                        amount: "1"
+                      - item_id: tips
+                        amount: "12"
+                  # personal_wallet transactions are usually instantly cleared
+                  # without holding, and this is merely an attempt to future-proof the split
+                  # in case the transaction flow changes
+                  - payment_type: personal_wallet
+                    items:
+                      - item_id: ride
+                        amount: "99"
+                cleared:
+                  - payment_type: personal_wallet
+                    items:
+                      - item_id: ride
+                        amount: "200"
+                debt: []
+                operation_info: {}
+                transactions: [] # transactions are not important for this case, but in reality the array is not empty
+                yandex_uid: fallback_uid
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            order_id: previously_paid_order_id
+            sum_to_pay:
+                ride: "1000"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "300"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "700"
+
+  # Test combining previous transactions and fixed withdrawal amount.
+  # Withdrawal amount should stay the same after completing the ride.
+  - name: split_previously_paid_order_with_withdraw_amount
+    marks:
+      - name: config
+        kwargs:
+            SPLIT_BILLING_WALLET_ENABLED: true
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    mockserver:
+      - url: /billing-wallet/balance
+        request:
+            body:
+                wallet_id: "fallback_wallet"
+                yandex_uid: "fallback_uid"
+        response:
+            body:
+                balance: "300"
+                currency: "RUB"
+      - url: /transactions/v2/invoice/retrieve
+        request:
+            body:
+                id: previously_paid_order_id
+                prefer_transactions_data: true
+        response:
+            body:
+                id: previously_paid_order_id
+                invoice_due: '2021-05-25T13:12:14+03:00'
+                created: '2021-05-25T13:12:14+03:00'
+                currency: RUB
+                status: held
+                payment_types: [card]
+
+                sum_to_pay:
+                  - payment_type: card
+                    items:
+                      - item_id: ride
+                        amount: "500"
+                  - payment_type: personal_wallet
+                    items:
+                      - item_id: ride
+                        amount: "14"
+                held:
+                  - payment_type: card
+                    items:
+                      - item_id: ride
+                        amount: "500"
+                cleared:
+                  - payment_type: personal_wallet
+                    items:
+                      - item_id: ride
+                        amount: "14"
+                debt: []
+                operation_info: {}
+                transactions: [] # transactions are not important for this case, but in reality the array is not empty
+                yandex_uid: fallback_uid
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            order_id: previously_paid_order_id
+            sum_to_pay:
+                ride: "514"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+                    withdraw_amount: "14"
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "500"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "14"
+
+  - name: split_invoice_not_found
+    marks:
+      - name: config
+        kwargs:
+            SPLIT_BILLING_WALLET_ENABLED: true
+      - name: experiments3
+        kwargs:
+            filename: exp3_min_primary_sum.json
+
+    mockserver:
+      - url: /billing-wallet/balance
+        request:
+            body:
+                wallet_id: "fallback_wallet"
+                yandex_uid: "fallback_uid"
+        response:
+            body:
+                balance: "401"
+                currency: "RUB"
+      - url: /transactions/v2/invoice/retrieve
+        request:
+            body:
+                id: pending_order_id
+                prefer_transactions_data: true
+        response:
+            status: 404
+            body:
+                code: not_found
+                message: Invoice not found
+
+    request:
+        method: POST
+        path: /v1/internal/payment/split
+        body:
+            order_id: pending_order_id
+            sum_to_pay:
+                ride: "600"
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: fallback_wallet
+            currency: RUB
+            taxi_status: pending
+            status: pending
+            fixed_price: true
+            yandex_uid: fallback_uid
+    response:
+        status: 200
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "199"
+                  - payment_method_id: fallback_wallet
+                    type: personal_wallet
+                    sum: "401"

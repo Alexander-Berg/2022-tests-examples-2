@@ -1,0 +1,38 @@
+default: {}
+description: Car license plate validation by country. The key should be the id of
+    the country, the value is a dictionary, which consists of 'formats' (an array
+    of strings with allowed car license plate formats, not required to fill) and 'allowed_letters'
+    (an array of letters, which are allowed in car license plate, required to fill).
+    Digits and hyphen are already included in 'allowed_letters'. If the country is
+    not present, then the format is not checked. Only uppercase Latin letters are
+    allowed (you can write any in place of letters in the license plate), also digits
+    and hyphens If you don't know the id of your country, then it is better to clarify
+    it. For all questions, please contact `amaxacla@`
+tags: []
+schema:
+    example: {'rus': {'formats': ['А123ВВ750', 'Т999ТТ99'], 'allowed_letters': ['А',
+                'В', 'М']}, 'blr': {'formats': ['А321-5'], 'allowed_letters': ['А',
+                'В']}}
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/CarNumberFormats'
+    definitions:
+        CarNumberFormats:
+            type: object
+            additionalProperties: false
+            required:
+              - allowed_letters
+            properties:
+                formats:
+                    type: array
+                    minItems: 1
+                    items:
+                        type: string
+                        pattern: ^[A-Z0-9-]+$
+                allowed_letters:
+                    type: array
+                    minItems: 1
+                    items:
+                        type: string
+                        minLength: 1
+                        maxLength: 1

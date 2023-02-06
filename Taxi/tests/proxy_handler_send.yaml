@@ -1,0 +1,47 @@
+id: proxy_handler_send
+title: Проверка проксирующей ручки
+
+source:
+    request:
+        url: /4.0/restapp-front/places/v1/feedback/summary
+        method: get
+        headers:
+            X-YaEda-PartnerId#string: "123123"
+        query:
+            place_id: "123"
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: eats-core-places-feedback-summary
+    response:
+        status-code: 200
+        body:
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            headers#object:
+              - key: X-Vendor-User-Id
+                value#string: "123123"
+            path-params:
+                placeId: "123"
+  - resource: eats-restapp-authorizer-user-check-access
+    response:
+        status-code: 200
+        body:
+            role#string: "ROLE_MANAGER"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: partner_id
+                value: 123123
+              - key: place_ids
+                value: [123]
+              - key: permissions
+                value: ["permission.restaurant.functionality"]

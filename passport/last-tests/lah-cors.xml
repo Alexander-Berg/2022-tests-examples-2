@@ -1,0 +1,151 @@
+<test>
+
+    <variables>
+
+        <path>
+            <instance id="suggested_accounts__close">suggested_accounts/close</instance>
+            <instance id="suggested_accounts">suggested_accounts</instance>
+            <instance id="accounts">accounts</instance>
+            <instance id="all_accounts">all_accounts</instance>
+            <instance id="reg_completion_check">registration_status/check</instance>
+            <instance id="reg_completion_postpone">registration_status/postpone</instance>
+        </path>
+
+        <header name="Origin">
+            <instance id="bad1">yandex.ru</instance>
+            <instance id="bad2">http://yandex.ru</instance>
+            <instance id="bad3">https://yandex.ru.evil.com</instance>
+            <instance id="bad4">https://evil-yandex.ru</instance>
+            <instance id="yandex_ru">https://yandex.ru</instance>
+            <instance id="yandex_com">https://yandex.com</instance>
+            <instance id="kinopoisk_ru">https://kinopoisk.ru</instance>
+            <instance id="auto_ru">https://auto.ru</instance>
+        </header>
+
+        <header name="Host">
+            <instance id="api.passport.yandex.ru">api.my-passport.yandex.ru</instance>
+        </header>
+
+        <result name="no_cors">
+            <header name="Access-Control-Allow-Origin">dontmatch</header>
+            <header name="Access-Control-Allow-Methods">dontmatch</header>
+            <header name="Access-Control-Allow-Credentials">dontmatch</header>
+        </result>
+        <result name="cors">
+            <header name="Access-Control-Allow-Origin">\~`header:Origin`</header>
+            <header name="Access-Control-Allow-Methods">GET, POST</header>
+            <header name="Access-Control-Allow-Credentials">true</header>
+            <header name="Access-Control-Allow-Headers">X-Requested-With</header>
+        </result>
+
+        <result name="no_cors__body">
+            <header name="Access-Control-Allow-Origin">dontmatch</header>
+            <header name="Access-Control-Allow-Methods">dontmatch</header>
+            <header name="Access-Control-Allow-Credentials">dontmatch</header>
+            <body func="ignore"></body>
+        </result>
+        <result name="cors__body">
+            <header name="Access-Control-Allow-Origin">\~`header:Origin`</header>
+            <header name="Access-Control-Allow-Methods">GET, POST</header>
+            <header name="Access-Control-Allow-Credentials">true</header>
+            <header name="Access-Control-Allow-Headers">X-Requested-With</header>
+            <body func="ignore"></body>
+        </result>
+    </variables>
+
+    <node>
+        <description>Sezamapi: CORS</description>
+
+        <case>
+            <description>Check OPTIONS</description>
+            <path>*</path>
+            <header name="Origin" withnull="1">*</header>
+            <header name="Host">*</header>
+            <custom_method>OPTIONS</custom_method>
+
+            <check>
+                <path>accounts;all_accounts;reg_completion_check</path>
+                <header name="Origin">auto_ru</header>
+                <result>cors</result>
+            </check>
+
+            <check>
+                <path>reg_completion_check</path>
+                <header name="Origin">kinopoisk_ru</header>
+                <result>no_cors</result>
+            </check>
+
+            <check>
+                <header name="Origin" withnull="1">bad1;bad2;bad3;bad4;auto_ru</header>
+                <result>no_cors</result>
+            </check>
+
+            <check>
+                <result>cors</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Check GET</description>
+            <path>suggested_accounts;accounts;all_accounts;reg_completion_check</path>
+            <header name="Origin" withnull="1">*</header>
+            <header name="Host">*</header>
+
+            <check>
+                <path>accounts;all_accounts;reg_completion_check</path>
+                <header name="Origin">auto_ru</header>
+                <result>cors__body</result>
+            </check>
+
+            <check>
+                <path>reg_completion_check</path>
+                <header name="Origin">kinopoisk_ru</header>
+                <result>no_cors__body</result>
+            </check>
+
+            <check>
+                <header name="Origin" withnull="1">bad1;bad2;bad3;bad4;auto_ru</header>
+                <result>no_cors__body</result>
+            </check>
+
+            <check>
+                <result>cors__body</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Check POST</description>
+            <path>suggested_accounts__close;reg_completion_postpone</path>
+            <header name="Origin" withnull="1">*</header>
+            <header name="Host">*</header>
+            <post/>
+
+            <check>
+                <path>reg_completion_postpone</path>
+                <header name="Origin">kinopoisk_ru</header>
+                <result>no_cors__body</result>
+            </check>
+
+            <check>
+                <path>reg_completion_postpone</path>
+                <header name="Origin">auto_ru</header>
+                <result>cors__body</result>
+            </check>
+
+            <check>
+                <path>suggested_accounts__close</path>
+                <header name="Origin" withnull="1">auto_ru</header>
+                <result>no_cors__body</result>
+            </check>
+
+            <check>
+                <header name="Origin" withnull="1">bad1;bad2;bad3;bad4</header>
+                <result>no_cors__body</result>
+            </check>
+
+            <check>
+                <result>cors__body</result>
+            </check>
+        </case>
+    </node>
+</test>

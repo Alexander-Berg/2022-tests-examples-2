@@ -1,0 +1,95 @@
+default: {}
+description: Список мест (с настройками) где водитель может получить банковскую карту
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Zone'
+    definitions:
+        Info:
+            description: Дополнительная информация
+            type: object
+            required:
+              - title
+              - subtitle
+              - type
+            additionalProperties: false
+            properties:
+                title:
+                    description: Ключ в танкере для заголовка информации
+                    type: string
+                subtitle:
+                    description: Ключ в танкере для описания информации
+                    type: string
+                type:
+                    description: Тип навигации в таксометре
+                    type: string
+                    enum:
+                      - navigate_loyalty_info
+                      - navigate_action_call
+                detail:
+                    description: Ключ в танкере для дополнительной информации
+                    type: string
+                full_title:
+                    description: Ключ в танкере для полного заголовка
+                    type: string
+                full_description:
+                    description: Ключ в танкере для полного описания
+                    type: string
+                formatted_phone:
+                    description: Форматированный номер телефона саппорта
+                    type: string
+                phone_number:
+                    description: Номер телефона саппорта
+                    type: string
+        Location:
+            description: Место где можно получить банковскую карту
+            type: object
+            required:
+              - title
+              - address
+              - icon
+              - point
+              - infos
+            additionalProperties: false
+            properties:
+                title:
+                    description: Ключ в танкере для заголовка
+                    type: string
+                address:
+                    description: Ключ в танкере для адреса
+                    type: string
+                icon:
+                    description: Тип иконки
+                    type: string
+                    enum:
+                      - taxi_logo
+                      - alfa_bank_logo
+                point:
+                    description: Координата
+                    type: object
+                    required:
+                      - lon
+                      - lat
+                    additionalProperties: false
+                    properties:
+                        lon:
+                            type: number
+                        lat:
+                            type: number
+                infos:
+                    description: Список дополнительной информации
+                    type: array
+                    items:
+                        $ref: '#/definitions/Info'
+        Card:
+            description: Список банковских карточек (из конфига LOYALTY_CARDS) доступные
+                в зоне
+            type: array
+            items:
+                $ref: '#/definitions/Location'
+        Zone:
+            description: Список тарифных зон
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Card'

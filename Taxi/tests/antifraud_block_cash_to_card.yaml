@@ -1,0 +1,197 @@
+id: antifraud_block_cash_to_card
+title: Если антифрод счёл пользователя мошенником, не даём сменить метод оплаты cash
+    на любой другой
+parameters:
+  - main:
+      - payment_type#string: cash
+        antifraud_status#string: allow
+        allowed_changes#array:
+          - name: 'destinations'
+          - name: 'payment'
+        payment_changes_reason_code#string: 'NEED_CVN'
+        payment_changes_reason_text#string: 'Some text for need_cvn'
+        is_matched_experiment#boolean: true
+        antifraud_call_count: 1
+      - payment_type#string: cash
+        antifraud_status#string: block
+        allowed_changes#array:
+          - name: 'destinations'
+        payment_changes_reason_code#string: 'ANTIFRAUD_BLOCK_CASH_TO_CARD'
+        payment_changes_reason_text#string: 'Метод оплаты был изменён на наличные'
+        is_matched_experiment#boolean: true
+        antifraud_call_count: 1
+      - payment_type#string: cash
+        antifraud_status#string: block
+        allowed_changes#array:
+          - name: 'destinations'
+        payment_changes_reason_code#string: 'ANTIFRAUD_BLOCK_CASH_TO_CARD'
+        payment_changes_reason_text#string: ''
+        exists_text_in_typed_experiments: false
+        is_matched_experiment#boolean: true
+        antifraud_call_count: 1
+      - payment_type#string: card
+        antifraud_status#string: allow
+        allowed_changes#array:
+          - name: 'destinations'
+          - name: 'payment'
+        payment_changes_reason_code#string: 'NEED_CVN'
+        payment_changes_reason_text#string: 'Some text for need_cvn'
+        is_matched_experiment#boolean: true
+        antifraud_call_count: 1
+      - payment_type#string: card
+        antifraud_status#string: block
+        allowed_changes#array:
+          - name: 'destinations'
+          - name: 'payment'
+        payment_changes_reason_code#string: 'NEED_CVN'
+        payment_changes_reason_text#string: 'Some text for need_cvn'
+        is_matched_experiment#boolean: true
+        antifraud_call_count: 1
+      - payment_type#string: cash
+        antifraud_status#string: block
+        allowed_changes#array:
+          - name: 'destinations'
+          - name: 'payment'
+        payment_changes_reason_code#string: 'NEED_CVN'
+        payment_changes_reason_text#string: 'Some text for need_cvn'
+        is_matched_experiment#boolean: false
+        antifraud_call_count: 0
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                allowed_changes#xget: /test-params/main/allowed_changes
+                feedback: {}
+                payment_changes:
+                  - from:
+                        type: 'cash'
+                    to:
+                        type: 'card'
+                        payment_method_id: 'card-x51'
+                    reason:
+                        code: 'INITIATED_BY_USER'
+                  - from:
+                        type: 'card'
+                        payment_method_id: 'card-x51'
+                    to:
+                        type: 'cash'
+                    reason:
+                        code#xget: /test-params/main/payment_changes_reason_code
+                        text#xget: /test-params/main/payment_changes_reason_text
+                typed_experiments#object:
+                  - key: items
+                    value#concat-arrays:
+                      - value#array: []
+                      - enabled#xget:
+                            path: /test-params/main/exists_text_in_typed_experiments
+                            default-value: true
+                        value#array:
+                          - value#object:
+                              - key: name
+                                value#string: cash_change_blocking_enabled
+                              - key: value
+                                value#object:
+                                  - l10n#object:
+                                      - message_for_user#string: 'Метод оплаты был
+                                            изменён на наличные'
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#if:
+        condition#xget: /test-params/main/is_matched_experiment
+        then#object:
+          - key: cash_change_blocking_enabled
+            value:
+                enabled: true
+            enabled: true
+        else: {}
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            allowed_changes:
+              - name: 'destinations'
+              - name: 'payment'
+            payment_changes:
+              - from:
+                    type: 'cash'
+                to:
+                    type: 'card'
+                    payment_method_id: 'card-x51'
+                reason:
+                    code: 'INITIATED_BY_USER'
+              - from:
+                    type: 'card'
+                    payment_method_id: 'card-x51'
+                to:
+                    type: 'cash'
+                reason:
+                    code: 'NEED_CVN'
+                    text: 'Some text for need_cvn'
+            typed_experiments#object:
+              - key: items
+                value#concat-arrays:
+                  - value#array: []
+                  - enabled#xget:
+                        path: /test-params/main/exists_text_in_typed_experiments
+                        default-value: true
+                    value#array:
+                      - value#object:
+                          - key: name
+                            value#string: cash_change_blocking_enabled
+                          - key: value
+                            value#object:
+                              - l10n#object:
+                                  - message_for_user#string: 'Метод оплаты был изменён
+                                        на наличные'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            payment:
+                type#xget: /test-params/main/payment_type
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'
+  - resource: uantifraud-v1-payment-type-change-available
+    response:
+        status-code: 200
+        body:
+            status#xget: /test-params/main/antifraud_status
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count#xget: /test-params/main/antifraud_call_count
+        request:
+            method: get
+            query:
+                order_id: 'order_id'

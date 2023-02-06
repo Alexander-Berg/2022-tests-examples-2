@@ -1,0 +1,64 @@
+description: Конфиги запросов к БД сервиса card-antifraud
+default:
+    fetch_verified_cards:
+        execute: 1000
+        statement: 1500
+    is_device_verified:
+        execute: 1000
+        statement: 1500
+tags: [notfallback]
+maintainers: [sia-raimu, sapunovnik]
+schema:
+    type: object
+    properties:
+        fetch_verified_cards:
+            description: Запрос верифицированных карт
+            $ref: '#/definitions/timeouts_settings'
+        is_device_verified:
+            description: Проверка, что девайс верифицирован
+            $ref: '#/definitions/timeouts_settings'
+        get_verification_status:
+            description: Получение статуса верификации
+            $ref: '#/definitions/timeouts_settings'
+        fetch_verification:
+            description: Запрос верификации
+            $ref: '#/definitions/timeouts_settings'
+        create_verification_draft:
+            description: Создание драфта верификации
+            $ref: '#/definitions/timeouts_settings'
+        save_trust_verification_id_and_token:
+            description: Сохранение id верификации и токена Траста
+            $ref: '#/definitions/timeouts_settings'
+        remove_verified_cards_for_verified_device:
+            description: Удаление карт верифицированного устройства из таблицы карт
+            $ref: '#/definitions/timeouts_settings'
+        save_verified_device:
+            description: Добавление устройства в таблицу верифицированных устройств
+            $ref: '#/definitions/timeouts_settings'
+        save_verified_card:
+            description: Добавление карты в таблицу верифицированных карт
+            $ref: '#/definitions/timeouts_settings'
+        save_card_verification:
+            description: Добавление записи в таблицу верификаций
+            $ref: '#/definitions/timeouts_settings'
+    required:
+      - fetch_verified_cards
+      - is_device_verified
+    additionalProperties: false
+    definitions:
+        timeouts_settings:
+            type: object
+            properties:
+                execute:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    default: 1000
+                    description: Overall timeout for a command being executed
+                statement:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    default: 1500
+                    description: PostgreSQL server-side timeout
+            additionalProperties: false

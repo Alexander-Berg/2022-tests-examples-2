@@ -1,0 +1,17 @@
+Ночные автотесты по ветке %%{{ issue.tests_version }}%% завершились неудачей.
+Данные тесты занесены в бэклисты и исключены из ночных и регрессионных запусков.
+Необходимо починить тесты и убрать их из бэклистов.
+
+((https://wiki.yandex-team.ru/avtomatizacija-testirovanija-desktopnogo-brauzera/browserautotestsfix/ Что это за тесты и как чинить))
+
+ {% for test in issue.tests|sort(attribute='test_id') %}
+ <{ {{test.test_id}}: {{test.full_name}}
+ Tested build: ((https://teamcity.browser.yandex-team.ru/viewLog.html?buildId={{ test.tested_builds["yabrowser"] }} #{{ test.tested_builds["yabrowser"] }}))
+ Test case priority: ((https://testpalm.yandex-team.ru/testcase/{{ test.test_id }} {{ test.priority }}))
+
+  %%
+  {{test.failure['message']}}
+  ---
+  {{test.failure['stackTrace']}}
+  %%}>
+ {% endfor %}

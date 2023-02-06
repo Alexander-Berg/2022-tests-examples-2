@@ -1,0 +1,48 @@
+id: test_fallback_403_wo_experiment
+title: Проверка без экспериментов в случае, если ручка eats-orders-info возвращает
+    403
+
+parameters:
+  - main:
+      - handler-request-query: {"limit": "5", "offset": "0"}
+        eats-orders-info-response-body: ["message": "message"]
+        core-response-body: []
+source:
+    request:
+        method: get
+        headers:
+            X-YaTaxi-User: 'eats_user_id=id1'
+            X-Request-Application: 'app_info=ab3'
+            X-Device-Id: 'device_id_00'
+        query#xget: /test-params/main/handler-request-query
+    expectations:
+        response:
+            status-code: 403
+            body#xget: /test-params/main/eats-orders-info-response-body
+
+mocks:
+  - resource: eats-core-api-v1-orders-get
+    response:
+        status-code: 200
+        body#xget: /test-params/main/core-response-body
+    expectations:
+        call-count: 0
+
+  - resource: eats-orders-info-api-v1-orders-get
+    response:
+        status-code: 403
+        body#xget: /test-params/main/eats-orders-info-response-body
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            headers:
+                X-YaTaxi-User: 'eats_user_id=id1'
+                X-Request-Application: 'app_info=ab3'
+                X-Device-Id: 'device_id_00'
+            query#object:
+              - key: limit
+                value#string: "5"
+              - key: offset
+                value#string: "0"
+

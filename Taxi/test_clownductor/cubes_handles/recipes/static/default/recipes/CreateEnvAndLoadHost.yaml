@@ -1,0 +1,63 @@
+data:
+    name: CreateEnvAndLoadHost
+    provider_name: clownductor
+    job_vars:
+      - service_id
+      - project_id
+      - operator_name
+      - ammo_file
+      - ammo_description
+      - schedule
+      - st_task
+      - fire_title
+      - fire_description
+      - monitoring_config
+      - new_branch_name
+      - copy_branch_name
+      - new_branch_cpu
+      - new_branch_ram
+      - new_branch_regions
+    stages:
+      - name: MetaCreateTankBranch
+        provider_name: clownductor
+        input:
+            cpu: new_branch_cpu
+            ram: new_branch_ram
+            regions: new_branch_regions
+            service_id: service_id
+            copy_branch_name: copy_branch_name
+            tank_branch_name: new_branch_name
+            new_service_ticket: st_task
+        output:
+            create_env_job_id: job_id
+            branch_id: branch_id
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: create_env_job_id
+      - name: LoadGetTargetAddressCube
+        provider_name: clownductor
+        input:
+            branch_id: branch_id
+        output:
+            target_address: target_address
+      - name: MetaLoadHost
+        provider_name: clownductor
+        input:
+            st_task: st_task
+            schedule: schedule
+            ammo_file: ammo_file
+            fire_title: fire_title
+            service_id: service_id
+            operator_name: operator_name
+            target_address: target_address
+            ammo_description: ammo_description
+            fire_description: fire_description
+            monitoring_config: monitoring_config
+        output:
+            load_job_id: job_id
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: load_job_id
+

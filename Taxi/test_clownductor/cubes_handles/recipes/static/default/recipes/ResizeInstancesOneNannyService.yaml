@@ -1,0 +1,153 @@
+data:
+    name: ResizeInstancesOneNannyService
+    provider_name: clownductor
+    job_vars:
+      - nanny_name
+      - pod_ids_by_region
+      - instances_by_region
+      - yp_quota_abc
+      - pod_naming_mode
+      - regions # = []
+      - comment
+      - use_append_pods
+      - service_id
+      - branch_ids
+      - service_name
+      - project_name
+      - environment
+    stages:
+      - name: NannyGetAllRegionsPodsInfo
+        provider_name: clownductor
+        input:
+            pod_ids_by_region: pod_ids_by_region
+        output:
+            pod_info: pod_info
+
+      - name: CreateNewPodSetOrAllocateToExisted
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            project_name: project_name
+            service_name: service_name
+        output:
+            create_pod_set_by_region: create_pod_set_by_region
+            allocate_pod_set_by_region: allocate_pod_set_by_region
+
+      - name: NannyCreateAllRegionsPodSets
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            pod_info: pod_info
+            pod_naming_mode: pod_naming_mode
+            instances_by_region: instances_by_region
+            allocate_pod_set_by_region: allocate_pod_set_by_region
+            yp_quota_abc: yp_quota_abc
+        output:
+            new_pod_ids_create_pod_set_by_region: pod_ids_by_region
+
+      - name: NannyAllocateAllRegionsAdditionalPods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            pod_info: pod_info
+            instances: instances_by_region
+            project_name: project_name
+            service_name: service_name
+            create_pod_set_by_region: create_pod_set_by_region
+        output:
+            completed_regions: completed_regions
+            pods_to_remove_by_region: pods_to_remove_by_region
+            new_pod_ids_existed_pod_by_region: new_pod_ids_by_region
+
+      - name: UnitePodIds
+        provider_name: clownductor
+        input:
+            first_ids_by_region: new_pod_ids_create_pod_set_by_region
+            second_ids_by_region: new_pod_ids_existed_pod_by_region
+        output:
+            united_pods_ids_by_region: pod_ids_by_region
+
+      - name: WaitPodsAllocateEnd
+        provider_name: clownductor
+        input:
+            pod_ids_by_region: united_pods_ids_by_region
+
+      - name: NannyCubeAddPodsToDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            regions: regions
+            is_append: use_append_pods
+            project_name: project_name
+            service_name: service_name
+            pods_ids_by_region: united_pods_ids_by_region
+        output:
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+        output:
+            active_snapshot_id: active_snapshot_id
+
+      - name: InternalGetNamespaces
+        provider_name: clowny-balancer
+        input:
+            branch_ids: branch_ids
+            service_id: service_id
+        output:
+            namespace_ids: namespace_ids
+
+      - name: AwacsAddDcToSlowBackends
+        provider_name: clowny-balancer
+        input:
+            namespace_ids: namespace_ids
+            pod_ids_by_region: united_pods_ids_by_region
+            environment: environment
+
+      - name: AwacsWaitSyncBackends
+        provider_name: clowny-balancer
+        input:
+            namespace_ids: namespace_ids
+            pod_ids_by_region: united_pods_ids_by_region
+        output:
+            success_after_sleep: success_after_sleep
+
+      - name: NannyCubeRemovePodsFromDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            pod_ids_by_region: pods_to_remove_by_region
+            project_name: project_name
+            service_name: service_name
+        output:
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+        output:
+            active_snapshot_id: active_snapshot_id
+
+      - name: AwacsWaitSyncBackends
+        provider_name: clowny-balancer
+        input:
+            namespace_ids: namespace_ids

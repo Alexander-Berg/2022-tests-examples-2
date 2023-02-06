@@ -1,0 +1,80 @@
+default:
+  - conditions:
+        country: rus
+    queue: SUPPARTNERS
+    email_from: "park@taxi.yandex.ru"
+  - conditions:
+        country:
+            "#ne": rus
+        user_platform:
+            "#in":
+              - iphone
+              - android
+    queue: INTL
+    email_from: "support@taxi.yandex.ru"
+  - conditions:
+        country: aze
+        user_platform:
+            "#in":
+              - uber_iphone_az
+              - uber_android_az
+    queue: UBER
+    email_from: "az@support-uber.com"
+  - conditions:
+        country:
+            "#nin":
+              - rus
+              - aze
+        user_platform:
+            "#regex": "^uber_"
+    queue: SUPPORT
+    email_from: "support@support-uber.com"
+  - conditions:
+        user_platform:
+            "#in":
+              - yango_iphone
+              - yango_android
+    queue: INTL
+    email_from: "support@yango.yandex.com"
+
+description: Правила для создания тикетов на компенсацию и изменения стоимости
+tags: []
+schema:
+    type: array
+    items:
+        type: object
+        additionalProperties: false
+        required:
+          - conditions
+          - queue
+          - email_from
+        properties:
+            conditions:
+                "$ref": "#/definitions/RuleCondition"
+            queue:
+                type: string
+            email_from:
+                type: string
+
+    definitions:
+        RuleCondition:
+            type: object
+            properties:
+
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/RuleCondition"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/RuleCondition"
+
+                "#not":
+                    $ref: "#/definitions/RuleCondition"
+
+            additionalProperties:
+                $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            minProperties: 1

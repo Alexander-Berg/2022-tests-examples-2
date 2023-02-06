@@ -1,0 +1,78 @@
+INSERT INTO scooter_accumulator_bot.users (
+    pd_id_user_id,
+    pd_id_username,
+    allowed,
+    state,
+    contractor_id,
+    cabinet_name,
+    cabinet_id,
+    accumulator_id,
+    created_at,
+    updated_at,
+    role
+) VALUES
+(
+    'pd_id_admin_id',
+    'pd_id_admin_user',
+    TRUE,
+    'INITIAL_STATE',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2021-07-10T01:00:00+00',
+    '2021-07-10T01:00:00+00',
+    'ADMIN'
+),
+(
+    'pd_id_storekeeper_id',
+    'pd_id_storekeeper_user',
+    TRUE,
+    'NOT_WORKING',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2021-07-10T01:00:00+00',
+    '2021-07-10T01:00:00+00',
+    'STOREKEEPER'
+),
+(
+    'pd_id_storekeeper_id2',
+    'pd_id_storekeeper_user2',
+    TRUE,
+    'NOT_WORKING',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2021-07-10T01:00:00+00',
+    '2021-07-10T01:00:00+00',
+    'STOREKEEPER'
+),
+(
+    'pd_id_repairer_id1',
+    'pd_id_reparier_user1',
+    TRUE,
+    'NOT_WORKING',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2021-07-10T01:00:00+00',
+    '2021-07-10T01:00:00+00',
+    'REPAIRER'
+),
+(
+    'pd_id_storekeeper_manager_id1',
+    'pd_id_storekeeper_manager_user1',
+    TRUE,
+    'INITIAL_STATE',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2021-07-10T01:00:00+00',
+    '2021-07-10T01:00:00+00',
+    'STOREKEEPER_MANAGER'
+);

@@ -1,0 +1,320 @@
+type: apitest
+version: 0
+service: taxi_cashback_int_api
+
+marks:
+  - name: pgsql
+    args:
+      - cashback_int_api
+    kwargs:
+        files:
+          - cashback_int_api_user_bindings.sql
+  - name: config
+    kwargs:
+        CASHBACK_INT_API_TRANSACTIONS_NG_ID_NAMESPACE:
+            mango: "mango"
+
+tests:
+  - name: transactions_404_invoice_not_found
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            status: 404
+            body:
+                code: "invoice_not_found"
+                message: "invoice not found"
+    response:
+        status: 200
+        body:
+            order_id: "order_id_1"
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            status: "init"
+            amount: "0"
+            operations: []
+            version: 1
+
+  - name: transactions_500
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            status: 500
+            body: {}
+    response:
+        status: 500
+
+  - name: success_init_retrieve
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            body:
+                id: 1_mango_invoice_id
+                invoice_due: "2019-05-01T06:00:00+03:00"
+                created: "2019-05-01T06:00:00+03:00"
+                currency: "RUB"
+                status: "init"
+                operation_info:
+                    version: 1
+                sum_to_pay: []
+                held: []
+                cleared: []
+                debt: []
+                transactions: []
+                yandex_uid: "yandex_uid_1"
+                payment_types:
+                  - "card"
+                service: "mango"
+                cashback:
+                    status: "init"
+                    version: 1
+                    rewarded: []
+                    transactions: []
+                    commit_version: 1
+                    operations: []
+    response:
+        status: 200
+        body:
+            order_id: "order_id_1"
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            status: "init"
+            amount: "0"
+            operations: []
+            version: 1
+
+
+  - name: success_init_retrieve_without_field_cashback
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            body:
+                id: 1_mango_invoice_id
+                invoice_due: "2019-05-01T06:00:00+03:00"
+                created: "2019-05-01T06:00:00+03:00"
+                currency: "RUB"
+                status: "init"
+                operation_info:
+                    version: 1
+                sum_to_pay: []
+                held: []
+                cleared: []
+                debt: []
+                transactions: []
+                yandex_uid: "yandex_uid_1"
+                payment_types:
+                  - "card"
+                service: "mango"
+
+    response:
+        status: 200
+        body:
+            order_id: "order_id_1"
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            status: "init"
+            amount: "0"
+            operations: []
+            version: 1
+
+  - name: success_process_retrieve
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            body:
+                id: 1_mango_order_id_1
+                invoice_due: "2019-05-01T06:00:00+03:00"
+                created: "2019-05-01T06:00:00+03:00"
+                currency: "RUB"
+                status: "clearing"
+                operation_info:
+                    version: 2
+                sum_to_pay: []
+                held: []
+                cleared: []
+                debt: []
+                transactions: []
+                yandex_uid: "yandex_uid_1"
+                payment_types:
+                  - "card"
+                service: "mango"
+                cashback:
+                    status: "in-progress"
+                    version: 2
+                    rewarded: [{"amount": "100", "source": "mango"}]
+                    transactions: []
+                    commit_version: 1
+                    operations: [{"operation_id": "operation_id_1", "yandex_uid": "yandex_uid_1",
+                            "user_ip": "1.1.1.1", "wallet_account": "wallet_account_id",
+                            "reward": [{"amount": "100", "source": "mango"}], "status": "processing",
+                            "created": "2021-03-12T12:43:12+03:00"}]
+    response:
+        status: 200
+        body:
+            order_id: "order_id_1"
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            status: "processing"
+            amount: "100"
+            operations: [{"operation_id": "operation_id_1", "status": "processing"}]
+            version: 2
+
+  - name: success_different_operations
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            body:
+                id: 1_mango_order_id_1
+                invoice_due: "2019-05-01T06:00:00+03:00"
+                created: "2019-05-01T06:00:00+03:00"
+                currency: "RUB"
+                status: "cleared"
+                operation_info:
+                    version: 3
+                sum_to_pay: []
+                held: []
+                cleared: []
+                debt: []
+                transactions: []
+                yandex_uid: "yandex_uid_1"
+                payment_types:
+                  - "card"
+                service: "mango"
+                cashback:
+                    status: "success"
+                    version: 3
+                    rewarded: [{"amount": "100", "source": "mango"}]
+                    transactions: []
+                    commit_version: 1
+                    operations: [{"operation_id": "operation_id_1", "yandex_uid": "yandex_uid_1",
+                            "user_ip": "1.1.1.1", "wallet_account": "wallet_account_id",
+                            "reward": [{"amount": "100", "source": "mango"}], "status": "failed",
+                            "created": "2021-02-12T12:43:12+03:00"}, {"operation_id": "operation_id_2",
+                            "yandex_uid": "yandex_uid_1", "user_ip": "1.1.1.1", "wallet_account": "wallet_account_id",
+                            "reward": [{"amount": "100", "source": "mango"}], "status": "done",
+                            "created": "2021-03-12T12:43:12+03:00"}]
+    response:
+        status: 200
+        body:
+            order_id: "order_id_1"
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            status: "done"
+            amount: "100"
+            operations: [{"operation_id": "operation_id_1", "status": "failed"}, {
+                    "operation_id": "operation_id_2", "status": "done"}]
+            version: 3
+
+  - name: service_prefix_not_found
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: unknown_service
+        body:
+            binding_id: "d30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    response:
+        status: 500
+
+  - name: user_not_found
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: mango
+        body:
+            binding_id: "binding_id"
+            order_id: "order_id_1"
+    response:
+        status: 404
+        body:
+            code: "USER_NOT_FOUND"
+            message: "Can't find the user."
+
+
+  - name: no_transactions_ng_id_namespace_in_config
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/retrieve
+        headers:
+            X-YaTaxi-External-Service: some_other_service
+        body:
+            binding_id: "f30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "order_id_1"
+    marks:
+      - name: config
+        kwargs:
+            CASHBACK_INT_API_SERVICE_PREFIX:
+                some_other_service: "2_some_other_service"
+    mockserver:
+      - url: /transactions-ng/v2/invoice/retrieve
+        response:
+            body:
+                id: 1_mango_invoice_id
+                invoice_due: "2019-05-01T06:00:00+03:00"
+                created: "2019-05-01T06:00:00+03:00"
+                currency: "RUB"
+                status: "init"
+                operation_info:
+                    version: 1
+                sum_to_pay: []
+                held: []
+                cleared: []
+                debt: []
+                transactions: []
+                yandex_uid: "yandex_uid_1"
+                payment_types:
+                  - "card"
+                service: "mango"
+                cashback:
+                    status: "init"
+                    version: 1
+                    rewarded: []
+                    transactions: []
+                    commit_version: 1
+                    operations: []
+    response:
+        status: 500

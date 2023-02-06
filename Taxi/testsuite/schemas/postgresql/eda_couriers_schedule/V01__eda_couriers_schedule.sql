@@ -1,0 +1,5 @@
+START TRANSACTION;
+
+CREATE SCHEMA eda_couriers_schedule;
+
+COMMIT;

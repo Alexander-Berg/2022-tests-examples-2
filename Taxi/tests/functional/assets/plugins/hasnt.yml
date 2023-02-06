@@ -1,0 +1,42 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok: base.html
+
+  - hasnt:
+      xpath: /html/body/h1
+      timeout: 0.2
+  - _inner_test:
+      success: False
+      message: Page should not have element with locator "/html/body/h1"
+      tap_description: Passed common case.
+
+  - hasnt: /not/existing/path
+  - _inner_test:
+      success: True
+      tap_description: Has no not existing.
+
+  - hasnt: [11, Int input]
+  - _inner_test: [True, Int input.]
+
+  - hasnt:
+      css: div > .not-existing
+      description: Long form
+  - _inner_test: [True, Long form for hasnt.]
+
+  - hasnt:
+      css: /html/body/not-existing
+      description: Long form xpath
+  - _inner_test: [True, Long form for hasnt.]
+
+  - hasnt:
+      css: /html/body/not-existing
+      description: Long form xpath
+      timeout: 10
+  - _inner_test: [True, Long form for hasnt with timeout.]

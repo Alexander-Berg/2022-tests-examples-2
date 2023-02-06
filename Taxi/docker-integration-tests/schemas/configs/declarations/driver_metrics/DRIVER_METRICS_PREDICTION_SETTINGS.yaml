@@ -1,0 +1,60 @@
+default:
+    fallback:
+        events:
+            order_complete:
+                activity: 0
+        letter_events:
+            c:
+                activity: 0
+    tags:
+        order:
+            auto_reorder: ['long_waiting']
+            park_cancel: ['long_waiting']
+            park_fail: ['long_waiting']
+            offer_timeout: ['chained_order']
+    insert_timeout: 50
+    insert_chunk_size: 1000
+
+
+description: Настройки предсказаний в сервисе driver-metrics
+tags:
+  - notfallback
+maintainers: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        fallback:
+            events:
+                $ref: '#/definitions/prediction'
+            letter_events:
+                $ref: '#/definitions/prediction'
+        tags:
+            order:
+                type: object
+                additionalProperties:
+                    $ref: '#/definitions/tag_list'
+        insert_timeout:
+            type: integer
+            minimum: 0
+        insert_chunk_size:
+            type: integer
+            minimum: 0
+
+    definitions:
+        prediction:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/prediction_item'
+
+        prediction_item:
+            type: object
+            additionalProperties: false
+            properties:
+                activity:
+                    type: integer
+
+        tag_list:
+            type: array
+            items:
+                type: string

@@ -1,0 +1,28 @@
+default:
+    __default__: "{locality}, {short_text}"
+description: Формат склейки shorttext и locality по странам, например - "{locality},
+    {short_text}"
+tags: ["notfallback"]
+schema:
+    type: object
+    properties:
+        __default__:
+            $ref: '#/definitions/AddressFormat'
+    required: [__default__]
+    additionalProperties:
+        $ref: '#/definitions/AddressFormat'
+    definitions:
+        AddressFormat:
+            type: string
+            pattern: (?=.*{locality})(?=.*{short_text}).*
+
+samples:
+  - __default__: "{locality} - {short_text}"
+    rus: "{short_text}, {locality}"
+    civ: "{short_text},  {short_text} - {locality} + {locality}"
+
+invalid-samples:
+  - rus: "{short_text}, {locality}"
+  - __default__: "{locality}"
+  - __default__: "{short_text}"
+  - __default__: "{short_text} {short_text} {short_text}"

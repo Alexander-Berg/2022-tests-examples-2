@@ -1,0 +1,1 @@
+import '@lavka/tests/typings'

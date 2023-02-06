@@ -1,0 +1,179 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %] 
+[% ttppspace_in_html_tag=1 %] 
+[% space_in_html_tag=1 %]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Morda Version [% version %]</title>
+        <script src="http://yastatic.net/jquery/1.8.2/jquery.min.js"></script>
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/bootstrap/js/bootstrap.js"></script>
+
+</head>
+<body>
+
+    <div class="tabbable">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#current-version" data-toggle="tab">Текущая версия</a></li>
+            <li><a href="#install" data-toggle="tab">Установить Другую</a></li>
+            <li style="display:none" id="installation-tab"><a href="#installation" data-toggle="tab">Установка</a></li>
+        </ul>
+        <div class="tab-content" style="overflow:visible;">
+            <div class="tab-pane active" id="current-version">      
+                <h2>current version: [% version %]</h2>
+                <button id="changelog-btn" type="button" class="btn" data-toggle="button">changelog</button>
+                <div id="changelog" style = "display:none;"><pre class="pre-scrollable">[% changelog %]</pre>
+                </div>
+            </div>
+            <div class="tab-pane" id="install" >      
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> <span id="selected-dev-text">Выберете  инстанс</span> <span class="caret"></span> </a>
+                        <ul class="dropdown-menu" id="avaliable-instances">
+                            [% FOR inst IN instances %]
+                            <li><a tabeindex="-a" href="#">[% inst %]</a></li>
+                            [% END %]
+                        </ul>
+                    </div>
+                    <div class="btn-group">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> <span id="selected-version-text">Выберете версию</span> <span class="caret"></span> </a>
+                        <ul class="dropdown-menu" id="other-versions">
+                            [% FOR v IN versions %]
+                            <li><a tabeindex="-a" href="#">[% v %]</a></li>
+                            [% END %]
+                        </ul>
+                    </div>
+                    <button id="install-btn" type="button" class="btn btn-danger">Установить</button>
+                </div>
+            </div>
+            <div class="tab-pane" id="installation">      
+                <div id="logs">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div>
+      
+
+
+    <div id="hidden-watch-log" style="display: none">
+        <div>instance:<span class="i-instance"></span></div>
+        <div>version:<span class="i-version"></span></div>
+        <div>state:<span class="i-status"></span></div>
+        <div class="tabbable"> <!-- Only required for left/right tabs -->
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#log-tail" data-toggle="tab">tail</a></li>
+                <li><a href="#log-all" data-toggle="tab">all</a></li>
+            </ul> 
+        <div class="tab-content">
+           <div class="tab-pane active" id="log-tail">
+                <pre class="b-log-tail"></pre>
+            </div>
+            <div class="tab-pane" id="log-all">
+                <pre class="b-log-all"></pre>
+            </div>
+          </div>
+        </div>
+
+        <div>
+        </div>
+    </div>
+<script>
+    $("#changelog-btn").bind('click', function(){ $("#changelog").toggle(); })
+    $("#other-versions a").bind('click', function(){ select_version( $(this).html() ); } );
+    $("#avaliable-instances a").bind('click', function(){ 
+            var instance = $(this).html();
+            $("#selected-dev-text").html( instance );
+            $("#avaliable-instances").attr('selected_instance', instance );
+        });
+    function select_version( version ){
+        $('#other-versions').attr('selected_version', version ) ;
+        $('#selected-version-text').html( version )
+    }
+    $("#install-btn").bind('click', install_version );
+
+    function install_version(  ){
+        var version = $('#other-versions').attr('selected_version');
+        var instance = $('#avaliable-instances').attr('selected_instance');
+        
+        if( ! version ) {
+            return;
+        };
+        if( ! instance ){
+            return;
+        }
+
+        $('#installation-tab').show().find('a').tab('show');
+        
+        jQuery.ajax( {
+            url : '/test/version/install/',
+            data : {
+                version: version,
+                instance: instance,
+            },
+            dataType: 'json',
+            success: test_watch,
+        })
+        start_watch( instance );
+        //alert("version: " + version );
+    }
+    function start_watch( instance ) {
+        clearInterval( $("#log-" + instance ).attr('timer') );
+        $('#log-' + instance ).remove();
+        var log = $('#hidden-watch-log').clone();
+        log.find('.i-instance').html( instance ); 
+        log.attr('id', 'log-' + instance );
+        var timer = setInterval("tick_watch( '" + instance + "' )", 2000);
+        log.attr('timer', timer );
+        
+
+        $('#logs').append( log );
+        log.show();
+
+        console.log('start watch');
+    }
+    function test_watch( data ){
+        
+    }
+    function tick_watch( instance ){
+        jQuery.ajax( { 
+            url : '/test/version/status',
+            data: { instance: instance },
+            dataType: 'json',
+            success: show_log_data,
+        });
+    }
+    function show_log_data ( data ){
+        console.log( data );
+        var id ="#log-" + data.instance;
+
+        if( ! data.status ){
+            $( id + ' .i-state').html('wating for data');
+            return;
+        } 
+        else {
+            $(id + ' .i-version').html( data.version );
+            $(id + ' .i-status').html( data.status );
+            $(id + ' .b-log-all').html(data.log);
+            $(id + ' .b-log-tail').html(data.logtail);
+
+
+            if( data.status == 'finished' ){
+                clearInterval( $(id).attr('timer') );
+            }
+        }
+       //# $( id )
+    }
+
+
+    
+
+
+        //bind script to button changelog
+</script>
+
+
+</body>
+</html>

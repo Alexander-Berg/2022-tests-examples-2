@@ -1,0 +1,29 @@
+INSERT INTO hiring_candidates.assets (
+    asset_id,
+    lead_id,
+    sts,
+    plate_number,
+    vin,
+    release_year
+) VALUES (
+    'to_be_updated_1',
+    'lead_updated_1',
+    'STS_db_updated_1',
+    'plate_number_db_updated_1',
+    'VIN_db_updated_1',
+    null
+),(
+    'to_be_updated_2',
+    'lead_updated_2',
+    'STS_db_updated_2',
+    'plate_number_db_updated_2',
+    'VIN_db_updated_2',
+    null
+),(
+    'to_be_deleted',
+    'lead_deleted',
+    'STS_db_deleted',
+    'plate_number_db_deleted',
+    'VIN_db_deleted',
+    null
+);

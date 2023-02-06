@@ -1,0 +1,93 @@
+project-name: yandex-taxi-test-service
+short-name: test-service
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/test-service/
+maintainers:
+  - Vasily Kulikov <segoon@yandex-team.ru>
+  - Common components <https://staff.yandex-team.ru/departments/yandex_distproducts_browserdev_mobile_taxi_9720_9558/>
+libraries:
+  - yandex-userver-core
+  - yandex-taxi-library-test-lib1
+  - yandex-taxi-library-test-lib2
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy:
+    os-name: bionic
+
+target-os:
+  - bionic
+  - xenial
+
+debian:
+    source_package_name: yandex-taxi-test-service
+    maintainer_name: Vasily Kulikov
+    maintainer_login: segoon
+
+tvm2:
+    secdist-service-name: test-service
+
+secdist:
+    testsuite:
+        values:
+            client-proxies:
+                HANDLE_BEHIND_PROXY: ""
+
+uservice_unit:
+    description: service for tests of common components
+
+    hostname:
+        production:
+          - test-service.taxi.yandex.net
+        testing:
+          - test-service.taxi.tst.yandex.net
+
+    nginx:
+        set_x_real_ip: false
+
+    grafana:
+        production: example.com
+        testing: example.com
+
+dashboards:
+    service_group:
+        rtc:
+            name: test-service
+    grafana_additional_layouts:
+      - userver_common:
+            collapsed: true
+            uservice_name: test-service
+
+clients:
+  - test-service
+  - test-client
+
+linters:
+    extra-application-package-names:
+      - test_service_plugins
+
+
+clownductor_service_info:
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-1  # fake
+    disk_profile: ssd-default
+    duty_group_id: taxidutycommon
+    clownductor_project: taxi-infra
+
+ya-make:
+    enabled: true
+    owners:
+      - g:taxi-common
+      - segoon
+
+mongo:
+    collections:
+      - static  # C++ keyword
+
+pytest:
+    api-coverage:
+        enabled: true

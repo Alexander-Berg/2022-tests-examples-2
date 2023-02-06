@@ -1,0 +1,186 @@
+{
+  "af_decision_doc": {
+    "$load_py_json": "_af_decision.json"
+  },
+  "base_doc": {
+    "$Doc": {
+      "data": {
+        "active_contracts": [
+          {
+            "currency": "RUB",
+            "id": 1,
+            "target": "oebs"
+          }
+        ],
+        "agreement": {
+          "ref": "subscription/doc_id/12011990",
+          "rule_data": {
+            "counter": "A",
+            "currency": "RUB",
+            "rule_id": "2d8e0d52-1767-402d-a572-3976bbcb29a9",
+            "steps": [
+              {
+                "amount": "100.0000",
+                "nrides": 10
+              }
+            ],
+            "type": "goal"
+          }
+        },
+        "antifraud": {
+          "antifraud_id": "some_antifraud_id",
+          "decision": "pay"
+        },
+        "contract_payment": {
+          "contract_id": 1,
+          "currency_rate": "1",
+          "donate_multiplier": "1.06",
+          "is_netting": true,
+          "service_id": 111,
+          "value": {
+            "amount": "100",
+            "currency": "RUB"
+          }
+        },
+        "driver": {
+          "billing_client_id": "some_billing_client_id",
+          "clid": "some_clid",
+          "driver_license_personal_id": "some_driver_license_personal_id",
+          "driver_profile_id": "some_driver_profile_id",
+          "park_id": "some_park_id",
+          "unique_driver_id": "some_unique_driver_id"
+        },
+        "pay_per_contract": "test",
+        "payment": {
+          "amount": "100",
+          "amount_per_contract": "80",
+          "step_nrides": 10
+        },
+        "payment_meta": {
+          "budget_id": "some_budget_id",
+          "city_id": "MSK",
+          "country_code": "rus",
+          "oebs_mvp_id": "MSKc",
+          "payment_ref": "some_payment_ref",
+          "service_to_contract": {
+            "111": 1,
+            "128": 1
+          },
+          "tariff_class": "econom",
+          "tariff_zone": "moscow",
+          "time_zone": "Europe/Moscow"
+        },
+        "shift": {
+          "duration_in_days": 7,
+          "end": "2020-07-05T21:00:00.000000+00:00",
+          "start": "2020-06-28T21:00:00.000000+00:00"
+        },
+        "version": 1
+      },
+      "entry_ids": [],
+      "event_at": {
+        "$datetime": "1991-06-18T07:15:00+03:00"
+      },
+      "external_ref": "some_external_ref_idk",
+      "id": 100,
+      "kind": "taxi_goal_shift",
+      "process_at": {
+        "$datetime": "1991-06-18T07:15:00+03:00"
+      },
+      "revision": 1,
+      "status": "complete",
+      "topic": "taxi_shift_topic"
+    }
+  },
+  "expected_journal_repo_type": {
+    "$type": "billing_functions.repositories.journal.DocsRepository"
+  },
+  "expected_query": {
+    "$Query": {
+      "base_doc_ref": 101,
+      "base_doc_version": 1,
+      "entries": null,
+      "entries_save_version": {
+        "$entries_save_version": 3
+      },
+      "history_item_tags": [],
+      "history_start": {
+        "$datetime": "2020-07-05T00:00:00+03:00"
+      },
+      "history_tag": "pay",
+      "minimize_reversals": false,
+      "now": {
+        "$datetime": "2021-03-01T00:00:00.000000+03:00"
+      },
+      "payment_ref": "some_payment_ref",
+      "reversal_entry_customizers": [
+        {
+          "$DriverIncomeCustomizer": {}
+        },
+        {
+          "$TLogV1Customizer": {
+            "base_doc_id": 101
+          }
+        },
+        {
+          "$TLogV2Customizer": {
+            "af_decision": {
+              "$antifraud_decision": "pay"
+            }
+          }
+        }
+      ],
+      "templates": [
+        {
+          "$Template": {
+            "context": {
+              "base_doc_id": 100,
+              "base_doc_version": 1,
+              "contract": {
+                "currency_rate": "1",
+                "donate_multiplier": "1.06",
+                "id": "1",
+                "is_payable": false,
+                "service_id": 111,
+                "target": "oebs"
+              },
+              "driver": {
+                "billing_client_id": "some_billing_client_id",
+                "clid": "some_clid",
+                "driver_uuid": "some_driver_profile_id",
+                "park_id": "some_park_id"
+              },
+              "entries_save_version": {
+                "$entries_save_version": 3
+              },
+              "subvention": {
+                "contract_value": {
+                  "amount": "100",
+                  "currency": "RUB"
+                },
+                "details": {
+                  "agglomeration": "MSKc",
+                  "external_ref": "subsidy/some_payment_ref",
+                  "goal_counter": "A",
+                  "last_day_of_shift": "2020-07-05T00:00:00+03:00",
+                  "limit_ref": "some_budget_id",
+                  "subvention_ref": "some_payment_ref",
+                  "tariff_class": "econom",
+                  "tariff_zone": "moscow"
+                },
+                "value": {
+                  "amount": "80",
+                  "currency": "RUB"
+                }
+              }
+            },
+            "name": "subvention_goal"
+          }
+        }
+      ]
+    }
+  },
+  "expected_results": {
+    "$load_py_json": "_expected_results.json"
+  }
+}

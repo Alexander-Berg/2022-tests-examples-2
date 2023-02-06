@@ -1,0 +1,48 @@
+default:
+    __default__:
+        full_update:
+            correction_ms: 10000
+            chunk_size: 0
+        incremental_update:
+            correction_ms: 1000
+            chunk_size: 0
+description: Настройки параметров работы кэшей с PostgreSQL в driver-status
+maintainers: [svetoch, basil-shuman, vpalchikov]
+tags: ["notfallback"]
+schema:
+    type: object
+    required:
+      - __default__
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+    definitions:
+        UpdateSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                correction_ms:
+                    description: Время коррекции
+                    type: integer
+                    minimum: 0
+                    default: 1000 #to get rid of std::optional<>
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                chunk_size:
+                    description: Количество читаемых записей из PostgreSQL за раз.
+                        Если 0, то читаются все записи за раз.
+                    type: integer
+                    default: 0 #to get rid of std::optional<>
+                    minimum: 0
+        Settings:
+            type: object
+            additionalProperties: false
+            required:
+              - full_update
+              - incremental_update
+            properties:
+                full_update:
+                    $ref: '#/definitions/UpdateSettings'
+                incremental_update:
+                    $ref: '#/definitions/UpdateSettings'

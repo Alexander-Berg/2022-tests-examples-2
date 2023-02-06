@@ -1,0 +1,31 @@
+INSERT INTO signal_device_api.declared_devices
+(
+    serial_number,
+    aes_key,
+    imei,
+    mac_wlan0,
+    mac_bluetooth,
+    sim_iccid,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    '31F648DBDEEA799F',
+    'FAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E',
+    '990000862471854',
+    'dd:f2:68:a8:df:b3',
+    '5b:38:fc:6a:88:0b',
+    '8991101200003204514',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+),(
+    '11F648DBDEEA799F',
+    'AAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E',
+    '111100008671854',
+    'aa:f2:68:a8:df:b3',
+    'aa:38:fc:6a:88:0b',
+    NULL,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);

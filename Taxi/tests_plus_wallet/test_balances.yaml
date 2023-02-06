@@ -1,0 +1,490 @@
+type: apitest
+version: 0
+service: taxi_plus_wallet
+
+marks:
+  - name: config
+    kwargs:
+        PLUS_WALLET_WALLET_CURRENCIES:
+          - RUB
+          - EUR
+          - KZT
+          - UAH
+          - BYN
+        CURRENCY_ROUNDING_RULES:
+            BYN:
+                __default__: 0.1
+                wallet: 0.1
+            KZT:
+                __default__: 10
+                wallet: 1
+            UAH:
+                __default__: 0.5
+            __default__:
+                10x: 10
+                __default__: 1
+
+  - name: pgsql
+    args:
+      - personal_wallet
+    kwargs:
+        files:
+          - wallets.sql
+
+tests:
+  - name: only_zwallets
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "111111"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: zd5ca2434fb44bfaa9e9078c6c1be844
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: z0bfe0b53cfe9938249eccecb26ba205
+                balance: "0.0000"
+                currency: "EUR"
+              - wallet_id: zbeb07e75993a3999e8d3da0914e15fe
+                balance: "0.0000"
+                currency: "KZT"
+              - wallet_id: z569cd1204dc097eebd36c94587a6601
+                balance: "0.0000"
+                currency: "RUB"
+              - wallet_id: zd286246e0775ca9a6c2fceec802279c
+                balance: "0.0000"
+                currency: "UAH"
+
+
+  - name: only_z_rub
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "12345678"
+            currencies: "RUB"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: z89075d1313a078a645e09ef772652e9
+                balance: "0.0000"
+                currency: "RUB"
+
+  - name: db_wallet
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_disabled.json
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "fallback_uid"
+            currencies: "RUB"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: fallback_wallet
+                balance: "364.0000"
+                currency: "RUB"
+
+
+  - name: db_and_z_wallets
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "fallback_uid"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: fallback_wallet
+                balance: "364.0000"
+                currency: "RUB"
+              - wallet_id: zf6e7db43e7f4484b40d2601abf9a892
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: z5c11b7c4acfd411a4850b59ecab9d1b
+                balance: "0.0000"
+                currency: "EUR"
+              - wallet_id: z6168523bc2c35e68c27c697965b158c
+                balance: "0.0000"
+                currency: "KZT"
+              - wallet_id: z39ed72b48fe7167547374812541f581
+                balance: "0.0000"
+                currency: "UAH"
+
+
+  - name: check_rounded_balance_1
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "portal_uid_1"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: must_rounded_rub_wallet_id_1
+                balance: "10.0000"
+                currency: "RUB"
+              - wallet_id: must_rounded_kzt_wallet_id_1
+                balance: "10.0000"
+                currency: "KZT"
+              - wallet_id: must_rounded_uah_wallet_id_1
+                balance: "10.5000"
+                currency: "UAH"
+              - wallet_id: z44cfe1e1ccf1b297c0660e5a19ca7c2
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: zb7cb17f74a411ebb96329656168faf9
+                balance: "0.0000"
+                currency: "EUR"
+
+
+  - name: check_rounded_balance_2
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "portal_uid_2"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: must_rounded_rub_wallet_id_2
+                balance: "10.0000"
+                currency: "RUB"
+              - wallet_id: must_rounded_kzt_wallet_id_2
+                balance: "10.0000"
+                currency: "KZT"
+              - wallet_id: must_rounded_uah_wallet_id_2
+                balance: "10.0000"
+                currency: "UAH"
+              - wallet_id: z2c5095647045a6ad66ce009bc6ad217
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: z732e6d0574d43bf5a9aec3b1ab8f17f
+                balance: "0.0000"
+                currency: "EUR"
+
+
+  - name: check_rounded_balance_3
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "portal_uid_3"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: must_rounded_rub_wallet_id_3
+                balance: "10.0000"
+                currency: "RUB"
+              - wallet_id: must_rounded_kzt_wallet_id_3
+                balance: "10.0000"
+                currency: "KZT"
+              - wallet_id: must_rounded_uah_wallet_id_3
+                balance: "10.5000"
+                currency: "UAH"
+              - wallet_id: z0be68ad5279f67a0a1ef167ad056c2e
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: z36365438ef634b2ba136c728e91a4c0
+                balance: "0.0000"
+                currency: "EUR"
+
+
+  - name: balances_from_billing-wallet
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_enabled.json
+    mockserver:
+      - url: /billing-wallet/balances
+        request:
+            body:
+                yandex_uid: "portal_uid_3"
+        response:
+            status: 200
+            body:
+                balances:
+                  - amount: "171.3000"
+                    currency: "RUB"
+                    wallet_id: "some_wallet_id"
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "portal_uid_3"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: some_wallet_id
+                balance: "171.0000"
+                currency: "RUB"
+              - wallet_id: z0be68ad5279f67a0a1ef167ad056c2e
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: z36365438ef634b2ba136c728e91a4c0
+                balance: "0.0000"
+                currency: "EUR"
+              - wallet_id: zdd01387cc837c48aa622e35805479ac
+                balance: "0.0000"
+                currency: "KZT"
+              - wallet_id: z7a9daad72b303f899bd6c3e52122477
+                balance: "0.0000"
+                currency: "UAH"
+
+  - name: billing-wallet_unavailable_fallback_to_db
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_enabled.json
+    mockserver:
+      - url: /billing-wallet/balances
+        request:
+            body:
+                yandex_uid: "portal_uid_3"
+        response:
+            status: 500
+            body:
+                message: "Internal server error"
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "portal_uid_3"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: must_rounded_rub_wallet_id_3
+                balance: "10.0000"
+                currency: "RUB"
+              - wallet_id: must_rounded_kzt_wallet_id_3
+                balance: "10.0000"
+                currency: "KZT"
+              - wallet_id: must_rounded_uah_wallet_id_3
+                balance: "10.5000"
+                currency: "UAH"
+              - wallet_id: z0be68ad5279f67a0a1ef167ad056c2e
+                balance: "0.0000"
+                currency: "BYN"
+              - wallet_id: z36365438ef634b2ba136c728e91a4c0
+                balance: "0.0000"
+                currency: "EUR"
+
+  - name: request_currencies_many
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "req_curr_many_uid"
+            currencies: "RUB,KZT"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: req_curr_many_wallet_id_rub
+                balance: "120.0000"
+                currency: "RUB"
+              - wallet_id: req_curr_many_wallet_id_kzt
+                balance: "100.0000"
+                currency: "KZT"
+
+  - name: request_currencies_many_from-billing-wallet
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_enabled.json
+    mockserver:
+      - url: /billing-wallet/balances
+        request:
+            body:
+                yandex_uid: "req_curr_many_uid"
+        response:
+            status: 200
+            body:
+                balances:
+                  - amount: "120.00"
+                    currency: "RUB"
+                    wallet_id: "req_curr_many_wallet_id_rub"
+                  - amount: "100.00"
+                    currency: "KZT"
+                    wallet_id: "req_curr_many_wallet_id_kzt"
+                  - amount: "100.00"
+                    currency: "UAH"
+                    wallet_id: "req_curr_many_wallet_id_uah"
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "req_curr_many_uid"
+            currencies: "RUB,KZT"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: req_curr_many_wallet_id_rub
+                balance: "120.0000"
+                currency: "RUB"
+              - wallet_id: req_curr_many_wallet_id_kzt
+                balance: "100.0000"
+                currency: "KZT"
+
+
+  - name: request_currencies_one
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "req_curr_uid"
+            currencies: "KZT"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: "req_curr_wallet_id_kzt"
+                balance: "100.0000"
+                currency: "KZT"
+
+
+  - name: request_currencies_one_from-billing-wallet
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_enabled.json
+    mockserver:
+      - url: /billing-wallet/balances
+        request:
+            body:
+                yandex_uid: "req_curr_uid"
+        response:
+            status: 200
+            body:
+                balances:
+                  - amount: "120.00"
+                    currency: "RUB"
+                    wallet_id: "req_curr_wallet_id_rub"
+                  - amount: "100.00"
+                    currency: "KZT"
+                    wallet_id: "req_curr_wallet_id_kzt"
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            yandex_uid: "req_curr_uid"
+            currencies: "KZT"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: "req_curr_wallet_id_kzt"
+                balance: "100.0000"
+                currency: "KZT"
+
+  - name: rounding_factor_billing-wallet_KZT
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_enabled.json
+    mockserver:
+      - url: /billing-wallet/balances
+        request:
+            body:
+                yandex_uid: "rounding_factor_uid"
+        response:
+            status: 200
+            body:
+                balances:
+                  - amount: "10.8500"
+                    currency: "KZT"
+                    wallet_id: "round_billing_wallet_kzt"
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            currencies: "KZT"
+            yandex_uid: "rounding_factor_uid"
+            rounding_factor: "wallet"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: round_billing_wallet_kzt
+                balance: "10.0000"
+                currency: "KZT"
+
+  - name: rounding_factor_KZT
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            currencies: "KZT"
+            yandex_uid: "rounding_factor_uid"
+            rounding_factor: "wallet"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: rounding_factor_kzt_wallet
+                balance: "10.0000"
+                currency: "KZT"
+
+  - name: rounding_factor_BYN
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            currencies: "BYN"
+            yandex_uid: "rounding_factor_byn"
+            rounding_factor: "wallet"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: rounding_factor_byn
+                balance: "1.4000"
+                currency: "BYN"
+
+
+  - name: rounding_factor_BYN_billing-wallet
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: exp3_billing_wallet_enabled.json
+    mockserver:
+      - url: /billing-wallet/balances
+        request:
+            body:
+                yandex_uid: "rounding_factor_uid"
+        response:
+            status: 200
+            body:
+                balances:
+                  - amount: "1.4000"
+                    currency: "BYN"
+                    wallet_id: "round_billing_wallet_byn"
+    request:
+        method: GET
+        path: /v1/balances
+        query_params:
+            currencies: "BYN"
+            yandex_uid: "rounding_factor_uid"
+            rounding_factor: "wallet"
+    response:
+        status: 200
+        body:
+            balances:
+              - wallet_id: round_billing_wallet_byn
+                balance: "1.4000"
+                currency: "BYN"

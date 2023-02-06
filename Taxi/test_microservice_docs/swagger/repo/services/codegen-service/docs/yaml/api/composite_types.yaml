@@ -1,0 +1,79 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: Test cases for allOf/oneOf
+
+paths:
+    /openapi/all-of-basic:
+        get:
+            summary: 'Basic test with allOf schemas'
+            responses:
+                '200':
+                    description: 'ОК'
+                    schema:
+                        allOf:
+                          - type: object
+                            required:
+                              - property1
+                            properties:
+                                property1:
+                                    type: string
+                          - type: object
+                            required:
+                              - property2
+                            properties:
+                                property2:
+                                    type: string
+
+    /api/v1/all-of-nested-one-of:
+        get:
+            summary: 'allOf schema with a nested oneOf schema'
+            responses:
+                '200':
+                    description: 'ОК'
+                    schema:
+                        allOf:
+                          - type: object
+                            required:
+                              - property1
+                            properties:
+                                property1:
+                                    type: string
+                          - oneOf:
+                              - type: object
+                                required:
+                                  - foo
+                                properties:
+                                    foo:
+                                        type: string
+                              - type: object
+                                properties:
+                                    bar:
+                                        type: integer
+
+    /api/v1/all-of-with-definition:
+        get:
+            summary: 'allOf schema with a nested oneOf schema'
+            responses:
+                '200':
+                    description: 'ОК'
+                    schema:
+                        allOf:
+                          - type: object
+                            required:
+                              - property1
+                            properties:
+                                property1:
+                                    type: string
+                          - $ref: '#/definitions/SomeResponse'
+
+
+definitions:
+    SomeResponse:
+        type: object
+        required:
+          - text
+        properties:
+            text:
+                type: string
+        additionalProperties: false

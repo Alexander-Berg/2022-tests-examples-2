@@ -1,0 +1,66 @@
+{
+  "consumer": "taxi-surge",
+  "name": "default",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "blocking_barrier",
+      "resources": [
+        {
+          "field": "dummy",
+          "name": "count_by_categories"
+        }
+      ],
+      "source_code": "return {dummy: {request: {point: [1.0, 2.0], allowed_classes: [], limit: 400, max_distance: 2500}}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        }
+      ],
+      "name": "fake_fill",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[tariff]"
+        }
+      ],
+      "source_code": "return {data: {name: tariff, value_raw: 11.1, surge: {value: 12.2}}};"
+    },
+    {
+      "conditions": {
+        "args": [
+          {
+            "stage_name": "blocking_barrier",
+            "stage_statuses": [
+              "omitted",
+              "failed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "type": "not"
+      },
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        }
+      ],
+      "name": "expected_fill",
+      "optional": true,
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[tariff]"
+        }
+      ],
+      "source_code": "return {data: {name: tariff, value_raw: 99.1, surge: {value: 81.2}}};"
+    }
+  ],
+  "state": "active"
+}

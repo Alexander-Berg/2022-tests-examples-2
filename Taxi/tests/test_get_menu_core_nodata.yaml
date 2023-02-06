@@ -1,0 +1,60 @@
+id: test_get_menu_core_nodata
+title: Проверяем что нормально отработаем ошибку от коры
+
+source:
+    request:
+        method: get
+        url: /4.0/restapp-front/api/v1/client/place/999/menu
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - code: 2
+                    message: ""
+
+mocks:
+  - resource: eats-core-v1-places-place-menu-get
+    response:
+        status-code: 404
+        body:
+            isSuccess: false
+            statusCode: 404
+            type: not_found
+            context: ""
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+            path-params:
+                placeId: 999
+            query:
+            body:
+
+  - resource: eats-restapp-authorizer-place-access-check
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        # call-count: 1
+        request:
+            body:
+                partner_id: 123
+                place_ids: [999]
+
+experiments:
+    values:
+        eats-restapp-switch-menu:
+            method: core
+    expectations:
+        consumer: eats-api-proxy/restapp-menu
+        kwargs:
+          - key: place_id
+            type: string
+            value#string: 999

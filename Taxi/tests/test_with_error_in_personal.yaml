@@ -1,0 +1,68 @@
+id: test_with_error_in_personal
+title: Проверка, что при ошибке в запросе к personal, будем делать запрос без user_personal_phone_id
+
+
+source:
+    request:
+        method: post
+        body:
+            params:
+                service: "rtxaron"
+            order_id: "47e474176cb3c7a58ad56f39a4d54dc1"
+            user_phone: "+79672763662"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                jsonrpc: "2.0"
+                id: 1
+                result#array:
+                  - value:
+                        source: antifraud
+                        subsource: rtxaron
+                        entity: user_id
+                        key: c0a0cb1a577144ec8a0fb39378dd5a62
+                        name#string: "taxi_good_user_refunds"
+                        value#boolean: true
+
+mocks:
+  - resource: fury-rtxaron
+    response:
+        status-code: 200
+        body:
+            jsonrpc: "2.0"
+            id: 1
+            result#array:
+              - value:
+                    source: antifraud
+                    subsource: rtxaron
+                    entity: user_id
+                    key: c0a0cb1a577144ec8a0fb39378dd5a62
+                    name#string: "taxi_good_user_refunds"
+                    value#boolean: true
+              - value:
+                    name#string: "value_not_existing_in_config"
+                    value#boolean: true
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                params:
+                    service: "rtxaron"
+                order_id: "47e474176cb3c7a58ad56f39a4d54dc1"
+
+  - resource: personal-data-type-phones-find
+    response:
+        status-code: 404
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                value: "+79672763662"
+
+taxi_config:
+    CHATTERBOX_ANTIFRAUD_RULES_FOR_META#array:
+      - value#string: "taxi_good_user_refunds"
+      - value#string: "unexisting_field"

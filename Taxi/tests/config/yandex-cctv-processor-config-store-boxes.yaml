@@ -1,0 +1,65 @@
+logging:
+    type: file
+    level: info
+    path: /tmp/yandex/cctv/processor/cctv-processor.log
+
+streams:
+  - name: ffmpeg_video_file
+    description: none
+    type: ffmpeg_file
+    filename: tests/data/people_walking.mp4
+    segment_length_minutes: 1
+    segment_base_path: /tmp/yandex/cctv/processor/stored_videos
+    segmenting_accuracy_secs: 8
+    failures_to_reset: 2
+
+storages:
+  - path: /tmp/yandex/cctv/processor/stored_videos
+    max_size_gb: 1
+    min_free_space_gb: 20
+    max_days_store: 31
+    paths:
+
+event_sender:
+    url: http://localhost:8080/cctv-processor-api/v1/events
+    max_batch_size: 20
+    max_batch_age_ms: 10000
+    transfer_timeout_ms: 100
+    queue_size: 10
+    logs:
+        path: /tmp/yandex/cctv/processor/events-log
+
+config_updater:
+    url: http://localhost:1234/cctv-processor-api/v1/trash
+    poll_interval_secs: 600
+
+general:
+    processor_id: processor1
+
+http_client:
+    ticket: INVALID
+
+handlers:
+  - name: progress_logger
+    description: Пишет в лог прогресс обработки
+    type: frame_counter
+    report_rate: 100
+
+  - name: find_signature
+    description: Обнаружение объектов в кадре
+    type: ffmpeg_find_signature
+    models_folder_path: build/engine-models/yandex-face-tflite
+    model_id: faceEmbedderBiometry_v5
+    runtime: CPU
+    cropped_faces_storage: /tmp/yandex/cctv/processor/detected_boxes
+    frame_sending_freq: 2
+
+processors:
+  - name: demo
+    is_ffmpeg: true
+    description: Демонстрационный стенд
+    streams:
+      - ffmpeg_video_file
+    handlers:
+      - find_signature
+      - progress_logger

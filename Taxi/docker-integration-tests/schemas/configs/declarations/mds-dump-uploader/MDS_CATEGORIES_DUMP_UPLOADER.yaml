@@ -1,0 +1,93 @@
+default:
+    __default__:
+        enabled: true
+        sources:
+          - request:
+                url: '/v1/drivers/categories/bulk'
+                headers:
+                  - Content-Type: 'application/json'
+                  - Host: 'driver-categories-api.taxi.yandex.net'
+                method: 'POST'
+                body: '{"revisions":{"cars":"","drivers":"","parks":""}}'
+                timeout: 600
+            s3_secdist_path: 'DRIVER_STATUS_MDS_S3'
+            s3_target_path: 'path_in_bucket'
+            keys_limit: 10
+            outdated_hours_limit: 10
+            enabled: true
+            max_requests: 10
+
+description: Настройки заливки дампов в s3. Настройка в корне enabled включает работу
+    таски, sources содержит список ручек которые необходимо дампить и заливать. Если
+    указан compress в true перед заливкой дамп будет сжат, в архиве будет файл с именем
+    compressed_dump_name. Результат будет залит в бакет мдс в секдисте по пути target_s3_path.
+    После заливки таск проверяет количество дампов на сервере и удаляет если они старше
+    outdated_hours_limit и оставшееся количество будет не меньше keys_limit. s3_secdist_path
+    - секция доступа в mds до secdist
+tags: []
+schema:
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+    required:
+      - __default__
+    type: object
+    definitions:
+        Settings:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                sources:
+                    type: array
+                    items:
+                        request:
+                            type: object
+                            additionalProperties: false
+                            url:
+                                type: string
+                            headers:
+                                type: array
+                                items: type:object
+                            method:
+                                type: string
+                            body:
+                                type: string
+                            timeout:
+                                type: integer
+                compress:
+                    type: boolean
+                s3_secdist_path:
+                    type: string
+                s3_target_path:
+                    type: string
+                max_requests:
+                    type: integer
+                keys_limit:
+                    type: integer
+                outdated_hours_limit:
+                    type: integer
+            required:
+              - enabled
+              - sources
+samples:
+  - __default__:
+        enabled: true
+        sources:
+          - request:
+                url: '/v1/drivers/categories/bulk'
+                headers:
+                  - Сontent-Type: 'application/json'
+                  - Host: 'driver-status.taxi.yandex.net'
+                method: 'POST'
+                body: '{"revisions":{"cars":"","drivers":"","parks":""}}'
+            compress: true
+            s3_target_path: 'dump'
+            s3_secdist_path: 'DRIVER_STATUS_MDS_S3'
+            keys_limit: 10
+            outdated_hours_limit: 10
+            enabled: true
+            max_requests: 10

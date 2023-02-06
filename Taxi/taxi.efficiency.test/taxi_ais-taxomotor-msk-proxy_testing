@@ -1,0 +1,47 @@
+host: taxi_ais-taxomotor-msk-proxy_testing
+services:
+# https://wiki.yandex-team.ru/taxi/admin/ais-taxomotor-msk-proxy/
+- service: http_alive
+  flaps:
+    stable_time: 600
+    critical_time: 3600
+  methods: phone_escalation
+  active: http
+  active_kwargs:
+    port: 80
+    ok_codes: 200
+    path: /ping
+    always_show_body: true
+  children:
+  - ais-taxomotor-msk-proxy.taxi.tst.yandex.net
+  times:
+  - days: Mon-Sun
+    time: 12-20
+    warn: 0
+    crit: 101%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 101%
+- service: https_alive
+  flaps:
+    stable_time: 600
+    critical_time: 3600
+  methods: phone_escalation
+  active: https
+  active_kwargs:
+    port: 443
+    ok_codes: 200
+    path: /ping
+    always_show_body: true
+  children:
+  - ais-taxomotor-msk-proxy.taxi.tst.yandex.net
+  times:
+  - days: Mon-Sun
+    time: 12-20
+    warn: 0
+    crit: 101%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 101%

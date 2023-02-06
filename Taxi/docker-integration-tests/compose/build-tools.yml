@@ -1,0 +1,89 @@
+# Container definitions for build tools
+version: "2.3"
+
+services:
+    taxi-build-cxx:
+        extends:
+            service: taxi-integration-${PLATFORM:-xenial}-base
+        privileged: true
+        mem_limit: 40G
+        environment:
+          - ASAN_OPTIONS
+          - ASAN_PRELOAD
+          - ASAN_SYMBOLIZER_PATH
+          - BUILD_DIR=${BUILD_DIR:-/taxi/backend-cpp/build-integration}
+          - BUILD_TYPE=${BUILD_TYPE:-Release}
+          - CC
+          - CCACHE_DIR=/taxi/ccache
+          - CCACHE_SIZE
+          - CCACHE_HASHDIR
+          - CCACHE_NOHASHDIR
+          - CCACHE_PREFIX
+          - CORES_DIR=/taxi/cores
+          - DISTCC_HOSTS
+          - CMAKE_OPTS
+          - CXX
+          - CLICOLOR_FORCE
+          - NPROCS
+          - IS_TEAMCITY
+          - TESTSUITE_PGSQL_BINDIR=/usr/lib/postgresql/10/bin
+        volumes:
+          - ./backend-cpp:/taxi/backend-cpp:rw
+          - ${CCACHE_DIR:-~/.ccache}:/taxi/ccache:rw
+          - ${TC_CORES_DIR:-./backend-cpp/cores}:/taxi/cores:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+          - type: tmpfs
+            target: /mnt/ramdisk
+            tmpfs:
+                size: 6442450944 # 6 GB
+        working_dir: /arcadia/taxi/backend-cpp
+        networks:
+          - taxi_net
+        command: /taxi/run/build-cxx.sh
+    taxi-build-cxx-deb:
+        extends:
+            service: taxi-integration-xenial-${BASE_IMAGE_ENV-base}
+        environment:
+          - CC
+          - CCACHE_DIR=/taxi/ccache
+          - CCACHE_SIZE
+          - CCACHE_HASHDIR
+          - CCACHE_NOHASHDIR
+          - CCACHE_PREFIX
+          - DISTCC_HOSTS
+          - CXX
+          - CLICOLOR_FORCE=1
+          - DEB_BUILD_OPTIONS
+          - NPROCS
+        volumes:
+          - ./release:/taxi/backend-cpp:rw
+          - ${CCACHE_DIR:-~/.ccache}:/taxi/ccache:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ~/.gnupg:/home/user/.gnupg:ro
+        working_dir: /taxi/backend-cpp
+        networks:
+          - taxi_net
+        command: /taxi/run/build-cxx-deb.sh
+    taxi-build-cxx-release-tests:
+        extends:
+            service: taxi-integration-xenial-base
+        privileged: true
+        mem_limit: 40G
+        environment:
+          - CORES_DIR=/taxi/cores
+          - IS_TEAMCITY
+          - BUILD_DIR=${BUILD_DIR:-/taxi/backend-cpp/build-integration}
+          - TESTSUITE_PGSQL_BINDIR=/usr/lib/postgresql/10/bin
+        volumes:
+          - ./release:/taxi/backend-cpp:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ${TC_CORES_DIR:-./release/cores}:/taxi/cores:rw
+        working_dir: /taxi/backend-cpp
+        command: /taxi/run/cxx-tests.sh
+        networks:
+          - taxi_net
+

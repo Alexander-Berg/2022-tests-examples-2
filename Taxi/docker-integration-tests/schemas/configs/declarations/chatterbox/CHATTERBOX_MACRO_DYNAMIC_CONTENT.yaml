@@ -1,0 +1,46 @@
+default: {}
+description: Список динамических плэйсхолдеров в макросах с условиями применения
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        type: array
+        items:
+            type: object
+            additionalProperties: false
+            properties:
+                value:
+                    description: Значение для подстановки
+                    type: string
+                apply_condition:
+                    description: Mongo conditions применения подстановки
+                    $ref: "#/definitions/ApplyCondition"
+            required:
+              - value
+              - apply_condition
+
+    definitions:
+        ApplyCondition:
+            type: object
+            properties:
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ApplyCondition"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ApplyCondition"
+
+                "#not":
+                    $ref: "#/definitions/ApplyCondition"
+
+            patternProperties:
+                ^\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                ^meta_info\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            additionalProperties: false

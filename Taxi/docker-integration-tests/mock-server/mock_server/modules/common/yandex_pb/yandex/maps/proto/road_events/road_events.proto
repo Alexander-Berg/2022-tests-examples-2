@@ -1,0 +1,51 @@
+package yandex.maps.proto.road_events;
+import "yandex/maps/proto/common2/metadata.proto";
+import "yandex/maps/proto/common2/i18n.proto";
+import "yandex/maps/proto/common2/attribution.proto";
+
+message TimePeriod
+{
+    // Unix timestamps
+    required common2.i18n.Time begin = 1;
+    optional common2.i18n.Time end = 2;
+}
+
+message RoadEventMetadata
+{
+    enum EventType {
+        OTHER = 0;
+        RECONSTRUCTION = 1;
+        ACCIDENT = 2;
+        DRAWBRIDGE = 3;
+        CLOSED = 4;
+        POLICE = 5;
+        CHAT = 6;
+        SPEED_CAMERA = 7;
+        LANE_CAMERA = 8;
+        POLICE_POST = 9;
+        FEEDBACK = 10;
+        DANGER = 11;
+    }
+
+    required string id = 1;
+
+    // Can contain multiple types ordered from the general to the particular
+    // array size >= 1
+    repeated EventType type = 2;
+    repeated string tag = 10;
+    optional string description = 3;
+
+    optional TimePeriod time_period = 4;
+    required common2.i18n.Time modification_time = 5;
+    optional int32 comments_count = 6;
+
+    optional common2.attribution.Author author = 7;
+    optional float azimuth = 8; // Azimuth: 0-360
+
+    optional bool moderated = 9;
+}
+
+extend common2.metadata.Metadata
+{
+    optional RoadEventMetadata ROAD_EVENT_METADATA = 80;
+}

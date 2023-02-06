@@ -1,0 +1,71 @@
+blackbox:
+  get_hidden_aliases: false
+passport:
+  url: https://passport-test-internal.yandex.ru
+  timeout: 3
+  retries: 2
+  use_tvm: true
+emitter:
+  args:
+    client_id: historydb/passport-account-events-all-testing
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    decompress: true
+    per_host_config:
+      .*?:
+        targets:
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+    workers_count: 7
+  class: passport.backend.logbroker_client.core.consumers.simple.native_emitter.PartitionsCountNativeEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/account-events/
+workers:
+  args:
+    handler:
+      args:
+        blackbox_url: https://pass-test.yandex.ru/
+        disk_url: http://api-stable.dst.yandex.net:8080/
+        dry_run: false
+        edadeal_url: https://usr.edastage.ru
+        services:
+          disk:
+            events:
+            - passport.backend.logbroker_client.account_events.events.AccountOtpEnabledEvent
+            - passport.backend.logbroker_client.account_events.events.AccountOtpDisabledEvent
+            notifier: passport.backend.logbroker_client.account_events.notify.DiskNotifyClient
+            sid: 59
+            url: http://mpfs-stable.dst.yandex.net/json/passport_user_2fa_changed
+          disk_2:
+            events:
+            - passport.backend.logbroker_client.account_events.events.AccountDisableEvent
+            - passport.backend.logbroker_client.account_events.events.AccountEnableEvent
+            - passport.backend.logbroker_client.account_events.events.AccountRemovalDisableEvent
+            notifier: passport.backend.logbroker_client.account_events.notify.DiskNotifyClient
+            sid: 59
+            url: http://mpfs-stable.dst.yandex.net/json/passport_user_enabled_changed
+          plus_notifiers:
+            events:
+            - passport.backend.logbroker_client.account_events.events.AccountPlusEvent
+            notifier: passport.backend.logbroker_client.account_events.notify.PlusNotifyClient
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.account_events.handler.EventsHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.native_worker.NativeLogbrokerWorker
+  count: 7

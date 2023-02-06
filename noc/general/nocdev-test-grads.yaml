@@ -1,0 +1,46 @@
+aggregates:
+  # мониторинг состояния телеграфа
+#  telegraf: &template_check
+#    description: telegraf status
+#    namespace: nocdev
+#    service: telegraf_status
+#    ttl: 90
+#    flaps:
+#      critical: 150
+#      stable: 30
+#      boost: 0
+#    tags:
+#      - telegram
+#      - nocdev_warn_notify_workday
+#    children:
+#      - service: telegraf_status
+#    aggregator: more_than_limit_is_problem
+#    aggregator_kwargs:
+#      mode: percent
+#      warn_limit: 10
+#      crit_limit: 101 #testing notifications
+  redis: &template_check
+    description: redis status
+    service: redis-server_status
+    children:
+      - service: redis_status
+    tags:
+      - telegram
+      - nocdev_warn_notify_workday
+    aggregator: more_than_limit_is_problem
+    aggregator_kwargs:
+      mode: percent
+      warn_limit: 10
+      crit_limit: 101 #testing notifications
+#  redis:
+#    <<: *template_check
+#    description: redis status
+#    service: redis-server_status
+#    children:
+#      - service: redis_status
+  grad-server:
+    <<: *template_check
+    description: grad-server status
+    service: grad-server
+    children:
+      - service: grad-server_status

@@ -1,0 +1,56 @@
+id: location_info
+title: Проверяем, что location_info возвращается по эксперименту
+
+parameters:
+  - send_location_info:
+      - true
+      - false
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 10
+              - 20
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - payment_methods: []
+              - merchant_id_list: []
+              - location_info#object:
+                  - region_id: 255
+                  - country_code: RU
+                  - currency_code: RUB
+                enabled#xget: /test-params/send_location_info
+
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payment_types: []
+            merchant_ids: []
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false
+
+experiments:
+    values#object:
+      - key: lpm_location_info
+        value#object:
+          - region_id: 255
+          - country_code: RU
+          - currency_code: RUB
+        enabled#xget: /test-params/send_location_info

@@ -1,0 +1,172 @@
+test:
+    name: "Тест со случайными входными данными"
+    description: |
+        В сервисе billing-orders размещается завершенный заказ (c типом order_completed).
+        Проверяется, что суммы на счетах постоянны.
+    prerequests:
+        stq3:
+            billing_rollup_balances:
+                queue: "billing_rollup_balances"
+                task_id: "1"
+                eta: 0
+        services:
+          - url: http://billing-calculators.taxi.yandex.net/ping
+          - url: http://billing-tlog.taxi.yandex.net/ping
+          - url: http://billing-orders.taxi.yandex.net/ping
+          - url: http://billing-docs.taxi.yandex.net/ping
+          - url: http://billing-accounts.taxi.yandex.net/ping
+          - url: http://billing-reports.taxi.yandex.net/ping
+          - url: http://billing-subventions.taxi.yandex.net/ping
+          - url: http://stq-agent.taxi.yandex.net/ping
+        mongo:
+            dbstq_config:
+                conn: stq_config
+                restore: true
+            dbtaxi:
+                conn: taxi
+                restore: true
+                import: true
+            dbsubvention_reasons:
+                conn: subvention_reasons
+                restore: true
+        postgres:
+            billing_commissions:
+                conn: billing_commissions
+                shard: 0
+                import: true
+            billing_subventions:
+                conn: billing_subventions
+                shard: 0
+                import: true
+    config_source:
+        file_name: prod_config.yaml
+        skip_configs:
+          - TVM_API_URL
+          - TVM_RULES
+          - TVM_SERVICES
+        backend_services:
+          - billing-functions
+          - billing-payment-adapter
+          - taxi-billing-accounts
+          - taxi-billing-audit
+          - taxi-billing-buffer-proxy
+          - taxi-billing-calculators
+          - taxi-billing-docs
+          - taxi-billing-limits
+          - taxi-billing-orders
+          - taxi-billing-replication
+          - taxi-billing-reports
+          - taxi-billing-subventions
+          - taxi-billing-tlog
+          - taxi-tariffs
+        uservices:
+          - billing-commissions
+          - billing-subventions-x
+sample:
+    order_complete:
+        class: TestSampler
+        type: doc
+        kind: order_completed
+        count: 100
+        zones:
+          - samara
+          - moscow
+    park_ids:
+        class: JsonlSampler
+        file_name: sample/park_ids.jsonl
+        template_name: sample/park_ids.json
+        samples: 1
+    parks:
+        class: YtSampler
+        type: park
+        ids: sample/park_ids.jsonl
+        file_name: database/mongo/collections/dbtaxi/parks.jsonl
+    cities:
+        class: JsonlSampler
+        file_name: database/mongo/collections/dbtaxi/cities.jsonl
+        template_name: sample/cities.json
+        samples: 100
+    billing_commissions:
+        class: PgSampler
+        secret: sec-01g3xhd9vnrhb2crvmdk0zxcyd
+        table_schema: fees
+        parameters:
+            zones:
+              - samara
+              - moscow
+            base_rules: fees.base_rule.rule_id
+            rules: fees.rule.id
+        tables:
+            base_rule:
+                filters:
+                    tariff_zone: $zones
+                replaces:
+                    draft_spec_id: 666
+            rule:
+                filters:
+                    tariff_zone: $zones
+                replaces:
+                    draft_spec_id: 666
+            rule_hiring_type:
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_spec_id: 666
+            rule_min_max_cost:
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_spec_id: 666
+            rule_payment_type:
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_spec_id: 666
+            rule_tag:
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_spec_id: 666
+            rule_fine_code:
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_spec_id: 666
+            withdraw_from_driver_account:
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_spec_id: 666
+            $all:
+                skip:
+                  - ".*draft.*"
+                  - ".*change_log.*"
+                filters:
+                    rule_id: $base_rules
+                replaces:
+                    draft_spec_id: 666
+        file_name: database/postgresql/billing_commissions
+    billing_subventions:
+        class: PgSampler
+        secret: sec-01g3xhd9vnrhb2crvmdk0zxcyd
+        table_schema: subventions
+        parameters:
+            zones:
+              - samara
+              - moscow
+            rules: subventions.rule.rule_id
+        tables:
+            rule:
+                filters:
+                    tariff_zone: $zones
+                replaces:
+                    draft_id: '666'
+            $all:
+                skip:
+                  - ".*draft.*"
+                  - ".*change_log.*"
+                filters:
+                    rule_id: $rules
+                replaces:
+                    draft_id: '666'
+        file_name: database/postgresql/billing_subventions

@@ -1,0 +1,65 @@
+swagger: '2.0'
+info:
+    title: corp-billing-orders API for testsuite
+    description: corp-billing-orders internal API
+    version: '1.0'
+
+host: corp-billing-orders.taxi.yandex.net
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: CORP_BILLING_ORDERS_CLIENT_QOS
+
+paths:
+    /testonly/callsyncprocedure:
+        post:
+            description: Call procedure of synchronization with Billing
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: 'corp-billing-orders/definitions.yaml#/definitions/EmptyObject'
+            responses:
+                200:
+                    description: '200'
+                    schema:
+                        $ref: '#/definitions/PendingCount'
+    /testonly/calldeleteprocedure:
+        post:
+            description: Call procedure for deleting payment orders
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: 'corp-billing-orders/definitions.yaml#/definitions/EmptyObject'
+            responses:
+                200:
+                    description: '200'
+                    schema:
+                        $ref: '#/definitions/DeletedCount'
+
+definitions:
+    DeletedCount:
+        type: object
+        required:
+          - deleted_count
+        properties:
+            deleted_count:
+                type: integer
+                format: int64
+        additionalProperties: false
+
+    PendingCount:
+        type: object
+        required:
+          - pending_count
+        properties:
+            pending_count:
+                type: integer
+                format: int64
+        additionalProperties: false

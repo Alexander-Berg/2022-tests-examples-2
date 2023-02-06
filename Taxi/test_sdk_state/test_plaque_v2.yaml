@@ -1,0 +1,120 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_enable_plaque.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+mockserver:
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120.0000"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+  - url: /plus/v1/subscriptions/settings
+    response:
+        body:
+            version: "1"
+            settings:
+                renew_subscription_by_plus: true
+
+  - url: /market-plus-plaque/4.0/market-plus-plaque/v1/sdk-state/plaques
+    response:
+        body:
+            plaque_v2:
+                some_filed: "value"
+                some_field_2: "value"
+
+tests:
+  - name: plaques_v2_ok
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques: []
+                widgets: []
+            plaque_v2:
+                some_filed: "value"
+                some_field_2: "value"
+
+  - name: plaques_v2_404_market_plus_plaque
+    mockserver:
+      - url: /market-plus-plaque/4.0/market-plus-plaque/v1/sdk-state/plaques
+        response:
+            body:
+                status: 404
+                body:
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques: []
+                widgets: []
+
+  - name: plaques_v2_ok_500_market_plus_plaque
+    mockserver:
+      - url: /market-plus-plaque/4.0/market-plus-plaque/v1/sdk-state/plaques
+        response:
+            body:
+                status: 500
+                body:
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques: []
+                widgets: []

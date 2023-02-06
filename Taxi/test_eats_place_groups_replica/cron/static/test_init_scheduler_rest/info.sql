@@ -1,0 +1,91 @@
+INSERT INTO place_groups(
+    place_group_id,
+    brand_id,
+    parser_name,
+    parser_hours,
+    price_parser_times,
+    stock_reset_limit,
+    dev_filter
+)
+VALUES
+(
+    'place_group_id1',
+    'brand_id',
+    'parser_name',
+    '09:00',
+    '9:20',
+    1,
+    '{"elem": 2}'::json
+),
+(
+    'place_group_id2',
+    'brand_id',
+    'parser_name',
+    '08:59',
+    '9:01',
+    1,
+    '{"elem": 2}'::json
+),
+(
+    'place_group_id3',
+    'brand_id',
+    'parser_name',
+    '09:00',
+    '9:00',
+    1,
+    '{"elem": 2}'::json
+),
+(
+    'place_group_id4',
+    'brand_id',
+    'parser_name',
+    '08:00',
+    '9:00',
+    1,
+    '{"elem": 2}'::json
+)
+;
+
+INSERT INTO places(
+    place_id,
+    place_group_id,
+    business_type,
+    brand_id,
+    external_id
+)
+VALUES
+(
+    'place1',
+    'place_group_id1',
+    'restaurant',
+    'brand_id',
+    'external_place_id1'
+),
+(
+    'place2',
+    'place_group_id1',
+    'restaurant',
+    'brand_id',
+    'external_place_id1'
+),
+(
+    'place3',
+    'place_group_id2',
+    'restaurant',
+    'brand_id',
+    'external_place_id1'
+),
+(
+    'place4',
+    'place_group_id3',
+    'shop',
+    'brand_id',
+    'external_place_id1'
+),
+(
+    'place5',
+    'place_group_id4',
+    'restaurant',
+    'brand_id',
+    'external_place_id1'
+);

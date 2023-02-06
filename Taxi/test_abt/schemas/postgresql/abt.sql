@@ -1,0 +1,14 @@
+\ir ../../../postgresql/abt/migrations/V01__initial.sql
+\ir ../../../postgresql/abt/migrations/V02__experiments_description.sql
+\ir ../../../postgresql/abt/migrations/V03__metrics_groups_ver_pos.sql
+\ir ../../../postgresql/abt/migrations/V04__change_collation.sql
+\ir ../../../postgresql/abt/migrations/V05__new_fields_for_configs.sql
+\ir ../../../postgresql/abt/migrations/V06__nullable_alias.sql
+\ir ../../../postgresql/abt/migrations/V07__remove_unused_fields.sql
+\ir ../../../postgresql/abt/migrations/V08__facets_support.sql
+\ir ../../../postgresql/abt/migrations/V09__support_configs_in_experiments_table.sql
+\ir ../../../postgresql/abt/migrations/V10__new_revisions_fields.sql
+\ir ../../../postgresql/abt/migrations/V11__responses_cache.sql
+\ir ../../../postgresql/abt/migrations/V12__is_hidden_flag_for_metrics_groups.sql
+\ir ../../../postgresql/abt/migrations/V13__enabled_flag_for_metrics_groups.sql
+\ir ../../../postgresql/abt/migrations/V14__drop_column_is_hidden.sql

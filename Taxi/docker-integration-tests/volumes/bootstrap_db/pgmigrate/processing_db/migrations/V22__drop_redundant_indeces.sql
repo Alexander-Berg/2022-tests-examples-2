@@ -1,0 +1,2 @@
+DROP INDEX processing.all_events_for_queue;
+DROP INDEX processing.processing_events_for_archivation_idx;

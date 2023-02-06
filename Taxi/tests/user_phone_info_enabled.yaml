@@ -1,0 +1,107 @@
+id: user_phone_info_enabled
+title: Источник user_phone_info включен
+source:
+    request:
+        method: post
+        body: {"shortcuts": {"grids_support": [{"width": 6, "unit_width": 54.5}],
+                "supported_features": [{"type": "taxi:route-input", "services": [],
+                        "prefetch_strategies": []}], "ndash_width": 9, "mdash_width": 14},
+            "position": [1, 2]}
+        headers: {"X-YaTaxi-PhoneId": "phone_id"}
+    expectations:
+        response:
+            status-code#integer: 200
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                zone_name: "moscow"
+                grid#array:
+                known_orders#array:
+                services_availability:
+                    products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+                    modes: [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}]
+                shortcuts#any:
+                position#any:
+                user_phone_info: {"created": "2020-04-06T11:27:15.91+0000", "stat": {
+                        "total": 33}}
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: user-api-v2-user_phones-get
+    response:
+        status-code: 200
+        body: {"created": "2020-04-06T11:27:15.91+0000", "stat": {"total": 33}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                id: "phone_id"
+                fields#array:
+                  - created
+                  - stat.total
+
+experiments:
+    values#object:
+      - key: api_proxy_products_get_phone_info
+        value: {"enabled": true}

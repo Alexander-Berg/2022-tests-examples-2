@@ -1,0 +1,64 @@
+openapi: 3.0.0
+info:
+    description: |
+        Сервис подготавливает список методов оплаты имеющиxся у пользователя.
+    title: Yandex Taxi Eats Payment Methods Availability Service
+    version: "1.0"
+
+x-taxi-middlewares:
+    tvm: true
+
+paths:
+    /v1/payment-methods/availability:
+        post:
+            x-taxi-middlewares:
+                api-4.0: true
+            description: |
+                Возвращает список методов оплаты имеющихся у пользователя,
+                При этом методы, недоступные для данного заказа, помечаются причиной
+                недоступности.
+            summary: Возвращает список методов оплаты
+            operationId: PaymentMethodsAvailability
+            parameters:
+              - name: Accept-Language
+                in: header
+                schema:
+                    type: string
+              - name: User-Agent
+                in: header
+                schema:
+                    type: string
+              - name: X-AppMetrica-DeviceId
+                in: header
+                schema:
+                    type: string
+                required: false
+              - in: header
+                name: X-Device-Id
+                schema:
+                    type: string
+                required: false
+              - name: X-Platform
+                in: header
+                required: false
+                schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/PaymentMethodsAvailabilityRequest'
+            responses:
+                '200':
+                    description: List of all payment methods with availability status
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/PaymentMethodsAvailabilityResponse'
+                '400':
+                    description: Validation error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/ErrorResponse'

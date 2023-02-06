@@ -1,0 +1,167 @@
+{
+  "dst": {
+    "features": [
+      {
+        "can_be_found_without_question": true,
+        "entity": "order_id",
+        "entity_extract_order": 0,
+        "is_array": false,
+        "key": "order_id",
+        "type": "int"
+      },
+      {
+        "can_be_found_without_question": true,
+        "is_array": true,
+        "key": "some_array_feature",
+        "type": "int"
+      }
+    ]
+  },
+  "nlu": {
+    "entities": [
+      {
+        "extractor": {
+          "name": "regular_expression",
+          "params": {
+            "regular_expression": "\\d{7}"
+          }
+        },
+        "name": "order_id",
+        "type": "int"
+      }
+    ],
+    "model": {
+      "model_slug": "test_model",
+      "model_title": "Модель",
+      "model_topics": [
+        {
+          "slug": "order_status",
+          "threshold_based_on_precision": 0.5
+        },
+        {
+          "slug": "cancel_order",
+          "threshold_based_on_precision": 0.5
+        },
+        {
+          "slug": "bonuses",
+          "threshold_based_on_precision": 0.5
+        }
+      ],
+      "model_version": "1"
+    },
+    "topics": [
+      {
+        "parent_slug": null,
+        "rule_value": "model_sure_topic is \"order_status\"",
+        "slug": "order_status"
+      },
+      {
+        "parent_slug": null,
+        "rule_value": "model_sure_topic is \"cancel_order\"",
+        "slug": "cancel_order"
+      },
+      {
+        "parent_slug": null,
+        "rule_value": "model_sure_topic is \"bonuses\"",
+        "slug": "bonuses"
+      }
+    ]
+  },
+  "policy": {
+    "main_group": {
+      "policy_blocks": [
+        {
+          "policy_items": [
+            {
+              "actions": [
+                {
+                  "parameters": {
+                    "features": [
+                      {
+                        "can_be_found_without_question": true,
+                        "key": "order_id",
+                        "status": "in_progress",
+                        "type": "order_id",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "type": "change_state"
+                }
+              ],
+              "predicate": "sure_topic is 'order_status' and (order_id is undefined or order_id is null)",
+              "response_action": {
+                "parameters": {
+                  "text": "Подскажите номер вашего заказа?"
+                },
+                "type": "response"
+              },
+              "slug": "pi1",
+              "tags": [
+                "1"
+              ]
+            },
+            {
+              "predicate": "sure_topic is 'order_status' and order_id is not undefined and order_id is not null",
+              "response_action": {
+                "parameters": {
+                  "close": true,
+                  "forward_line": null,
+                  "text": "Ваш заказ находится в статусе {order_status}"
+                },
+                "type": "response"
+              },
+              "slug": "pi2",
+              "tags": [
+                "2"
+              ]
+            }
+          ],
+          "slug": "pb1"
+        },
+        {
+          "policy_items": [
+            {
+              "predicate": "sure_topic is 'bonuses'",
+              "response_action": {
+                "parameters": {
+                  "close": true,
+                  "forward_line": null,
+                  "text": "Бонусы начисляются 10% от покупки"
+                },
+                "type": "response"
+              },
+              "slug": "pi5"
+            }
+          ]
+        },
+        {
+          "policy_items": [
+            {
+              "predicate": "sure_topic is 'cancel_order' and order_id is undefined",
+              "response_action": {
+                "parameters": {
+                  "text": "Подскажите номер вашего заказа?"
+                },
+                "type": "response"
+              },
+              "slug": "pi3"
+            },
+            {
+              "predicate": "sure_topic is 'cancel_order' and order_id is not undefined and order_id is not null",
+              "response_action": {
+                "parameters": {
+                  "close": true,
+                  "forward_line": null,
+                  "text": "Ваш заказ {order_id} будет отменен"
+                },
+                "type": "response"
+              },
+              "slug": "pi4"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

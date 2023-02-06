@@ -1,0 +1,100 @@
+type: apitest
+version: 0
+service: taxi_bank_forms
+mockserver:
+  - url: /bank-core-audit-log-http-collector/v1/message
+    request:
+        method: POST
+    response:
+        status: 204
+        body: {}
+
+tests:
+  - name: get_simplified_identification_form
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: '7948e3a9-623c-4524-a390-9e4264d27a77'
+            X-Yandex-UID: '1234'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Ya-User-Ticket: 'user_ticket'
+            X-Remote-IP: '127.0.0.1'
+        path: /forms-internal/v1/get_simplified_identification_form
+    response:
+        status: 200
+        body:
+            last_name: 'Прокофьев'
+            first_name: 'Прокофий'
+            middle_name: 'Прокофьевич'
+            passport_number: '4919000000'
+            birthday: '2002-06-01'
+            inn_or_snils: '13400000000'
+  - name: get_simplified_identification_form_2
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: '06695abd-6866-4947-ba91-493726ec94f9'
+            X-Yandex-UID: '1234'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+            X-Ya-User-Ticket: 'user_ticket'
+        path: /forms-internal/v1/get_simplified_identification_form
+    response:
+        status: 200
+        body:
+            last_name: 'Иванов'
+            first_name: 'Пётр'
+            middle_name: 'Петрович'
+            passport_number: '6812000000'
+            birthday: '2000-07-02'
+            inn_or_snils: '19200000000'
+  - name: get_simplified_identification_form_no_buid
+    request:
+        method: POST
+        headers:
+            X-Yandex-UID: '1234'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+            X-Ya-User-Ticket: 'user_ticket'
+        path: /forms-internal/v1/get_simplified_identification_form
+    response:
+        status: 500
+  - name: get_simplified_identification_form_no_uid
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: '06695abd-6866-4947-ba91-493726ec94f9'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+        path: /forms-internal/v1/get_simplified_identification_form
+    response:
+        status: 500
+  - name: get_simplified_identification_form_empty_ip
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: '06695abd-6866-4947-ba91-493726ec94f9'
+            X-Yandex-UID: '1234'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: ''
+            X-Ya-User-Ticket: 'user_ticket'
+        path: /forms-internal/v1/get_simplified_identification_form
+    response:
+        status: 400
+  - name: get_simplified_identification_form_no_ip
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: '06695abd-6866-4947-ba91-493726ec94f9'
+            X-Yandex-UID: '1234'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Ya-User-Ticket: 'user_ticket'
+        path: /forms-internal/v1/get_simplified_identification_form
+    response:
+        status: 400

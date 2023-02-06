@@ -1,0 +1,46 @@
+description: Approvals
+service-name: taxi-approvals
+log-ident: yandex-taxi-approvals
+maintainers:
+  - Petrov Mikhail <mvpetrov@yandex-team.ru>
+postgresql:
+    databases:
+      - drafts
+mongo:
+    collections:
+      - localizations_meta
+      - static
+      - staff
+      - admin_groups
+      - dynamic_permissions
+
+units:
+  - name: web
+    web:
+        description: Yandex.Taxi taxi-approvals web package
+        hostname:
+            production:
+              - approvals.taxi.yandex.net
+            testing:
+              - approvals.taxi.tst.yandex.net
+
+codegen_disabled: true
+
+linters:
+    disable-plugins:
+        pylint:
+          - import-only-modules
+syslog:
+    rtc_postrotate: false
+
+clownductor_service_info:
+    preset:
+        name: x2nano
+        overrides:
+            ram: 2
+    design_review: https://st.yandex-team.ru
+    clownductor_project: taxi
+    robots:
+        production:
+          - robot-tester
+          - nanny-robot

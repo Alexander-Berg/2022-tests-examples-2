@@ -1,0 +1,105 @@
+id: objects_over_map_flow
+title: Возврат на клиенты объектов над картой
+
+parameters:
+  - case:
+      - inapp-enabled: true
+        inapp-resp-properties: {"objects_over_map": ["id": "id1"]}
+      - inapp-enabled: true
+        inapp-resp-properties: {}
+      - inapp-enabled: false
+        inapp-resp-properties: {}
+
+source:
+    request:
+        method: post
+        headers:
+            X-AppMetrica-DeviceId: device-id
+            X-Yandex-UID: yandex-uid
+        body:
+            state: {}
+            position: [1, 2]
+            shortcuts:
+                grids_support: [{"width": 6, "unit_width": 54.5}]
+                ndash_width: 9
+                mdash_width: 14
+                supported_features#concat-arrays:
+                  - value: [{"type": "taxi:route-input", "services": [], "prefetch_strategies": []}]
+                  - value#if:
+                        condition#xget: /test-params/case/inapp-enabled
+                        then: [{"services": [], "prefetch_strategies": [], "type": "media-stories"}]
+                        else: []
+    expectations:
+        response:
+            status-code#integer: 200
+            body#concat-objects:
+              - value: {"typed_experiments": {"items": []}, "products": [{"tag": "taxi",
+                            "service": "taxi", "title": "Taxi"}]}
+              - value#object:
+                  - key: modes
+                    value#array:
+                      - value#concat-objects:
+                          - value: {"offers": {"items": [], "header": []}, "layout": {
+                                    "grid_id": "some_grid_id", "width": 6, "type": "linear_grid"},
+                                "mode": "taxi", "parameters": {"available": true,
+                                    "product_tag": "taxi"}}
+                          - value#xget: /test-params/case/inapp-resp-properties
+
+mocks:
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body#concat-objects:
+          - value:
+                zone_name: "moscow"
+                modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+                products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+                typed_experiments: {"items": []}
+                region_id: 332
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body#concat-objects:
+          - value: {"scenario_tops": []}
+          - value#xget: /test-params/case/inapp-resp-properties
+    expectations:
+        call-count#if:
+            condition#xget: /test-params/case/inapp-enabled
+            then: 1
+            else: 0

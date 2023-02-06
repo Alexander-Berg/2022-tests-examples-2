@@ -1,0 +1,163 @@
+id: combo_companions
+title: проксируем точки маршрута комбо и список попутчиков
+
+parameters:
+  - cases:
+      - order-core-resp#object:
+          - status#string: driving
+          - tariff#object:
+              - class#string: econom
+          - private_data#object:
+              - nz#string: 'moscow'
+              - driver_id#string: 'contractor_driver_id'
+          - calc#object:
+              - alternative_type#string: 'combo_inner'
+          - routeinfo#object:
+              - time_left#integer: 500
+        totw-resp#object:
+          - additional_buttons#object:
+          - feedback#object:
+          - key: companions
+            value#array: ["id": "companion_1"]
+          - key: routeinfo
+            value#object:
+              - key: positions
+                value#array: [{"point": [37.0, 55.0], "type": "combo.dropoff"}]
+              - key: time_left
+                value#integer: 1000
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 200
+        companions-requester-eta: true
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'driving'
+
+
+      - order-core-resp#object:
+          - status#string: driving
+          - tariff#object:
+              - class#string: econom
+          - private_data#object:
+              - nz#string: 'moscow'
+              - driver_id#string: 'contractor_driver_id'
+        totw-resp#object:
+          - additional_buttons#object:
+          - feedback#object:
+        combo-contractors-call-count#integer: 0
+        combo-contractors-resp-status#integer: 200
+        companions-requester-eta: false
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'driving'
+
+
+      - order-core-resp#object:
+          - status#string: driving
+          - tariff#object:
+              - class#string: econom
+          - private_data#object:
+              - nz#string: 'moscow'
+          - calc#object:
+              - alternative_type#string: 'combo_inner'
+        totw-resp#object:
+          - additional_buttons#object:
+          - feedback#object:
+          - key: companions
+            value#array: ["id": "companion_1"]
+          - key: routeinfo
+            value#object:
+              - key: positions
+                value#array: [{"point": [37.0, 55.0], "type": "combo.dropoff"}]
+              - key: time_left
+                value#integer: 1000
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 200
+        companions-requester-eta: true
+        companions-request#object:
+          - dbid_uuid#string: ''
+          - order_id#string: 'order_id'
+          - order_status#string: 'driving'
+
+
+      - order-core-resp#object:
+          - status#string: driving
+          - tariff#object:
+              - class#string: econom
+          - private_data#object:
+              - nz#string: 'moscow'
+              - driver_id#string: 'contractor_driver_id'
+          - calc#object:
+              - alternative_type#string: 'combo_inner'
+        totw-resp#object:
+          - additional_buttons#object:
+          - feedback#object:
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 500
+        companions-requester-eta: false
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'driving'
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            break: 'user'
+            cancel_state: 'free'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid#string: '12345'
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/cases/totw-resp
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+configs:
+    values#object:
+      - key: combo_companions
+        value#object:
+          - key: totw_enabled
+            value#boolean: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: combo-contractors-companions-info
+    response:
+        status-code#xget: /test-params/cases/combo-contractors-resp-status
+        body#object:
+          - route#array: [{"point": [37.0, 55.0], "type": "combo.dropoff"}]
+          - companions#array: ["id": "companion_1"]
+          - requester_eta#integer: 1000
+            enabled#xget: /test-params/cases/companions-requester-eta
+    expectations:
+        call-count#xget: /test-params/cases/combo-contractors-call-count
+        request:
+            method: post
+            body#xget: /test-params/cases/companions-request
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#xget: /test-params/cases/order-core-resp
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

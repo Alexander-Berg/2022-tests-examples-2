@@ -1,0 +1,72 @@
+default:
+    thresholds:
+        check_success: 0.5
+        check_fail: -1.0
+        selfie_reference: 0.7
+        selfie_success: 0.5
+        selfie_fail: 0.2
+        max_reference_selfies: 10
+    timeouts:
+        mds: 0.5
+
+description: Настройки для ручки биометрии
+tags: ['notfallback']
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        thresholds:
+            $ref: '#/definitions/Thresholds'
+        timeouts:
+            $ref: '#/definitions/Timeouts'
+    required:
+      - thresholds
+      - timeouts
+
+    definitions:
+        Thresholds:
+            type: object
+            additionalProperties: false
+            properties:
+                check_success:
+                    type: number
+                    description: |
+                        Порог значения похожести, выше которого проверка считается пройденной.
+                        Сейчас похожесть проверки -- это усредненная похожесть по всем присланным селфи.
+                check_fail:
+                    type: number
+                    description: Порог, ниже которого проверка считается непройденной.
+                selfie_reference:
+                    type: number
+                    description: Порог похожести селфи, выше которого оно добавляется
+                        в эталон.
+                selfie_success:
+                    type: number
+                    description: |
+                        Порог похожести селфи, выше которого отдельно взятое селфи считается
+                        прошедшим проверку. Обычно ниже `selfie reference`.
+                selfie_fail:
+                    type: number
+                    description: |
+                        Порог похожести селфи, ниже которого отдельно взятое селфи считается
+                        не прошедшим проверку.
+                max_reference_selfies:
+                    type: integer
+                    description: Максимальное количество сэлфи в эталоне
+            required:
+              - check_success
+              - check_fail
+              - selfie_reference
+              - selfie_success
+              - selfie_fail
+              - max_reference_selfies
+
+        Timeouts:
+            type: object
+            additionalProperties: false
+            properties:
+                mds:
+                    type: number
+                    description: Таймаут для загрузки фотографий из MDS
+            required:
+              - mds

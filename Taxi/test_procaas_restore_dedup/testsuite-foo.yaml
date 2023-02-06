@@ -1,0 +1,28 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: foo
+        stq-queue: testsuite_foo
+        static-event-traits:
+            is-create#or:
+              - value#equal:
+                  - value#xget:
+                        path: /event/payload/trait
+                        default-value: ''
+                  - value#string: 'is-create'
+              - value#equal:
+                  - value#xget:
+                        path: /event/payload/q
+                        default-value: ''
+                  - value#string: 'create'
+        keys-mapping:
+            rules: []
+            default-keys: [handle-default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages: []

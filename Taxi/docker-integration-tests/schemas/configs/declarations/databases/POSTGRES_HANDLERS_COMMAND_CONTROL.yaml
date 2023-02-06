@@ -1,0 +1,41 @@
+default: {}
+description: |
+    Настройки клиента PostgreSQL (uservices) по умолчанию по http-path ручки
+    + http-method запроса.
+    `http-path` должен соответствовать параметру `path` ручки из config.yaml.
+    `http-method` указывается заглавными буквами.
+    Например,
+    {
+        "/ping": {
+            "GET": {"network_timeout_ms": 1500, "statement_timeout_ms": 750}
+        },
+        "/path/{param}/handler": {
+            "GET": {"network_timeout_ms": 1000, "statement_timeout_ms": 500},
+            "PUT": {"network_timeout_ms": 2200, "statement_timeout_ms": 1100}
+        }
+    }
+tags:
+  - by-service
+  - notfallback
+maintainers:
+  - segoon
+  - dzhuk
+schema:
+    type: object
+    additionalProperties:
+        $ref: "#/definitions/CommandControlByMethodMap"
+    definitions:
+        CommandControlByMethodMap:
+            type: object
+            additionalProperties:
+                $ref: "#/definitions/CommandControl"
+        CommandControl:
+            type: object
+            additionalProperties: false
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    minimum: 1
+                statement_timeout_ms:
+                    type: integer
+                    minimum: 1

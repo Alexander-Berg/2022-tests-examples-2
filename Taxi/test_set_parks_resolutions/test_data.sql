@@ -1,0 +1,239 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'serial1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    2,
+    NULL,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c2',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'serial2',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    3,
+    NULL,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c4',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'serial3',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+);
+
+INSERT INTO signal_device_api.events
+(
+    id,
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    event_at,
+    event_type,
+    park_id
+)
+VALUES
+(
+    4,
+    1,
+    '2019-09-16T12:00:00.0+0000',
+    '2019-09-16T12:00:00.0+0000',
+    'd58841a1f4b7816b84ccf4fcb7d886f7',
+    '2019-09-16T12:00:00.0+0000',
+    'eyeclose',
+    'some_park_id'
+),
+(
+    5,
+    1,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68841a1f4b7816b84ccf4fcb7d886f7',
+    '2019-09-15T12:00:00.0+0000',
+    'eyeclose',
+    'some_park_id'
+),
+(
+    6,
+    1,
+    '2019-09-14T12:00:00.0+0000',
+    '2019-09-14T12:00:00.0+0000',
+    '0a252859f6e1e3942eed9b5f16bd9bf5',
+    '2019-09-14T12:00:00.0+0000',
+    'eyeclose',
+    'some_park_id'
+),
+(
+    7,
+    1,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68841a1f4b7816b84ccf4fcb7d906f7',
+    '2019-09-15T12:00:00.0+0000',
+    'eyeclose',
+    'another_park_id'
+),
+(
+    8,
+    1,
+    '2019-09-16T12:00:00.0+0000',
+    '2019-09-16T12:00:00.0+0000',
+    'd58842a1f4b7816b84ccf4fcb7d886f7',
+    '2019-09-16T12:00:00.0+0000',
+    'distraction',
+    'some_park_id'
+),
+(
+    9,
+    1,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68843a1f4b7816b84ccf4fcb7d886f7',
+    '2019-09-15T12:00:00.0+0000',
+    'distraction',
+    'some_park_id'
+),
+(
+    10,
+    1,
+    '2019-09-14T12:00:00.0+0000',
+    '2019-09-14T12:00:00.0+0000',
+    '0a352859f6e1e3942eed9b5f16bd9bf5',
+    '2019-09-14T12:00:00.0+0000',
+    'distraction',
+    'some_park_id'
+),
+(
+    11,
+    2,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68847a1f4b7816b84ccf4fcb7d906f7',
+    '2019-09-15T12:00:00.0+0000',
+    'distraction',
+    'some_park_id'
+),
+(
+    12,
+    3,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68847a3f4b7816b84ccf4fcb7d906f7',
+    '2019-09-15T12:00:00.0+0000',
+    'distraction',
+    'some_park_id'
+),
+(
+    13,
+    1,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68841a1f4b7816b94ccf4fcb7d906f7',
+    '2019-09-15T12:00:00.0+0000',
+    'distraction',
+    'another_park_id'
+),
+(
+    14,
+    1,
+    '2019-09-16T12:00:00.0+0000',
+    '2019-09-16T12:00:00.0+0000',
+    'd58841a2f4b7816b84ccf4fcb7d886f7',
+    '2019-09-16T12:00:00.0+0000',
+    'seatbelt',
+    'some_park_id'
+),
+(
+    15,
+    1,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68841a3f4b7816b84ccf4fcb7d886f7',
+    '2019-09-15T12:00:00.0+0000',
+    'seatbelt',
+    'some_park_id'
+),
+(
+    16,
+    1,
+    '2019-09-14T12:00:00.0+0000',
+    '2019-09-14T12:00:00.0+0000',
+    '0a252859f7e1e3942eed9b5f16bd9bf5',
+    '2019-09-14T12:00:00.0+0000',
+    'seatbelt',
+    'some_park_id'
+),
+(
+    17,
+    1,
+    '2019-09-15T12:00:00.0+0000',
+    '2019-09-15T12:00:00.0+0000',
+    'd68841a1f5b7816b84ccf4fcb7d906f7',
+    '2019-09-15T12:00:00.0+0000',
+    'seatbelt',
+    'another_park_id'
+);

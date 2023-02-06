@@ -1,0 +1,38 @@
+group:
+  type: rtc
+  name: taxi_driver-freeze_testing
+
+graphs:
+  driver-freeze.taxi.tst.yandex.net:
+    Equals: { http_host: "driver-freeze.taxi.tst.yandex.net" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 413
+        - 429
+
+  driver-freeze.taxi.tst.yandex.net_freeze:
+      And:
+          - Equals: { http_host: "driver-freeze.taxi.tst.yandex.net" }
+          - StartsWith: { request_url: "/freeze" }
+          - Not:
+            - StartsWith: { request_url: '/freeze-' }
+
+  driver-freeze.taxi.tst.yandex.net_freeze_bulk:
+      And:
+          - Equals: { http_host: "driver-freeze.taxi.tst.yandex.net" }
+          - StartsWith: { request_url: "/freeze-bulk" }
+
+  driver-freeze.taxi.tst.yandex.net_defreeze:
+      And:
+          - Equals: { http_host: "driver-freeze.taxi.tst.yandex.net" }
+          - StartsWith: { request_url: "/defreeze" }
+
+  driver-freeze.taxi.tst.yandex.net_frozen:
+      And:
+          - Equals: { http_host: "driver-freeze.taxi.tst.yandex.net" }
+          - StartsWith: { request_url: "/frozen" }

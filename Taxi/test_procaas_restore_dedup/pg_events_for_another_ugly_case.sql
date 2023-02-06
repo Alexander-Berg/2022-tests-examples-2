@@ -1,0 +1,35 @@
+INSERT INTO processing.events(
+        scope,
+        queue,
+        item_id,
+        event_id,
+        order_key,
+        created,
+        payload,
+        idempotency_token,
+        need_handle,
+        updated,
+        event_kind,
+        is_archivable,
+        due,
+        is_malformed,
+        extra_order_key,
+        handling_order_key,
+        is_duplicate)
+VALUES('testsuite',
+       'foo',
+       'a6a79bab978f4af2a82723dce86253cd',
+       '1ef5210264b447b3b74e7928eb56ea6e',
+       0,
+       '2021-09-08 18:43:55.722694+03'::timestamp with time zone,
+       '{"kind": "update-status", "new-status": "new"}',
+       'eda/restapp_moderation_hero/a6a79bab978f4af2a82723dce86253cd/update-status/new',
+       True, -- need_handle
+       '2021-09-08 18:43:55.948077+03'::timestamp with time zone,
+       'user',
+       False, -- is_archivable
+       '2021-09-08 18:43:55.710357+03'::timestamp with time zone,
+       False, -- is_malformed
+       NULL,
+       0,
+       False);

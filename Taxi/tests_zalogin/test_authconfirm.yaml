@@ -1,0 +1,185 @@
+type: apitest
+version: 0
+service: taxi_zalogin
+
+marks:
+  - name: now
+    args:
+      - "2019-10-31T11:30:00+0300"
+
+testpoint:
+  - name: auth::trace
+
+mockserver:
+  - url: /antifraud/client/user/is_spammer/auth_confirm
+    response:
+        body:
+            is_spammer:
+                $param:
+                    name: is_spammer
+                    default: false
+            blocked_until: "2019-10-31T11:30:00+0300"
+
+  - url: /antifraud/v1/client/user/block
+    response:
+        body: {}
+
+  - url: /user-api/users/get_authinfo
+    response:
+        body:
+            confirmation_code: "6969"
+            phone_id: "5714f45e98956f06baaae3d4"
+            confirmation_attempts:
+                $param:
+                    name: attempts_in_mongo
+                    default: 1
+            authorized:
+                $param:
+                    name: is_authorized_in_mongo
+                    default: false
+
+  - url: /user-api/users/increment_attempts
+    response:
+        body: {}
+
+  - url: /user-api/users/set_authorized
+    request:
+        body:
+            id: "00000000000000000000000000000001"
+            authorized: true
+    response:
+        body: {}
+
+  - url: /user-authconfirm/v0/authconfirm
+    response:
+        body:
+            authorized:
+                $param:
+                    name: is_authorized_user_authconfirm
+                    default: false
+            attempts:
+                $param:
+                    name: attempts_user_authconfirm
+                    default: 1
+
+tests:
+  - name: authconfirm_correct_code
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "00000000000000000000000000000001", "confirmation_code": "6969"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+    params:
+        is_spammer: false
+        is_authorized_in_mongo: false
+    response:
+        status: 200
+        body: {"authorized": true}
+
+  - name: authconfirm_wrong_code
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "00000000000000000000000000000001", "confirmation_code": "wrong_code"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+    params:
+        is_spammer: false
+        is_authorized_in_mongo: false
+        is_authorized_user_authconfirm: false
+        attempts_user_authconfirm: 1
+    response:
+        status: 200
+        body: {"authorized": false, "attempts_left": 1, "block_time": 10}
+
+  - name: authconfirm_is_spammer
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "00000000000000000000000000000001", "confirmation_code": "6969"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+    params:
+        is_spammer: true
+        is_authorized_in_mongo: false
+    response:
+        status: 403
+
+  - name: authconfirm_already_authorized
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "00000000000000000000000000000001", "confirmation_code": "wrong_code"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+    params:
+        is_spammer: false
+        is_authorized_in_mongo: true
+    response:
+        status: 200
+        body: {"authorized": true}
+
+  - name: both_authconfirm_methods_throw_ex
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "wrong_id", "confirmation_code": "wrong_code"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+    params:
+        is_authorized_in_mongo: false
+        is_authorized_user_authconfirm: false
+    mockserver:
+      - url: /user-authconfirm/v0/authconfirm
+        response:
+            status: 404
+            body: {"code": "404", "message": "No user with id wrong_id"}
+      - url: /user-api/users/get_authinfo
+        response:
+            status: 404
+            body: {"code": "404", "message": "No user with id wrong_id"}
+    response:
+        status: 401
+
+  - name: user_authconfirm_authorized
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "00000000000000000000000000000001", "confirmation_code": "code_which_exists_only_in_postgres"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+    params:
+        is_authorized_in_mongo: false
+        is_authorized_user_authconfirm: true
+    response:
+        status: 200
+        body: {"authorized": true}
+
+  - name: user_authconfirm_blocked
+    request:
+        method: POST
+        path: v1/authconfirm
+        body: {"id": "00000000000000000000000000000001", "confirmation_code": "wrong_code"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+    params:
+        is_authorized_user_authconfirm: false
+        attempts_user_authconfirm: 4
+        attempts_in_mongo: 4
+    response:
+        status: 403

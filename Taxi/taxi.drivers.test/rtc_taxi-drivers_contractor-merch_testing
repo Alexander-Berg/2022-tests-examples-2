@@ -1,0 +1,73 @@
+---
+host: taxi_contractor-merch_testing
+telegram: taxi-partner-products-fleet-backend-team-testing
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+- template: rtc-atop-warning
+services:
+- service: test-contractor-merch-no-promocodes-left
+  telegram: contractor-merch-alerts-test
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 1%
+    crit: 101%
+- service: test-contractor-merch-feeds-count-limit
+  telegram: contractor-merch-alerts-test
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 1%
+    crit: 101%
+- service: contractor-merch-existing-promocodes-monitoring
+  telegram: contractor-merch-alerts-test
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 1%
+    crit: 101%
+- service: test-contractor-merch-v1-offer-500
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 1%
+    crit: 50%
+- service: test-contractor-merch-v1-offer-immutable-500
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 1%
+    crit: 50%
+- service: test-contractor-merch-purchases-hard-alerts
+  children:
+   - (service=test-contractor-merch-purchases-hard-alerts)
+  telegram: contractor-merch-alerts-test
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 50%
+    crit: 50%
+- service: test-contractor-merch-localization-errors
+  children:
+   - cluster
+  telegram: contractor-merch-alerts-test
+  ignore_nodata: 1
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 0
+- service: contractor-merch-localization-errors-categories
+  children:
+  - cluster
+  telegram: contractor-merch-alerts
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 0

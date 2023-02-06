@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use common::sense;
+use Test::Most;
+use 5.010;
+use lib::abs qw(../lib .);
+use Data::Dumper;
+use_ok("MordaX::Utils");
+#=pod
+my $blockdata = [];
+    push @$blockdata, { v => 1, weight => 0 };
+    push @$blockdata, { v => 1, weight => 0 };
+    push @$blockdata, { v => 1, weight => 0 };
+    push @$blockdata, { v => 1, weight => 0 };
+    push @$blockdata, { v => 100, weight => 100 };
+    push @$blockdata, { v => 10, weight => 10 };
+for (1 .. 10) {
+    #my $weight = ($_ % 10 == 0) ? 50 : 1;
+    #my $weight = int rand 1000;
+    my $weight = 0;
+    push @$blockdata, { v => $_, weight => $weight };
+}
+print Dumper $blockdata;
+sleep 3;
+my $i = 1000;
+my $max = 3;
+
+MordaX::Utils::random_weighted($blockdata, $max);
+exit;
+
+{
+    my $freq = {};
+    for (1..$i) {
+        my @res = MordaX::Utils::random_weighted($blockdata, $max);
+        for my $e (@res) {
+            $freq->{ $e->{v} }++;
+        }
+    }
+    my @freq = ();
+    for my $n (sort keys %$freq) {
+        push @freq, sprintf ("%.2f",$freq->{$n}/$i);
+    }
+    note explain \@freq;
+}
+
+use Benchmark qw(:all);
+
+$max = 20;
+
+cmpthese(-3, {
+    'new' => sub {
+        my @res = MordaX::Utils::random_weighted($blockdata, $max);
+    },
+}, 'all');
+#=cut
+done_testing();

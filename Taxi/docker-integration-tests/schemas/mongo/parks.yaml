@@ -1,0 +1,280 @@
+description: taxi parks
+settings:
+    collection: parks
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: account.details.inn
+  - key: account.use_extra_thresholds
+  - key: city
+  - key:
+      - name: city
+        type: ascending
+      - name: _id
+        type: ascending
+  - key: created
+  - key: name
+  - key: updated
+  - key: updated_ts
+    sparse: true
+    unique: true
+  - key: yandex_login
+wiki_info: |
+    ####dbtaxi.parks - Таксопарки
+
+    ```python
+    park = {
+        # обязательные атрибуты
+        '_id': 'идентификатор таксопарка',        # clid
+        '_type': '<dispatch|taxipark>',           # тип таксопарка
+        'apikey': 'apikey',
+        'name': 'название',                       # название таксопарка
+        'phone': '+71231231231',                  # номер телефона, начиная с +
+        'city': u'Москва',                        # город
+        'requirements': {
+            'creditcard': boolean,                # True, если парк может возить по карте или производной (например, Apple Pay)
+            'coupon': boolean,                    # True, если в таксопарке принимают купоны
+            'corp': ...,                          # ?
+            # Были изведены в TAXIACCESSDATA-100
+            'nosmoking': boolean,                 # True, если в таксопарке есть машины с некурящим салоном
+            'willsmoke': boolean,                 # True, если в таксопарке есть машины, в которых можно курить
+            'conditioner': boolean,               # True, если в таксопарке есть машины с кондиционером
+            'universal': boolean,                 # True, если в таксопарке есть универсалы
+            'animaltransport': boolean,           # True, если в машинах таксопарка можно перевозить животных
+            'childchair': boolean,                # True, если в таксопарке можно заказать машину с детским креслом
+            'check': boolean,                     # True, если в таксопарке можно заказать машину, водитель которой может выписать чек
+            'bicycle': boolean,                   # True, если в таксопарке есть машины, которые могут перевозить велосипед
+            'yellowcarnumber': boolean,           # True, если в таксопарке есть машины с желтыми номерами
+        },
+        'wave': 0,                                 # номер волны (с нуля), начиная с которой парку начнут уходить запросы requestcar
+        'active_drivers_count': integer,           # (было изведено в TAXIACCESSDATA-100) количество водителей со статусом active после последнего импорта водителей
+        'updated': datetime,                       # время последнего обновления документа
+
+        'tariffs_mrt': {...},                      # тариф (совпадает с структурой dbtaxi.mrt|mrt2.categories)
+        'tariffs31': [],                           # тарифы в новом формате (генерятся из tariffs_mrt)
+        'tariffs': [{                              # 2x тарифы таксопарка (генерятся из tariffs_mrt)
+            # обязательные поля
+            'id': 'идентификатор тарифа',
+            'name': 'название тарифа',
+            'currency': 'руб',                 # валюта
+            'minimal': integer,                # минимальная цена поездки из дня и ночи
+            'minimal_day': integer,            # минимальная цена поездки днем
+            'minimal_night': integer,          # минимальная цена поездки ночью
+            'included_day': 'включено в тариф днем',
+            'included_night': 'включено в тариф ночью',
+            'description': {...},              # структура тарифа в том виде, в котором она описана в клиентском протоколе
+            'price_order': integer,            # порядковый номер тарифа по возрастанию стоимости поездки
+
+            # опциональные поля
+            'class': 'категория тарифа',       # econom|business|vip
+            'other': 'стоимость поездки сверх минимальной',
+            'just_for_urgent': boolean,        # True, если действует только для срочных заказов
+        }],
+        'is_gold_partner': boolean,                # является ли золотым партнером: TAXIBACKEND-2482 (К УДАЛЕНИЮ)
+        'boost': Integer,                          # коэффициент поддержки: TAXIBACKEND-2552
+
+        # необязательные атрибуты
+        'forbidden_requirements': {                # запрещённые для парка требования
+            'childchair': True,                    # идентификатор требования
+        },
+        'corp_vats': [                             # история НДС для корпоративных поездок
+          [datetime.datetime(), datetime.datetime(), 11800],  #
+          [datetime.datetime(), datetime.datetime(), 10000],  # НДС, действующий за период (вместо datetime.datetime() может быть null)
+          ...
+        ],
+        'billing_donate_product_ids': [            # продукты для биллинга (субсидии и промокоды)
+            [datetime.datetime(), datetime.datetime(),  # период действия продуктов (вместо datetime.datetime() может быть null)
+            {
+                'subvention': 'subvention_product_id',  # продукт для субсидий
+                'promocode': 'promocode_product_id',    # продукт для промокодов
+            }
+            ],
+            ...
+        ]
+        'account': {                               # данное поле присутствует у парка если парк взаимодействует с биллингом
+            'is_on_prepay': True,                  # парк находится на предоплате (DEPRECATED, may be removed)
+            'deactivated': {                        # если присутствует, то парк отключен от заказов за неуплату
+                'reason': 'low balance'            # причина отключения парка (нет client_id; нет договора; отрицательный баланс счета)
+            },
+            'promised_payment_till': datetime,     # дата до которой действует обещанный платеж
+            'threshold': float,                    # порог отключения парка (по умолчанию считаем 0)
+            'threshold_dynamic': float,            # динамический порог отключения парка (по умолчанию считаем 0)
+            'contracts': [{                        # контракты
+                'id': int,                         # внутренний id договора (в базе)
+                'external_id': str,                # внешний номер договора (по документам)
+                'is_of_card': bool,                # используется ли договор для расчетов по безналичным заказам
+                'is_of_cash': bool,                # используется ли договор для расчетов по наличным заказам
+                'is_of_corp': bool,                # признак корпоративного договора
+                'is_prepaid': bool,                # является ли договор предоплатным
+                'is_active': bool,                 # активный ли договор
+                'is_signed': bool,                 # подписан ли договор
+                'is_suspended': bool,              # приостановлен ли договор
+                'type': int,                       # тип договора (проверить, используется ли, т.к. везде = 0)
+                'begin': datetime,                 # начало действия договора
+                'end': datetime,                   # окончание действия договора
+                'person_id': str,                  # номер плательщика в биллинге (данные плательщика живут в account.details)
+                'vat': int,                        # значение НДС по договору (сейчас нигде не проставлено)
+                'offer_accepted': bool,            # значение флага OFFER_ACCEPTED из taxi.external.billing.get_client_contracts
+            }, ...],
+            'contract': dict,                      # контракт (DEPRECATED: заменено полем contracts)
+            'fetched_contracts': [{                # неактивные договоры, полученные от биллинга (пусто, если есть активные)
+                                                   # структура аналогична contracts
+            }, ...],
+            'corporate_contracts': [...],          # договоры на корпоративные заказы (структура аналогична contracts)
+            'marketing_contracts': [...],          # маркетинговые договоры (на скидку по комиссиям) (структура аналогична contracts)
+
+            'balances': [{                         # текущие балансы для каждого контракта
+                 'current_balance': float,         # сумма на счете (для предоплатных договоров)
+                 'commissions': float,             # сумма комиссий за текущий месяц
+                 'current_bonus': float,           # сумма промокодов, оставшаяся к выплате в текущем месяце
+                 'bonus_left': float,              # сумма промокодов, оставшаяся к выплате (включая прошлые периоды)
+                 'currency': str,                  # код валюты (например, RUB)
+                 'contract_id': int,               # id договора, к которому привязан данный баланс
+            }, ...],
+            'balance': int or dict,                # баланс (DEPRECATED: заменено полем balances)
+            'corporate_contracts': [{              # корпоративные контракты
+                                                   # структура аналогична contracts, только type = 81, vat = 0 или 18
+            }, ...],
+            'marketing_contracts': [{              # маркетинговые договоры
+                                                   # структура аналогична contracts, только type = 85, vat = 0 или 18
+            }, ...],
+            'details': {                           # реквизиты плательщика
+                'bank_city': str,                  # город банка
+                'bank_name': str,                  # наименование банка
+                'bik': str,                        # БИК банка
+                'confirmed': datetime,             # время подтверждения реквизитов в ЛК партнера
+                'cor_account': str,                # корсчет банка
+                'fio': str,                        # ФИО подписанта
+                'id': str,                         # id плательщика (на который ссылается person_id в договоре)
+                'inn': str,                        # ИНН
+                'kpp': str,                        # КПП
+                'legal_address': str,              # юридический адрес
+                'long_name': str,                  # полное наименование
+                'offer_person_id': str,            # id плательщика для оферты
+                'ogrn': str,                       # ОГРН
+                'op_account': str,                 # расчетный счет
+                'short_name': str,                 # краткое наименование
+                'tax_system': str,                 # система налогообложения (osn/usn)
+            },
+            'offer_contracts': [{                  # договор-оферта (приложение к основному договору)
+                'id': int,                         # внутренний id договора (в базе)
+                'external_id': str,                # внешний номер договора (по документам)
+                'link_contract_id': int            # id договора из contracts, к которому привязана оферта
+            }, ...],
+            'offer_confirmed': datetime            # время подтверждения оферты
+            'daily_commission': float,             # средняя дневная комиссия за прошедшую неделю (to be deprecated)
+            'additional_compensation_by_card': 10000,  # сумма, на которую парку разрешается брать промокоды для карточных заказов в начале месяца (1 и 2 числа), если комиссии недостаточно
+            'additional_compensation_by_cash': 10000,  # сумма, на которую парку разрешается брать промокоды для наличных заказов в начале месяца (1 и 2 числа), если комиссии недостаточно
+            'additional_compensation': 10000,      # значение, используемое вместо additional_compensation_by_cash/card, если его нет
+            'recommended_payments': [float, ...],  # рекомендуемый размер предоплаты для каждого баланса
+            'recommended_payment': int/float,      # рекомендуемый размер предоплаты (DEPRECATED: заменено полем recommended_payments)
+            'link_contract_id': int/float,         # id последнего основного договора, к которому была привязана подтвержденная оферта перед слетом
+            'previous_offer_confirmed': datetime,  # Дата подтверждения оферты до слета
+            'updated': utcnow(),                   # время последнего обновления баланса и договоров парка,
+            'card_contract_currency': 'RUB',       # Последняя известная валюта на открутки по карте
+            'cash_contract_currency': 'RUB',       # Последняя известная валюта на открутки по наличным
+            'acquiring_percent': '0.02',           # Последний известный процент на эквайринг для поездок по карте
+            'use_extra_thresholds': True,          # Используются ли дополнительные пороги
+            'log': {
+                'offer'[
+                    {
+                        'current': {
+                            'confirmed': datetime,
+                            'link_contract_id': int/float,
+                            'previous_offer_confirmed': datetime,
+                            'contracts': [...]
+                        },
+                        'previous': Аналогично current
+                    },
+                    ...
+                ]
+            }
+        },
+        'email': 'stuff@example.com',              # e-mail службы контроля качества
+        'admin_email': 'admin@example.com',        # e-mail мейнтейнера ПО парка
+        'admin_phone': '+71231231231',             # телефон мейнтейнера ПО парка
+        'billing_email': 'billing@example.com',    # e-mail финансовой службы парка
+        'billing_phone': '+71231231231',           # телефон финансовой службы парка
+        'rating': float,                           # рейтинг
+        'rating_count': integer,                   # количество оценок пользователей, по которым составляется рейтинг
+        'takes_delayed': True,                     # принимает отложенные заказы
+        'min_delayed': integer,                    # минимальное время до отложенного заказа в минутах
+        'takes_urgent': True,                      # принимает срочные заказы
+        'sends_sms_urgent': True,                  # отправляет смс по срочным заказам, в этом случаем нам отправлять смс не нужно
+        'takes_exact': True,                       # принимает заказы на точное время
+        'host': 'http://www.example.com/',         # URL, по которому принимаются заказы
+        'blacklist_url': 'http://www.example.com', # URL, по коротому доступен черный список таксопарка
+        'tariffs_url': 'http://www.example.com',   # (deprecated. выпилить везде) URL, по которому доступны тарифы 2.x таксопарка
+        'tariffs30_url': 'http://www.example.com', # (deprecated. выпилить везде) URL, по которому доступны тарифы 3.0 таксопарка
+        'drivers_url': 'http://www.example.com',   # URL, по которому доступны профили водителей таксопарка
+        'order_without_tracks': True,              # водители без треков могут брать заказы
+        'billing_id': '1234567890',                # id таксопарка для передачи информации в биллинг
+        'billing_client_id': '1234567890',         # еще один id таксопарка для передачи информации в биллинг (to be deprecated)
+        'billing_client_ids': [                    # история изменения billing_client_id (заменяет собой billing_client_id при его смене)
+                                                   # список троек вида (начало действия, окончание действия, billing_client_id)
+            [datetime(2015, 1, 1), datetime(2015, 5, 1), '1234567'],
+            [datetime(2015, 5, 1), datetime(2015, 8, 1), '1234568'],
+            [datetime(2015, 8, 1), None, '1234569'],  # None означает, что срок действия не ограничен
+        ],
+        'yamoney_scid': '1234567890',              # (deprecated) scid таксопарка для передачи информации в Я.Деньги
+        'yamoney_allowed': '123,456,789',          # (deprecated) scid таксопарка, разрешенные для передачи в качестве RealScid водителя
+        'yamoney_pattern_id': '1234567890',        # (deprecated) pattern_id таксопарка для передачи информации в Я.Деньги
+        'quota': 0,                                # квота на отложенные заказы
+        'panic': {
+            'type': [datetime, datetime, datetime],
+            ...
+        },                                         # факапы таксопарка, из-за которых он должен быть отключен от заказов
+        'bankrupt': True,                          # (deprecated) True, если у таксопарка кончились деньги в биллинге
+        'market_share': float,                     # (deprecated) доля заказов, которые забрал этот таксопарк за последний полный месяц
+        'urgent_share_daily': float,               # (deprecated) доля срочных заказов, который забрал этот таксопарк за последние 45 дней, рассчитываемая ежедневно
+        'discount': float,                         # (deprecated) скидка на заказы
+        'fixed_cost': integer,                     # (deprecated) фиксированная стоимость заказа
+        'yandex_login': 'park123',                 # логин на yandex.ru для входа в кабинет
+        'delete': True,                            # True, если при следующей очистке базы этот таксопарк нужно удалить
+        'autopessimization': {                     # автопессимизация
+            'percent': 30,                         # на сколько процентов автопессимизирован таксопарк
+            'reasons': [string, ...]               # причины пессимизации в текстовом виде для отображения в кабинете
+        },
+        'pessimization': 30,                       # на сколько процентов пессимизирован таксопарк вручную
+        'real_clid_waves': {                       # номер волны для таксопарков, работающих через агрегаторов
+            'real_clid': 10,                       # номер волны для конкретного парка с real_clid
+            ...
+        },
+        'real_clids': [{                           # информация о таксопарках второго уровня
+             # опциональные аттрибуты
+            'phone': '+71234567890',               # телефон таксопарка второго уровня (заполняется в кабинете)
+            'web': 'http://www.lalala.ru',         # real_web
+            'pessimization': 30,                   # на сколько процентов пессимизирован таксопарк 2го уровня
+             # Проставляеются в сервисе parks-commute
+            'clid': '123456789',                   # real_clid, обязательное
+            'name': 'Taxi LALALA',                 # real_name, опциональное
+        }],
+        'ip_addresses': [],                        # список ip-адресов, с которых таксопарк шлет треки
+        'to_production': True,                     # вывести таксопарк в продакшен при следующем выводе (вывод раз в сутки на парнерском тестинге, на остальных окружениях этот флажок ничего не значит)
+        'supercars': [u'А777АА196', ...],          # список гос. номеров суперкаров МТС
+        'creditcard': {                            # данные, необходимые для оплаты картой:
+            'products': {                          #   - идентификаторы всех service_product_id:
+                'ride': 'string',                  #     - для оплаты поездок
+                'tips': 'string',                  #     - для оплаты чаевых (вместе с поездками одной корзиной)
+                'tips_extra': 'string',            #     - для чаевых, когда пользователь хочешь дать больше, чем по дефолту
+            },                                     #
+            'shop_id': 'string',                   #   - идентификатор магазина в я.д.
+            'shop_article_id': 'string',           #   - идентификатор товара в я.д.
+            'partner_id': 'string',                #   - идентификатор партнёра в системе я.д.
+        },
+        'deptrans': {                              # все, что касается отнощений с дептрансом
+            'allow_extended_info': True,           # разрешать ли передачу расширенных данных по водителям данного парка в ручке deptranscars
+        },
+        'marketing_agreement': True,               # у парка есть маркетинговый договор (см. TAXIBACKEND-2897),
+        'automate_marketing_payments': True,       # если False, то не делать автоматические выплаты субсидий и промокодов
+        'pay_donations_without_offer': True,       # если True, то делать автоматические выплаты субсидий и промокодов без принятой оферты (но с расходным договором)
+        'import_hash': 'md5',                      # MD5 хеш XML документа при импорте
+        'childchair_rent': {                       # Аренда детских кресел
+            'active': true,                        # Включена ли платная аренда кресел
+            'rental_rate': 15,                     # Стоимость аренды одного детского кресла
+        },
+        'is_driver_partner': True                  # парк состоит из одного водителя индивидуального предпринимателя (TAXIBACKEND-10323)
+        'driver_partner_source': 'yandex'          # Кто установил поле is_driver_partner (TAXIBACKEND-10323)
+        'is_individual_entrepreneur': True         # Является ли парк ИП
+    }
+    ```

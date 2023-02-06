@@ -1,0 +1,54 @@
+description: Настройка валидации подписки на режим зароботка по кол-ву подписок, ключем
+    является текущий режим.
+default:
+    __default__:
+        restrictions: []
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+    definitions:
+        Restrictions:
+            type: object
+            additionalProperties: false
+            properties:
+                interval_type:
+                    type: string
+                    description: |
+                        тип инетравала, для типа "день" за интервал берется сутки по местному времени
+                        например при now == '2019-10-10T12:00:00+0300' и interval_count == 1
+                        начало рассматриваемо интервала == '2019-10-09T21:00:00' UTC
+                        конец рассматриваемо интервала == '2019-10-10T21:00:00' UTC
+                    enum:
+                      - hourly
+                      - dayly
+                interval_count:
+                    type: integer
+                    minimum: 1
+                    description: количество наблюдаемых интервалов
+                max_change_count:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        максимальное количество изменений режима за промежуток времени,
+                        если 1 - значит в интервале не должно быть изменений режима
+            required:
+              - interval_type
+              - interval_count
+              - max_change_count
+        Settings:
+            type: object
+            additionalProperties: false
+            properties:
+                restrictions:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Restrictions'
+            required:
+              - restrictions

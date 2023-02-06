@@ -1,0 +1,74 @@
+#!/bin/bash
+
+YT_HEALTHCHECK_RETRIES=20
+YT_HEALTHCHECK_SLEEP=2  # seconds
+
+YT_BINARY=/usr/lib/yandex/taxi-yt-local/bin/yt
+YT_TABLE=//home/teststuite-healthcheck/testsuite-table
+YT_PROXY="$YT_HOSTNAME:$YT_HTTP_PROXY_PORT"
+
+function create_table {
+    $YT_BINARY --proxy "$YT_PROXY" create table "$YT_TABLE" \
+    --force --recursive --attributes \
+    '{dynamic=%true;schema=[{name=id;type=uint64;
+    sort_order=ascending};{name=first_name;type=string};
+    {name=last_name;type=string}]}'
+}
+
+function mount_table {
+    $YT_BINARY --proxy "$YT_PROXY" mount-table "$YT_TABLE"
+}
+
+function insert_rows {
+    echo '{id=1;first_name=Ivan;last_name=Ivanov};
+    {id=2;first_name=Petr;last_name=Petrov};
+    {id=3;first_name=Sid;last_name=Sidorov}' |
+    $YT_BINARY --proxy "$YT_PROXY" insert-rows "$YT_TABLE" \
+    --format yson
+}
+
+function check_yt {
+    printf "  %-50s" "Check yt-local $YT_PROXY: create table"
+    if create_table &>/dev/null; then
+        echo "OK"
+    else
+        echo "REFUSED"
+        return 1
+    fi
+
+    printf "  %-50s" "Check yt-local $YT_PROXY: mount-table"
+    if mount_table &>/dev/null; then
+        echo "OK"
+    else
+        echo "REFUSED"
+        return 1
+    fi
+
+    printf "  %-50s" "Check yt-local $YT_PROXY: insert-rows"
+    if insert_rows &>/dev/null; then
+        echo "OK"
+    else
+        echo "REFUSED"
+        return 1
+    fi
+
+    return 0
+}
+
+echo "Check yt-local environment..."
+for i in $(seq $YT_HEALTHCHECK_RETRIES); do
+    echo "yt-local healthcheck $i of $YT_HEALTHCHECK_RETRIES"
+
+    if check_yt
+    then
+        echo "yt-local environment is ready"
+        exit 0
+    fi
+    sleep $YT_HEALTHCHECK_SLEEP
+done
+
+echo "yt-local environment is not ready to start"
+create_table
+mount_table
+insert_rows
+exit 1

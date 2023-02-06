@@ -1,0 +1,46 @@
+description: unique promocode codes (hashed)
+settings:
+    collection: promocodes
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: code
+    sparse: true
+    unique: true
+  - key: code_hash
+  - key: generate_token
+    sparse: true
+    unique: true
+  - key: phone_id
+  - key: series_id
+  - key:
+      - name: series_id
+        type: ascending
+      - name: code
+        type: ascending
+      - name: code_hash
+        type: ascending
+    unique: true
+wiki_info: |
+    ####dbtaxi.promocodes - уникальные промокоды
+
+    "Новая" промокодная коллекция, используется с версии 1.8.61. Заменяет dbtaxi.coupons из боле ранних версий.
+
+    ```python
+    dbtaxi.promocodes = {
+        # Обязательные поля
+        '_id': ObjectId(),       # Генерируется Mongo, нами не используется
+        'series_id': 'prm',      # id cерии, к которой принадлежит уникальный промокод.
+        'code': 'prm123456',     # код целиком series_id + unique_part, используется для серий с clear_text
+        'code_hash': 'строка',   # хэш уникальной цифровой части промокода, актуален только для серий с clear_text != True
+        'value': 300,            # сумма скидки по промокоду.
+
+        # Необязательные поля
+        'phone_id': ObjectId(),  # Id телефона "владельца" промокода, т.е. пользователя, первым его применившего. Имеется у уникальных промокодов, которые пытались применить хотя бы один раз.
+        'revoked': {             # Промокод отозван.
+            'operator_login': 'alberist',        # Логин оператора
+            'otrs_ticket': '111111111111111',    # Тикет в OTRS
+            'created': utcnow(),                 # Дата отзыва
+        },
+    }
+    ```

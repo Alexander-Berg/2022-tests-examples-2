@@ -1,0 +1,51 @@
+[
+  {
+    "_id": "anomaly_trips_taxi_all",
+    "absolute": "anomaly_trips_taxi_all",
+    "agg_func": "AVG",
+    "class_any_exists": false,
+    "color": "#4651a0",
+    "database": "atlas_orders",
+    "db": [
+      "pixel",
+      "realtime"
+    ],
+    "default": true,
+    "default_leaderboard": false,
+    "default_uber": null,
+    "desc": "",
+    "desc_en": "Share of requests burnt",
+    "divide_by": 1.0,
+    "en": "Burnt Requests Share, %",
+    "formula": null,
+    "id": "anomaly_trips_taxi_all",
+    "ifnull": 0,
+    "main_class_if_any": false,
+    "map": true,
+    "metric": "Сгоревших заказов, %",
+    "metrics": [
+      "requests_share_burnt",
+      "requests_volume"
+    ],
+    "monitoring": false,
+    "optgroup": "Заказы",
+    "optgroup_en": "Requests",
+    "primary": true,
+    "relative": true,
+    "selection_rules": [
+      "SUM(requests_share_burnt) / SUM(requests_volume)",
+      "SUM(requests_volume) AS requests_volume, SUM(requests_share_burnt) AS requests_share_burnt",
+      "SUM(requests_volume) AS requests_volume, SUM(requests_share_burnt) AS requests_share_burnt",
+      "requests_volume, requests_share_burnt*requests_volume AS requests_share_burnt"
+    ],
+    "server": "clickhouse_cluster",
+    "signal": "positive",
+    "skip_primary_keys": [],
+    "sql_query": null,
+    "sql_query_raw": "\n--DEFINE_ATLAS_BLOCK REPORT::PLOT START\nSELECT\n    atlas_ts,\n    SUM(requests_share_burnt) / SUM(requests_volume) as value\nFROM\n    ($ATLAS_BLOCK(QUERY::DATASET))\nGROUP BY\n    {{ make_ts_bucket('ts_1_min') }} as atlas_ts\n--DEFINE_ATLAS_BLOCK REPORT::PLOT END\n\n\n--DEFINE_ATLAS_BLOCK REPORT::MAP START\nSELECT\n    quadkey,\n    SUM(requests_share_burnt) / SUM(requests_volume) as value\nFROM\n    ($ATLAS_BLOCK(QUERY::DATASET))\nGROUP BY \n    {{ quadkey('quadkey') }} as quadkey\n--DEFINE_ATLAS_BLOCK REPORT::MAP END\n\n\n--DEFINE_ATLAS_BLOCK REPORT::LEADERBOARD START\nSELECT\n    city,\n    SUM(requests_share_burnt) / SUM(requests_volume) as value\nFROM\n    ($ATLAS_BLOCK(QUERY::DATASET))\nGROUP BY \n    city\n--DEFINE_ATLAS_BLOCK REPORT::LEADERBOARD END\n\n\n--DEFINE_ATLAS_BLOCK QUERY::DATASET START\n\n--REGISTER_PARAM MultiSelector city\n--REGISTER_PARAM Selector car_class\n--REGISTER_PARAM DateRange ts\n--REGISTER_PARAM MultiSelector quadkey\n--REGISTER_PARAM TimeBucketGrid time_grid\n\nSELECT\n    ts_1_min,\n    city,\n    quadkey as quadkey,\n    requests_volume, requests_share_burnt*requests_volume AS requests_share_burnt\nFROM\n    atlas_orders.orders\nWHERE \n    1 = 1\n    AND {{ filter.ts('ts_1_min') }}\n    AND {{ filter.city() }}\n    AND {{ filter.quadkey('quadkey') }}\n    AND {{ filter.car_class() }}   \n    AND requests_share_burnt >= 0.0\n    AND requests_volume >= 0.0\n    AND {{ log_table_filter(\"orders\", params.ts.from_ts, params.ts.to_ts) }}\n--DEFINE_ATLAS_BLOCK QUERY::DATASET END\n",
+    "table": "orders",
+    "target": 0.05,
+    "var_geohash": null,
+    "version": 2
+  }
+]

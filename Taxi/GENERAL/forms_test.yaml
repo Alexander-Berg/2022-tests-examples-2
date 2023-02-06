@@ -1,0 +1,92 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'Testing forms parameters'
+
+basePath: /forms
+
+paths:
+    /happy-multipart:
+        post:
+            consumes:
+              - multipart/form-data
+            produces:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: formData
+                name: name
+                required: true
+                type: string
+              - in: formData
+                name: age
+                type: integer
+                required: true
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: integer
+
+    /happy-urlencoded:
+        post:
+            consumes:
+              - application/x-www-form-urlencoded
+            produces:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: formData
+                name: name
+                required: true
+                type: string
+              - in: formData
+                name: age
+                type: integer
+                required: true
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: integer
+
+    /save-file-report:
+        post:
+            consumes:
+              - multipart/form-data
+            parameters:
+              - in: formData
+                name: report
+                type: file
+                required: true
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: object
+                        required:
+                          - size
+                          - filename
+                        properties:
+                            size:
+                                type: integer
+                            filename:
+                                type: string
+                        additionalProperties: false
+
+    /binary-multipart:
+        post:
+            consumes:
+              - multipart/form-data
+            parameters:
+              - in: formData
+                name: binary_data
+                type: string
+                format: binary
+                required: true
+            produces:
+              - application/octet-stream
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+                        format: binary

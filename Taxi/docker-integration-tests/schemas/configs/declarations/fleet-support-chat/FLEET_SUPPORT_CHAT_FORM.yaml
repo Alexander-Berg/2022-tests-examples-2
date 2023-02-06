@@ -1,0 +1,167 @@
+default: []
+description: Настройка формы новго обращения (Мои обращения)
+maintainers: [cjmaximal]
+tags: [notfallback]
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/CountryForm'
+    definitions:
+        Email:
+            type: object
+            additionalProperties: false
+            required:
+              - code
+              - email
+            properties:
+                code:
+                    type: string
+                email:
+                    type: string
+                direct:
+                    type: boolean
+                    default: false
+        WithoutParentInputs:
+            description: exclude parent inputs by name
+            type: array
+            items:
+                type: string
+            minItems: 1
+        Input:
+            type: object
+            additionalProperties: false
+            required:
+              - title
+              - type
+            properties:
+                name:
+                    description: field name (code)
+                    type: string
+                title:
+                    description: field title (tanker key)
+                    type: string
+                options:
+                    description: inbput with type checkbox_group options
+                    type: array
+                    items:
+                        type: string
+                    minItems: 2
+                type:
+                    description: Input type
+                    enum:
+                      - checkbox_group
+                      - checkbox
+                      - date_period
+                      - file
+                      - label
+                      - text
+                      - textarea
+                    type: string
+                hint:
+                    type: string
+                required:
+                    type: boolean
+                    default: false
+        Inputs:
+            type: array
+            items:
+                $ref: '#/definitions/Input'
+            minItems: 1
+        Subtopic:
+            description: Subtopic params
+            type: object
+            additionalProperties: false
+            required:
+              - title
+            properties:
+                title:
+                    type: string
+                email:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Email'
+                    minItems: 1
+                inputs:
+                    $ref: '#/definitions/Inputs'
+                without_parent_inputs:
+                    $ref: '#/definitions/WithoutParentInputs'
+        Topic:
+            description: Topic params
+            type: object
+            additionalProperties: false
+            required:
+              - title
+              - subtopic_selector_title
+            properties:
+                title:
+                    type: string
+                subtopic_selector_title:
+                    type: string
+                email:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Email'
+                franchising:
+                    type: boolean
+                    default: false
+                park_question:
+                    type: boolean
+                    default: false
+                inputs:
+                    $ref: '#/definitions/Inputs'
+                without_parent_inputs:
+                    $ref: '#/definitions/WithoutParentInputs'
+                subtopics:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Subtopic'
+                    minItems: 1
+                subtopic_selector_hint:
+                    type: string
+        FileUploadRestrictions:
+            description: File upload restrictions
+            type: object
+            additionalProperties: false
+            required:
+              - max_count
+              - max_size_mb
+            properties:
+                max_count:
+                    description: max files to upload (0 - file uploads disabled)
+                    type: integer
+                    format: int32
+                    minimum: 0
+                max_size_mb:
+                    description: max size all files (megabytes)
+                    type: integer
+                    format: int32
+                    minimum: 1
+        CountryForm:
+            decription: Specific country form
+            type: object
+            additionalProperties: false
+            required:
+              - country
+              - file_upload_restrictions
+              - keyset
+              - topics
+              - topic_selector_hint
+              - topic_selector_title
+            properties:
+                country:
+                    type: string
+                file_upload_restrictions:
+                    $ref: '#/definitions/FileUploadRestrictions'
+                keyset:
+                    type: string
+                topics:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Topic'
+                    minItems: 1
+                topic_selector_hint:
+                    type: string
+                topic_selector_title:
+                    type: string
+                inputs:
+                    $ref: '#/definitions/Inputs'

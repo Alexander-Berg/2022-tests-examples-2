@@ -1,0 +1,25 @@
+\set role testsuite
+\ir ../../../postgresql/crm_hub/migrations/V1__initial.sql
+\ir ../../../postgresql/crm_hub/migrations/V4__driver_initial.sql
+\ir ../../../postgresql/crm_hub/migrations/V6__batch_sending.sql
+\ir ../../../postgresql/crm_hub/migrations/V7__batch_sending_campaing_index.sql
+\ir ../../../postgresql/crm_hub/migrations/V8__batch_sending_report_extra.sql
+\ir ../../../postgresql/crm_hub/migrations/V9__sending_type.sql
+\ir ../../../postgresql/crm_hub/migrations/V10__subfilters.sql
+\ir ../../../postgresql/crm_hub/migrations/V11__sending_stats.sql
+\ir ../../../postgresql/crm_hub/migrations/V12__regular.sql
+\ir ../../../postgresql/crm_hub/migrations/V14__extra_data_path.sql
+\ir ../../../postgresql/crm_hub/migrations/V13__replication_state.sql
+\ir ../../../postgresql/crm_hub/migrations/V19__batch_sending_additional.sql
+\ir ../../../postgresql/crm_hub/migrations/V20__idempotency_checker.sql
+\ir ../../../postgresql/crm_hub/migrations/V15__multi_sending.sql
+\ir ../../../postgresql/crm_hub/migrations/V18__extra_data_key.sql
+\ir ../../../postgresql/crm_hub/migrations/V16__efficiency_sending.sql
+\ir ../../../postgresql/crm_hub/migrations/V22__batch_sending_logic_version.sql
+\ir ../../../postgresql/crm_hub/migrations/V17__cleanup_state.sql
+\ir ../../../postgresql/crm_hub/migrations/V21__batch_sending_errors.sql
+\ir ../../../postgresql/crm_hub/migrations/V23__batch_sending_yt_group_id.sql
+\ir ../../../postgresql/crm_hub/migrations/V24__batch_sending_actions.sql
+\ir ../../../postgresql/crm_hub/migrations/V26__insert_timezone_name_into_batch_sending.sql
+\ir ../../../postgresql/crm_hub/migrations/V27__idempotency_checker_upd.sql
+\ir ../../../postgresql/crm_hub/migrations/V25__action_idempotency.sql

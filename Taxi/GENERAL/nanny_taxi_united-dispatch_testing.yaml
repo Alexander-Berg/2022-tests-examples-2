@@ -1,0 +1,44 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:united-dispatch:testing
+
+http_hosts:
+  - united-dispatch.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - userver_common:
+        collapsed: true
+        uservice_name: united-dispatch
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: united-dispatch-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - include:
+        collapsed: true
+        path: psql_tables_statistics.json
+        row_panels: [2, 2]
+        title: Postgres statistics
+        variables:
+          - cluster_name: testing_uservices
+          - uservice_name: united-dispatch
+          - table_schema: united_dispatch
+          - table_rows_log_base: ""
+          - table_size_log_base: ""
+          - index_usage_log_base: ""
+          - index_size_log_base: ""
+  - stq:
+        collapsed: true
+        queues:
+          - united_dispatch_proposition_fail
+          - united_dispatch_rebuild_waybill
+          - united_dispatch_segment_reader
+          - united_dispatch_waybill_propose
+          - united_dispatch_waybill_reader
+  - http:
+        collapsed: true
+  - distlock_worker:
+        workers:
+          - id: segments-reader
+          - id: waybill-reader

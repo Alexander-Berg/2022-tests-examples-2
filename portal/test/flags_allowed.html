@@ -1,0 +1,122 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %]
+[% ttppspace_in_html_tag=1 %]
+[% space_in_html_tag=1 %]
+<head>
+    <title>Флаги</title>
+    <script type="text/javascript" src="//yastatic.net/jquery/2.1.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        h2 {
+            padding: 0 20px;
+        }
+
+        .table {
+            display: table;
+            padding: 20px;
+        }
+
+        .exp_expired {
+            background-color: #ff9999;
+        }
+
+        .exp_warning {
+            background-color: #fefe22;
+        }
+
+        .line__cell {
+            /*display: table-cell;*/
+            padding: 10px;
+            border: 1px solid #ddd;
+            word-break: break-word;
+        }
+
+        .line__cell_head {
+            font-weight: bold;
+        }
+
+        .exp__name {
+            width: 250px;
+        }
+
+        .exp__manager {
+            width: 110px;
+        }
+
+    </style>
+</head>
+<body>
+    <main class="main"></main>
+    <script type="text/javascript">
+        window.flagsAllowed = [% flags %];
+    </script>
+    <script type="text/javascript">
+        var flagsAllowed = window.flagsAllowed;
+        var flags = Object.keys(flagsAllowed).map(flag => Object.assign(flagsAllowed[flag], {name: flag}));
+        var now = new Date();
+        var TWOWEEKS = 14 * 24 * 60 * 60 * 1000;
+
+        flagsByQueue = flags.reduce(function (acc, cur) {
+            if (cur.description.toLowerCase().indexOf('ether') > -1) {
+                acc.ether.push(cur);
+            } else {
+                acc.home.push(cur);
+            }
+
+            return acc;
+
+
+        }, {ether:[], home:[]});
+
+        var html = Object.keys(flagsByQueue).map(queue => {
+            var flags = flagsByQueue[queue].map(flagData => {
+                flagExpireDate = flagData.expire.split('.');
+
+                var expireDate = new Date(flagExpireDate[2], flagExpireDate[1] - 1, flagExpireDate[0]);
+
+                if (now > expireDate) {
+                    flagData.expired = true;
+                } else if (now > expireDate - TWOWEEKS) {
+                    flagData.warning = true;
+                }
+
+                flagData.expireDate = +expireDate;
+
+
+                return flagData;
+            })
+            .sort((flag1, flag2) => { return flag1.expireDate - flag2.expireDate});
+
+            return '<h2>' + queue + '</h2><div class="table">' + getHeaderHtml() + flags.map(getLineHtml).join('') + '</div>';
+
+        }).join('');
+
+        $('.main').html(html);
+
+        function getHeaderHtml() {
+            return '<div class="line row">' +
+                '<div class="line__cell line__cell_head col col-4 exp__name">Флаг</div>' +
+                '<div class="line__cell line__cell_head col col-2 exp__expire">expire</div>' +
+                '<div class="line__cell line__cell_head col col-2 exp__date">date</div>' +
+                '<div class="line__cell line__cell_head col col-1 exp__manager">Ответственный</a></div>' +
+                '<div class="line__cell line__cell_head col col-3 exp__description">Описание/таск</div>' +
+            '</div>'
+        }
+
+        function getLineHtml(data) {
+            var description = data.description && data.description.replace(/^([a-zA-Z]+-\d+):/, function(match, task){
+                return '<a href="https://st.yandex-team.ru/' + task + '">' + match + '</a>';
+            });
+
+            return '<div class="line row' + (data.expired ? ' exp_expired' : '') + (data.warning ? ' exp_warning' : '') + '">' +
+                '<div class="line__cell col col-4 exp__name">' + data.name + '</div>' +
+                '<div class="line__cell col col-2 exp__expire">' + data.expire + '</div>' +
+                '<div class="line__cell col col-2 exp__date">' + data.date + '</div>' +
+                '<div class="line__cell col col-1 exp__manager"><a href="https://staff.yandex-team.ru/' + data.manager + '">'  + data.manager + '</a></div>' +
+                '<div class="line__cell col col-3 exp__description">' + description + '</div>' +
+            '</div>'
+        }
+
+    </script>
+</body>
+

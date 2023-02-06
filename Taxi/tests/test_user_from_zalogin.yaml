@@ -1,0 +1,97 @@
+id: test_user_from_zalogin
+title: Проверка передачи данных из zalogin
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id1'
+            device_id: 'device_id1'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-YaTaxi-PhoneId: 'phone_id1'
+    expectations:
+        response:
+            status-code#integer: 200
+            body#object:
+              - id: 'user_id2'
+              - authorized: true
+              - key: client_geo_params
+                value#object:
+                  - key: enabled
+                    value#boolean: false
+              - orders#array:
+              - orders_state#object:
+                  - orders#array:
+              - typed_experiments#object:
+              - ask_feedback#object:
+              - device_id: 'device_id3'
+              - yandex_staff: true
+              - name: 'test_name'
+
+
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+
+
+mocks:
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id2'
+            authorized: true
+            phone_id: 'phone_id2'
+            device_id: 'device_id2'
+            has_ya_plus: true
+            has_cashback_plus: true
+            yandex_staff: true
+            name: 'test_name'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id1'
+                device_id: 'device_id1'
+            method: post
+  - resource: order-v1-tc-active-orders
+    response:
+        status-code: 200
+        body:
+            orders: []
+            orders_state:
+                orders: []
+  - resource: feedback-wanted
+    response:
+        status-code: 200
+        body: {"ask_feedback": {}, "orders": []}
+        headers:
+            content-type: "application/json"
+  - resource: taxi-3.0-launch
+    response:
+        status-code: 200
+        body:
+            id: 'user_id3'
+            device_id: 'device_id3'
+            typed_experiments: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            body:
+                id: 'user_id2'
+                authorized: true
+                phone_id: 'phone_id2'
+                device_id: 'device_id2'
+                has_ya_plus: true
+                has_cashback_plus: true
+            method: post

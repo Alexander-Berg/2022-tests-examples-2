@@ -1,0 +1,195 @@
+id: blender_shortcuts_with_market_promo_tags
+title: Передача промо-акций Маркета в сервис shortcuts
+
+parameters:
+  - case:
+      - orders_exist_settings: {"enabled": true}
+        market-checkouter-orders-exist:
+            call-count: 1
+            response:
+                code: 500
+                body:
+        shortcuts-req-properties: {}
+      - orders_exist_settings: {"enabled": true}
+        market-checkouter-orders-exist:
+            call-count: 1
+            response:
+                code: 200
+                body: {"value": false}
+        shortcuts-req-properties: {"market_promo_tags": ["market-new-user"]}
+      - orders_exist_settings: {"enabled": true}
+        inapp-enabled: true
+        market-checkouter-orders-exist:
+            call-count: 1
+            response:
+                code: 200
+                body: {"value": false}
+        shortcuts-req-properties: {"market_promo_tags": ["market-new-user"]}
+      - orders_exist_settings: {"enabled": true, "from_date": "01-01-2021"}
+        market-checkouter-orders-exist:
+            call-count: 1
+            response:
+                code: 200
+                body: {"value": false}
+        shortcuts-req-properties: {"market_promo_tags": ["market-new-user"]}
+      - orders_exist_settings: {"enabled": true, "rgb": "RED"}
+        market-checkouter-orders-exist:
+            call-count: 1
+            response:
+                code: 200
+                body: {"value": true}
+        shortcuts-req-properties: {"market_promo_tags": []}
+      - orders_exist_settings: {"enabled": true}
+        market-checkouter-orders-exist:
+            call-count: 1
+            response:
+                code: 200
+                body: {"value": true}
+        shortcuts-req-properties: {"market_promo_tags": []}
+      - orders_exist_settings: {"enabled": false}
+        market-checkouter-orders-exist:
+            call-count: 0
+            response:
+                code:
+                body:
+        shortcuts-req-properties: {}
+
+experiments:
+    values:
+        market_new_users_promo_settings:
+            orders_exist_settings#xget: /test-params/case/orders_exist_settings
+        inapp_shortcuts_promo_tags:
+            enabled#xget:
+                path: /test-params/case/inapp-enabled
+                default-value#boolean: false
+        superapp_shortcuts_on_multiorder_screen_exp:
+            enabled: true
+
+source:
+    request:
+        method: post
+        headers:
+            X-AppMetrica-DeviceId: device-id
+            X-Yandex-UID: yandex-uid
+        body: {"state": {}, "shortcuts": {"grids_support": [{"width": 6, "unit_width": 54.5}],
+                "supported_features": [{"type": "taxi:route-input", "services": [],
+                        "prefetch_strategies": []}, {"services": [], "prefetch_strategies": [],
+                        "type": "media-stories"}], "ndash_width": 9, "mdash_width": 14},
+            "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+
+mocks:
+  - resource: market-checkouter-orders-exist
+    response:
+        status-code#xget: /test-params/case/market-checkouter-orders-exist/response/code
+        body#xget: /test-params/case/market-checkouter-orders-exist/response/body
+    expectations:
+        call-count#xget: /test-params/case/market-checkouter-orders-exist/call-count
+        request:
+            query#object:
+              - archived#string: false
+              - rgb#xget:
+                    path: /test-params/case/orders_exist_settings/rgb
+                    default-value: BLUE,WHITE
+              - clientRole#string: USER
+              - clientId#string: yandex-uid
+              - uid#string: yandex-uid
+              - key: fromDate
+                value#xget: /test-params/case/orders_exist_settings/from_date
+                enabled#xhas: /test-params/case/orders_exist_settings/from_date
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body#concat-objects:
+          - value:
+                zone_name: "moscow"
+                modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+                products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+                typed_experiments: {"items": []}
+                region_id: 332
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#concat-objects:
+              - value:
+                    zone_name: moscow
+                    position: [1, 2]
+                    shortcuts:
+                        supported_features: [{"services": [], "prefetch_strategies": [],
+                                "type": "taxi:route-input"}, {"services": [], "prefetch_strategies": [],
+                                "type": "media-stories"}]
+                        grids_support: [{"width": 6, "unit_width": 54.5}]
+                        mdash_width: 14
+                        ndash_width: 9
+                    known_orders: []
+                    grid: []
+                    state: {}
+                    services_availability: {"modes": [{"parameters": {"available": true,
+                                    "product_tag": "taxi"}, "mode": "taxi"}], "products": [
+                            {"tag": "taxi", "service": "taxi", "title": "Taxi"}]}
+              - value#xget: /test-params/case/shortcuts-req-properties
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: user-api-v2-user_phones-get
+    expectations:
+        call-count: 0
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body: {"scenario_tops": []}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#concat-objects:
+              - value:
+                    services_availability: {"zone_name": "moscow", "modes": [{"parameters": {
+                                    "available": true, "product_tag": "taxi"}, "mode": "taxi"}],
+                        "products": [{"tag": "taxi", "service": "taxi", "title": "Taxi"}],
+                        "typed_experiments": {"items": []}, "region_id": 332}
+                    user_context: {"show_at": "2020-01-01T00:00:00+00:00", "pin_position": [
+                            1, 2], "state": {}, zone_name: "moscow"}
+              - value#object:
+                  - key: services_promo_tags
+                    enabled#xget:
+                        path: /test-params/case/inapp-enabled
+                        default-value#boolean: false
+                    value#xget: /test-params/case/shortcuts-req-properties

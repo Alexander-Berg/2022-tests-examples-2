@@ -1,0 +1,62 @@
+default:
+    mail_template_xml: '<?xml version="1.0" encoding="UTF-8"?><mails><mail> <from>noreply@yandex.ru</from>
+        <subject>Подтверждение заявки</subject> <body> Здравствуйте, {firstname} {middlename}.
+        Вас приветствует компания Яндекс. Ранее вы оставляли заявку на взятие анализов
+        на Короновирус.  Сообщаем вам, что заявка согласована. Однако, нам требуется
+        ваше подтверждение. Пожалуйста, перейдите по ссылке {landing_url} и подтвердите
+        Ваше согласие. </body> </mail></mails>'
+    sms_intent: 'persey_confirmation'
+    sms_alpha: 'Yandex.Taxi'
+    sms_template: 'Ваша заявка согласована. Пожалуйста, подтвердите её, перейдя по
+        ссылке: {landing_url}'
+    landing_url: 'https://yandex.ru'
+    call_delay_ms: 7200000
+description: |
+    Настройки STQ-таски, занимающейся уведомлением победителей
+    розыгрыша
+tags: ['notfallback']
+maintainers:
+  - sanvean
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        mail_template_xml:
+            type: string
+            description: |
+                Шаблон письма, которое отправляется участнику розыгрыша.
+                Адрес, с которого производитмя рассылка, указан в
+                тексте шаблона.
+                Может содержать следующие подстановки:
+                {surname} - фамилия,
+                {firstname} - имя,
+                {middlename} - отчество,
+                {landing_url} - url странички landing'а
+        sms_intent:
+            type: string
+            description: Интент для сервиса ucommunications
+        sms_alpha:
+            type: string
+            description: От этого имени отсылается СМС
+        sms_template:
+            type: string
+            description: |
+                Шаблон SMS, которое отправляется участнику розыгрыша.
+                Может содержать следующие подстановки:
+                {landing_url} - url странички landing'а
+        landing_url:
+            type: string
+            description: URL странички landing'а
+        call_delay_ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            description: |
+                Задержка в миллисекундах перед звонком участнику,
+                если не получили подтверждение из landing_url
+    required:
+      - mail_template_xml
+      - sms_intent
+      - sms_alpha
+      - sms_template
+      - landing_url
+      - call_delay_ms

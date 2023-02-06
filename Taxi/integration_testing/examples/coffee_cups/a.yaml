@@ -1,0 +1,56 @@
+service: automation_group_backend_mlu
+title: Taxi integration testing
+ci:
+  secret: sec-01fvera5z43mzf7m3yeb7ftec6
+  runtime:
+    sandbox-owner: TAXI-AUTOMATIZATION
+  autocheck:
+    strong: true
+    large-autostart:
+      - target: taxi/integration_testing/examples/coffee_cups/integration_tests/*
+        toolchains: default-linux-x86_64-release
+  actions:
+    pr-flow:
+      flow: pr-flow
+      triggers:
+        - on: pr
+  releases:
+    main-release:
+      title: Main Release
+      flow: release-flow
+  flows:
+    pr-flow:
+      title: Flow for Pull Requests
+      jobs:
+        integration-test-trunk:
+          title: Integration test coffee-cups against trunk
+          task: projects/taxi/tplatform/run_integration_tests
+          input:
+            targets: taxi/integration_testing/examples/coffee_cups/integration_tests
+        integration-test-release:
+          title: Integration test coffee-cups against release
+          task: projects/taxi/tplatform/run_integration_tests
+          needs: integration-test-trunk
+          input:
+            targets: taxi/integration_testing/examples/coffee_cups/integration_tests
+            test_params: image-tag-default=#PROD image-tag-overrides=coffee-cups:#BUILD
+    release-flow:
+      title: Release Flow
+      jobs:
+        package:
+          task: common/arcadia/ya_package_2
+          input:
+            packages: taxi/integration_testing/examples/coffee_cups/package.json
+            package_type: docker
+            docker_image_repository: taxi
+            docker_save_image: true
+            docker_push_image: true
+            resource_type: YA_PACKAGE
+        integration-test:
+          title: Integration test coffee-cups
+          task: projects/taxi/tplatform/run_integration_tests
+          needs: package
+          input:
+            targets: taxi/integration_testing/examples/coffee_cups/integration_tests
+            test_params: image-tag-default=#PROD image-tag-overrides=coffee-cups:#BUILD
+

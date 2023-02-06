@@ -1,0 +1,68 @@
+description: Don't use this collection any more, see TAXIACCESSDATA-100 - driver profiles
+    (deprecated)
+settings:
+    collection: drivers
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key:
+      - name: _state
+        type: ascending
+      - name: updated
+        type: ascending
+  - key: car.number
+  - key: clid
+  - key: created_ts
+    sparse: true
+    unique: true
+  - key: driver_license
+  - key: grade_updated
+  - key: meta_updated
+  - key: online.e
+    sparse: true
+  - key: phone
+  - key: status_updated
+  - key: updated
+  - key: updated_ts
+    sparse: true
+    unique: true
+  - key: uuid
+wiki_info: |
+    ####dbtaxi.drivers - Водители
+
+    ```python
+    driver = {
+        # Note: коллекция подлежит разбору. Добавление новых полей в коллекцию запрещено. Выпиливание старых поощряется.
+
+        # Поля, которые проставляются в driver-profiles
+        '_id': 'clid_uuid',
+        'created_ts': 'mongo::Timestamp',                               # mongo timestamp создания документа
+        'meta_updated': 'datetime'                                      # время обновления метаданных,
+        'updated': 'datetime',                                          # время внесения последней правки в документ
+        'updated_ts': 'mongo::Timestamp',                               # mongo timestampпоследней правки в документ
+        'clid': 'идентификатор таксопарка',
+        'db_id': '907ed2f476984713940ce78bdf521c39',                    # внутренний (РИТ) id парка
+        'uuid': 'идентификатор водителя внутри таксопарка',
+        '_state': 'active/importing/absent/banned/nopermit/nolicense',  # active - профиль живой, importing - происходит обновление профиля, absent - профиля не было в последнем импорте, banned - забаненный водитель(при импорте проверяется наличие госномера в blocked_drivers и если он там есть, то выставляется данный флажок.
+
+
+        # Поля, которые пишутся в коллекцию напрямую.
+        #  Эти поля нужно изводить из коллекции, их семантику переносить в отдельные микросервисы
+        'grades': [{                                         # грейды
+            'class': 'econom',                               # тариф
+            'value': 5,                                      # величина грейда
+            'airport_value': 5                               # грейд в аэропортах
+        }],
+        'mqc_passed': datetime.utcnow(),                     # время когда водитель проходил проверку МКК,
+        'online': {   # Время нахождения свободного водителя на линии со включенным роботом:
+            's': 1460069099,  # начало  (UTC-таймстемп)
+            'e': 1460061200,  # окончание  (UTC-таймстемп)
+        },
+        'free': boolean,                                     # True, если свободен (статус free или ready),
+        'rs': 0|1|2,                                         # 0 - состояние робота не известно, 1 - робот включен, 2 - робот выключен
+        'txs': -1|0|1|2|3,                                   # внутренний статус на таксометре: 3 - на заказе, 2 - свободен, 1 - занят, 0 - выключен, -1 - не известен
+        'op': -1|0|1,                                        # провайдер заказа: 1 - Яндекс, 0 - другой, -1 неизвестен или не на заказе
+        'status': 'статус водителя',                         # ready|free|almost|busy|verybusy  в основном ready=free, almost=busy
+        'status_updated': utcnow(),                          # время, когда последний раз обновлялся статус
+    }
+    ```

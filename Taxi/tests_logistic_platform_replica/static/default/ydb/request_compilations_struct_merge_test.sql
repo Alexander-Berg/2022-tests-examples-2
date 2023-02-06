@@ -1,0 +1,25 @@
+--!syntax_v1
+
+UPSERT INTO `main/request_compilations/struct/2025-03` (
+    request_id,
+    data,
+    created_at
+) VALUES
+('13aad1ae-c205-42e8-94e1-e7c96728d738', 'STRING_VALUE_A1', CAST(1743399569000000 AS Timestamp)),
+('07243441-785b-4a70-a2c2-bf48348f4225', 'STRING_VALUE_A2', CAST(1741694841000000 AS Timestamp)),
+('3121c950-1024-4be1-9ba5-33e6dae2da4a', 'STRING_VALUE_A4', CAST(1741966527000000 AS Timestamp)),
+('aadc50f7-5654-4f38-a669-de2aee65aeac', 'STRING_VALUE_A5', CAST(1742738350000000 AS Timestamp));
+
+
+UPSERT INTO `main/request_compilations/struct/2026-02` (
+    request_id,
+    data,
+    created_at
+) VALUES
+('09c7720b-8e6c-4d30-bd73-5d52916be754', 'STRING_VALUE_B1', CAST(1771161946000000 AS Timestamp)),
+('288affa0-50e8-458e-8ab7-5bdb8938de7a', 'STRING_VALUE_B2', CAST(1770766632000000 AS Timestamp)),
+('5d04acd2-aee3-4058-a194-57b6ddc635f5', 'STRING_VALUE_B3', CAST(1772017115000000 AS Timestamp)),
+('d81dec52-83e9-4175-93bb-0e913d6afbb9', 'STRING_VALUE_B4', CAST(1770018124000000 AS Timestamp)),
+('1717dcb9-3767-4232-ac04-43b832006edd', 'STRING_VALUE_B5', CAST(1770765326000000 AS Timestamp)),
+('b90b5b11-2b83-40fc-9920-957f43e602b6', 'STRING_VALUE_B6', CAST(1770148072000000 AS Timestamp)),
+('6d2b13a2-f55b-4063-a269-d91d545508ae', 'STRING_VALUE_B7', CAST(1770090329000000 AS Timestamp));

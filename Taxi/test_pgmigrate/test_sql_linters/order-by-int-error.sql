@@ -1,0 +1,3 @@
+SELECT 1
+FROM t
+ORDER BY 1;

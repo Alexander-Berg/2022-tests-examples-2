@@ -1,0 +1,98 @@
+// EFFICIENCYDEV-10241: Для логистики без поддержки "включен один из", иначе безумно долгая компиляция преобразования
+if (fix.category == "cargo" || fix.category == "cargocorp" || fix.category == "express" || fix.category == "courier") {
+    with (simple_cost = 0, meta1 = []) generate(req : fix.requirements.simple)
+        let rprice = (req in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[req] : 0;
+        let cmeta = [
+            "req:" + req + ":count": 1,
+            "req:" + req + ":per_unit": round_to(rprice, fix.rounding_factor),
+            "req:" + req + ":price": round_to(rprice, fix.rounding_factor)
+        ];
+    endgenerate(simple_cost = simple_cost + rprice, meta1 = meta1 + cmeta)
+
+    with (select_cost = 0, meta2 = []) generate(req : fix.requirements.select)
+        let rname = req.first;
+        with (options_cost = 0, meta3 = []) generate(opt : req.second)
+            let fullname = rname + "." + opt.name;
+            let oname = (opt.independent) ? fullname : rname;
+            let ocost = (oname in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[oname] : 0;
+
+            with (opt_count = 0) generate(opt2 : req.second)
+            endgenerate(opt_count = opt_count + ((opt.name == opt2.name) ? 1 : 0))
+            let cmeta = [
+                "req:" + fullname + ":count": opt_count,
+                "req:" + fullname + ":per_unit": round_to(ocost, fix.rounding_factor),
+                "req:" + fullname + ":price": round_to(opt_count * ocost, fix.rounding_factor)
+            ];
+        endgenerate(options_cost = options_cost + ocost, meta3 = meta3 + cmeta)
+    endgenerate(select_cost = select_cost + (
+        (rname != "hourly_rental")  // почасовая аренда в отдельном преобразовании
+            ? options_cost
+            : 0
+    ), meta2 = meta2 + meta3)
+
+    return {
+        requirements = ride.price.requirements + simple_cost + select_cost,
+        metadata = meta1 + meta2
+    };
+
+// end of EFFICIENCYDEV-10241
+} else {
+
+with (simple_cost = 0, meta1 = []) generate(req : fix.requirements.simple)
+    let rprice = (req in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[req] : 0;
+    let cmeta = [
+        "req:" + req + ":count": 1,
+        "req:" + req + ":per_unit": round_to(rprice, fix.rounding_factor),
+        "req:" + req + ":price": round_to(rprice, fix.rounding_factor)
+    ];
+endgenerate(simple_cost = simple_cost + rprice, meta1 = meta1 + cmeta)
+
+with (select_cost = 0, meta2 = []) generate(req : fix.requirements.select)
+    let rname = req.first;
+    with (
+        options_cost = 0,
+        included_most_expensive = "<none>",
+        included_most_expensive_cost = 0,
+        meta3 = []
+    ) generate(opt : req.second)
+        let fullname = rname + "." + opt.name;
+        let oname = (opt.independent) ? fullname : rname;
+        let ocost = (oname in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[oname] : 0;
+        let ocost_if_included = (fix.tariff.requirements_included_one_of as included)
+                                    ? (oname in included)
+                                          ? ocost
+                                          : 0
+                                    : 0;
+
+        with (opt_count = 0) generate(opt2 : req.second)
+        endgenerate(opt_count = opt_count + ((opt.name == opt2.name) ? 1 : 0))
+        let cmeta = [
+            "req:" + fullname + ":count": opt_count,
+            "req:" + fullname + ":per_unit": round_to(ocost, fix.rounding_factor),
+            "req:" + fullname + ":price": round_to(ocost, fix.rounding_factor)  // TODO: если можно, то удалить, иначе как-то исправить, учитывая included
+         ];
+    endgenerate(
+        options_cost = options_cost + ocost,
+        included_most_expensive = (ocost_if_included > included_most_expensive_cost)
+                                      ? fullname
+                                      : included_most_expensive,
+        included_most_expensive_cost = (ocost_if_included > included_most_expensive_cost)
+                                           ? ocost_if_included
+                                           : included_most_expensive_cost,
+        meta3 = meta3 + cmeta
+    )
+    let cmeta = (included_most_expensive != "<none>") ? [
+        "req:" + included_most_expensive + ":included": 1
+    ] : [];
+endgenerate(select_cost = select_cost + (
+    (rname != "hourly_rental")  // почасовая аренда в отдельном преобразовании
+        ? options_cost - included_most_expensive_cost
+        : 0
+), meta2 = meta2 + meta3 + cmeta)
+
+return {
+    requirements = ride.price.requirements + simple_cost + select_cost,
+    metadata = meta1 + meta2
+};
+
+}

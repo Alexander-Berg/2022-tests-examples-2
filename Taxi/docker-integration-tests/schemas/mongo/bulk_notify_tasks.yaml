@@ -1,0 +1,81 @@
+settings:
+    collection: bulk_notify_tasks
+    connection: notify
+    database: dbnotify
+indexes:
+  - key: promocode_series
+    sparse: true
+    unique: true
+wiki_info: |
+    #### bulk_notify_tasks
+    *Назначение:* задача на массовую рассылку пушей
+    ```python
+    bulk_notify_tasks = {
+        # id
+        '_id': '0123456789abcdef',
+        # когда создали заявку
+        'created': datetime.datetime.utcnow(),
+        # время последнего изменения документа
+        'updated': datetime.datetime.utcnow(),
+        # название рассылки
+        'name': 'название рассылки',
+        # логин создателя рассылки
+        'created_by': 'login',
+        # время запуска рассылки
+        'start': datetime.datetime.utcnow(),
+        # статус задачи
+        'status': (
+            'new|ready|started|running|finished|'
+            'source-uploaded|source-processing'
+        ),
+        # исходный файл
+        'mds_source_path': '...',
+        # название исходного файла
+        'source_filename': 'pushes.txt',
+        # файл с пушами на MDS
+        'mds_data_path': '...',
+        # csv со стаусами отпарвки на MDS
+        'mds_statuses_path': '...',
+
+        # Сообщение об ошибке
+        'message': 'Empty file',
+
+        'stat': {
+            # общее количество сообщений
+            'total': 1000,
+            # количество обработанных сообщений
+            'processed': 1000,
+            # количество ошибок
+            'failed': 1000,
+            # ощибки в исходном файле
+            'source_errors': 123,
+        },
+
+        # Разбиение на чанки
+        'chunk': [
+            {
+                # начальное и конечное смещение в байтах
+                'offset_start': 0,
+                'offset_end': 10000,
+                'is_finished': True,
+            }
+        ]
+    }
+    ```
+
+    Временное хранилище для статусов отправки, после завершения задачи статусы
+    отправляются в MDS:
+
+    ```python
+    bulk_notify_chunks = {
+        '_id': 'task_id-chunk_id',
+        'task_id': 'task_id',
+        'statuses': [
+            {
+                'timestamp': datetime.datetime(),
+                'status': 'complete|failed',
+                'reason': 'причина'
+            }
+        ]
+    }
+    ```

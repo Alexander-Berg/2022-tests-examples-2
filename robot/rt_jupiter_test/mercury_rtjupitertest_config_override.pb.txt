@@ -1,0 +1,86 @@
+CallistoTablesRoot: "//home/jupiter/mercury"
+
+WorkerConfig {
+    FileDataSinkConfig {
+        Disable: true
+    }
+
+    SaasDataSinkConfig {
+        Disable: true
+    }
+
+    JupiterDocDataSinkConfig {
+        Disable: false
+        Tier: "PlatinumTier0"
+        Tier: "WebTier0"
+        Tier: "WebTier0Mini"
+        Tier: "JudTier"
+    }
+
+    SelectionRankCalculatorConfig {
+        TierSchemes: "TierSchemeCallisto.pb.txt,TierSchemeJupiterPatched.pb.txt"
+        UploadRules: "UploadRulesCallisto.pb.txt,UploadRulesJupiter.pb.txt"
+        Tiers: "WebFreshTier,PlatinumTier0,WebTier0,WebTier0Mini,JudTier"
+        BucketsCount: 2
+        CachePredictModel: "CachePredictModel.info"
+    }
+
+    DeliveryConfig {
+        DownloadTables: true
+    }
+
+    SinkThrottlerConfig {
+        MercuryTiersThrottler {
+            ThrottlerConfig {
+                MinRateLimit: 10.0
+                MaxRateLimit: 20.0
+            }
+        }
+        JupiterTiersThrottler {
+            ThrottlerConfig {
+                Disable: false
+                MinRateLimit: 50.0
+                MaxRateLimit: 100.0
+                RateChangeStep: 5
+            }
+        }
+    }
+
+    SuppressorConfig {
+        ForceReindexTier: "WebFreshTier"
+    }
+
+    LumpsFillerConfig {
+        DisabledLumps: "host_mapping"
+        DisabledLumps: "host_domain_doc_mapping"
+    }
+
+    RTHubLBDataSourceConfig {
+        Disable: true
+    }
+
+    ShufflerQueueDataSourceConfig {
+        Disable: false
+        SampleReadMode: true
+        ReadRequestTimeout: 10
+    }
+
+    UrldatFlagsDataSourceConfig {
+        Disable: false
+    }
+
+    DocsOnSearchDataSinkConfig {
+        Disable: false
+        Tier: "WebFreshTier"
+        Tier: "PlatinumTier0"
+        Tier: "WebTier0"
+        Tier: "JudTier"
+    }
+
+    EnableRTDups: true
+    CalculatorEnableAggregation: true
+    CheckContentOnMain: true
+    RTDupsDataSourceConfig {
+        Disable: false
+    }
+}

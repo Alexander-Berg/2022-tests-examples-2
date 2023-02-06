@@ -1,0 +1,60 @@
+default:
+    sleep_time:
+        __default__: 5
+    cleanup_bulk_size:
+        __default__: 1000
+    cleanup_concurrency:
+        __default__: 1
+    max_duration:
+        __default__: 60
+description: |
+    Настройки очистки stq-очередей (используются в таске
+    stq_agent_py3-crontasks-cleanup_stq_bulk). Параметры:
+    cleanup_concurrency -- сколько коллекций может одновременно очищаться
+    в одной базе; cleanup_bulk_size -- размер одной пачки документов на удаление;
+    sleep_time -- время паузы в секундах после удаления одной пачки;
+    query_none_with_type -- если true, использовать ли запрос с x: {$type: None}
+    вместо x: None для поиска задач на удаление, по дефолту нет;
+    max_duration -- максимальная длительность очистки одной коллекции в секундах
+    в рамках одного запуска
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        cleanup_concurrency:
+            $ref: '#/definitions/IntParamByDb'
+        cleanup_bulk_size:
+            $ref: '#/definitions/IntParamByDb'
+        sleep_time:
+            type: object
+            properties:
+                __default__:
+                    type: number
+                    minimum: 0
+            required:
+              - __default__
+            additionalProperties:
+                type: number
+                minimum: 0
+        max_duration:
+            $ref: '#/definitions/IntParamByDb'
+        query_none_with_type:
+            type: boolean
+    required:
+      - cleanup_concurrency
+      - cleanup_bulk_size
+      - sleep_time
+      - max_duration
+    definitions:
+        IntParamByDb:
+            type: object
+            properties:
+                __default__:
+                    type: integer
+                    minimum: 1
+            required:
+              - __default__
+            additionalProperties:
+                type: integer
+                minimum: 1

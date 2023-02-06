@@ -1,0 +1,197 @@
+<test>
+    <variables>
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="method">
+            <instance id="sessionid">sessionid</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="internal_user">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">yandex.ru</instance>
+        </cgi>
+
+        <cgi name="get_reg_completion_recommendation_with_yp">
+            <instance id="lrcs_in_past">expire1.name1.value1#expire2.lrcs.1594632986#expire3.name3.value3</instance>
+            <instance id="lrcs_in_future">expire1.name1.value1#expire2.lrcs.2541317786#expire3.name3.value3</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <instance id="ru_valid">
+                <arg name="uid">70500</arg>
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">validquoted</arg>
+                <arg name="time">-10</arg>
+            </instance>
+
+            <instance id="need_reg_completed">
+                <arg name="uid">71016</arg>
+                <arg name="type">need_reset</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="host">yandex.ru</arg>
+            </instance>
+
+        </cgi>
+
+        <result name="id_valid_secure">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/status/@id">0</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">70500</arg>
+                <arg name="count(/doc/age[text() &gt; 8 and text() &lt; 12])">1</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+                <arg name="/doc/special">dontmatch</arg>
+                <arg name="/doc/new-session">dontmatch</arg>
+                <arg name="/doc/new-sslsession">dontmatch</arg>
+                <arg name="/doc/auth/secure">1</arg>
+                <arg name="/doc/have_password">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/value">VALID</arg>
+                <arg name="/status/id">0</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">70500</arg>
+                <arg name="/age" comp="relation" min="8" max="12"></arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/new-session">dontmatch</arg>
+                <arg name="/new-sslsession">dontmatch</arg>
+                <arg name="/auth/secure">true</arg>
+                <arg name="/auth/have_password">true</arg>
+            </jsonBody>
+        </result>
+
+        <result name="recommend_reg_completion">
+            <body func="matchxpath">
+                <arg name="/doc/status">NEED_RESET</arg>
+                <arg name="/doc/status/@id">1</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">71016</arg>
+                <arg name="count(/doc/age[text() &gt; 8 and text() &lt; 12])">0</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+                <arg name="/doc/special">dontmatch</arg>
+                <arg name="/doc/new-session">dontmatch</arg>
+                <arg name="/doc/new-sslsession">dontmatch</arg>
+                <arg name="/doc/auth/secure">1</arg>
+                <arg name="/doc/have_password">0</arg>
+                <arg name="/doc/is_reg_completion_recommended">1</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/value">NEED_RESET</arg>
+                <arg name="/status/id">1</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">71016</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/new-session">dontmatch</arg>
+                <arg name="/new-sslsession">dontmatch</arg>
+                <arg name="/auth/secure">true</arg>
+                <arg name="/auth/have_password">false</arg>
+                <arg name="/is_reg_completion_recommended">1</arg>
+            </jsonBody>
+        </result>
+
+        <result name="not_recommend_reg_completion">
+            <body func="matchxpath">
+                <arg name="/doc/status">NEED_RESET</arg>
+                <arg name="/doc/status/@id">1</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">71016</arg>
+                <arg name="count(/doc/age[text() &gt; 8 and text() &lt; 12])">0</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+                <arg name="/doc/special">dontmatch</arg>
+                <arg name="/doc/new-session">dontmatch</arg>
+                <arg name="/doc/new-sslsession">dontmatch</arg>
+                <arg name="/doc/auth/secure">1</arg>
+                <arg name="/doc/have_password">0</arg>
+                <arg name="/doc/is_reg_completion_recommended">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/value">NEED_RESET</arg>
+                <arg name="/status/id">1</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">71016</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/new-session">dontmatch</arg>
+                <arg name="/new-sslsession">dontmatch</arg>
+                <arg name="/auth/secure">true</arg>
+                <arg name="/auth/have_password">false</arg>
+                <arg name="/is_reg_completion_recommended">0</arg>
+            </jsonBody>
+        </result>
+
+        <result name="id_doregish_is_valid">
+            <body func="matchxpath">
+                <arg name="/doc/status">NEED_RESET</arg>
+                <arg name="/doc/status/@id">1</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">71016</arg>
+                <arg name="count(/doc/age[text() &gt; 8 and text() &lt; 12])">0</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+                <arg name="/doc/special">dontmatch</arg>
+                <arg name="/doc/new-session">dontmatch</arg>
+                <arg name="/doc/new-sslsession">dontmatch</arg>
+                <arg name="/doc/auth/secure">1</arg>
+                <arg name="/doc/have_password">0</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status/value">NEED_RESET</arg>
+                <arg name="/status/id">1</arg>
+                <arg name="/error">OK</arg>
+                <arg name="/uid/value">71016</arg>
+                <arg name="/dbfields">dontmatch</arg>
+                <arg name="/new-session">dontmatch</arg>
+                <arg name="/new-sslsession">dontmatch</arg>
+                <arg name="/auth/secure">true</arg>
+                <arg name="/auth/have_password">false</arg>
+            </jsonBody>
+        </result>
+
+    </variables>
+
+    <node>
+        <description> blackbox sessionid method test </description>
+        <url>http://passdev2.yandex.ru</url>
+
+        <case lastid="check_is_reg_completion_recommended">
+            <description>Testing is_reg_completion_recommended</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="sessionid">*</cgi>
+            <cgi name="get_reg_completion_recommendation_with_yp" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="sessionid">need_reg_completed</cgi>
+                <cgi name="get_reg_completion_recommendation_with_yp">lrcs_in_past</cgi>
+                <result>recommend_reg_completion</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">need_reg_completed</cgi>
+                <cgi name="get_reg_completion_recommendation_with_yp">lrcs_in_future;empty</cgi>
+                <result>not_recommend_reg_completion</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">need_reg_completed</cgi>
+                <cgi name="get_reg_completion_recommendation_with_yp" withnull="1"></cgi>
+                <result>id_doregish_is_valid</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_valid</cgi>
+                <cgi name="get_reg_completion_recommendation_with_yp" withnull="1">*</cgi>
+                <result>id_valid_secure</result>
+            </check>
+
+        </case>
+    </node>
+
+</test>

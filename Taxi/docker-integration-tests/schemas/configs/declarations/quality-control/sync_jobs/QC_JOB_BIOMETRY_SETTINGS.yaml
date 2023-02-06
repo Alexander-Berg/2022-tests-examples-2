@@ -1,0 +1,49 @@
+default: {}
+description: Настойки джоб биометрии
+maintainers:
+  - yakov-l
+  - akubarev
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        url_ttl:
+            type: integer
+            description: Время на которое выдается проверка в минутах
+            minimum: 1
+        etalons_limit:
+            type: object
+            description: ограничение на кол-во хранимых эталонов по типам
+            additionalProperties:
+                type: integer
+            __default__:
+                type: integer
+            required:
+              - __default__
+        ml_timeout:
+            type: integer
+            description: время в секундах на принятие решения ML от момента добавления
+                проверки
+        toloka_push_pool_id:
+            type: string
+            description: пул для создания проверок
+        toloka_pull_pool_id:
+            type: string
+            description: пул для получения проверок
+
+samples:
+  - etalons_limit:
+        __default__: 20
+        photo: 50
+  - etalons_limit:
+        __default__: 20
+    ml_timeout: 60
+    url_ttl: 5
+    toloka_push_pool_id: "A324567"
+
+invalid-samples:
+  - etalons_limit:
+        photo: 50
+  - url_ttl: 0
+

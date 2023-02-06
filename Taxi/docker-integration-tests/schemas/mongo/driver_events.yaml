@@ -1,0 +1,98 @@
+settings:
+    collection: driver_events
+    connection: driver_events
+    database: dbdriver_events
+indexes:
+  - key:
+      - name: driver_id
+        type: ascending
+      - name: order_id
+        type: ascending
+    unique: true
+  - key:
+      - name: order_alias_id
+        type: ascending
+  - key:
+      - name: unique_driver_id
+        type: ascending
+      - name: order_id
+        type: ascending
+  - key:
+      - name: unique_driver_id
+        type: ascending
+      - name: processed
+        type: ascending
+  - expireAfterSeconds: 604800
+    key: updated
+wiki_info: |
+    #### driver_events
+    *Назначение:* Хранит различные события по водителю в контексте заказа. Одна запись -- одно событие.
+    Нужна для обсчёта рейтинга в реалтайме. Льётся в YT.
+
+    *Структура документов:*
+    ```python
+    driver_events = {
+        # id события
+        '_id': ObjectId,
+        # id заказа
+        'order_id': 'd7cb9c0f60194333947afeb054796db5',
+        # id заказа для партнёра (alias_id из order_proc)
+        'order_alias_id': '1a6ffe8d3115462c8d69739ce43cad52',
+        # id профиля водителя
+        'driver_id': '999002_1a14c0d21ffa4d10a03d87aad7b95358',
+        # id парка, в котором работает водитель
+        'db_id': '7ad36bc7560449998acbe2c57a75c293',
+        # водительские права, по которым можно найти одного из unique_drivers
+        'license': 'RB131791',
+        # время подачи до точки А в секундах
+        'time_to_a': 612,
+        # расстояние до точки А в метрах
+        'distance_to_a': 2898,
+        # время начала поездки
+        'ride_start_time': datetime.datetime.utcnow(),
+        # время окончания поездки
+        'ride_finish_time': datetime.datetime.utcnow(),
+        # маршрут
+        'destination_points': [{
+            "address": 'Садовническая улица, 79',
+            "location": [37.64305993129574,
+                                          55.73507668622962]
+        }],
+        # цена заказа для водителя
+        'cost': '305.0',
+        # код валюты
+        'currency_code': 'RUB',
+        # код события из rates.py (см ниже)
+        'field': 'c',
+        # Сколько driver points должен получить водитель за заказ
+        'driver_points': 10,
+        # ID города, нужно для того, чтобы взять конфиги Rates
+        'city_id': 'moscow',
+        # Текущие значения acceptance_rate, completed_rate и driver_points кандидата (для истории)
+        'current_ar': 0.75,
+        'current_cr': 0.86,
+        'current_dp': 85.0,
+        # Было ли уже обработано данное событие (для рассчёта рейтинга), изначально False.
+        'processed': True,
+        # Время создание записи
+        'created': datetime.datetime.utcnow(),
+        # Последнее время обновления записи. Нужно для заливки в YT
+        'updated': datetime.datetime.utcnow(),  # ($currentDate)
+    }
+
+    ```
+    *Коды событий:*
+    ```python
+    USER_CANCELLED_FIELD = 'u'
+    USER_CANCELLED_DRIVER_REQUEST_FIELD = 'd'
+    COMPLETE_FIELD = 'c'
+    ASSIGNED_CANCELLED_FIELD = 'a'
+    REQUESTCAR_CANCELLED_FIELD = 'r'
+    REQUESTCAR_CANCELED_MANUAL_FIELD = 'n'
+    REQUESTCAR_AUTOCANCEL_FIELD = 'o'
+    CHAINED_REQUESTCAR_CANCELLED_FIELD = 'p'
+    LONG_WAITING_FIELD = 'w'
+    OFFER_TIMEOUT_FIELD = 't'
+    CHAINED_OFFER_TIMEOUT_FIELD = 's'
+    AMNESTY_FIELD = 'm'
+    ```

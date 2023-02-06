@@ -1,0 +1,55 @@
+default: {"experiments": {}, "exp_data": {'consumers_kwargs': []}}
+description: |
+    Общий конфиг экспериментов 3.0, содержащий конфиги, использующиеся на фронте.
+    Описание конфигов https://wiki.yandex-team.ru/taxi/backend/architecture/experiments3/Manual/#konfigijeksperimentov
+tags: [fallback]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        experiments:
+            $ref: '#/definitions/Experiments'
+
+        exp_data:
+            $ref: '#/definitions/Exp_data'
+
+    definitions:
+        Experiments:
+            type: object
+            additionalProperties:
+                description: Ключ - название фичи эксперимента. Значение - true |
+                    false
+                type: boolean
+            properties: {}
+            example: {'enable_falls_inside': true, 'exp_enable_sql_serialization': true}
+
+        Exp_data:
+            type: object
+            additionalProperties:
+                description: Конфиги сложной структуры. Ключ - название данных. Значение
+                    - формат этих данных.
+                oneOf:
+                  - $ref: '#/definitions/Consumers_kwargs'
+            properties: {}
+            example: {'consumers_kwargs': [{"auditorium": "passengers", "consumers": [
+                            "client_protocol/launch"]}]}
+
+        Consumers_kwargs:
+            description: Списки потребителей для каждого типа аудитории для эксперимента
+            type: array
+            items:
+                type: object
+                required:
+                  - auditorium
+                  - consumers
+                properties:
+                    auditorium:
+                        type: string
+                        enum:
+                          - "drivers"
+                          - "passengers"
+                    consumers:
+                        type: array
+                        items:
+                            type: string
+            example: [{"auditorium": "passengers", "consumers": ["client_protocol/launch"]}]

@@ -1,0 +1,61 @@
+
+    -- Check Daily AuditBudget
+    USE hahn;
+
+    $ToDatetime = ($ts) -> {
+        RETURN DateTime::MakeDatetime(DateTime::FromSeconds(CAST($ts AS Uint32)))
+    };
+
+    $LocalizeDatetime = ($dt) -> {
+        RETURN DateTime::MakeTzDatetime(AddTimezone($dt, 'Europe/Moscow'))
+    };
+
+    $ToLocalTzDatetime = ($ts) -> {
+        RETURN $LocalizeDatetime($ToDatetime($ts))
+    };
+
+    $rubCurID = 643;
+
+    $rubCompensationLimit = 300;
+
+    $availableSpentRate = 1;
+
+    -- Arguments:
+    $runTimestamp = 01012022;
+
+    SELECT
+        RunTime,
+        LimitType,
+        A.OrderID AS OrderID,
+        $ToLocalTzDatetime(AutobudgetStartTime) AS AutobudgetStartTime,
+        $ToLocalTzDatetime(PeriodStartTime) AS PeriodStartTime,
+        $ToLocalTzDatetime(PeriodFinishTime) AS PeriodFinishTime,
+        LimitBudget,
+        LimitBudgetCur,
+        Budget,
+        BudgetCur,
+        Exceed,
+        ExceedCur,
+        ExceedRate,
+        ExceedCurRate,
+        1.0 * (
+            BudgetCur - LimitBudgetCur * $availableSpentRate
+        ) * C.Ratio / 1000 / 1000 AS Compensation,
+        IF(C.CurrencyID = $rubCurID, 1.0 * (
+            BudgetCur - LimitBudgetCur * $availableSpentRate
+        ) * C.Ratio / 1000 / 1000 > $rubCompensationLimit, NULL) AS IsCompensationNeeded,
+        $ToLocalTzDatetime(FirstEvent) AS FirstEvent,
+        $ToLocalTzDatetime(LastEvent) AS LastEvent,
+    FROM
+        `//home/yabs/autobudget/AuditBudget` AS A
+    INNER JOIN
+        `//home/yabs/dict/CaesarOrderInfo` AS O
+    ON
+        O.OrderID = A.OrderID
+    INNER JOIN
+        `//home/yabs/dict/Currency` AS C
+    ON
+        C.CurrencyID = O.CurrencyID
+    WHERE
+        RunTime = $runTimestamp
+    ;

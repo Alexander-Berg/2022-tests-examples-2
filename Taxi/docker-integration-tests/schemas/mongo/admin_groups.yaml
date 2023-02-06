@@ -1,0 +1,54 @@
+settings:
+    collection: admin_groups
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: name
+    unique: true
+  - key: permissions.id
+wiki_info: |
+    ####dbtaxi.admin_groups - Права доступа к админке
+
+    ```python
+    admin_groups = {
+        # идентификатор группы
+        '_id': uuid,
+        # время посденего обновления документа
+        'updated': datetime.datetime,
+        # время создания документа
+        'created': datetime.datetime,
+        # человекочитаемое название группы, передается в Управлятор
+        'name': 'Группа',
+        # список пермишенов, которые предоставляет данная группа
+        'permissions': [
+            {
+                # идентификатор пермишена
+                'id': 'change_app_version_info',
+                # режим
+                'mode': 'unrestricted'
+            },
+            {
+                'id': 'view_order_payments',
+                'mode': 'countries_filter',
+                # фильтр доступов по странам
+                'countries_filter': ['rus'],
+            },
+            ...
+        ]
+    }
+    ```
+
+    Админка распознает следующие разрешения (через ```|``` в скобках обозначены
+    альтернативные суффиксы):
+
+    ```
+    view_(logs|imports|partners|parks|prepay|drivers|cities|orders|stats|map|
+          messages|static_texts|news|experiment|punishment|scores|mqc|coupons|
+          billing|exams)
+    edit_(parks|cities|messages|static_texts|news|mqc|coupons)
+    ban_driver
+    ban_user
+    rollback_order
+    download_talk
+    link_tariffs
+    ```

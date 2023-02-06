@@ -1,0 +1,477 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_enable_plaque.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+tests:
+  - name: compoite_payment_ok
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:taxi:composite_payment
+                    condition:
+                        screens:
+                          - summary
+                    layout: VERTICAL
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    priority: 50
+                    widgets:
+                      - widget:common:balance_without_text
+                      - widget:taxi:composite_payment
+
+                widgets:
+                  - widget_id: widget:taxi:composite_payment
+                    type: SWITCH
+                    switch:
+                        text: Списать $$COMPOSITE_PAYMENT_AMOUNT$$ баллов
+                    action:
+                        setting_id: composite_payment.enabled
+                        type: SETTING
+
+                  - widget_id: widget:common:balance_without_text
+                    type: BALANCE
+                    balance: {}
+
+  - name: wallets_hidden_compoite_payment_hidden
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3-wallet-hidden.json"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques: []
+                widgets: []
+
+  - name: buy_plus_ok
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:global:buy_plus
+                    condition:
+                        screens:
+                          - main
+                    layout: VERTICAL
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    priority: 10
+                    widgets:
+                      - widget:common:balance_without_text
+                      - widget:common:buy_plus
+
+                widgets:
+                  - widget_id: widget:common:buy_plus
+                    type: BUTTON
+                    button:
+                        text: Активировать
+                  - widget_id: widget:common:balance_without_text
+                    type: BALANCE
+                    balance: {}
+
+  - name: text_burn_widget
+    marks:
+      - name: now
+        args:
+          - "2021-07-20T12:00:00+00:00"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_enable_burn.json"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "100"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+      - url: /cashback-annihilator/v1/annihilation/info
+        response:
+            status: 200
+            body:
+                annihilations:
+                  - annihilation_date: "2021-07-26T09:01:50+00:00"
+                    balance_to_annihilate: "100"
+                    currency: RUB
+                    wallet_id: "test_wallet_id"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:global:buy_plus
+                    condition:
+                        screens:
+                          - main
+                    layout: VERTICAL
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    priority: 10
+                    widgets:
+                      - widget:common:balance_without_text
+                      - widget:common:buy_plus
+                  - plaque_id: plaque:taxi:plus_burns
+                    condition:
+                        screens:
+                          - summary
+                        unseen_typed_screens:
+                          - plus_burns
+                          - sweet-home:burn
+                    layout: VERTICAL
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    priority: 5
+                    widgets:
+                      - widget:common:balance_without_text
+                      - widget:taxi:plus_burns
+                widgets:
+                  - widget_id: widget:taxi:plus_burns
+                    type: TEXT
+                    action:
+                        deeplink: yandextaxi://plusburns
+                        type: DEEPLINK
+                    text:
+                        text: "Баллы сгорят через 6 дней"
+                  - widget_id: widget:common:buy_plus
+                    type: BUTTON
+                    button:
+                        text: Активировать
+                  - widget_id: widget:common:balance_without_text
+                    type: BALANCE
+                    balance: {}
+
+
+
+  - name: plaque:taxi:catching_up_cashback_no_positive_balance_with_no_plus
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "catching_up_cashback"
+            X-YaTaxi-Pass-Flags: "portal"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "0"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:taxi:catching_up_cashback_no_positive_balance
+                    priority: 5
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    layout: VERTICAL
+                    condition:
+                        screens:
+                          - summary
+                    widgets:
+                      - widget:taxi:catching_up_cashback:no_balance_top_text_with_cashback
+                      - widget:taxi:catching_up_cashback:text
+                      - widget:taxi:catching_up_cashback
+
+                widgets:
+                  - widget_id: widget:taxi:catching_up_cashback:text
+                    type: TEXT
+                    text:
+                        attributed_text:
+                            items:
+                              - text: баллов за эту поездку
+                                type: text
+                        text: баллов за эту поездку
+                  - widget_id: widget:taxi:catching_up_cashback
+                    type: BUTTON
+                    button:
+                        text: Забрать
+                    action:
+                        deeplink: yandextaxi://catching_up_cashback
+                        type: DEEPLINK
+                        templates:
+                          - $$CASHBACK$$
+                  - widget_id: widget:taxi:catching_up_cashback:no_balance_top_text_with_cashback
+                    type: TEXT
+                    text:
+                        attributed_text:
+                            items:
+                              - text: +$$CASHBACK$$
+                                type: text
+                        text: +$$CASHBACK$$
+
+
+
+  - name: plaque:taxi:catching_up_cashback_no_positive_balance_with_plus
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "catching_up_cashback"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "0"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:taxi:catching_up_cashback_no_positive_balance_success_purchase
+                    priority: 5
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    layout: VERTICAL
+                    condition:
+                        screens:
+                          - summary
+                    widgets:
+                      - widget:taxi:catching_up_cashback:no_balance_top_text_with_cashback
+                      - widget:taxi:catching_up_cashback:after_purchase_plus:cashback_after_ride:no_balance
+
+                widgets:
+                  - widget_id: widget:taxi:catching_up_cashback:after_purchase_plus:cashback_after_ride:no_balance
+                    type: TEXT
+                    text:
+                        text: после поездки
+                        attributed_text:
+                            items:
+                              - text: после поездки
+                                type: text
+                  - widget_id: widget:taxi:catching_up_cashback:no_balance_top_text_with_cashback
+                    type: TEXT
+                    text:
+                        text: +$$CASHBACK$$
+                        attributed_text:
+                            items:
+                              - text: +$$CASHBACK$$
+                                type: text
+
+
+
+
+  - name: plaque:taxi:catching_up_cashback_has_positive_balance_no_plus
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "catching_up_cashback"
+            X-YaTaxi-Pass-Flags: "portal"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "100"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:taxi:catching_up_cashback_has_positive_balance
+                    priority: 5
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    layout: VERTICAL
+                    condition:
+                        screens:
+                          - summary
+                    widgets:
+                      - widget:taxi:catching_up_cashback:has_balance_top_text_with_cashback
+                      - widget:taxi:catching_up_cashback:text
+                      - widget:taxi:catching_up_cashback
+
+                widgets:
+                  - widget_id: widget:taxi:catching_up_cashback
+                    type: BUTTON
+                    button:
+                        text: Забрать
+                    action:
+                        deeplink: yandextaxi://catching_up_cashback
+                        type: DEEPLINK
+                        templates:
+                          - $$CASHBACK$$
+                  - widget_id: widget:taxi:catching_up_cashback:text
+                    type: TEXT
+                    text:
+                        text: баллов за эту поездку
+                        attributed_text:
+                            items:
+                              - text: баллов за эту поездку
+                                type: text
+                  - widget_id: widget:taxi:catching_up_cashback:has_balance_top_text_with_cashback
+                    type: TEXT
+                    text:
+                        text: $$CASHBACK$$
+                        attributed_text:
+                            items:
+                              - text: $$CASHBACK$$
+                                type: text
+
+
+
+  - name: plaque:taxi:catching_up_cashback_has_positive_balance_with_plus
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "catching_up_cashback"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "100"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:taxi:catching_up_cashback_has_positive_balance_success_purchase
+                    priority: 5
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    layout: VERTICAL
+                    condition:
+                        screens:
+                          - summary
+                    widgets:
+                      - widget:common:balance_without_text
+                      - widget:taxi:catching_up_cashback:after_purchase_plus:cashback_after_ride:has_balance
+
+                widgets:
+                  - widget_id: widget:taxi:catching_up_cashback:after_purchase_plus:cashback_after_ride:has_balance
+                    type: HORIZONT_TEXT
+                    horizont_text:
+                        text_left:
+                            items:
+                              - text: после поездки
+                                type: text
+                        text_right:
+                            items:
+                              - text: +$$CASHBACK$$
+                                type: text
+                    templates:
+                      - $$CASHBACK$$
+                  - widget_id: widget:common:balance_without_text
+                    type: BALANCE
+                    balance: {}

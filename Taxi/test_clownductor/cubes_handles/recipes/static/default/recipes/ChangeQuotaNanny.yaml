@@ -1,0 +1,59 @@
+data:
+    name: ChangeQuotaNanny
+    provider_name: clownductor
+    job_vars:
+      - service_id
+      - project_id
+      - new_quota_abc
+      - st_ticket
+      - user
+      - service_abc
+    stages:
+      - name: AbcMoveService
+        provider_name: clownductor
+        input:
+            service_abc: service_abc
+            move_to_service_abc: new_quota_abc
+        output:
+            move_id: move_id
+
+      - name: AbcCubeWaitChangeServiceParent
+        provider_name: clownductor
+        input:
+            move_id: move_id
+
+      - name: MetaChangeServiceQuotaNanny
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            user: user
+            new_quota_abc: new_quota_abc
+            st_ticket: st_ticket
+        output:
+            job_ids: job_ids
+
+      - name: MetaCubeWaitForJobs
+        provider_name: clownductor
+        input:
+            job_ids: job_ids
+            project_id: project_id
+            service_id: service_id
+            new_service_ticket: st_ticket
+
+      - name: MetaChangeQuotaBalancers
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            user: user
+            new_quota_abc: new_quota_abc
+            st_ticket: st_ticket
+        output:
+            job_id: job_id
+
+      - name: MetaCubeWaitForJob
+        provider_name: clownductor
+        input:
+            job_id: job_id
+            project_id: project_id
+            service_id: service_id
+            new_service_ticket: st_ticket

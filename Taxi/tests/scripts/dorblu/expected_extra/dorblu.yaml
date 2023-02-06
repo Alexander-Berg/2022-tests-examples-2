@@ -1,0 +1,64 @@
+group:
+  type: rtc
+  name: some_dorblu_name
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  some.test.hostname.net:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/__ping_GET:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/ping" }
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/some-url_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/some-url/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  wms.taxi.tst.yandex.net/4.0/support_chat_GET:
+    And:
+      - Equals: { http_host: "wms.taxi.tst.yandex.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/4.0/support_chat" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request

@@ -1,0 +1,50 @@
+id: test_activity_ok
+title: Проверяем что нормально отработаем 2 паралельных вызова с 200
+
+source:
+    request:
+        method: post
+        query:
+            some_string: some text
+            shipping_type: delivery
+        body:
+            items#array:
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+    expectations:
+        response:
+            status-code: 200
+            body:
+                Test-Param: must_be1
+
+mocks:
+  - resource: eats-launch-v1-experiments
+    response:
+        status-code: 200
+        body:
+            Test-Param: must_be1
+    expectations:
+        call-count: 1
+        request:
+            query:
+                some_string: some text
+                shipping_type: delivery
+            body:
+                items#array:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+
+  - resource: eats-partners-internal-v1-log-activity-post
+    response:
+        status-code: 200
+        body:
+            Test-Param: must_be2
+    expectations:
+        call-count: 1
+        request:
+            query:
+                partner_id#string: 123
+            body:
+            headers:

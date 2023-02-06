@@ -1,0 +1,72 @@
+id: driver-route-responder-routeinfo-fallback
+title: |
+    Заполняем route-info по protocol/totw если driver-route-responder
+    не работает (order-core-info/routeinfo игнорируется)
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                routeinfo:
+                    time_left: 100
+                    distance_left: 1000
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            routeinfo:
+                time_left: 100
+                distance_left: 1000
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                driver_id: dbid_uuid
+            status: driving
+            routeinfo:
+                time_left: 400
+                distance_left: 4000
+  - resource: driver-route-responder-timeleft
+    response:
+        status-code: 500
+        body:
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                driver: 'dbid_uuid'
+                order_id: 'order_id'
+                meta:
+                    source: taxiontheway
+                    order_id: 'order_id'
+                    visible: true
+                filters:
+                  - filter: MinEta
+                    min_eta: 60 # this one is from hardcoded section
+                  # but no other filters should be present
+            content-type: application/json

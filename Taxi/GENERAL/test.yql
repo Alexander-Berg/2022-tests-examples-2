@@ -1,0 +1,80 @@
+-- Тесты, чтобы проверить, что логика не сломалась
+
+use hahn;
+
+$fct_operator_state_hist = "//home/taxi-dwh-dev/vasilevel/taxi/cdm/callcenter/fct_operator_state_hist/2021-09-01";
+$save_errors_to = "//home/taxi-dwh-dev/vasilevel/taxi/cdm/callcenter/tests";
+
+$errors = (
+    select
+        -- мы всегда понимаем, что делает оператор
+        operator_state_code is null as no_state_code,
+        -- нет пересечений
+        next_utc_valid_from_dttm < utc_valid_to_dttm as finished_after_next_starts,
+        -- postcall всегда идет только после talking
+        (next_event_type = 'postcall' and event_type != 'talking') as wrong_postcall_order,
+        -- talking всегда идет только после waiting
+        (next_event_type = 'talking' and event_type != 'waiting') as wrong_talking_order,
+        -- следующее событие начинается сразу после завершеиня текущего, если это не disconnected
+        -- (нет дыр)
+        (event_type != 'disconnected' and utc_valid_to_dttm < next_utc_valid_from_dttm) as gap_after_event,
+
+        agent_id,
+        event_type,
+        operator_state_code,
+        utc_valid_from_dttm,
+        utc_valid_to_dttm,
+
+        next_utc_valid_from_dttm,
+        next_event_type,
+        next_operator_state_code,
+
+        prev_utc_valid_to_dttm,
+        prev_event_type,
+        prev_operator_state_code
+
+    from (
+        SELECT
+            agent_id,
+            event_type,
+            operator_state_code,
+            utc_valid_from_dttm,
+            utc_valid_to_dttm,
+            lead(utc_valid_from_dttm) over w as next_utc_valid_from_dttm,
+            lead(event_type) over w as next_event_type,
+            lead(operator_state_code) over w as next_operator_state_code,
+
+            lag(utc_valid_to_dttm) over w as prev_utc_valid_to_dttm,
+            lag(event_type) over w as prev_event_type,
+            lag(operator_state_code) over w as prev_operator_state_code
+        FROM $fct_operator_state_hist
+        window w as (
+            partition by agent_id
+            order by utc_valid_from_dttm
+        )
+    )
+);
+
+commit;
+
+
+INSERT INTO $save_errors_to
+WITH TRUNCATE
+
+select *
+from $errors
+where no_state_code
+        or finished_after_next_starts
+        or wrong_postcall_order
+        or wrong_talking_order
+        or gap_after_event
+;
+
+select
+    sum(1) as total_rows,
+    count_if(no_state_code) as no_state_code,
+    count_if(finished_after_next_starts) as finished_after_next_starts,
+    count_if(wrong_postcall_order) as wrong_postcall_order,
+    count_if(wrong_talking_order) as wrong_talking_order,
+    count_if(gap_after_event) as gap_after_event
+from $errors

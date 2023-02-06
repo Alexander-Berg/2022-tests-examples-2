@@ -1,0 +1,29 @@
+name: test_sharded_rule
+queue_data:
+    db_cluster: replication_queue_mdb_0
+    shards_num: 4
+replication_type: queue
+source:
+    type: mongo
+    collection_name: test_coll
+    replicate_by: updated
+destinations:
+  - test_sharded_rule_sharded_struct:
+        type: yt
+        mapper: test_struct_mapper
+        target:
+            common_mapper_columns: true
+            partial_update: true
+            path: test/test_struct_sharded
+            cluster_groups:
+              - map_reduce
+              - group_name: runtime
+                destination_alias: test_sharded_rule_sharded_struct_runtime
+    test_sharded_rule_no_partial:
+        type: yt
+        mapper: test_struct_mapper
+        target:
+            partial_update: false
+            path: test/test_struct_sharded_no_partial
+            cluster_groups:
+              - map_reduce

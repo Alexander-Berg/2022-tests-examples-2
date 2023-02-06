@@ -1,0 +1,86 @@
+default:
+    __default__:
+        driver: []
+        chain_destination: []
+        order: []
+
+description: Типы рёбер для которых использовать обратное ребро при поиска водителя
+    на графе по зонам. Именно этот конфиг имеет конечное значение для каждой зоны,
+    а конфиг GRAPH_SEARCH_REVERSE_EDGE_CATEGORIES должен содержать все возможные типы
+    рёбер у которых может быть обратное ребро.
+tags: []
+schema:
+    additionalProperties:
+        $ref: '#/definitions/reverse_edge_categories'
+    properties:
+        __default__:
+            $ref: '#/definitions/reverse_edge_categories'
+    required:
+      - __default__
+    type: object
+    definitions:
+        edge_categories:
+            type: array
+            items:
+                enum:
+                  - highways
+                  - federal_roads
+                  - interregional_roads
+                  - regional_roads
+                  - district_roads
+                  - local_roads
+                  - roads
+                  - passes
+                  - field_roads
+                  - pedestrian_roads
+                type: string
+
+        reverse_edge_categories:
+            type: object
+            required:
+              - driver
+              - order
+              - chain_destination
+            properties:
+                driver:
+                    description: Типы обратных рёбер для поиска водителей
+                    $ref: '#/definitions/edge_categories'
+                order:
+                    description: Типы обратных рёбер для точки заказа (точка А)
+                    $ref: '#/definitions/edge_categories'
+                chain_destination:
+                    description: Типы обратных рёбер для точки Б для водителей по
+                        цепочке
+                    $ref: '#/definitions/edge_categories'
+            additionalProperties: false
+
+samples:
+  - __default__:
+        chain_destination:
+          - passes
+          - roads
+          - local_roads
+          - field_roads
+        driver:
+          - passes
+          - roads
+          - local_roads
+          - field_roads
+        order:
+          - passes
+          - roads
+          - local_roads
+          - field_roads
+    moscow:
+        chain_destination:
+          - passes
+          - roads
+          - field_roads
+        driver:
+          - passes
+          - roads
+          - field_roads
+        order:
+          - passes
+          - roads
+          - field_roads

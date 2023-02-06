@@ -1,0 +1,1909 @@
+<test>
+    <!--This test covers main cases related to PDD (Mail-for-Domains).
+    We test basic correctness of all methods, all sorts of aliasing
+    and wildcarding and domain's "ena" flag.
+
+    This test relies on the configuration below.-->
+
+    <![CDATA[
+
+mysql> select domid, domain, ena, default_uid, master_domain from hosted_domains where domain in ('yaaa.ru','potapov.com','imap1.yandex.ru','denis-anikin.ru','marino4ka.ru','blocked.ru');
++-------+---------------------------+-----+------------------+-----------------+
+| domid | domain                    | ena | default_uid      | master_domain   |
++-------+---------------------------+-----+------------------+-----------------+
+| 30997 | blocked.ru                |   0 |                0 |                 |  blocked domain
+|  3754 | denis-anikin.ru           |   1 |                0 | marino4ka.ru    |  alias for domain with default user
+|     2 | imap1.yandex.ru           |   1 |                0 |                 |  domain with alias, blocked user (fire) and no default user
+|  3751 | marino4ka.ru              |   1 | 1130000000011693 |                 |  domain with alias, dotted user and default user
+|  4643 | potapov.com               |   1 |                0 | imap1.yandex.ru |
+|  4640 | yaaa.ru                   |   1 |                0 | imap1.yandex.ru |
+| 27307 | xn--80aalbavookw.xn--p1ai |   1 |            14181 |                 |  'админкапдд.рф'
++-------+---------------------------+-----+------------------+-----------------+
+
+mysql> select * from domains_subscription where login in ('robbitter-4480829663@blocked.ru','fire@imap1.yandex.ru','aaz@imap1.yandex.ru','dot.user@marino4ka.ru','test43@imap1.yandex.ru','mememe@imap1.yandex.ru','bububu@marino4ka.ru','test44@imap1.yandex.ru') and sid in (2,105) order by uid,sid;
++------------------+-----+------------------+---------------------------------+---------+------------+---------------------+
+| suid             | sid | uid              | login                           | host_id | login_rule | born_date           |
++------------------+-----+------------------+---------------------------------+---------+------------+---------------------+
+| 1130000000017555 |   2 | 1130000000008772 | fire@imap1.yandex.ru            |      11 |          1 | 2010-03-16 18:31:42 | blocked user
+| 1130000000021710 |   2 | 1130000000010830 | test43@imap1.yandex.ru          |       2 |          1 | 2010-05-20 14:43:35 | user with many aliases
+| 1130000000023702 | 105 | 1130000000010830 | mememe@imap1.yandex.ru          |    NULL |          1 | 2010-06-24 14:17:40 |    1st alias
+| 1130000000023607 | 105 | 1130000000010830 | test44@imap1.yandex.ru          |    NULL |          1 | 2010-06-22 18:39:25 |    2nd alias
+| 1130000000023505 |   2 | 1130000000011693 | bububu@marino4ka.ru             |       2 |          1 | 2010-06-21 14:49:08 | default user on domain
+| 1130000000082718 |   2 | 1130000000036300 | robbitter-4480829663@blocked.ru |       4 |          1 | 2014-02-27 17:37:05 | user on blocked domain
+| 1130000000084720 |   2 | 1130000000036796 | dot.user@marino4ka.ru           |       2 |          1 | NULL                | user with dot
+| 1130000000081748 |   2 | 1130000000036031 | qwe@xn--80aalbavookw.xn--p1ai   |       2 |          1 | NULL                | user in cyr domain
++------------------+-----+------------------+---------------------------------+---------+------------+---------------------+
+    ]]>
+
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="method">
+            <instance id="login">login</instance>
+            <instance id="sessionid">sessionid</instance>
+            <instance id="userinfo">userinfo</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="localhost">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">www.yandex.ru</instance>
+        </cgi>
+
+        <cgi name="uid">
+            <instance id="dot.user">1130000000036796</instance>
+            <instance id="test43">1130000000010830</instance>
+            <instance id="dis_account">1130000000008772</instance>
+            <instance id="dis_domain">1130000000036300</instance>
+            <instance id="frozen_account">1130000000000003</instance>
+            <instance id="qwe">1130000000036031</instance>
+            <instance id="org_id_uids">70500,1130000000000001,1130000000000002,1130000000011693,1130000000036796,1130000000003226,1130000000003227,1130000000000949,1130000000000950,70500,1130000000000001</instance>
+            <instance id="many_uids">70500,1130000000000001,1130000000000002,1130000000011693,1130000000036796,1130000000003226,1130000000003227,1130000000000949,1130000000000950,70501</instance>
+        </cgi>
+
+        <cgi name="login">
+            <instance id="dis_account">fire@imap1.yandex.ru</instance>
+            <instance id="dis_account_ppv">fire@potapov.com</instance>
+            <instance id="dis_account_yaaa">fire@yaaa.ru</instance>
+            <instance id="dis_domain">robbitter-4480829663@blocked.ru</instance>
+            <instance id="frozen_account">frozen@imap1.yandex.ru</instance>
+            <instance id="alien">unknown@alien.ru</instance>
+            <instance id="broken">malformed@.уандех.ру</instance>
+
+            <instance id="test43_imap">test43@imap1.yandex.ru</instance>
+            <instance id="test44_imap">test44@imap1.yandex.ru</instance>
+            <instance id="mememe_imap">mememe@imap1.yandex.ru</instance>
+            <instance id="notfound_imap">notfound@imap1.yandex.ru</instance>
+
+            <instance id="test43_ppv">test43@potapov.com</instance>
+            <instance id="test44_ppv">test44@potapov.com</instance>
+            <instance id="mememe_ppv">mememe@potapov.com</instance>
+            <instance id="notfound_ppv">notfound@potapov.com</instance>
+
+            <instance id="test43_yaaa">test43@yaaa.ru</instance>
+            <instance id="test44_yaaa">test44@yaaa.ru</instance>
+            <instance id="mememe_yaaa">mememe@yaaa.ru</instance>
+            <instance id="notfound_yaaa">notfound@yaaa.ru</instance>
+
+            <instance id="dot.user_m">dot.user@marino4ka.ru</instance>
+            <instance id="dot.user_d">dot.user@denis-anikin.ru</instance>
+            <instance id="dot.user_case">Dot.User@Denis-Anikin.ru</instance>
+            <instance id="dot.user_baddomain">dot.user@denis.anikin.ru</instance>
+            <instance id="dot-user_m">dot-user@marino4ka.ru</instance>
+            <instance id="dot-user_d">dot-user@denis-anikin.ru</instance>
+            <instance id="notfound_m">notfound@marino4ka.ru</instance>
+            <instance id="notfound_d">notfound@denis-anikin.ru</instance>
+
+            <instance id="qwepuny">qwe@xn--80aalbavookw.xn--p1ai</instance>
+            <instance id="qwecyr">qwe@админкапдд.рф</instance>
+        </cgi>
+
+        <cgi name="suid">
+            <instance id="test43">1130000000021710</instance>
+            <instance id="test44">1130000000023607</instance>
+            <instance id="mememe">1130000000023702</instance>
+            <instance id="dot.user">1130000000084720</instance>
+            <instance id="dis_account">1130000000017555</instance>
+            <instance id="dis_domain">1130000000082718</instance>
+            <instance id="qwe">1130000000081748</instance>
+            <instance id="unknown">1130000000000011</instance>
+        </cgi>
+
+        <cgi name="password">
+            <instance id="valid">123456</instance>
+            <instance id="qweasd">qweasd</instance>
+            <instance id="bad">abcdef</instance>
+        </cgi>
+
+        <cgi name="captcha">
+            <instance id="no">no</instance>
+        </cgi>
+
+        <cgi name="regname">
+            <instance id="yes">yes</instance>
+        </cgi>
+
+        <cgi name="sid">
+            <instance id="passport">passport</instance>
+            <instance id="smtp">smtp</instance>
+            <instance id="pop">pop</instance>
+            <instance id="mail">mail</instance>
+            <instance id="2">2</instance>
+            <instance id="105">105</instance>
+        </cgi>
+
+        <cgi name="dbfields">
+            <instance id="empty"/>
+            <instance id="info">account_info.fio.uid</instance>
+            <instance id="everything">accounts.login.uid,account_info.fio.uid,accounts.ena.uid,subscription.login.2,subscription.suid.2,hosts.db_id.2</instance>
+            <instance id="everything_pseudo">accounts.login.uid,account_info.fio.uid,accounts.ena.uid,subscription.login.-,subscription.suid.-,hosts.db_id.-</instance>
+        </cgi>
+
+        <cgi name="attributes">
+            <instance id="org_attrs">168,1011,1017</instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <arg name="host">www.yandex.ru</arg>
+            <arg name="type">valid</arg>
+            <arg name="time">-10</arg>
+            <instance id="test43_valid">
+                <arg name="uid">1130000000010830</arg>
+            </instance>
+            <instance id="dot.user_valid">
+                <arg name="uid">1130000000036796</arg>
+            </instance>
+            <instance id="qwe_valid">
+                <arg name="uid">1130000000036031</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="force_show_mail_subscription">
+            <instance id="yes">yes</instance>
+        </cgi>
+
+        <result name="ignore">
+            <body func="ignore"/>
+        </result>
+
+        <result name="bad_passwd">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error" comp="regex">(Bad password)|(Login not found)</arg>
+            </body>
+        </result>
+
+        <result name="disabled">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='1']">DISABLED</arg>
+                <arg name="/doc/error" comp="regex">.*disabled.*</arg>
+            </body>
+        </result>
+
+        <result name="ignore_disabled">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']/@domid" comp="regex">[0-9]+</arg>
+            </body>
+        </result>
+
+        <result name="bad_hyphen_suffix">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="regex">BlackBox error: Illegal.*dbfield suffix</arg>
+            </body>
+        </result>
+
+        <result name="bad_sid">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: invalid sid, allowed sids: 2; got '\~`cgi:sid`'</arg>
+            </body>
+        </result>
+
+        <result name="bad_uid">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: invalid uid value: '\~`cgi:uid`'</arg>
+            </body>
+        </result>
+
+        <result name="too_many_uids">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: invalid uid value: too many uids in request: 10, allowed: 9</arg>
+            </body>
+        </result>
+
+        <result name="not_found">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']"></arg>
+            </body>
+        </result>
+
+        <result name="unknown_imap">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']"></arg>
+            </body>
+        </result>
+
+        <result name="unknown_marino4ka">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']"></arg>
+            </body>
+        </result>
+
+        <!--            -->
+        <!-- test43     -->
+        <!--            -->
+
+        <result name="test43_auth_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="test43_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="test43_no_data_regname">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/regname">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/display_name/name">test43@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="test43_auth_info">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Снитко Света</arg>
+            </body>
+        </result>
+
+        <result name="test43_info">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Снитко Света</arg>
+            </body>
+        </result>
+
+        <result name="test43_auth_everything">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Снитко Света</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000021710</arg>
+            </body>
+        </result>
+        <result name="test43_auth_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Снитко Света</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000021710</arg>
+            </body>
+        </result>
+
+        <result name="test43_everything">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Снитко Света</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000021710</arg>
+            </body>
+        </result>
+        <result name="test43_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="/doc/login">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Снитко Света</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">test43@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000021710</arg>
+            </body>
+        </result>
+
+        <!--            -->
+        <!-- qwe        -->
+        <!--            -->
+
+        <result name="qwe_auth_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+            </body>
+        </result>
+
+        <result name="qwe_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+            </body>
+        </result>
+
+        <result name="qwe_no_data_regname">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/regname">qwe@админкапдд.рф</arg>
+                <arg name="/doc/display_name/name">qwe@админкапдд.рф</arg>
+            </body>
+        </result>
+
+        <result name="qwe_auth_info">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']"></arg>
+            </body>
+        </result>
+
+        <result name="qwe_info">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']"></arg>
+            </body>
+        </result>
+
+        <result name="qwe_auth_everything">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']"></arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000081748</arg>
+            </body>
+        </result>
+        <result name="qwe_auth_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']"></arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000081748</arg>
+            </body>
+        </result>
+
+        <result name="qwe_everything">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']"></arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000081748</arg>
+            </body>
+        </result>
+        <result name="qwe_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='27307'][@domain='xn--80aalbavookw.xn--p1ai'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036031</arg>
+                <arg name="/doc/login">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']"></arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">qwe@админкапдд.рф</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000081748</arg>
+            </body>
+        </result>
+
+        <!--            -->
+        <!-- frozen     -->
+        <!--            -->
+
+        <result name="frozen_auth_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="frozen_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="frozen_auth_info">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+            </body>
+        </result>
+
+        <result name="frozen_info">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+            </body>
+        </result>
+
+        <result name="frozen_auth_everything">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']"></arg>
+            </body>
+        </result>
+        <result name="frozen_auth_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']"></arg>
+            </body>
+        </result>
+
+        <result name="frozen_auth_everything_force_show_mail">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000000003</arg>
+            </body>
+        </result>
+        <result name="frozen_auth_everything_pseudo_force_show_mail">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000000003</arg>
+            </body>
+        </result>
+
+        <result name="frozen_everything">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']"></arg>
+            </body>
+        </result>
+        <result name="frozen_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']"></arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']"></arg>
+            </body>
+        </result>
+
+        <result name="frozen_everything_force_show_mail">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000000003</arg>
+            </body>
+        </result>
+        <result name="frozen_everything_pseudo_force_show_mail">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">blackbox test frozen pdd</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000000003</arg>
+            </body>
+        </result>
+
+        <!--            -->
+        <!-- bububu     -->
+        <!--            -->
+
+        <result name="bububu_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="bububu_auth_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="bububu_auth_info">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Sn1 Sveta</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="bububu_info">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Sn1 Sveta</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="bububu_auth_everything">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Sn1 Sveta</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000023505</arg>
+            </body>
+        </result>
+        <result name="bububu_auth_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Sn1 Sveta</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000023505</arg>
+            </body>
+        </result>
+
+        <result name="bububu_everything">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Sn1 Sveta</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000023505</arg>
+            </body>
+        </result>
+        <result name="bububu_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='1']">1130000000011693</arg>
+                <arg name="/doc/login">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Sn1 Sveta</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">bububu@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000023505</arg>
+            </body>
+        </result>
+
+        <!--        -->
+        <!-- dot.user -->
+        <!--        -->
+
+        <result name="dot.user_auth_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="dot.user_no_data">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="dot.user_no_data_regname">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/regname">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/display_name/name">Dot.User@marino4ka.ru</arg>
+            </body>
+        </result>
+
+        <result name="dot.user_auth_info">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Dvernoy Kosyak</arg>
+            </body>
+        </result>
+
+        <result name="dot.user_info">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Dvernoy Kosyak</arg>
+            </body>
+        </result>
+
+        <result name="dot.user_auth_everything">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Dvernoy Kosyak</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000084720</arg>
+            </body>
+        </result>
+        <result name="dot.user_auth_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Dvernoy Kosyak</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000084720</arg>
+            </body>
+        </result>
+
+        <result name="dot.user_everything">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Dvernoy Kosyak</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.2']">1130000000084720</arg>
+            </body>
+        </result>
+        <result name="dot.user_everything_pseudo">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='3751'][@domain='marino4ka.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000036796</arg>
+                <arg name="/doc/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Dvernoy Kosyak</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">dot.user@marino4ka.ru</arg>
+                <arg name="/doc/dbfield[@id='subscription.suid.-']">1130000000084720</arg>
+            </body>
+        </result>
+
+        <result name="alien_domain_login">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+            </body>
+        </result>
+
+        <result name="dis_domain">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='30997'][@domain='blocked.ru'][@mx='0'][@domain_ena='0'][@catch_all='0']">1130000000036300</arg>
+                <arg name="/doc/login">robbitter-4480829663@blocked.ru</arg>
+            </body>
+        </result>
+
+        <result name="dis_account">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000008772</arg>
+                <arg name="/doc/login">fire@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="users_with_organization_names">
+            <body func="matchxpath">
+                <arg name="/doc/error">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="count(/doc/user)">9</arg>
+                <arg name="/doc/user[@id='70500']/uid">70500</arg>
+                <arg name="/doc/user[@id='70500']/login">Junit-Test</arg>
+                <arg name="count(/doc/user[@id='70500']/attributes/attribute)">2</arg>
+                <arg name="/doc/user[@id='70500']/attributes/attribute[@type='168']">1,2,3</arg>
+                <arg name="/doc/user[@id='70500']/attributes/attribute[@type='1017']">1,2,3</arg>
+
+                <arg name="/doc/user[@id='1130000000000001']/uid">1130000000000001</arg>
+                <arg name="/doc/user[@id='1130000000000001']/login">100@okna.ru</arg>
+                <arg name="count(/doc/user[@id='1130000000000001']/attributes/attribute)">1</arg>
+                <arg name="/doc/user[@id='1130000000000001']/attributes/attribute[@type='168']">a,b</arg>
+
+                <arg name="/doc/user[@id='1130000000000002']/uid">1130000000000002</arg>
+                <arg name="/doc/user[@id='1130000000000002']/login">pdd@okna.ru</arg>
+                <arg name="count(/doc/user[@id='1130000000000002']/attributes/attribute)">2</arg>
+                <arg name="/doc/user[@id='1130000000000002']/attributes/attribute[@type='168']">1,2,3</arg>
+                <arg name="/doc/user[@id='1130000000000002']/attributes/attribute[@type='1017']">1,2,3</arg>
+
+                <arg name="/doc/user[@id='1130000000000949']/uid">1130000000000949</arg>
+                <arg name="/doc/user[@id='1130000000000949']/login">theigel@ya.ru</arg>
+                <arg name="count(/doc/user[@id='1130000000000949']/attributes/attribute)">2</arg>
+                <arg name="/doc/user[@id='1130000000000949']/attributes/attribute[@type='1011']">1</arg>
+                <arg name="/doc/user[@id='1130000000000949']/attributes/attribute[@type='168']">1,2,badid</arg>
+
+                <arg name="/doc/user[@id='1130000000000950']/uid">1130000000000950</arg>
+                <arg name="/doc/user[@id='1130000000000950']/login">tester@ya.ru</arg>
+                <arg name="count(/doc/user[@id='1130000000000950']/attributes/attribute)">3</arg>
+                <arg name="/doc/user[@id='1130000000000950']/attributes/attribute[@type='1011']">1</arg>
+                <arg name="/doc/user[@id='1130000000000950']/attributes/attribute[@type='168']">31337,31,337</arg>
+                <arg name="/doc/user[@id='1130000000000950']/attributes/attribute[@type='1017']">31,31337,337</arg>
+
+                <arg name="/doc/user[@id='1130000000003226']/uid">1130000000003226</arg>
+                <arg name="/doc/user[@id='1130000000003226']/login">othertester@domain.tst</arg>
+                <arg name="count(/doc/user[@id='1130000000003226']/attributes/attribute)">2</arg>
+                <arg name="/doc/user[@id='1130000000003226']/attributes/attribute[@type='1011']">1</arg>
+                <arg name="/doc/user[@id='1130000000003226']/attributes/attribute[@type='168']">0xdef</arg>
+
+                <arg name="/doc/user[@id='1130000000003227']/uid">1130000000003227</arg>
+                <arg name="/doc/user[@id='1130000000003227']/login">othertester2@domain.tst</arg>
+                <arg name="count(/doc/user[@id='1130000000003227']/attributes/attribute)">3</arg>
+                <arg name="/doc/user[@id='1130000000003227']/attributes/attribute[@type='1011']">1</arg>
+                <arg name="/doc/user[@id='1130000000003227']/attributes/attribute[@type='168']">1234,,,</arg>
+                <arg name="/doc/user[@id='1130000000003227']/attributes/attribute[@type='1017']">1234</arg>
+
+                <arg name="/doc/user[@id='1130000000011693']/uid">1130000000011693</arg>
+                <arg name="/doc/user[@id='1130000000011693']/login">bububu@marino4ka.ru</arg>
+                <arg name="count(/doc/user[@id='1130000000011693']/attributes/attribute)">2</arg>
+                <arg name="/doc/user[@id='1130000000011693']/attributes/attribute[@type='1011']">1</arg>
+                <arg name="/doc/user[@id='1130000000011693']/attributes/attribute[@type='168']">,,,</arg>
+
+                <arg name="/doc/user[@id='1130000000036796']/uid">1130000000036796</arg>
+                <arg name="/doc/user[@id='1130000000036796']/login">Dot.User@marino4ka.ru</arg>
+                <arg name="count(/doc/user[@id='1130000000036796']/attributes/attribute)">3</arg>
+                <arg name="/doc/user[@id='1130000000036796']/attributes/attribute[@type='1011']">1</arg>
+                <arg name="/doc/user[@id='1130000000036796']/attributes/attribute[@type='168']">7655,7655</arg>
+                <arg name="/doc/user[@id='1130000000036796']/attributes/attribute[@type='1017']">7655</arg>
+            </body>
+        </result>
+
+        <result name="users_with_no_organization_names">
+            <body func="matchxpath">
+                <arg name="/doc/error">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="count(/doc/user)">9</arg>
+                <arg name="/doc/user[@id='70500']/uid">70500</arg>
+                <arg name="/doc/user[@id='70500']/login">Junit-Test</arg>
+                <arg name="/doc/user[@id='70500']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000000001']/uid">1130000000000001</arg>
+                <arg name="/doc/user[@id='1130000000000001']/login">100@okna.ru</arg>
+                <arg name="/doc/user[@id='1130000000000001']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000000002']/uid">1130000000000002</arg>
+                <arg name="/doc/user[@id='1130000000000002']/login">pdd@okna.ru</arg>
+                <arg name="/doc/user[@id='1130000000000002']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000000949']/uid">1130000000000949</arg>
+                <arg name="/doc/user[@id='1130000000000949']/login">theigel@ya.ru</arg>
+                <arg name="/doc/user[@id='1130000000000949']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000000950']/uid">1130000000000950</arg>
+                <arg name="/doc/user[@id='1130000000000950']/login">tester@ya.ru</arg>
+                <arg name="/doc/user[@id='1130000000000950']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000003226']/uid">1130000000003226</arg>
+                <arg name="/doc/user[@id='1130000000003226']/login">othertester@domain.tst</arg>
+                <arg name="/doc/user[@id='1130000000003226']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000003227']/uid">1130000000003227</arg>
+                <arg name="/doc/user[@id='1130000000003227']/login">othertester2@domain.tst</arg>
+                <arg name="/doc/user[@id='1130000000003227']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000011693']/uid">1130000000011693</arg>
+                <arg name="/doc/user[@id='1130000000011693']/login">bububu@marino4ka.ru</arg>
+                <arg name="/doc/user[@id='1130000000011693']/attributes">dontmatch</arg>
+                <arg name="/doc/user[@id='1130000000036796']/uid">1130000000036796</arg>
+                <arg name="/doc/user[@id='1130000000036796']/login">Dot.User@marino4ka.ru</arg>
+                <arg name="/doc/user[@id='1130000000036796']/attributes">dontmatch</arg>
+            </body>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>BlackBox: PDD Test</description>
+        <url>http://passdev2.yandex.ru</url>
+
+        <case>
+            <description>method=login</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="login">*</cgi>
+            <cgi name="password">*</cgi>
+            <cgi name="sid" withnull="1">passport; smtp; mail; pop</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+            <cgi name="captcha">no</cgi>
+            <cgi name="force_show_mail_subscription" withnull="1">*</cgi>
+
+            <!-- disabled domain or account -->
+
+            <check>
+                <cgi name="login">alien; broken; dot.user_baddomain</cgi>
+                <cgi name="sid" withnull="1">passport; mail; pop</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">dis_account_ppv; dis_account_yaaa</cgi>
+                <cgi name="sid">mail</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="password">valid</cgi>
+                <cgi name="login">dis_domain; dis_account; dis_account_ppv; dis_account_yaaa</cgi>
+                <result>disabled</result>
+            </check>
+
+            <check>
+                <cgi name="login">alien; broken; dot.user_baddomain; notfound_imap</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="sid" withnull="1">passport; smtp; pop</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">notfound_ppv; notfound_yaaa</cgi>
+                <cgi name="sid">smtp</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot-user_m; notfound_m</cgi>
+                <cgi name="sid" withnull="1">passport; mail; pop</cgi>
+                <result>bad_passwd</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap</cgi>
+                <cgi name="sid">mail</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">
+                    notfound_ppv; notfound_yaaa; dot-user_d; notfound_d
+                </cgi>
+                <cgi name="sid" withnull="1">passport; pop</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">
+                    test43_ppv; test44_ppv; mememe_ppv; notfound_ppv;
+                    test43_yaaa; test44_yaaa; mememe_yaaa; notfound_yaaa;
+                    dot.user_d; dot.user_case; dot-user_d; notfound_d;
+                </cgi>
+                <cgi name="sid">mail</cgi>
+                <result>alien_domain_login</result>
+            </check>
+
+            <check>
+                <cgi name="login">
+                    test43_imap; test44_imap; mememe_imap;
+                    test43_ppv; test44_ppv; mememe_ppv; notfound_ppv;
+                    test43_yaaa; test44_yaaa; mememe_yaaa; notfound_yaaa;
+                    dot.user_m; dot.user_d; dot.user_case; dot-user_m; dot-user_d; notfound_m; notfound_d;
+                    dis_domain; dis_account; dis_account_ppv; dis_account_yaaa; frozen_account
+                </cgi>
+                <cgi name="password">bad; qweasd</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="password">valid; bad</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <!-- account exact match -->
+
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_auth_info</result>
+            </check>
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>test43_auth_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_auth_info</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>dot.user_auth_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>frozen_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>frozen_auth_info</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_auth_everything_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_auth_everything_pseudo_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>frozen_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>frozen_auth_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>qwe_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>qwe_auth_info</result>
+            </check>
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>qwe_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>qwe_auth_everything_pseudo</result>
+            </check>
+
+            <!-- account aliasing -->
+
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_auth_info</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>test43_auth_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_auth_info</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <result>dot.user_auth_everything_pseudo</result>
+            </check>
+
+            <!-- account wildcard -->
+
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>bububu_auth_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>bububu_auth_info</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>bububu_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>bububu_auth_everything_pseudo</result>
+            </check>
+        </case>
+
+        <case>
+            <description>method=login(uid)</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="uid">*</cgi>
+            <cgi name="password">*</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+            <cgi name="captcha">no</cgi>
+            <cgi name="force_show_mail_subscription" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="uid">org_id_uids;many_uids</cgi>
+                <result>bad_uid</result>
+            </check>
+
+            <!-- disabled domain or account -->
+
+            <check>
+                <cgi name="password">valid</cgi>
+                <cgi name="uid">dis_domain; dis_account</cgi>
+                <result>disabled</result>
+            </check>
+
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="password">qweasd</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>qwe_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="password">qweasd</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>qwe_auth_info</result>
+            </check>
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="password">qweasd</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>qwe_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="password">qweasd</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>qwe_auth_everything_pseudo</result>
+            </check>
+
+            <!-- bad password -->
+
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="password">valid; bad</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="password">qweasd; bad</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <!-- account exact match -->
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_auth_info</result>
+            </check>
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>test43_auth_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="password">valid</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="password">valid</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_auth_info</result>
+            </check>
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="password">valid</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="password">valid</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>dot.user_auth_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>frozen_auth_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>frozen_auth_info</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_auth_everything_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_auth_everything_pseudo_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>frozen_auth_everything</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>frozen_auth_everything_pseudo</result>
+            </check>
+
+        </case>
+
+        <case lastid="userinfo_login">
+            <description>method=userinfo(login)</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="login">*</cgi>
+            <cgi name="sid" withnull="1">passport; smtp; mail; pop</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+            <cgi name="force_show_mail_subscription" withnull="1">*</cgi>
+
+            <!-- disabled domain -->
+
+            <check>
+                <cgi name="login">dis_account_ppv; dis_account_yaaa</cgi>
+                <cgi name="sid">smtp</cgi>
+                <result>ignore_disabled</result>
+            </check>
+            <check>
+                <cgi name="login">alien; broken; dot.user_baddomain</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="login">dis_account_ppv; dis_account_yaaa</cgi>
+                <cgi name="sid">mail</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="login">dis_domain</cgi>
+                <result>dis_domain</result>
+            </check>
+            <check>
+                <cgi name="login">dis_account; dis_account_ppv; dis_account_yaaa</cgi>
+                <result>dis_account</result>
+            </check>
+
+            <check>
+                <cgi name="login">notfound_imap</cgi>
+                <result>unknown_imap</result>
+            </check>
+
+            <check>
+                <cgi name="login">notfound_ppv; notfound_yaaa; frozen_account</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <result>unknown_imap</result>
+            </check>
+
+            <check>
+                <cgi name="login">test44_imap; mememe_imap</cgi>
+                <cgi name="sid">mail</cgi>
+                <result>unknown_imap</result>
+            </check>
+
+            <check>
+                <cgi name="login">
+                    test43_ppv; test44_ppv; mememe_ppv; notfound_ppv;
+                    test43_yaaa; test44_yaaa; mememe_yaaa; notfound_yaaa;
+                    dot.user_d; dot.user_case; dot-user_d; notfound_d
+                </cgi>
+                <cgi name="sid">mail</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="login">dot-user_m; notfound_m</cgi>
+                <cgi name="sid" withnull="1">passport; mail; pop</cgi>
+                <result>unknown_marino4ka</result>
+            </check>
+            <check>
+                <cgi name="login">dot-user_d; notfound_d</cgi>
+                <cgi name="sid" withnull="1">passport; pop</cgi>
+                <result>unknown_marino4ka</result>
+            </check>
+
+            <!-- account exact match -->
+
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_info</result>
+            </check>
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_everything</result>
+            </check>
+            <check>
+                <cgi name="login">test43_imap</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>test43_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_info</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_everything</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_m</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>dot.user_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>frozen_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>frozen_info</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_everything_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_everything_pseudo_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>frozen_everything</result>
+            </check>
+            <check>
+                <cgi name="login">frozen_account</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>frozen_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>qwe_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>qwe_info</result>
+            </check>
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>qwe_everything</result>
+            </check>
+            <check>
+                <cgi name="login">qwepuny; qwecyr</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>qwe_everything_pseudo</result>
+            </check>
+
+            <!-- account aliasing -->
+
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_info</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_everything</result>
+            </check>
+            <check>
+                <cgi name="login">test44_imap; mememe_imap; test43_ppv; test44_ppv; mememe_ppv; test43_yaaa; test44_yaaa; mememe_yaaa</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>test43_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_no_data</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_info</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_everything</result>
+            </check>
+            <check>
+                <cgi name="login">dot.user_d; dot.user_case</cgi>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <result>dot.user_everything_pseudo</result>
+            </check>
+
+            <!-- account wildcard -->
+
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>bububu_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>bububu_info</result>
+            </check>
+
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>bububu_everything</result>
+            </check>
+            <check>
+                <cgi name="login">dot-user_m; dot-user_d; notfound_m; notfound_d</cgi>
+                <cgi name="sid">smtp</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>bububu_everything_pseudo</result>
+            </check>
+        </case>
+
+        <case>
+            <description>method=userinfo(uid)</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="uid">dot.user; test43; qwe; frozen_account</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+            <cgi name="force_show_mail_subscription" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>bad_hyphen_suffix</result>
+            </check>
+
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>qwe_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>qwe_info</result>
+            </check>
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>qwe_everything</result>
+            </check>
+
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_info</result>
+            </check>
+            <check>
+                <cgi name="uid">test43</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_everything</result>
+            </check>
+
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_info</result>
+            </check>
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_everything</result>
+            </check>
+
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>frozen_no_data</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>frozen_info</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_everything_force_show_mail</result>
+            </check>
+            <check>
+                <cgi name="uid">frozen_account</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>frozen_everything</result>
+            </check>
+        </case>
+
+        <case>
+            <description>method=userinfo(uid) with regname</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="uid">test43; dot.user; qwe</cgi>
+            <cgi name="regname">*</cgi>
+
+            <check>
+                <cgi name="uid">qwe</cgi>
+                <result>qwe_no_data_regname</result>
+            </check>
+
+            <check>
+                <cgi name="uid">test43</cgi>
+                <result>test43_no_data_regname</result>
+            </check>
+
+            <check>
+                <cgi name="uid">dot.user</cgi>
+                <result>dot.user_no_data_regname</result>
+            </check>
+        </case>
+
+        <case>
+            <description>method=userinfo(uids) with organization name/id</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="uid">org_id_uids;many_uids</cgi>
+            <cgi name="attributes" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="uid">many_uids</cgi>
+                <result>too_many_uids</result>
+            </check>
+
+            <check>
+                <cgi name="attributes">*</cgi>
+                <result>users_with_organization_names</result>
+            </check>
+
+            <check>
+                <result>users_with_no_organization_names</result>
+            </check>
+        </case>
+
+        <case>
+            <description>method=userinfo(suid)</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="suid">*</cgi>
+            <cgi name="sid">2; 105</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="sid">105</cgi>
+                <result>bad_sid</result>
+            </check>
+
+            <!-- disabled domain -->
+
+            <check>
+                <cgi name="suid">dis_domain; dis_account</cgi>
+                <cgi name="sid">2</cgi>
+                <result>ignore_disabled</result>
+            </check>
+
+            <check>
+                <cgi name="suid">unknown; dis_domain; dis_account</cgi>
+                <result>not_found</result>
+            </check>
+
+            <!-- account exact match -->
+
+            <check>
+                <cgi name="suid">qwe</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>qwe_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="suid">qwe</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>qwe_info</result>
+            </check>
+
+            <check>
+                <cgi name="suid">qwe</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>qwe_everything</result>
+            </check>
+            <check>
+                <cgi name="suid">qwe</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>qwe_everything_pseudo</result>
+            </check>
+
+            <check>
+                <cgi name="suid">test43</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="suid">test43</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_info</result>
+            </check>
+
+            <check>
+                <cgi name="suid">test43</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_everything</result>
+            </check>
+            <check>
+                <cgi name="suid">test43</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>test43_everything_pseudo</result>
+            </check>
+
+            <!-- account not found (no aliasing for these sid macros) -->
+
+            <check>
+                <cgi name="suid">test44; mememe</cgi>
+                <result>not_found</result>
+            </check>
+
+            <!-- dot.user: exact match -->
+
+            <check>
+                <cgi name="suid">dot.user</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="suid">dot.user</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_info</result>
+            </check>
+
+            <check>
+                <cgi name="suid">dot.user</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_everything</result>
+            </check>
+            <check>
+                <cgi name="suid">dot.user</cgi>
+                <cgi name="sid">2</cgi>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>dot.user_everything_pseudo</result>
+            </check>
+
+        </case>
+
+        <case>
+            <description>method=sessionid</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid</cgi>
+            <cgi name="userip">*</cgi>
+            <cgi name="sessionid">*</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+
+            <!-- Invalid '-' dbfields suffix -->
+
+            <check>
+                <cgi name="dbfields">everything_pseudo</cgi>
+                <result>bad_hyphen_suffix</result>
+            </check>
+
+            <!-- qwe -->
+
+            <check>
+                <cgi name="sessionid">qwe_valid</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>qwe_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">qwe_valid</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>qwe_info</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">qwe_valid</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>qwe_everything</result>
+            </check>
+
+            <!-- test43 -->
+
+            <check>
+                <cgi name="sessionid">test43_valid</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>test43_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">test43_valid</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>test43_info</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">test43_valid</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>test43_everything</result>
+            </check>
+
+            <!-- dot.user -->
+
+            <check>
+                <cgi name="sessionid">dot.user_valid</cgi>
+                <cgi name="dbfields" withnull="1">empty</cgi>
+                <result>dot.user_no_data</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">dot.user_valid</cgi>
+                <cgi name="dbfields">info</cgi>
+                <result>dot.user_info</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">dot.user_valid</cgi>
+                <cgi name="dbfields">everything</cgi>
+                <result>dot.user_everything</result>
+            </check>
+        </case>
+
+    </node>
+
+</test>

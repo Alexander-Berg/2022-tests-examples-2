@@ -1,0 +1,1123 @@
+USE hahn;
+PRAGMA yson.DisableStrict;
+PRAGMA AnsiInForEmptyOrNullableItemsCollections;
+$name_query = 'generate_qc_tickets_16871';
+$uuid_query = CAST(RandomUuid($name_query) as string);
+$pr =
+'{"annotations" = {"taxidmp_task" = "'
+|| $name_query
+|| '"; "taxidmp_run_id" = "'
+|| $uuid_query
+|| '"; "backend_type" = "yql"}}';
+pragma yt.OperationSpec = $pr;
+
+
+$format = DateTime::Format("%Y-%m-%d %H:%M:%S");
+$format_day = DateTime::Format("%d");
+$today = $format_day(CurrentUtcDate());
+$s = ($x) -> {Return cast($x as String)};
+
+
+
+--ПЕРЕМЕННЫЕ 
+$mapping = {
+    '07': {
+        'start': $format(CurrentUtcDatetime() -Interval('P6D')),
+        'end': $format(CurrentUtcDatetime())
+    },
+    '10': {
+        'start': $format(CurrentUtcDatetime() -Interval('P3D')),
+        'end': $format(CurrentUtcDatetime())
+    },
+    '23': {
+        'start': $format(CurrentUtcDatetime() -Interval('P6D')),
+        'end': $format(CurrentUtcDatetime())
+    },
+    '25': {
+        'start': $format(CurrentUtcDatetime() -Interval('P3D')),
+        'end': $format(CurrentUtcDatetime())
+    }
+};
+
+$map_lines = {
+    'cashrun': [
+        "deaf_driver_fin",
+        "driver_fin",
+        "driver_fin_call",
+        "driver_fin_celebrity",
+        "driver_fin_compens",
+        "driver_fin_razvoz",
+        "driver_fin_under_loyalty",
+        "driver_fin_urgent"
+    ],
+    'photo_req_exceptions': [ -- Линии для исключения из фотопроверки
+        "taxi_driver_kids",
+        "taxi_driver_kids_oldman_new",
+        "taxi_driver_kids_help_new"
+    ],
+    'autocompens': [
+        "deaf_driver_account",
+        "driver_account",
+        "driver_account_blocks",
+        "driver_account_razvoz",
+        "driver_account_under_loyalty",
+        "account_celebrity",
+        "account_urgent",
+        "driver_account_reopens",
+        "deaf_driver_fin",
+        "driver_ip_account",
+        "driver_ip_finance",
+        "driver_fin",
+        "driver_fin_call",
+        "driver_fin_celebrity",
+        "driver_fin_compens",
+        "driver_fin_razvoz",
+        "driver_fin_under_loyalty",
+        "driver_fin_urgent",
+        "driver_fin_reopen",
+        "driver_no_pay",
+        "no_pay_reopen",
+        "razvoz_callback",
+        "intl_kgz_driver",
+        "intl_kaz_driver",
+        "covid_drivers_fond",
+        "new_driver_call",
+        "disp_change_cost",
+        "driver_kids",
+        "driver_business",
+        "driver_premium_urgent",
+        "taxi_driver_business_young",
+        "am_bronze",
+        "park_fin",
+        "park_account",
+        "taxi_parks_vip",
+        "park_callback",
+        "driver_balance_to_correct",
+        "taxi_driver_fin_oasis_2_driver",
+        "taxi_park_sort",
+        "taxi_partner_driver_fin",
+        "taxi_partner_driver_fin_gepard",
+        "taxi_driver_fin_second",
+        "taxi_driver_fin_oasis_2_comp",
+        "taxi_driver_premium_oldman_new"
+    ],
+    'red_pol': [
+        "taxi_zeromass",
+        "first_center",
+        "second_vip",
+        "second_fin_urgent",
+        "second_center",
+        "second_mail",
+        "urgent_car_accident",
+        "dtp_online", 
+        "moder_driver_urgent",
+        "urgent",
+        "taxi_driver_profile_blocks",
+        "taxi_urgent_driver_hard",
+        "taxi_first_corp", 
+        "taxi_zero_prem", 
+        "corp",
+        "premium", 
+        "driver_blocks_elite", 
+        "taxi_urgent_driver_soft", 
+        "second_lost",
+        "mail",
+        "driver_blocks_bad_call", 
+        "taxi_driver_blocks_light", 
+        "urgent_fin_from_cc",
+        "taxi_second_scooters", 
+        "taxi_urgent_second_level_noft", 
+        "taxi_lost_smart",
+        "taxi_lost_extrmail", 
+        "urgent_online_call",
+        "urgent_online",
+        "driver_blocks_quality", 
+        "urgent_second_level",
+        "urgent_first_level",
+        "driver_blocks_after_call",
+        "taxi_after_proactive_users", 
+        "tracker", 
+        "taxi_first_lost_chat", 
+        "taxi_lost_sort",
+        "urgent_third_level", 
+        "urgent_online_moderation",
+        "taxi_urgent_driver_critical",
+        "premium_list",
+        "kids",
+        "taxi_shuttle_users", 
+        "comfortplus", 
+        "taxi_proactive_select",
+        "driver_blocks_new", 
+        "driver_blocks_permanent",
+        "driver_blocks_critical",
+        "select", 
+        "fraud_premium", 
+        "driver_blocks_car_accident",
+        "taxi_partner_driver_urgent",
+        "proactive_users_premium",
+        "taxi_first_scooters", 
+        "fraud",
+        "taxi_urgent_driver_hard_noft", 
+        "corp_urgent", 
+        "urgenthelp", 
+        "taxi_driver_business_young", 
+        "second_calls_clients",
+        "taxi_park_urgent", 
+        "youscan_yataxi_sort", 
+        "youscan_uber_sort", 
+        "youscan_driver_sort", 
+        "urgent_elite_rider",
+        "youscan_driver_sort",
+        "driver_ip_finance",
+        "driver_account",
+        "intl_gha",
+        "taxi_driver_business_young",
+        "driver_fin",
+        "driver_ip_account",
+        "taxi_driver_kids",
+        "driver_fin_compens",
+        "driver_fin_celebrity",
+        "driver_account_second_line",
+        "driver_fin_urgent",
+        "am_bronze",
+        "park_fin",
+        "park_account",
+        "taxi_parks_vip",
+        "park_callback",
+        "driver_no_pay",
+        "intl_ru",
+        "intl_gha_urgent",
+        "driver_balance_to_correct",
+        "account_urgent",
+        "intl_ru_driver",
+        "taxi_driver_account_fk",
+        "taxi_partner_driver_vaccination",
+        "taxi_driver_fin_oasis_2_driver",
+        "no_pay_reopen",
+        "driver",
+        "covid_drivers_fond",
+        "intl_driver",
+        "intl_geo_driver",
+        "driver_account_no_order",
+        "taxi_park_sort",
+        "taxi_partner_driver_account",
+        "intl_geo",
+        "intl_kaz_driver",
+        "taxi_driver_account_oasis_2",
+        "intl_gha_fb",
+        "voice_driver_support",
+        "intl_gha_driver",
+        "intl_ru_urgent",
+        "taxi_driver_call_post",
+        "taxi_partner_driver_fin",
+        "taxi_partner_driver_fin_gepard",
+        "taxi_driver_fin_second",
+        "intl_kgz_driver",
+        "intl_lva_driver",
+        "driver_fin_call",
+        "disp_change_cost",
+        "driver_call_urgent",
+        "intl_geo_driver_premium",
+        "intl_arm_driver_premium",
+        "intl_md_driver_premium",
+        "intl_uzb_driver_premium",
+        "driver_call",
+        "taxi_intl_aze_driver_premium",
+        "taxi_driver_fin_oasis_2_comp",
+        "taxi_partner_park_vaccination",
+        "taxi_driver_lost_sort",
+        "taxi_driver_lost_chat",
+        "driver_level_3",
+        "driver_second_lost",
+        "angry.space",
+        "taxi_driver_kids_oldman_new",
+        "smm_rf_driver",
+        "smm_rf_rider",
+        "taxi_driver_kids_help_new",
+        "smm_rf_rider_app_store",
+        "taxi_cc_chatterbox_conditional_actions_fail",
+        "ru_taxi_support_driver_accounts_on_7",
+        "taxi_driver_premium_oldman_new",
+        "gp_ya_ru",
+        "gp_uber_ru",
+        "taxi_driver_fraud",
+        "gp_uber_by",
+        "intl_aze",
+        "intl_isr",
+        "intl_civ",
+        "intl_arm",
+        "intl_uzb",
+        "intl_uzb_driver",
+        "intl_aze_driver",
+        "intl_civ_driver",
+        "intl_isr_driver",
+        "taxi_partner_driver_lost",
+        "intl_geo_urgent",
+        "intl_rou",
+        "intl_fin",
+        "taxi_driver_lost_reopen",
+        "intl_arm_driver",
+        "intl_rou_driver",
+        "intl_fin_driver",
+        "intl_srb_driver",
+        "intl_nor",
+        "taxi_lost_reopen",
+        "intl_lva",
+        "intl_srb",
+        "taxi_driver_premium_urgent",
+        "gp_uber_kz",
+        "intl_urgent",
+        "driver_account_under_loyalty",
+        "intl_ukr_driver",
+        "intl_est_driver",
+        "intl_ltu_driver"
+    ],
+    'empty_macro': [
+        "driver_ip_finance",
+        "driver_account",
+        "taxi_driver_business_young",
+        "driver_fin",
+        "driver_ip_account",
+        "taxi_driver_kids",
+        "driver_fin_compens",
+        "driver_fin_celebrity",
+        "driver_fin_urgent",
+        "am_bronze",
+        "park_fin",
+        "park_account",
+        "taxi_parks_vip",
+        "park_callback",
+        "driver_no_pay",
+        "driver_balance_to_correct",
+        "account_urgent",
+        "taxi_driver_account_fk",
+        "taxi_partner_driver_vaccination",
+        "taxi_driver_fin_oasis_2_driver",
+        "no_pay_reopen",
+        "driver",
+        "covid_drivers_fond",
+        "driver_account_no_order",
+        "taxi_park_sort",
+        "taxi_partner_driver_account",
+        "intl_kaz_driver",
+        "taxi_driver_account_oasis_2",
+        "voice_driver_support",
+        "taxi_driver_call_post",
+        "taxi_partner_driver_fin",
+        "taxi_partner_driver_fin_gepard",
+        "taxi_driver_fin_second",
+        "driver_fin_call",
+        "disp_change_cost",
+        "driver_call_urgent",
+        "driver_call",
+        "taxi_driver_fin_oasis_2_comp",
+        "taxi_partner_park_vaccination",
+        "taxi_driver_lost_sort",
+        "taxi_driver_lost_chat",
+        "driver_second_lost",
+        "taxi_driver_kids_oldman_new",
+        "taxi_driver_kids_help_new",
+        "ru_taxi_support_driver_accounts_on_7",
+        "taxi_driver_premium_oldman_new",
+        "taxi_driver_fraud",
+        "taxi_partner_driver_lost",
+        "taxi_driver_lost_reopen",
+        "taxi_lost_reopen",
+        "driver_account_under_loyalty"
+    ],
+    'double_answ': [
+        "taxi_zeromass",
+        "first_center",
+        "second_vip",
+        "second_fin_urgent",
+        "second_center",
+        "second_mail",
+        "urgent_car_accident",
+        "dtp_online", 
+        "moder_driver_urgent",
+        "urgent",
+        "taxi_driver_profile_blocks",
+        "taxi_urgent_driver_hard",
+        "taxi_first_corp", 
+        "taxi_zero_prem", 
+        "corp",
+        "premium", 
+        "driver_blocks_elite", 
+        "taxi_urgent_driver_soft", 
+        "second_lost",
+        "mail",
+        "driver_blocks_bad_call", 
+        "taxi_driver_blocks_light", 
+        "urgent_fin_from_cc",
+        "taxi_second_scooters", 
+        "taxi_urgent_second_level_noft", 
+        "taxi_lost_smart",
+        "taxi_lost_extrmail", 
+        "urgent_online_call",
+        "urgent_online",
+        "driver_blocks_quality", 
+        "urgent_second_level",
+        "urgent_first_level",
+        "driver_blocks_after_call",
+        "taxi_after_proactive_users", 
+        "tracker", 
+        "taxi_first_lost_chat", 
+        "taxi_lost_sort",
+        "urgent_third_level", 
+        "urgent_online_moderation",
+        "taxi_urgent_driver_critical",
+        "premium_list",
+        "kids",
+        "taxi_shuttle_users", 
+        "comfortplus", 
+        "taxi_proactive_select",
+        "driver_blocks_new", 
+        "driver_blocks_permanent",
+        "driver_blocks_critical",
+        "select", 
+        "fraud_premium", 
+        "driver_blocks_car_accident",
+        "taxi_partner_driver_urgent",
+        "proactive_users_premium",
+        "taxi_first_scooters", 
+        "fraud",
+        "taxi_urgent_driver_hard_noft", 
+        "corp_urgent", 
+        "urgenthelp", 
+        "taxi_driver_business_young", 
+        "second_calls_clients",
+        "taxi_park_urgent", 
+        "youscan_yataxi_sort", 
+        "youscan_uber_sort", 
+        "youscan_driver_sort", 
+        "urgent_elite_rider",
+        "youscan_driver_sort",
+        "driver_ip_finance",
+        "driver_account",
+        "intl_gha",
+        "taxi_driver_business_young",
+        "driver_fin",
+        "driver_ip_account",
+        "taxi_driver_kids",
+        "driver_fin_compens",
+        "driver_fin_celebrity",
+        "driver_account_second_line",
+        "driver_fin_urgent",
+        "am_bronze",
+        "park_fin",
+        "park_account",
+        "taxi_parks_vip",
+        "park_callback",
+        "driver_no_pay",
+        "intl_ru",
+        "intl_gha_urgent",
+        "driver_balance_to_correct",
+        "account_urgent",
+        "intl_ru_driver",
+        "taxi_driver_account_fk",
+        "taxi_partner_driver_vaccination",
+        "taxi_driver_fin_oasis_2_driver",
+        "no_pay_reopen",
+        "driver",
+        "covid_drivers_fond",
+        "intl_driver",
+        "intl_geo_driver",
+        "driver_account_no_order",
+        "taxi_park_sort",
+        "taxi_partner_driver_account",
+        "intl_geo",
+        "intl_kaz_driver",
+        "taxi_driver_account_oasis_2",
+        "intl_gha_fb",
+        "voice_driver_support",
+        "intl_gha_driver",
+        "intl_ru_urgent",
+        "taxi_driver_call_post",
+        "taxi_partner_driver_fin",
+        "taxi_partner_driver_fin_gepard",
+        "taxi_driver_fin_second",
+        "intl_kgz_driver",
+        "intl_lva_driver",
+        "driver_fin_call",
+        "disp_change_cost",
+        "driver_call_urgent",
+        "intl_geo_driver_premium",
+        "intl_arm_driver_premium",
+        "intl_md_driver_premium",
+        "intl_uzb_driver_premium",
+        "driver_call",
+        "taxi_intl_aze_driver_premium",
+        "taxi_driver_fin_oasis_2_comp",
+        "taxi_partner_park_vaccination",
+        "taxi_driver_lost_sort",
+        "taxi_driver_lost_chat",
+        "driver_level_3",
+        "driver_second_lost",
+        "angry.space",
+        "taxi_driver_kids_oldman_new",
+        "smm_rf_driver",
+        "smm_rf_rider",
+        "taxi_driver_kids_help_new",
+        "smm_rf_rider_app_store",
+        "taxi_cc_chatterbox_conditional_actions_fail",
+        "ru_taxi_support_driver_accounts_on_7",
+        "taxi_driver_premium_oldman_new",
+        "gp_ya_ru",
+        "gp_uber_ru",
+        "taxi_driver_fraud",
+        "gp_uber_by",
+        "intl_aze",
+        "intl_isr",
+        "intl_civ",
+        "intl_arm",
+        "intl_uzb",
+        "intl_uzb_driver",
+        "intl_aze_driver",
+        "intl_civ_driver",
+        "intl_isr_driver",
+        "taxi_partner_driver_lost",
+        "intl_geo_urgent",
+        "intl_rou",
+        "intl_fin",
+        "taxi_driver_lost_reopen",
+        "intl_arm_driver",
+        "intl_rou_driver",
+        "intl_fin_driver",
+        "intl_srb_driver",
+        "intl_nor",
+        "taxi_lost_reopen",
+        "intl_lva",
+        "intl_srb",
+        "taxi_driver_premium_urgent",
+        "gp_uber_kz",
+        "intl_urgent",
+        "driver_account_under_loyalty",
+        "intl_ukr_driver",
+        "intl_est_driver",
+        "intl_ltu_driver"
+    ]
+};
+
+$name = AsList("%Здравствуйте, ИМЯ%", "%Здравствуйте, ХХХ%", "%ИМЯ!_ФАМИЛИЯ%");
+$or = AsList("% ИЛИ %");
+$or_ex = AsList("%диспетчера ИЛИ директора%"); -- Исключения
+$xx = AsList("% XX %","%ХХ.%","%ХХ»%","%ХХ₽%","%Х часов%","%ХХ;%","%XX,%","%XX!_%","%ХХ}%","%XX}%","%XX:%","%XX)%",
+"%{{promo:XXX}}%","%хх,%");
+$xx_ex = AsList("%ХХХХХХХХХ%","%0XX%","%1XX%","%2XX%","%3XX%","%4XX%","%5XX%","%6XX%","%7XX%","%8XX%","%9XX%","%XX0%",
+"%XX1%","%XX2%","%XX3%","%XX4%","%XX5%","%XX6%","%XX7%","%XX8%","%XX9%","%7 (XXX) XXX-XX-XX%"); 
+$write = AsList("%НАПИШИ%","% УКАЖИ%","%УКАЗ%","%РАССКА%","%ВЫБОР%","%ВЫБЕР%","%ВЫБРА%","%ВСТАВЬ%","%ПРИЧИНА%","%ОБЪЯСНИ%",
+"%СРОК_ИСТЕК%","%ДАЙ_РЕКОМЕНДАЦ%","%БЕРЁМ%","%ПРО_ПРИВИЛЕГИИ%","%ПРО_АКТИВНОСТЬ%","%ОТСУТСТВОВА%");
+$driver_park = AsList("%ДЛЯ!_ВОДИТЕЛЯ%","%ДЛЯ!_ПАРКА%","%ВОДИТЕЛЮ%","%ПАРКУ%");
+$delete = AsList("%ВЫБРАНЫ%","%В!_СТАТУСЕ%","%ЕСЛИ!_БАН%","%КАКАЯ!_ПРОБЛЕМА%","%НЕ!_ПОДХОДИТ%","%УБЕРИ!_КАПС%","%УДАЛИ%",
+"%ЕСЛИ БЫЛ%","%ЕСЛИ!_ВЕРСИЯ%","%ТАРИФ%","%ЕСЛИ РЕГИОНЫ%","%!_ГОРОД%","%УБЕРИ КАПС%","%ЕСЛИ МОСКВА И МО%");
+$date_time = AsList("%!_ГН!_%","%МАРКА!_МОДЕЛЬ%","%ПРИЧИНА%","%!_ДАТ%","%!_ДЕНЬ%","%!_ВРЕМЯ%","%!_ФАМИЛИЯ%","%ДД.ММ%");
+$MP = AsList("%{object}%","%(TIME)%","%(date)%","%DATE_TIME%","%[RIDE NUMBER]%","%[SPECIFY AN ITEM]%","%[SPECIFY AN ADDRESS]%",
+"%_DRIVING LICENSe_%","%_REASON_%","%DL_NUMBER%","%_LICENCEPLATENUMBER_%","%[LICENSE PLATE NUMBER]%","%[SPECIFY THE DRIVER%",
+"%[SPECIFY A REASON]%","%[SPECIFY AN ACTION]%","%(taxi company name)%","%{phone number}%","%{НОМЕР ЗАКАЗА}%",
+"%{СУММА}%","%{!_!_}%","%{ДД.ММ.ГГГГ}%","%{ЧЧ:ММ:СС}%","%{ДАТА}%","%{ ВРЕМЯ }%","%{ММ:ЧЧ}%","%_NUMĂRUL DE ÎNMATRICULARE_%",
+"%{ГОСНОМЕР}%","%{ПРИЧИНА}%","%{amount}%","%{currency}%","%НОМЕР_ВУ%","%{date}%","%{ORDER}%","%{FARE}%","%{TIME}%",
+"%{time}%","%{REASON}%","%{LICENCEPLATENUMBER}%","%(taxi company name}%","%{{ticket.requester.first_name}}%",
+"%###%","%DATE!_and!_Time_%","%НDATE!_and!_IND%'","%MONNAIE%","%{order!_id}%","%{driver!_id}%","%!_ГОСНОМЕР!_%",
+"%ДАТА!_и!_ВРЕМЯ%","%ХХХПРИЧИНАХХХ%","%!_номерВУ!_%","%!_MIDA!_%","%KUUPÄEV!_KELLAAEG%","%KUUPÄEV!_ja_KELLAAEG%",
+"%!_DAVLAT RAQAMI!_%","%(НОМЕР ВОДИТЕЛЯ)%","%{СЛОМАЛАСЬ}%","%{БЕЗНАЛ}%","%{БЕНЗИН}%","%!_CURRENCY%","%₽/AMD/₸/₾/₴/₼/€%",
+"%!_НОМЕР!_В/У!_%","% ВАЛЮТА %");
+$NDA_driver = AsList("%наш водитель%","%водитель Яндекс.Такси%","%наш пассажир%'","%пассажир Яндекс.Такси%","%наш клиент%",
+"%клиент Яндекс.Такси%","%наш автомобиль%","%автомобиль Яндекс.Такси%","% our driver %","%Yandex.Taxi driver%",
+"%Uber driver%","%Yango driver%","%Yandex.Taxi car%","%Yandex.Taxi vehicle%","%Uber car%","%Uber vehicle%","%Yango car%",
+"%Yango vehicle%","% our cars%","% our vehicles%","%Yandex.Taxi passenger%","%Yango passenger%","%Uber passenger%",
+"%Yandex.Taxi office%","%Yango office%","%Uber office%","%We banned%","%We blocked%","%I banned%","%I blocked%",
+"%We will block%","%we will ban%","%I will block%","%I will ban%");
+$NDA_ex = AsList("%зафикс%","%фиксируют%","%система заблокировала%","%комиссия сервиса фиксированная%","%фиксированной суммы%",
+"%/fix%","%фиксированные бонусы%","%will fix it%","%-fix-%"); -- Исключения
+$NDA_money = AsList("%фиксированная стоимость%","%стоимость фиксированная%","%возместили %","%я возместил %","%компенсировали %",
+"%я компенсировал %","%fixed price%","%I reimbursed%","%We reimbursed%","%We compensated%","%I compensated%");
+$macros_repeat = AsList(
+        '43962', -- [В] Уточнение - корректный номер заказа
+        '43963', -- Уточнение - номер ВУ
+        '43964', -- Уточнение - номер заказа
+        '43965', -- Уточнение - номера заказов
+        '43966', -- Уточнение - просьба перезвонить
+        '51395', -- Уточнение - суть вопроса
+        '122515', -- Уточнение - суть вопроса (негатив)
+        '172485', -- [В] Уточнение - лайтбокс
+        '174033', --[В] Отзыв о пассажире - уточните суть жалобы
+        '215160',
+        '214925',
+        '214926'
+        );
+/* Not used
+$macros_cashrun = AsList(
+        '59072', -- [В] Кешран - выдали промокод ПРОМО
+        '129763', -- Оплата наличными::[В] Кешран, выдали промокод
+        '164194', -- В] Кешран - выдали промокод ПРОМО
+        '43472', -- [В] Не оплатил наличный заказ (ОТКАЗ, СМС) РЕОПЕН
+        '43476', -- [В] Компенсация наличных - отказ
+        '164195', --[В] Оплата наличными - клиент не оплатил
+        '215180',
+        '217713',
+        '215153',
+);
+*/
+$field = ($b, $c) -> { $d = ListMap(Yson::ConvertToList($b), 
+($item) -> { RETURN  DictPayLoads(Yson::ConvertToStringDict($item));});
+                            RETURN ListFilter($d, ($f) -> {RETURN ListHas($f, $c);})[0][2];
+                    };
+-- КОНЕЦ ПЕРЕМЕННЫХ
+
+
+-- ПОДЗАПРОСЫ
+
+
+--#########################################################################
+--##                            CASHRUN                             ##
+--#########################################################################
+$main_table = (
+    SELECT  
+        id,
+        ListMap(Yson::ConvertToList(history), ($a)->{RETURN Yson::Serialize($a)}) as history,
+        CASE WHEN 'platinum' IN Yson::ConvertToStringList(tags) THEN 'platinum' 
+            WHEN 'gold' IN Yson::ConvertToStringList(tags) THEN 'gold'
+            WHEN 'silver' IN Yson::ConvertToStringList(tags) THEN 'silver'
+            WHEN 'bronze' IN Yson::ConvertToStringList(tags) THEN 'bronze'
+        ELSE NULL END as loyalty_status,
+        Yson::LookupString(meta_info, 'order_id') as order_id,
+        Yson::LookupString(meta_info, 'driver_id') as driver_id,
+        chat_type,
+        tags
+    FROM `//home/taxi/production/services/support-taxi/support_chatterbox`
+    WHERE 
+        $format(CAST(cast(created as uint64)  + 10800 as Datetime)) BETWEEN $s($mapping[$today]['start']) AND $s($mapping[$today]['end']));
+
+--#########################################################################################
+--#############   ВОТ ТУТ НАЧИНАЕТСЯ ЗАПРОС СО СЛОМАННОЙ ТАБЛИЦЕЙ ПРОМИКОВ    #############
+--#########################################################################################
+/*
+$ticket_history_input = 
+SELECT 
+    id,
+    driver_id,
+    loyalty_status,
+    $field(Yson::YPath(history,"/meta_changes"), "order_id") as order_id,
+    Yson::LookupString(history, "login") as login,
+    Yson::LookupString(history, "line") as line,
+    Yson::LookupString(history, "comment") as comment,
+    Yson::ConvertToStringList(history.succeed_operations) as succeed_operations,
+    DateTime::Format('%Y-%m-%d %H:%M:%S')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as action_dttm,
+    DateTime::Format('%Y-%m-%dT%H')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") as uint32)))) as action_hour,
+    CAST(ListHead(ListFilter(ListMap(Yson::ConvertToList(history['meta_changes']), ($x) -> {Return if(Yson::ConvertToString($x.change_type) = 'set' and Yson::ConvertToString($x.field_name) = 'macro_id', Yson::ConvertToUint64($x.value), null)}), ($x) -> {Return $x is not null})) as String)??$field(Yson::YPath(history,"/meta_changes"), "macro_id") as macro_id,
+FROM $main_table
+FLATTEN LIST BY history
+;
+*/
+
+-- Находим дату первого промокода указанных серий по clid_uuid
+/*$first_promocodes = 
+SELECT 
+    driver_id,
+    MIN( DateTime::Format('%Y-%m-%dT%H')(DateTime::ParseIso8601(Yson::ConvertToString(doc.created))) ) as first_promo_hour
+FROM 
+    `//home/taxi-dwh/raw/mdb/driver_promocodes/driver_promocodes`
+WHERE 
+    SUBSTRING(CAST(DateTime::MakeDatetime(DateTime::ParseIso8601(Yson::ConvertToString(doc.created))) as String), 0, 7) >= SUBSTRING($s($mapping[$today]['start']), 0, 7) AND
+    Yson::ConvertToString(doc.series_id) ILIKE '%loyalty%'
+GROUP BY
+    Yson::ConvertToString(doc.clid)||'_'||Yson::ConvertToString(doc.`uuid`) as driver_id
+;*/
+
+/*
+Тикеты, подходящие для проверки:
+  - знаем водителя (clid_uuid)
+  - ответ был в указанных линиях в указанные даты
+  - ответ дан саппортом
+  - ответ дан указанными макросами
+  - знаем статус лояльности
+*/
+/*
+$tickets_to_chek =
+SELECT
+    id,
+    login,
+    line,
+    action_dttm,
+    action_hour,
+    macro_id,
+    IF('promocode' IN succeed_operations, True, False) as promocode_flg,
+    first_promo_hour,
+    tickets.driver_id as driver_id,
+    loyalty_status
+FROM 
+    $ticket_history_input as tickets
+LEFT JOIN
+    $first_promocodes as firts_promo
+USING(driver_id)
+WHERE 
+    line IN $map_lines['cashrun'] AND 
+    comment IS NOT NULL AND 
+    login != 'superuser' AND
+    macro_id IN $macros_cashrun AND 
+    tickets.driver_id IS NOT NULL AND
+    loyalty_status IS NOT NULL AND
+    SUBSTRING(action_hour, 0, 10) BETWEEN SUBSTRING($s($mapping[$today]['start']), 0, 10) AND SUBSTRING($s($mapping[$today]['end']), 0, 10)
+;*/
+/*
+-- 1. Обращение -> Серебро и ниже —> Не выдал промокод -> 100
+$case_1 =
+SELECT 
+    id,
+    login,
+    line,
+    action_dttm,
+    action_hour,
+    macro_id,
+    loyalty_status,
+    'ОК -> Обращение -> Серебро и ниже —> Не выдал промокод' as type,
+    100 as rate
+FROM 
+    $tickets_to_chek
+WHERE 
+    loyalty_status IN ('silver', 'bronze') AND
+    NOT promocode_flg
+;
+-- 2. Обращение -> Золото или Платина —> Ещё не давали пром за месяц -> Выдал промокод —> 100
+$case_2 =
+SELECT 
+    id,
+    login,
+    line,
+    action_dttm,
+    action_hour,
+    macro_id,
+    loyalty_status,
+    'ОК -> Обращение -> Золото или Платина —> Ещё не давали пром за месяц -> Выдал промокод' as type,
+    100 as rate
+FROM 
+    $tickets_to_chek
+WHERE 
+    loyalty_status IN ('gold', 'platinum') AND
+    promocode_flg AND
+    action_hour <= first_promo_hour
+;
+
+-- 3. Обращение -> Золото или Платина —> Уже давали пром за месяц -> Не выдал промокод -> 100
+$case_3 =
+SELECT 
+    id,
+    login,
+    line,
+    action_dttm,
+    action_hour,
+    macro_id,
+    loyalty_status,
+    'ОК -> Обращение -> Золото или Платина —> Уже давали пром за месяц -> Не выдал промокод' as type,
+    100 as rate
+FROM 
+    $tickets_to_chek
+WHERE 
+    loyalty_status IN ('gold', 'platinum') AND
+    NOT promocode_flg AND
+    action_hour > first_promo_hour
+;
+
+-- 4. Обращение -> Серебро и ниже —> Выдал промокод -> 0
+$case_4 =
+SELECT 
+    id,
+    login,
+    line,
+    action_dttm,
+    action_hour,
+    macro_id,
+    loyalty_status,
+    'ОШИБКА -> Обращение -> Серебро и ниже —> Выдал промокод' as type,
+    0 as rate
+FROM 
+    $tickets_to_chek
+WHERE 
+    loyalty_status IN ('silver', 'bronze') AND
+    promocode_flg
+;
+
+-- 5. Обращение -> Золото или Платина —> Уже давали пром за месяц -> Выдал промокод -> 0
+$case_5 =
+SELECT 
+    id,
+    login,
+    line,
+    action_dttm,
+    action_hour,
+    macro_id,
+    loyalty_status,
+    'ОШИБКА -> Обращение -> Золото или Платина —> Уже давали пром за месяц -> Выдал промокод' as type,
+    0 as rate
+FROM 
+    $tickets_to_chek
+WHERE 
+    loyalty_status IN ('gold', 'platinum') AND
+    promocode_flg AND
+    action_hour > first_promo_hour
+;
+
+    INSERT INTO `tmp/svyatkinaa93/cash_run` WITH TRUNCATE 
+    SELECT * FROM $case_1 UNION ALL
+    SELECT * FROM $case_2 UNION ALL
+    SELECT * FROM $case_3 UNION ALL
+    SELECT * FROM $case_4 UNION ALL
+    SELECT * FROM $case_5;
+
+COMMIT;
+$cashrun_data = (
+    SELECT 
+        'https://supchat.taxi.yandex-team.ru/chat/'||id as url,
+        login,
+        line,
+        action_dttm,
+        macro_id,
+        loyalty_status,
+        type,
+        rate,
+        'cashrun' as tag,
+        'Автопроверка в тематике Кешран' as name
+    FROM `tmp/svyatkinaa93/cash_run`
+        );
+*/   ---################################   ТУТ ОН ЗАКАНЧИВАЕТСЯ ######################################################
+
+
+
+
+
+--#########################################################################
+--##                             AUTOCOMPENS                             ##
+--#########################################################################
+
+$admin_orders=    
+SELECT 
+    order_id,
+    admin_action_timestamp
+FROM
+    (SELECT 
+        DateTime::ToSeconds(DateTime::MakeDatetime(DateTime::ParseIso8601(Yson::ConvertToString(doc.`timestamp`)))) as admin_action_timestamp,
+        Yson::ConvertToString(doc.arguments.request.order_id) AS order_id,
+        Yson::ConvertToString(doc.arguments.request.decision) AS decision,
+        Yson::ConvertToString(doc.login) AS login,
+    FROM 
+        `//home/taxi-dwh/raw/mdb/admin/2021`
+    )
+WHERE 
+    order_id IS NOT NULL AND
+    decision NOT IN ("payments_refresh", "rebill_order", "unmark_user_as_debtor")
+;
+
+
+-- Достаём историю всех тикетов
+$tickets_history = 
+SELECT
+    id,
+    order_id,
+    $field(Yson::YPath(history,"/meta_changes"), "order_id") as orders,
+    $field(Yson::YPath(history,"/meta_changes"), "macro_id") as macro_id,
+    Yson::LookupDouble(history, "created") as created,
+    Yson::LookupString(history, "line") as line,
+    Yson::LookupString(history, "comment") as comment,
+    DateTime::Format('%Y-%m-%d')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") as uint32)))) as answer_dt,
+    Yson::LookupString(history, "login") as login
+FROM $main_table
+FLATTEN LIST BY history
+;
+
+-- Находим тикеты с 1 заказом
+$single_order_ticket = 
+SELECT 
+    id
+FROM 
+    $tickets_history
+WHERE 
+    orders IS NOT NULL
+GROUP BY 
+    id
+HAVING 
+    COUNT(DISTINCT orders) = 1
+;
+
+/*
+Итоговая таблица по тикетам + заказы :
+  - открытые ответы саппортов
+  - в указанных линиях
+  - за указанные даты
+  - тикеты только с 1 заказом
+  - добавлены флаги Акцепта / изменений диспетчера
+  - добавлено дата/время завершения заказа и время в пути
+*/
+
+
+--#####################################################################
+--##                          REDPOLITICS CHECK                   ####
+--#####################################################################
+
+$words = ($word, $list) -> {RETURN IF(True IN ListMap($list, ($like) -> ($word like $like ESCAPE '!')), True, False)};
+
+$parse_history = 
+SELECT
+    id,
+    Yson::LookupString(history, "comment") as comment,
+    Yson::LookupString(history, "login") as login,
+    Yson::LookupString(history, "line") as line,
+    $format(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as dt,
+    DateTime::Format('%Y-%m-%d %H:%M:%S')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as dttm
+FROM $main_table
+FLATTEN BY history
+    WHERE chat_type IN ('driver', 'opteum')
+;
+
+$read_politic_data = (
+    SELECT
+        login,
+        'https://supchat.taxi.yandex-team.ru/chat/' || id as url,
+        dttm as action_dttm,
+        'redpolitic' as tag, 
+        'Проверка по редполитике' as name,
+        'svyatkinaa93' as auditor,
+        CASE 
+            WHEN $words(comment, ListExtend($name, $or, $xx, $write, $driver_park, $delete, $date_time, $MP)) AND 
+                NOT $words(comment, ListExtend($xx_ex, $NDA_ex, $or_ex)) THEN 60
+            WHEN $words(comment, ListExtend($NDA_driver, $NDA_money)) AND 
+                NOT $words(comment, ListExtend($xx_ex, $NDA_ex, $or_ex)) THEN 0
+            ELSE NULL 
+        END as rate,
+        
+        CASE 
+            WHEN $words(comment, $name) THEN 'Тикет проверен автоматически. Не исправили ИМЯ'
+            WHEN $words(comment, $or) THEN 'Тикет проверен автоматически. Оставили «ИЛИ».'
+            WHEN $words(comment, $xx) AND NOT $words(comment, $xx_ex) THEN 'Тикет проверен автоматически. Не убрали «XX».'
+            WHEN $words(comment, $write) THEN 'Тикет проверен автоматически. Не убрали «УКАЖИ/ВЫБЕРИ».'
+            WHEN $words(comment, $driver_park) THEN 'Тикет проверен автоматически. Не исправили ДЛЯ ВОДИТЕЛЯ / ПАРКА'
+            WHEN $words(comment, $delete) THEN 'Тикет проверен автоматически. Не убрали «УКАЖИ/ВЫБЕРИ».'
+            WHEN $words(comment, $date_time) THEN 'Тикет проверен автоматически. Не удалили текст с CAPSLOCK.'
+            WHEN $words(comment, $MP) THEN 'Тикет проверен автоматически. Не удалили текст с CAPSLOCK.'
+            WHEN $words(comment, $NDA_money) THEN 'Тикет проверен автоматически. Ответ содержит юридически запрещённые формулировки и подтверждает наше прямое влияние на деньги. Мануал: https://wiki.yandex-team.ru/support/taxi/Система-контроля-качества/redpolitika-v-kontrole-kachestva/'
+            WHEN $words(comment, $NDA_driver) AND NOT  $words(comment, $NDA_ex) THEN 'Тикет проверен автоматически. Ответ содержит юридически запрещённые формулировки и подтверждает наше прямое влияние на водителя или пассажира. Мануал: https://wiki.yandex-team.ru/support/taxi/Система-контроля-качества/redpolitika-v-kontrole-kachestva/'
+            ELSE NULL 
+        END as comment,
+        line,
+        Re2::Replace('\r|\n')(comment, '') as text,
+    FROM 
+        $parse_history
+    WHERE 
+        dttm BETWEEN $s($mapping[$today]['start']) AND $s($mapping[$today]['end'])
+        AND login != 'superuser'
+        AND line IN $map_lines['red_pol']
+        AND comment IS NOT NULL
+        AND $words(comment, ListExtend($name, $or, $xx, $write, $driver_park, $delete, $date_time, $MP, $NDA_money, $NDA_driver))
+        AND NOT $words(comment, ListExtend($xx_ex, $NDA_ex)));
+
+--#############################################################################
+--#######                      EMPTY MACRO                                 ####
+--#############################################################################
+
+
+$hist =
+SELECT
+    id,
+    Yson::ConvertToStringList(history.macro_ids) as macro_ids,
+    $field(Yson::YPath(history,"/meta_changes"), "macro_id") as macro_id,
+    Re2::Replace('\r|\n')(Yson::LookupString(history, "comment"), ' ') as comment,
+    Yson::LookupString(history, "hidden_comment") as hidden_comment,
+    LAG(Yson::LookupString(history, "hidden_comment")) OVER w as lag_hidden_comment,
+    DateTime::Format('%Y-%m-%d %H:%M:%S')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as dttm,
+    DateTime::Format('%d.%m.%Y')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as dt,
+    Yson::LookupString(history, "login") as login,
+    Yson::LookupString(history, "line") as line
+FROM $main_table 
+FLATTEN BY history
+WHERE   
+    chat_type == 'driver' AND
+    Yson::LookupString(history, "comment") IS NOT NULL OR
+    Yson::LookupString(history, "hidden_comment") IS NOT NULL
+WINDOW w as (PARTITION BY id ORDER BY Yson::LookupDouble(history, "created"))
+;
+
+$all_hidden = 
+SELECT id
+FROM
+    (SELECT
+        id,
+        String::JoinFromList(AGGREGATE_LIST_DISTINCT(hidden_comment), '') as hidden_comments
+    FROM 
+        $hist
+    WHERE 
+        hidden_comment IS NOT NULL
+    GROUP BY 
+        id
+    )
+WHERE 
+    hidden_comments LIKE '%ACCOUNT%' OR 
+    hidden_comments LIKE '%FIN%'
+;
+
+$empty_macro_data = (
+    SELECT 
+        login,
+        'https://supchat.taxi.yandex-team.ru/chat/'||id as url,
+        line,
+        dttm as action_dttm,
+        'empty_macro_check' as tag, 
+        'svyatkinaa93' as auditor,
+        'Автопроверка по ответа пустым макросом' as name,
+        0 as rate,
+        'Тикет проверен автоматически. Использован «Пустой макрос» для ответа. Пустым макросом можно отвечать только по согласованию с капитаном, если вопрос уникальный и нет подходящего макроса.' as comment
+    FROM 
+        $hist
+    WHERE 
+        id NOT IN $all_hidden AND
+        line IN $map_lines['empty_macro'] AND
+        comment IS NOT NULL AND 
+        macro_id in ('51394') AND 
+        lag_hidden_comment IS NULL AND 
+        hidden_comment IS NULL AND 
+        ListLength(macro_ids) = 1);
+
+
+--################################################################
+--#####        PHOTOREQUEST AUTOCHECK                         ####
+--################################################################
+
+$history_input =
+SELECT
+    'https://supchat.taxi.yandex-team.ru/chat/'||id as id,
+    Yson::LookupDouble(history, "created") as created,
+    Re2::Replace('\r|\n')(Yson::LookupString(history, "comment"), '') as comment,
+    Yson::LookupString(history, "action") as act,
+    Yson::LookupString(history, "line") as line,
+    Yson::LookupString(history, "login") as login,
+    Yson::ConvertToStringList(history.tags_added) as tags_added,
+    $field(Yson::YPath(history,"/meta_changes"), "macro_id") as macro_id,
+    Yson::ConvertToBool(DictLookup(ListFilter(ListMap(Yson::ConvertToList(Yson::YPath(history,"/meta_changes")), ($x) -> {RETURN Yson::ConvertToDict($x)}), 
+                ($y) -> {RETURN 'support_taxi_driver_allow_promo' IN ListMap(DictPayloads($y), ($z) -> {RETURN Yson::ConvertToString($z)})})[0], 'value')) as support_taxi_driver_allow_promo,
+    DateTime::Format('%Y-%m-%d %H:%M:%S')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as dttm,
+    DateTime::Format('%Y-%m-%d')(DateTime::Split(DateTime::FromSeconds(CAST(Yson::LookupDouble(history, "created") + 10800 as uint32)))) as dt,
+    history
+FROM $main_table
+FLATTEN BY history
+WHERE
+    chat_type == 'driver' 
+    AND 'макрос_загрязнение_автомобиля_запрос_фото' IN Yson::ConvertToStringList(tags)
+;
+
+$first_answ = 
+SELECT 
+    inp.id as id,
+    comment,
+    dt,
+    act,
+    line,
+    login,
+    tags_added,
+    macro_id,
+    dttm,
+    history,
+    support_taxi_driver_allow_promo
+FROM 
+    $history_input as inp
+JOIN
+    (SELECT id, MIN(created) as min_cr, MIN_BY(macro_id, created)
+    FROM $history_input 
+    WHERE comment IS NOT NULL 
+    GROUP BY id 
+    HAVING MIN_BY(macro_id, created) IN ('215152', '204489') AND MIN(dt) BETWEEN $s($mapping[$today]['start']) AND $s($mapping[$today]['end'])
+    ) as first_answ
+USING (id)
+WHERE 
+    created <= min_cr
+;
+
+$support_taxi_driver_allow_promo = SELECT id FROM $first_answ WHERE support_taxi_driver_allow_promo;
+
+$photo_request_data = (
+    SELECT 
+        login,
+        id as url,
+        line,
+        dttm as action_dttm,
+        'photo_request_check' as tag,
+        'Автопроверка по запросу фото' as name,
+        'svyatkinaa93' as auditor,
+        0 as rate,
+        'Тикет проверен автоматически. На момент ответа был тэг "Нельзя промокод", в этом случае запрос информации не требовался и необходимо было сразу отказать водителю' as comment
+    FROM 
+        $first_answ
+    WHERE 
+        line NOT IN $map_lines['photo_req_exceptions'] AND
+        comment IS NOT NULL AND 
+        id IN $support_taxi_driver_allow_promo);
+
+--############################################################
+--####              DOUBLE ANSWER                         ####
+--############################################################
+
+$autocheck =
+SELECT 
+    id,
+    line,
+    login,
+    answer_dttm,
+    comment,
+    prev_comments
+FROM
+    (SELECT 
+        id,
+        line,
+        login,
+        answer_dttm,
+        comment??'' as comment,
+        String::JoinFromList(AsList(
+            LAG(comment) OVER w ?? '',
+            LAG(comment, 2) OVER w ?? '',
+            LAG(comment, 3) OVER w ?? '',
+            LAG(comment, 4) OVER w ?? '',
+            LAG(comment, 5) OVER w ?? '',
+            LAG(comment, 6) OVER w ?? '',
+            LAG(comment, 7) OVER w ?? '',
+            LAG(comment, 8) OVER w ?? '',
+            LAG(comment, 9) OVER w ?? '',
+            LAG(comment, 10) OVER w ?? '',
+        ), ' \n\n ') as prev_comments
+    FROM
+        (SELECT
+            id,
+            Re2::Replace('\r|\n')(Yson::LookupString(history, "comment"), '') as comment,
+            Yson::LookupString(history, "login") as login,
+            Yson::LookupString(history, "line") as line,
+            $format(CAST(cast(Yson::LookupDouble(history, "created") as uint64)  + 10800 as Datetime)) as answer_dttm
+        FROM $main_table
+        FLATTEN BY history
+        WHERE   
+            Yson::LookupString(history, "comment") IS NOT NULL AND 
+            LENGTH(Yson::LookupString(history, "comment")) > 10 AND 
+            Yson::LookupString(history, "login") != 'superuser' AND 
+            $field(Yson::YPath(history,"/meta_changes"), "macro_id") NOT IN $macros_repeat
+        )
+    WINDOW w as (PARTITION BY id 
+                ORDER BY answer_dttm 
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+    )
+WHERE 
+    prev_comments ILIKE '%'||comment||'%' AND 
+    line IN $map_lines['double_answ']
+;
+$double_answer_data = (
+    SELECT 
+        'https://supchat.taxi.yandex-team.ru/chat/' || id as url,
+        line,
+        login,
+        answer_dttm as action_dttm,
+        comment,
+        'repeating_answers' as tag,
+        75 as rate,
+        'Автопроверка по повторяющимся ответам' as name
+    FROM    
+        $autocheck);
+
+--SELECT * FROM  $cashrun_data UNION ALL
+SELECT * FROM  $read_politic_data UNION ALL
+SELECT * FROM  $photo_request_data UNION ALL
+SELECT * FROM  $double_answer_data UNION ALL
+SELECT * FROM  $empty_macro_data

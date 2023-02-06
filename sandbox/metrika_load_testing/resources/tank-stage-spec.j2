@@ -1,0 +1,87 @@
+annotations:
+  project: {{ deploy_project_name }}
+labels:
+  deploy_engine: env_controller
+meta:
+  project_id: {{ deploy_project_name }}
+  id: {{ stage_id }}
+  account_id: abc:service:{{ abc_service_id }}
+spec:
+  account_id: abc:service:{{ abc_service_id }}
+  deploy_units:
+    Tank:
+      endpoint_sets:
+      - port: {{ tank_port }}
+      images_for_boxes:
+        yandex-tank:
+          name: load/yandex-tank-internal
+          registry_host: registry.yandex.net
+          tag: 1.13.7-artifacts-rc12
+      network_defaults:
+        network_id: {{ network_macro }}
+      replica_set:
+        per_cluster_settings:
+          {{ tank_datacenter }}:
+            deployment_strategy:
+              max_unavailable: 1
+            pod_count: 1
+        replica_set_template:
+          constraints:
+            antiaffinity_constraints:
+            - key: rack
+              max_pods: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+              - id: {{ stage_id }}-disk-0
+                labels:
+                  used_by_infra: true
+                quota_policy:
+                  capacity: {{ disk_capacity }}
+                  bandwidth_guarantee: 10485760
+                  bandwidth_limit: 20971520
+                storage_class: ssd
+              host_infra:
+                monitoring: {}
+              ip6_address_requests:
+              - enable_dns: true
+                network_id: {{ network_macro }}
+                vlan_id: backbone
+              - enable_dns: true
+                network_id: {{ network_macro }}
+                vlan_id: fastbone
+              pod_agent_payload:
+                spec:
+                  boxes:
+                  - compute_resources:
+                      memory_limit: {{ memory_limit }}
+                      vcpu_limit: {{ vcpu_limit }}
+                    id: yandex-tank
+                    rootfs: {}
+                  mutable_workloads:
+                  - workload_ref: tankapi
+                  - workload_ref: cron
+                  resources: {}
+                  workloads:
+                  - box_ref: yandex-tank
+                    id: tankapi
+                    readiness_check:
+                      tcp_check:
+                        port: {{ tank_port }}
+                    start:
+                      command_line: /usr/bin/tankapi --ipv6 -p {{ tank_port }}
+                    transmit_logs: true
+                  - box_ref: yandex-tank
+                    id: cron
+                    readiness_check:
+                      container:
+                        command_line: /bin/bash -c "ps aux | grep cron"
+                        user: root
+                    start:
+                      command_line: /usr/sbin/cron -lf
+                    transmit_logs: true
+              resource_requests:
+                memory_guarantee: {{ memory_limit }}
+                memory_limit: {{ memory_limit }}
+                vcpu_guarantee: {{ vcpu_limit }}
+                vcpu_limit: {{ vcpu_limit }}

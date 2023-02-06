@@ -1,0 +1,22 @@
+log_format openid '$remote_addr - $host $remote_user [$time_local] $server_name:$server_port '
+        '$upstream_response_time $request_time $request_length "$request" '
+        '"$status" $body_bytes_sent "$http_referer" '
+        '"$http_user_agent" "$http_x_forwarded_for" "$http_cookie" "$gzip_ratio" '
+        '"$global_request_id" "$ssl_server_serial" "$ssl_cipher" ';
+
+server {
+    # SLB IP
+    listen 93.158.134.114:80;
+    listen [2a02:6b8::1:114]:80;
+
+    # Server IP
+    listen [1::2:3:4]:80;
+
+    server_name openid.yandex.ru www.openid.yandex.ru;
+
+    set $global_request_id $request_id;
+    access_log /var/log/nginx/openid.access.log openid;
+    error_log /var/log/nginx/openid.error.log warn;
+
+    return 301 https://passport.yandex.ru/info/openid-closed;
+}

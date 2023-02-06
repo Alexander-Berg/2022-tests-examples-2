@@ -1,0 +1,73 @@
+INSERT INTO yt.report_summary_parks
+(
+    "park_id",
+    "date_month",
+    "count_active_cars",
+    "count_active_drivers",
+    "count_orders_completed",
+    "count_orders_all",
+    "count_orders_platform",
+    "count_orders_accepted",
+    "count_orders_cancelled_by_driver",
+    "count_orders_cancelled_by_client",
+    "count_new_drivers",
+    "ratio_driver_churn",
+    "work_time_seconds",
+    "avg_drivers_work_time_seconds",
+    "avg_cars_work_time_seconds",
+    "price_cash",
+    "price_cashless",
+    "price_platform_commission",
+    "price_park_commission",
+    "price_software_commission",
+    "price_hiring_services",
+    "price_hiring_returned_inc_vat"
+)
+VALUES
+(
+    '7ad36bc7560449998acbe2c57a75c293',
+    '2020-06',
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    3,
+    4
+);
+INSERT INTO yt.operations
+    (
+        operation_id,
+        operation_status,
+        type,
+        status,
+        cluster,
+        created_at,
+        updated_at,
+        date_to
+    )
+VALUES
+    (
+        '5f69eb5d9dee76b6221355fe',
+        'COMPLETED',
+        'report_summary_v2',
+        'uploaded_to_db',
+        'hahn',
+        '2020-09-22 00:00:00+03:00',
+        '2020-09-22 00:00:00+03:00',
+        '2020-09-22 00:00:00+03:00'
+    )
+;

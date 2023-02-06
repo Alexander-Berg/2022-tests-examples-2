@@ -1,0 +1,38 @@
+INSERT INTO crm_admin.campaign_state_log
+(campaign_id, state_from, state_to, updated_at)
+VALUES
+-- was before last check, but frozen period, NOT FROZEN
+(1, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-11 10:00:00'),
+(1, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-11 11:00:00'),
+(1, 'SENDING_PROCESSING',   'SCHEDULED',            '2022-12-11 14:00:00'),
+
+-- right border was between last check and current, FROZEN
+(2, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-12 11:00:00'),
+(2, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-12 11:40:00'),
+(2, 'SENDING_PROCESSING',   'SCHEDULED',            '2022-12-12 11:55:00'),
+
+-- just frozen, FROZEN
+(2, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-12 11:45:00'),
+(2, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-12 11:49:00'),
+
+-- old frozen, FROZEN
+(3, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-10 11:45:00'),
+(3, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-10 11:49:00'),
+
+-- not frozen period, NOT FROZEN
+(3, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-12 11:50:00'),
+(3, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-12 11:51:00'),
+(3, 'SENDING_PROCESSING',   'SCHEDULED',            '2022-12-12 12:00:00'),
+
+-- not frozen, NOT FROZEN
+(4, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-12 11:50:00'),
+(4, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-12 11:51:00'),
+
+-- frozen, check seconds, FROZEN
+(5, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-12 11:40:00'),
+(5, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-12 11:49:59'),
+
+-- not frozen, check seconds, NOT FROZEN
+(6, 'GROUPS_CALCULATING',   'GROUPS_FINISHED',      '2022-12-12 11:40:00'),
+(6, 'GROUPS_FINISHED',      'SENDING_PROCESSING',   '2022-12-12 11:50:00')
+;

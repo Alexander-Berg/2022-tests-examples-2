@@ -1,0 +1,178 @@
+{% extends "tasks/view.html" %}
+{% block additional %}
+    {% if task.ctx.get('chart_data') %}
+        {% set results = task.ctx['chart_data'] %}
+        <style>
+
+            .content
+            {
+                margin: 25px;
+            }
+
+            .results
+            {
+                border-collapse: collapse;
+            }
+
+            .results th,
+            .results td
+            {
+                font-weight: normal;
+
+                padding: 4px 0;
+            }
+
+            .results thead th
+            {
+                text-align: right;
+                border-bottom: 1px solid silver;
+            }
+
+            .results tbody tr:first-child th,
+            .results tbody tr:first-child td
+            {
+                padding-top: 10px;
+            }
+
+            .results tbody th
+            {
+                text-align: left;
+            }
+
+            .results tbody td
+            {
+                min-width: 50px;
+
+                text-align: right;
+            }
+
+            .results tfoot td
+            {
+                font-style: italic;
+
+                padding-top: 10px;
+            }
+        </style>
+        <div class="content">
+            <p>Результаты тестирования (всего [{{ task.ctx['sorted_times_count'] }}] запросов с временами)</p>
+            <table class="results">
+               <!-- <tr>-->
+               <!--     <td class="task-section-header" colspan="8">{{ task.ctx.get('project') }}</td>-->
+               <!-- </tr>-->
+                <thead>
+                <tr>
+                    <th>99<small>%</small></th>
+                    <th>98<small>%</small></th>
+                    <th>97<small>%</small></th>
+                    <th>96<small>%</small></th>
+                    <th>95<small><b>%</b></small></th>
+                    <th>90<small><b>%</b></small></th>
+                    <th>80<small><b>%</b></small></th>
+                    <th>50<small>%</small></th>
+                    <th>20<small><b>%</b></small></th>
+                    <th>10<small><b>%</b></small></th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for val in ('99', '98', '97', '96', '95', '90', '80', '50', '20', '10') %}
+                        <td>{{ ((results[val] | float) * 1000) | int }}</td>
+                        {% endfor %}
+                    </tr>
+                <tfoot>
+                <tr>
+                    <td colspan="4">Время report_time, ms</td>
+                </tr>
+                </tfoot>
+                </tbody>
+            </table>
+
+        <h2>Benchmark results: </h2>
+        <table class="main results">
+            <tr>
+                <th class="task-section-header">Percentile</th>
+                {% for title in ('95','50') %}
+                <th class="task-section-header">{{ title }}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                <th class="task-section-header">Value (ms)</th>
+                {% for  value in (results['95'],results['50']) %}
+                <td class="value">{{ ((value | float) * 1000 | int) }}</td>
+                {% endfor %}
+            </tr>
+        </table>
+        </div>
+        <div class="chart"></div>
+        <script src="//yandex.st/d3/3.4.5/d3.min.js"></script>
+
+        <script>
+            (function(data) {
+
+                var WIDTH = 300,
+                    HEIGHT = 180
+
+                var margin = { top: 20, right: 30, bottom: 30, left: 40 }
+
+                var x = d3.scale.ordinal()
+                    .rangeRoundBands([0, WIDTH], 0.1)
+
+                var y = d3.scale.linear()
+                    .range([HEIGHT, 0])
+
+                var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient('bottom')
+
+                var yAxis = d3.svg.axis()
+                    .scale(y)
+                    .orient('left')
+
+                var chart = d3.select('.chart').append('svg')
+                    .attr('width', WIDTH + margin.left + margin.right)
+                    .attr('height', HEIGHT + margin.top + margin.bottom)
+                    .append('g')
+                        .attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')')
+
+                var chartData = []
+                Object.keys(data).forEach(function(key) {
+                    chartData.push({ title: key, value: int(float(data[key])*1000) })
+                })
+
+                x.domain(chartData.map(function(d) { return d.title }))
+                y.domain([0, d3.max(chartData, function(d) { return d.value })])
+
+                chart.append('g')
+                    .attr('class', 'x axis')
+                    .attr('transform', 'translate(0, ' + HEIGHT + ')')
+                    .call(xAxis)
+
+                chart.append('g')
+                    .attr('class', 'y axis')
+                    .call(yAxis)
+
+                var bar = chart.selectAll('.col')
+                    .data(chartData)
+                    .enter().append('g')
+                        .attr('class', 'col')
+                        .attr('transform', function(d) {
+                            return 'translate(' + x(d.title) + ', 0)'
+                        })
+
+                bar.append('rect')
+                    .attr('class', 'bar')
+                    .attr('y', function(d) { return y(d.value) })
+                    .attr('width', x.rangeBand())
+                    .attr('height', function(d) { return HEIGHT - y(d.value) })
+
+                bar.append('text')
+                    .attr('x', x.rangeBand() / 2)
+                    .attr('y', function(d) { return y(d.value) - 3 })
+                    .text(function(d) {
+                        return d.value
+                    })
+
+            })({{ task.ctx.get('chart_data') }})
+        </script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+definitions:
+    CorpClientIdRequest:
+        additionalProperties: false
+        properties:
+            uid:
+                description: UID пользователя в Паспорте
+                type: string
+        required:
+          - uid
+        type: object
+    CorpClientIdResponse:
+        additionalProperties: false
+        properties:
+            corp_client_id:
+                description: идентификатор корпоративного клиента
+                type: string
+        required:
+          - corp_client_id
+        type: object
+
+swagger: '2.0'
+info:
+    title: Corporate Integration API
+    version: '1.0'
+
+host: corp-integration-api.taxi.yandex.net
+schemes:
+  - http
+produces:
+  - application/json
+consumes:
+  - application/json
+paths:
+    /v1/authproxy/corp_client_id:
+        post:
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    $ref: '#/definitions/CorpClientIdRequest'
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/CorpClientIdResponse'
+            security:
+              - TvmAuth: []
+            summary: Получить corp_client_id по uid пользователя

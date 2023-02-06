@@ -1,0 +1,41 @@
+id: 409
+title: Убедиться, что 409 проксируется
+source:
+    request:
+        method: post
+        body:
+            id: 'c75eb659f0e9461bb067c19dc5a7bde7'
+            route:
+              - value:
+                  - 37.61696672067046
+                  - 55.75629341416061
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 409
+            body:
+                error:
+                    text: 'bad revision'
+mocks:
+  - resource: taxi-3.0-personalstate
+    response:
+        status-code: 409
+        body:
+            error:
+                text: 'bad revision'
+    expectations:
+        call-count: 1
+  - resource: personalstate-post
+    response:
+        status-code: 409
+        body:
+            source: 'userstate'
+    expectations:
+        call-count: 0
+  - resource: user-state-personalstate-compare-responses
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

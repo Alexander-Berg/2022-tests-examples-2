@@ -1,0 +1,58 @@
+description: Размеры очередей в аэропортах
+tags: [fallback]
+full-description: В конфиге определяется предположительная длина очереди для заданного
+    аэропорта, тарифа и момента времени
+maintainers: [skolibaba, artmbogatov]
+turn-off-immediately: false
+default:
+    __default__:
+        __default__: [{"hours": 0, "minutes": 0, "queue_size": 10}, {"hours": 23,
+                "minutes": 0, "queue_size": 10}]
+schema:
+    type: object
+    required:
+      - __default__
+    additionalProperties:
+        $ref: '#/definitions/TariffTimeQueueSize'
+    properties:
+        __default__:
+            description: Аэропорт
+            $ref: '#/definitions/TariffTimeQueueSize'
+    definitions:
+        TimeQueueSize:
+            type: object
+            additionalProperties: false
+            properties:
+                hours:
+                    description: Часы
+                    type: integer
+                    minimum: 0
+                    maximum: 23
+                minutes:
+                    description: Минуты
+                    type: integer
+                    minimum: 0
+                    maximum: 59
+                queue_size:
+                    description: Размер очереди в данное время
+                    type: integer
+                    minimum: 0
+            required:
+              - hours
+              - minutes
+              - queue_size
+        TimeQueueSizes:
+            type: array
+            minItems: 2
+            items:
+                $ref: '#/definitions/TimeQueueSize'
+        TariffTimeQueueSize:
+            type: object
+            required:
+              - __default__
+            additionalProperties:
+                $ref: '#/definitions/TimeQueueSizes'
+            properties:
+                __default__:
+                    description: Тариф
+                    $ref: '#/definitions/TimeQueueSizes'

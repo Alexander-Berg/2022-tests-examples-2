@@ -1,0 +1,48 @@
+id: off_by_experiment
+title: |
+    Проверка отключения экспериментом
+
+parameters:
+  - exp:
+      - enabled#boolean: true
+      - enabled#boolean: false
+
+experiments:
+    values#object:
+      - key: api_proxy_integration_newbie_switch
+        value:
+            enabled#xget: /test-params/exp/enabled
+        enabled: true
+
+source:
+    request:
+        method: post
+        body: {}
+        headers:
+            X-Yandex-UID#string: 43214321
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: is_new_user
+                value: true
+                enabled#xget: /test-params/exp/enabled
+
+mocks:
+  - resource: user-statistics-v1-orders
+    response:
+        status-code: 200
+        body:
+            data#array:
+              - identity:
+                    type#string: yandex_uid
+                    value#string: 43214321
+                counters#array:
+                  - value#object_simple:
+                        value: 0
+                        properties: []
+    expectations:
+        call-count#if:
+            condition#xget: /test-params/exp/enabled
+            then: 1
+            else: 0

@@ -1,0 +1,58 @@
+default:
+    chunk-size: 1000
+    interval-ms: 1000
+    lagging-cursor-delay: 300
+    mode: disabled
+    pg-timeout-ms: 2000
+description: |
+    Параметры работы процедуры создания dbtaxi.cars;
+    chunk-size - максимальное число документов обработанных main курсором за одну итерацию процедуры;
+    full-update-delay-ms - тротлинг обработки группы документов для full-update;
+    full-updates-limit-per-iteration - максимальное число итераций full-update в рамках итерации процедуры (используется в тестах); 
+    interval-ms - период работы процедуры в миллисекундах;
+    lagging-cursor-delay - отставание корректирующего курсора;
+    mode - режим работы процедуры:
+      - disabled - процедура выключена;
+      - dryrun - немодифицирующем режим работы процедуры;
+      - enabled - модифицирующий режим работы процедуры.
+    pg-timeout-ms - разрешенный таймаут запросов к pg в миллисекундах;
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        chunk-size:
+            type: integer
+            x-taxi-cpp-type: unsigned
+            minimum: 1
+        full-update-delay-ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 0
+        interval-ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+        lagging-cursor-delay:
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            minimum: 0
+        mode:
+            type: string
+            enum:
+              - disabled
+              - dryrun
+              - enabled
+        pg-timeout-ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+        full-updates-limit-per-iteration:
+            type: integer
+            x-taxi-cpp-type: unsigned
+            minimum: 0
+    required:
+      - chunk-size
+      - interval-ms
+      - lagging-cursor-delay
+      - mode
+      - pg-timeout-ms

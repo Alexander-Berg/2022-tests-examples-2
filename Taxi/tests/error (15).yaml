@@ -1,0 +1,45 @@
+id: error
+title: errors in int-api
+
+parameters:
+  - error:
+      - code: 400
+        message: bad request
+      - code: 500
+        message: server error
+
+source:
+    request:
+        method: post
+        url: /integration/turboapp/v1/orders/draft
+        headers:
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+            X-Yandex-UID: test_yandex_uid
+        body:
+            some: request
+            callcenter:
+                key: test_key
+    expectations:
+        response:
+            status-code#xget: /test-params/error/code
+            body:
+                error#xget: /test-params/error/message
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code#xget: /test-params/error/code
+        body:
+            error#xget: /test-params/error/message
+    expectations:
+        request:
+            body:
+                some: request
+                yandex_uid: test_yandex_uid
+                callcenter:
+                    key: turboapp
+                    personal_phone_id: test_personal_phone_id
+            headers:
+                X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+                X-Yandex-UID: test_yandex_uid
+        call-count: 1

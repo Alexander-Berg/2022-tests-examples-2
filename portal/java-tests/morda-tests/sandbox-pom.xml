@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!--
+This file is downloaded from GitHub by sandbox tasks.
+Do not delete or move it.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ru.yandex.ichwill</groupId>
+    <artifactId>zen-it-sandbox-pom</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Sandbox POM</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <aspectj.version>1.8.7</aspectj.version>
+        <allure.version>1.4.23.1</allure.version>
+        <ichwill.version>1.0-SNAPSHOT</ichwill.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>ru.yandex.autotests.morda</groupId>
+                                    <artifactId>morda-tests</artifactId>
+                                    <version>4.0-SNAPSHOT</version>
+                                    <outputDirectory>target/test-classes</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>ru.yandex.qatools</groupId>
+                <artifactId>testrunner-maven-plugin</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
+                <configuration>
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <parallel>${parallel-method}</parallel>
+                    <threadCount>${thread-count}</threadCount>
+                    <argLine>
+                        -javaagent:${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar
+                    </argLine>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>ru.yandex.qatools.allure.junit.AllureRunListener</value>
+                        </property>
+                    </properties>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjweaver</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>ru.yandex.autotests.morda</groupId>
+            <artifactId>morda-tests</artifactId>
+            <version>4.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.yandex.qatools</groupId>
+            <artifactId>junit-rl-spi</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.yandex.autotests</groupId>
+            <artifactId>aspectj-weaver-only-ru</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+
+    <reporting>
+        <excludeDefaults>true</excludeDefaults>
+        <plugins>
+            <plugin>
+                <groupId>ru.yandex.qatools.allure</groupId>
+                <artifactId>allure-maven-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <version>${allure.version}</version>
+                    <inputDirectories>${launches}</inputDirectories>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>bulk</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

@@ -1,0 +1,28 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: logging
+        queue: example
+        stq-queue: logging_example
+        static-event-traits:
+            is-create#equal:
+              - value#xget: /event/payload/kind
+              - value#string: create
+        state-manager:
+            initial: {}
+        keys-mapping:
+            default-keys: [handle-default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            shared-state-init:
+                message: Hello, world!
+            stages:
+              - id: log-message
+                handlers:
+                  - id: logging-handler
+                    logging:
+                      - text#xget: /shared-state/message

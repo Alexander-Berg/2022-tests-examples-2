@@ -1,0 +1,50 @@
+default:
+    enabled: false
+    hosts: []
+    max_history_depth: 5
+    max_status_age_min: 60
+    compare_ts_delta_sec: 15
+    dump_drivers_num: 10
+description: Настройки компаратора статусов водителей
+maintainers:
+  - basil-shuman
+  - dmpetroff
+  - vpalchikov
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enabled
+      - hosts
+      - max_history_depth
+      - max_status_age_min
+      - compare_ts_delta_sec
+      - dump_drivers_num
+    properties:
+        enabled:
+            type: boolean
+        hosts:
+            type: array
+            items:
+                type: string
+        max_history_depth:
+            description: Максимальное количество статусов, сохраняемых в истории
+            type: integer
+            minimum: 1
+        max_status_age_min:
+            description: Хранить в истории статусы, имеющие время обновления не старше
+                указанного
+            type: integer
+            minimum: 1
+            x-taxi-cpp-type: std::chrono::minutes
+        compare_ts_delta_sec:
+            description: Допускать сравнивать статусы, отличающиеся временем обновления
+                не больше указанного
+            type: integer
+            minimum: 0
+            x-taxi-cpp-type: std::chrono::seconds
+        dump_drivers_num:
+            description: Максимальное число водителей, записываемых в дамп компаратора
+            type: integer
+            minimum: 0

@@ -1,0 +1,72 @@
+id: cargo_constraints_enabled
+title: Ответ протокольной totw фильтруется на основе ответа из /cargo-claims/v1/claims/passenger-changes
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                cancel_disabled: true
+                allowed_changes:
+                  - name: 'destinations'
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            cancel_disabled: false
+            allowed_changes:
+              - name: 'destinations'
+              - name: 'payment'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                cargo_ref_id: 'cargo_claims_entity_1'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'
+  - resource: cargo-claims-v1-passenger-changes
+    response:
+        status-code: 200
+        body:
+            cancel_disabled: true
+            disabled_changes:
+              - 'payment'
+              - 'user_ready'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                cargo_ref_id: 'cargo_claims_entity_1'
+            content-type: application/json

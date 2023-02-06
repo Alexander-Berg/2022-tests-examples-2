@@ -1,0 +1,67 @@
+INSERT INTO date_table (id, created_at, updated_at, magic_ts, magic_date)
+VALUES
+(
+    'id_1_ok',
+    '2019-01-24T11:00:00+02:00'::TIMESTAMPTZ,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '2019-01-24'::DATE
+),
+(
+   'id_2_tp',
+   '2019-01-24T11:00:00+06:00'::TIMESTAMPTZ,
+   '2019-01-24T11:00:00'::TIMESTAMP,
+   '20190-01-24T11:00:00'::TIMESTAMP,
+   '2019-01-24'::DATE
+),
+(
+   'id_3_tpx',
+   '12019-01-24T11:00:00+02:00'::TIMESTAMPTZ,
+   '2019-01-24T11:00:00'::TIMESTAMP,
+   '2019-01-24T11:00:00'::TIMESTAMP,
+   '2019-01-24'::DATE
+),
+(
+    'id_4_date',
+    '2019-01-24T11:00:00+02:00'::TIMESTAMPTZ,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '20119-01-24'::DATE
+),
+(
+   'id_5_null',
+    null,
+   '2019-01-24T11:00:00'::TIMESTAMP,
+    null,
+    null
+);
+
+INSERT INTO date_table_ok (id, created_at, updated_at, magic_date)
+VALUES
+(
+    'id_1_ok',
+    '2019-01-24T11:00:00+03:00'::TIMESTAMPTZ,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '2019-01-24'::DATE
+),
+(
+    'id_5_null',
+    '2019-01-24T11:00:00+03:00'::TIMESTAMPTZ,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    null
+);
+
+INSERT INTO date_table_err (id, created_at, updated_at, magic_date)
+VALUES
+(
+    'id_1_ok',
+    '2019-01-24T11:00:00+03:00'::TIMESTAMPTZ,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '2019-01-24'::DATE
+),
+(
+    'id_2_tp',
+    '20019-01-24T11:00:00+06:00'::TIMESTAMPTZ,
+    '2019-01-24T11:00:00'::TIMESTAMP,
+    '2019-01-24'::DATE
+);

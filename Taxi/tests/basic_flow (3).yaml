@@ -1,0 +1,51 @@
+id: basic_flow
+title: рендеринг карточки завершения поездки
+
+parameters:
+  - case:
+      - config: {}
+        response: {}
+      - config:
+            key_by_zone:
+                zone_a: lock
+            screen_by_key:
+                lock: {screen: resolved}
+        response: {screen: resolved}
+      - config:
+            key_by_zone:
+                __default__: def
+            screen_by_key:
+                def: {screen: default_key}
+        response: {screen: default_key}
+      - config:
+            screen_by_key:
+                __default__: {screen: default}
+        response: {screen: default}
+
+source:
+    request:
+        method: post
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/case/response
+
+mocks:
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            segment:
+                session:
+                    specials:
+                        current_offer:
+                            constructor_id: tariff_a
+
+experiments:
+    values:
+        scooters_cable_lock_screen#xget: /test-params/case/config
+
+configs:
+    values:
+        scooters_tariff_to_zone:
+            tariff_a: zone_a

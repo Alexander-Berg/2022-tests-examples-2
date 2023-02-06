@@ -1,0 +1,39 @@
+description: geoareas storage
+settings:
+    collection: geoareas
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: created
+  - key:
+      - name: geometry
+        type: 2dsphere
+  - key: name
+  - key: removed
+wiki_info: |
+    #### geoareas
+    *Назначение:* коллекция геозон.
+
+    *Структура документов:*
+    ```python
+    {
+        'area': 12.1,  # площадь геозоны, используется для нахождения минимальной,
+                       # в случае когда точка проходит через две зоны.
+        'created': datetime.datetime.utcnow,  # дата создания зоны. Так как все зоны immutable,
+                                              # то надо ориентироваться на те, у которых created максимально
+        'geometry': {
+            'type': 'Polygon',  # других пока нет
+            'coordinates': [
+               [ [0.0, 0.0], [0.0, 1.0] ],  # список точек внешней оболочки
+               # списки точек выколотых областей
+            ]
+        },
+        'name': 'moscow',  # название геозоны. Несколько геозон могут иметь одно и то же название.
+        'removed': bool,  # не показывать эту зону в админке
+        'geo_id': 111, # идентификатор города из геобазы
+        'country_id': 'rus', # идентификатор страны из сервиса territories
+        'ignore_excluded_parks': False, # Игнорировать передаваемый в order blacklist парков
+        'default_point': [0, 0],  # [опциональное поле] точка по умолчанию для геозоны (используется для динамических трансферов)
+        't': 'airport'  # тип объекта (object_type) из геобазы. Используется только для настройки отображения
+    }
+    ```

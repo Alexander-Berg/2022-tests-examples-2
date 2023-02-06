@@ -1,0 +1,229 @@
+type: apitest
+version: 0
+service: taxi_card_filter
+
+mockserver:
+  - url: /cardstorage/v1/payment_methods
+    response:
+        body:
+            available_cards: []
+            yandex_accounts:
+              - yandex_account_id: "w/1234"
+                balance: "123"
+                currency: "RUB"
+  - url: /card-antifraud/v1/payment/availability
+    response:
+        body:
+            all_payments_available: true
+            available_cards: []
+
+tests:
+  - name: nonzero_balance
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "filtercards_experiments.json"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets:
+              - availability:
+                    available: false
+                    disabled_reason: "нужна подписка на Плюс"
+                complement_attributes:
+                    compatibility_description: "Работает с картой"
+                    name: "Активировать 123 баллов"
+                    payment_types: ["card", "applepay", "googlepay"]
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                description: "123"
+                id: "w/1234"
+                is_complement: true
+                money_left: "123"
+                name: "Плюс"
+                type: "personal_wallet"
+
+  - name: zwallet
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards: []
+                yandex_accounts: []
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "filtercards_experiments.json"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets:
+              - availability:
+                    available: false
+                    disabled_reason: "нужна подписка на Плюс"
+                complement_attributes:
+                    compatibility_description: "Работает с картой"
+                    name: "10% вернётся баллами"
+                    payment_types: ["card", "applepay", "googlepay"]
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                id: "z569cd1204dc097eebd36c94587a6601"
+                is_complement: true
+                money_left: "0"
+                description: "0"
+                name: "Плюс"
+                type: "personal_wallet"
+
+  - name: notnullbalance_yaplus
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "filtercards_experiments.json"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+            X-YaTaxi-Pass-Flags: "ya-plus"
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets:
+              - availability:
+                    available: false
+                    disabled_reason: "нужна подписка на Плюс"
+                complement_attributes:
+                    compatibility_description: "Работает с картой"
+                    name: "Активировать 123 баллов"
+                    payment_types: ["card", "applepay", "googlepay"]
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                id: "w/1234"
+                is_complement: true
+                money_left: "123"
+                description: "123"
+                name: "Плюс"
+                type: "personal_wallet"
+
+  - name: notnullbalance_yaplus_cashbackplus
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "filtercards_experiments.json"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+            X-YaTaxi-Pass-Flags: "ya-plus,cashback-plus"
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets:
+              - availability:
+                    available: true
+                    disabled_reason: ""
+                complement_attributes:
+                    compatibility_description: "Работает с картой"
+                    name: "Потратить на поездку"
+                    payment_types: ["card", "applepay", "googlepay"]
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                id: "w/1234"
+                is_complement: true
+                money_left: "123"
+                description: "123"
+                name: "Плюс"
+                subtitle: "Баланс: 123 баллов"
+                type: "personal_wallet"
+
+  - name: nullbalance_yaplus_cashbackplus
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards: []
+                yandex_accounts:
+                  - yandex_account_id: "w/1234"
+                    balance: "0"
+                    currency: "RUB"
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "filtercards_experiments.json"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+            X-YaTaxi-Pass-Flags: "ya-plus,cashback-plus"
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets:
+              - availability:
+                    available: true
+                    disabled_reason: ""
+                complement_attributes:
+                    compatibility_description: "Работает с картой"
+                    name: "Потратить на поездку"
+                    payment_types: ["card", "applepay", "googlepay"]
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                id: "w/1234"
+                is_complement: true
+                money_left: "0"
+                description: "0"
+                name: "Плюс"
+                subtitle: "Баланс: 0 баллов"
+                type: "personal_wallet"

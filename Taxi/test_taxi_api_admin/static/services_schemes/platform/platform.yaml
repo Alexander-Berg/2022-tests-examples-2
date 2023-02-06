@@ -1,0 +1,96 @@
+tvm_auth:
+    service_name: sms
+
+api:
+  - path: send_sms/
+    methods:
+      - method: post
+        clowny_roles:
+            any_of:
+              - all_of:
+                  - role: clowny_role_1
+                    check_field:
+                        type: service_id
+                        retrieve_settings:
+                            storage: request
+                            path: service_id
+      - method: delete
+        clowny_roles:
+            any_of:
+              - all_of:
+                  - role: clowny_role_4
+                    check_field:
+                        type: abc_slug
+                        retrieve_settings:
+                            storage: query
+                            path: abc_slug
+      - method: get
+        audit_action_id: test_action_id
+        clowny_roles:
+            any_of:
+              - all_of:
+                  - role: clowny_role_1
+                    check_field:
+                        type: project_name
+                        retrieve_settings:
+                            storage: query
+                            path: project_name
+              - all_of:
+                  - role: clowny_role_2
+                    check_field:
+                        type: project_id
+                        retrieve_settings:
+                            storage: query
+                            path: project_id
+                  - role: clowny_role_3
+                    check_field:
+                        type: tplatform_namespace
+                        retrieve_settings:
+                            storage: query
+                            path: tplatform_namespace
+        object_id_retrieve_settings:
+            storage: headers
+            path: X-File-Name
+        request_headers_log:
+          - X-File-Name
+          - X-Arg-Type
+        audit_exclude:
+            full_request: true
+      - method: put
+        clowny_roles:
+            any_of:
+              - all_of:
+                  - role: common_clown_role
+                    check_field:
+                        type: no_scope_check
+                    x-no-scope-role-check-reason: some usefull reason
+      - method: patch
+        clowny_roles:
+            any_of:
+              - all_of:
+                  - role: clowny_role_1
+                    check_field:
+                        type: branch_id
+                        retrieve_settings:
+                            storage: request
+                            path: branch_id
+  - path: v1/namespaces/retrieve
+    methods:
+      - method: post
+        clowny_roles:
+            any_of:
+              - all_of:
+                  - role: clowny_role_1
+                    check_field:
+                        type: no_scope_check
+                    x-no-scope-role-check-reason: There is no scope to check
+
+hosts:
+    unstable: http://unstable-service-host.net
+    testing: http://testing-service-host.net
+    production: http://production-service-host.net
+
+audit_actions:
+  - action_id: platform_action_id
+    title: тестовый тайтл
+    comment: тестовый коммент

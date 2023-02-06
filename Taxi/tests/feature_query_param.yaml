@@ -1,0 +1,78 @@
+id: feature_query_param
+title: Проверяем передачу query параметра `feature` в user-state и payment-methods
+
+parameters:
+  - cases:
+      - feature: {}
+        user_state_flow: order
+      - feature: passes
+        user_state_flow: passes
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 1
+              - 1
+        query#object:
+          - key: service
+            value#string: scooters
+          - key: feature
+            value#xget: /test-params/cases/feature
+            enabled#not:
+                value#xempty: /test-params/cases/feature
+        query:
+            service: scooters
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods: []
+                merchant_id_list: []
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query#object:
+              - key: service
+                value#string: scooters
+              - key: flow
+                value#xget: /test-params/cases/user_state_flow
+    response:
+        status-code: 200
+        body:
+            flows: []
+  - resource: cardstorage-v1-card
+    response:
+        status-code: 200
+        body: {}
+  - resource: payment-methods-v1-superapp-available-payment-types
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            query#object:
+              - key: service
+                value#string: scooters
+              - key: flow
+                value#xget: /test-params/cases/feature
+                enabled#not:
+                    value#xempty: /test-params/cases/feature
+    response:
+        status-code: 200
+        body:
+            merchant_ids: []
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false

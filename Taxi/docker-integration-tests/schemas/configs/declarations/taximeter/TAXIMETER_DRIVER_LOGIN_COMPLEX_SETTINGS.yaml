@@ -1,0 +1,73 @@
+swagger: '2.0'
+default:
+    proxy:
+        phone_settings:
+            enable: false
+            phone_prefixes: []
+            phone_suffixes: []
+            require_prefix_and_suffix: false
+        skip_headers: ["Host", "Accept-Encoding"]
+    compare_rate: 0
+    steps: ["select_db"]
+description: |
+    Настройки проксирования запросов /driver/authorization/login/new из таксометра в driver-protocol (backend-cpp).
+    Proxy - по каким номерам телефонов проксировать запросы, т.е. выдавать ответ ручки из backend-cpp.
+      skip_headers - какие http заголовки не проксировать.
+    Compare_rate - процент запросов для которых сравнивается ответ taximeter и driver-protocol
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - proxy
+      - compare_rate
+    properties:
+        proxy:
+            $ref: '#/definitions/proxy'
+        compare_rate:
+            type: integer
+            minimum: 0
+            maximum: 100
+        steps:
+            type: array
+            items:
+                type: string
+                enum: ["", "phone", "send_sms", "sms_code", "select_db"]
+    definitions:
+        proxy:
+            type: object
+            additionalProperties: false
+            required:
+              - phone_settings
+              - skip_headers
+            properties:
+                phone_settings:
+                    $ref: '#/definitions/phone_settings'
+                skip_headers:
+                    $ref: '#/definitions/headers_array'
+        phone_settings:
+            additionalProperties: false
+            required:
+              - enable
+              - phone_prefixes
+              - phone_suffixes
+              - require_prefix_and_suffix
+            properties:
+                enable:
+                    type: boolean
+                phone_prefixes:
+                    $ref: '#/definitions/phone_array'
+                phone_suffixes:
+                    $ref: '#/definitions/phone_array'
+                require_prefix_and_suffix:
+                    type: boolean
+        phone_array:
+            type: array
+            items:
+                type: string
+                pattern: ^[0-9]+$
+        headers_array:
+            type: array
+            items:
+                type: string
+

@@ -1,0 +1,24 @@
+id: timeout_upstream
+title: В случае префикса order/ ожидается upstream cargo-orders
+source:
+    request:
+        method: post
+        body:
+            cargo_ref_id: 'order/123'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 500
+            body:
+                code: 'gateway_error'
+                message: 'Error processing cargo-orders upstream, see service logs
+                    for more info'
+
+mocks:
+  - resource: cargo-orders-protocol-handlers-post
+    exception: timeout
+    expectations:
+        call-count: 1
+        request:
+            method: post

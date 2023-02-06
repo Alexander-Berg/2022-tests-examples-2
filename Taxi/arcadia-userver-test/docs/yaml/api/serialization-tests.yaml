@@ -1,0 +1,53 @@
+openapi: 3.0.0
+info:
+    title: Yandex Taxi arcadia-userver-test Service - serialization tests
+    description: handlers for testing custom serialization formats
+    version: '1.0'
+
+x-taxi-client-qos:
+    taxi-config: ARCADIA_USERVER_TEST_CLIENT_QOS
+
+paths:
+    /serialize/flatbuf/echo:
+        post:
+            summary: Echoes back the internal struct
+            requestBody:
+                description: request data
+                required: true
+                content:
+                    application/flatbuffer:
+                        schema:
+                            type: string
+                            format: binary
+                            x-taxi-format-flatbuffer: "schemas/fbs/userver-sample/autogen/testing_request.fbs#/userver_sample/autogen/fbs/TestPostRequest"
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/flatbuffer:
+                            schema:
+                                type: string
+                                format: binary
+                                x-taxi-format-flatbuffer: "schemas/fbs/userver-sample/autogen/testing_request.fbs#/userver_sample/autogen/fbs/TestPostRequest"
+    /serialize/protobuf/echo:
+        post:
+            summary: Echoes back the internal struct
+            requestBody:
+                required: true
+                content:
+                    application/x-protobuf:
+                        x-taxi-non-std-type-reason: Protobuf request
+                        schema:
+                            type: string
+                            format: binary
+                            x-taxi-format-protobuffer: "schemas/proto/userver_sample/autogen/testing_request.proto#/userver_sample/autogen/proto/TestRequest"
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/x-protobuf:
+                            x-taxi-non-std-type-reason: Protobuf response
+                            schema:
+                                type: string
+                                format: binary
+                                x-taxi-format-protobuffer: "schemas/proto/userver_sample/autogen/testing_response.proto#/userver_sample/autogen/proto/TestResponse"

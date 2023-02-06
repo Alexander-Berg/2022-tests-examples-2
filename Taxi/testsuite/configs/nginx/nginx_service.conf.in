@@ -1,0 +1,9 @@
+        location /%{SERVICE_NAME}/ {
+            include %{INPUT_DIR}/fastcgi_params;
+            fastcgi_param REMOTE_ADDR $http_x_real_ip;
+            fastcgi_pass unix:/tmp/tests-%{SERVICE_NAME}%{WORKER_SUFFIX}.sock;
+            rewrite ^/%{SERVICE_NAME}/(.*)$ /$1 break;
+            # getimage uses X-Accel-Redirect
+            fastcgi_ignore_headers X-Accel-Redirect;
+            fastcgi_pass_header X-Accel-Redirect;
+        }

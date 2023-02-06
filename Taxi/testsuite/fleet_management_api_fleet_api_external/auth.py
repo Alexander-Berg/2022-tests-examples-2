@@ -1,0 +1,13 @@
+API_KEYS_MOCK_URL = '/uapi_keys/v2/authorization'
+
+API_KEY_HEADER = 'X-API-Key'
+API_KEY = 'ANTON-TODUA-TOP-SECRET-KEY'
+
+CLIENT_ID_HEADER = 'X-Client-ID'
+CLIENT_ID = 'anton-todua'
+
+CONSUMER_ID = 'fleet-api'
+
+KEY_ID = '13'
+
+HEADERS = {API_KEY_HEADER: API_KEY, CLIENT_ID_HEADER: CLIENT_ID}

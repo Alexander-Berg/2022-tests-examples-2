@@ -1,0 +1,43 @@
+id: exp3_cached
+title: Проверка передачи состояния кэша экспериментов.
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+            typed_experiments:
+                items: [{'name': '1212', 'version': '776771:8:ru'}]
+            onboarding_type: moscow_onboadring
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-Request-Application: 'app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2'
+            X-YaTaxi-PhoneId: 'phone_id'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                typed_experiments: {'1212': 4545}
+
+experiments:
+    values#object:
+      - key: 'api_proxy_launch_use_experiments_from_exp3_matcher'
+        value: {'enabled': true}
+
+mocks:
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body: {'1212': 4545}
+        headers:
+            content-type: 'application/json'
+    expectations:
+        request:
+            body:
+                args#any: []
+                locale#any: []
+                consumer#any: []
+                user_agent#any: []
+                cached_exp_result_identifiers:
+                    items: [{'name': '1212', 'version': '776771:8:ru'}]
+        call-count: 1

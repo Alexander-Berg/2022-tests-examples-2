@@ -1,0 +1,56 @@
+id: test_create_error_from_partners
+title: Проверка получения ошибочного ответа из сервиса eats-partners
+
+source:
+    request:
+        method: post
+        url: /api/v1/server/users
+        body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+            timezone: Moscow
+            roles: [2, 8]
+            countryCode: RU
+
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - code: some_code
+                    message: some_message
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-create
+    response:
+        status-code: 400
+        body:
+            code: some_code
+            message: some_message
+    expectations:
+        call-count: 1
+        request:
+            body:
+                email: test@test.test
+                name: test_name
+                password: some_password
+                places: [1, 2, 3]
+                is_fast_food: false
+                timezone: Moscow
+                roles: [2, 8]
+                country_code: RU
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: true
+        enabled: true

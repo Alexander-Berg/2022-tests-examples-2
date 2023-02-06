@@ -1,0 +1,168 @@
+id: combo_buffered_search
+title: Отображение объектов для долгого поиска комбо. Отображаем subtitle на экране
+    поиска поиска с временем подачи машины
+
+parameters:
+  - cases:
+      # если комбо не долгий, не показываем ничего
+      - alternative_type#string: 'combo_outer'
+        is_buffer_search: false
+        status: search
+        multiorder_info_included: false
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 200
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'search'
+
+
+      # если статус не "поиск", не показываем ничего
+      - alternative_type#string: 'combo_outer'
+        is_buffer_search: true
+        status: driving
+        multiorder_info_included: false
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 200
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'driving'
+
+      # если комбо не аутер, не показываем ничего
+      - alternative_type#string: 'combo_inner'
+        is_buffer_search: true
+        status: search
+        multiorder_info_included: false
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 200
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'search'
+
+      # если комбо долгий и в поиске, показываем сабтайтл поиска
+      - alternative_type#string: 'combo_outer'
+        is_buffer_search: true
+        status: search
+        multiorder_info_included: true
+        combo-contractors-call-count#integer: 1
+        combo-contractors-resp-status#integer: 200
+        companions-request#object:
+          - dbid_uuid#string: 'contractor_driver_id'
+          - order_id#string: 'order_id'
+          - order_status#string: 'search'
+
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            break: 'user'
+            cancel_state: 'free'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid#string: '12345'
+            X-Request-Application: 'app_brand=yataxi,app_name=android'
+            X-Request-Language: 'ru-RU'
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - additional_buttons#object:
+              - feedback#object:
+              - key: companions
+                value#array: ["id": "companion_1"]
+              - key: routeinfo
+                value#object:
+                  - key: positions
+                    value#array: [{"point": [37.0, 55.0], "type": "combo.dropoff"}]
+              - key: status
+                value#xget: /test-params/cases/status
+              - key: multiorder_info
+                value#object:
+                  - subtitle#string: Найдем за 7 - 10 минут
+                enabled#xget: /test-params/cases/multiorder_info_included
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+configs:
+    values#object:
+      - key: combo_companions
+        value#object:
+          - key: totw_enabled
+            value#boolean: true
+
+experiments:
+    values#object:
+      - key: people_combo_buffer_search_mock
+        value#object:
+          - key: is_buffer_search
+            value#xget: /test-params/cases/is_buffer_search
+          - key: multiorder_info
+            value#object:
+              - key: subtitle
+                value#string: Найдем за 7 - 10 минут
+          - key: enabled
+            value#boolean: true
+    expectations:
+        kwargs:
+          - key: lang
+            type: string
+            value: ru-RU
+          - key: timestamp_now
+            type: string
+            value: '1970-01-01T00:00:00+0000'
+          - key: order_id
+            type: string
+            value: order_id
+          - key: application
+            type: string
+            value: android
+
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body#object:
+          - key: status
+            value#xget: /test-params/cases/status
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: combo-contractors-companions-info
+    response:
+        status-code#xget: /test-params/cases/combo-contractors-resp-status
+        body#object:
+          - route#array: [{"point": [37.0, 55.0], "type": "combo.dropoff"}]
+          - companions#array: ["id": "companion_1"]
+    expectations:
+        call-count#xget: /test-params/cases/combo-contractors-call-count
+        request:
+            method: post
+            body#xget: /test-params/cases/companions-request
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#object:
+          - status#xget: /test-params/cases/status
+          - tariff#object:
+              - class#string: econom
+          - private_data#object:
+              - nz#string: 'moscow'
+              - driver_id#string: 'contractor_driver_id'
+          - calc#object:
+              - alternative_type#xget: /test-params/cases/alternative_type
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

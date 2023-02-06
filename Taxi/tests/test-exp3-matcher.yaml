@@ -1,0 +1,34 @@
+id: test-exp3-matcher
+title: Проверка ответа exp3-matcher
+source:
+    request:
+        method: post
+        headers:
+            X-Request-Language: ru
+            User-Agent: mozila
+            X-AppMetrica-DeviceId: device-id
+            X-Yandex-UID: yandex-uid
+            X-YaTaxi-PhoneId: phone-id
+            X-Request-Application: "app_name=android"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                typed_experiments:
+                    value: 123
+
+mocks:
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body: {'value': 123}
+        headers:
+            content-type: 'application/json'
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Request-Application: "app_name=android"
+  - resource: family-v1-launch
+    response:
+        status-code: 404

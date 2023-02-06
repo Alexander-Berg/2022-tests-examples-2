@@ -1,0 +1,40 @@
+id: test_get_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: get
+        url: /api/v1/server/users/roles
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true, "payload": [{"role": "ROLE_OPERATOR", "id": 1,
+                        "title": "Оператор"}, {"role": "ROLE_MANAGER", "id": 2, "title": "Управляющий"}]}
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-roles
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-roles
+    response:
+        status-code: 200
+        body:
+            payload#array:
+              - value:
+                    slug: ROLE_OPERATOR
+                    title: Оператор
+                    id: 1
+              - value:
+                    slug: ROLE_MANAGER
+                    title: Управляющий
+                    id: 2
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_read: true
+        enabled: true

@@ -1,0 +1,40 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:personal-goals:testing
+
+awacs_namespace: personal-goals-lb.taxi.tst.yandex.net
+http_hosts:
+  - personal-goals.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - include:
+        collapsed: false
+        path: personal_goals/goals.json
+        row_panels: 2
+        title: Personal goals
+        variables:
+          -   - cluster: production
+                group_name: taxi_personal_goals
+                sensor: active_goals
+                title: Active goals
+              - cluster: production
+                group_name: taxi_personal_goals
+                sensor: visible_goals
+                title: Visible goals
+              - cluster: production
+                group_name: taxi_personal_goals
+                sensor: done_goals
+                title: Finished goals
+              - cluster: production
+                group_name: taxi_personal_goals
+                sensor: rewarded_goals
+                title: Rewarded goals
+  - py3_common:
+        collapsed: true
+        service_name: personal_goals_*
+  - stq:
+        queues:
+          - goals_finish_processing
+          - goals_importing
+          - goals_processing
+  - http

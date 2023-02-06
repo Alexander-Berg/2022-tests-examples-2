@@ -1,0 +1,113 @@
+PG_ACTIVITY_SELECT: >
+  SELECT pid
+      , to_char(query_start, 'YYYY-MM-DD HH24:MI:SS') AS query_start
+      , to_char(backend_start, 'YYYY-MM-DD HH24:MI:SS') AS backend_start
+      , sess_id
+      , usename
+      , to_char(state_change, 'YYYY-MM-DD HH24:MI:SS') AS state_change
+      , state
+    FROM pg_stat_activity
+
+WORKFILES: >
+  SELECT a.pid
+    , to_char(a.query_start, 'YYYY-MM-DD HH24:MI:SS') AS query_start
+    , to_char(a.backend_start, 'YYYY-MM-DD HH24:MI:SS') AS backend_start
+    , a.sess_id
+    , a.usename
+    , to_char(a.state_change, 'YYYY-MM-DD HH24:MI:SS') AS state_change
+    , a.state
+  FROM gp_toolkit.gp_workfile_usage_per_query wf
+    JOIN pg_stat_activity a USING (pid)
+
+QUERIES:
+  - CODE: WF001
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: Объем spill-файлов превышает 700 Гб
+      EN: Spill-files exceeded limit 700 Gb
+    INCLUDE: WORKFILES
+    QUERY: >
+      WHERE a.usename not in (
+        'robot-taxi-gpadmin', 'etl', 'robot-market-analyst', 'robot-go-gp-high-res')
+      GROUP BY 1,2,3,4,5,6,7
+      HAVING sum(wf.size) / 1024. / 1024. / 1024. > 700.0
+
+  - CODE: WF002
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: Объем spill-файлов превышает 1280 Гб
+      EN: Spill-files exceeded limit 1280 Gb
+    INCLUDE: WORKFILES
+    QUERY: >
+      WHERE a.usename in (
+        'robot-taxi-gpadmin','etl', 'robot-market-analyst', 'robot-go-gp-high-res')
+      GROUP BY 1,2,3,4,5,6,7
+      HAVING sum(wf.size) / 1024. / 1024. / 1024. > 1280.0
+
+  - CODE: AI001
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: IDLE-соединение открыто больше 1 часа
+      EN: IDLE connection open for more than 1 hour
+
+    INCLUDE: PG_ACTIVITY_SELECT
+    QUERY: >
+      WHERE query='<IDLE> in transaction'
+        and current_timestamp - query_start > '1 hour'::interval
+        and client_addr not in ('2a02:6b8:c02:60b:0:1315:3a0d:17e')
+        AND usename not in (
+          'robot-taxi-gpadmin', 'etl', 'robot-taxi-stat', 'robot-market-analyst', 'robot-go-gp-high-res')
+
+  - CODE: AI002
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: IDLE-соединение открыто больше 2 часа
+      EN: IDLE connection open for more than 2 hours
+    INCLUDE: PG_ACTIVITY_SELECT
+    QUERY: >
+      WHERE usename != 'robot-taxi-gpadmin'
+        AND query='<IDLE> in transaction'
+        and current_timestamp - query_start > '2 hours'::interval
+
+  - CODE: AI003
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: IDLE-соединение в ресурных группах default_group/unknown открыто больше 20 мин
+      EN: IDLE connection in default_group/unknown resource groups open for more than 20 minutes
+    INCLUDE: PG_ACTIVITY_SELECT
+    QUERY: >
+      WHERE state='idle'
+        and current_timestamp - state_change > '20 minutes'::interval
+        AND usename not in (
+          'robot-taxi-gpadmin', 'robot-taxi-stat', 'robot-taxi-gp-ssas','etl', 'robot-market-analyst',
+          'robot-go-gp-high-res')
+        AND rsgname in ('default_group', 'unknown')
+
+  - CODE: AT001
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: Запрос выполняется больше 3 часов
+      EN: Query running for more than 3 hours
+    INCLUDE: PG_ACTIVITY_SELECT
+    QUERY: >
+      WHERE usename != 'robot-taxi-gpadmin'
+        and current_timestamp - query_start > '3 hour'::interval
+
+  - CODE: AT002
+    FOR_DATABASE: [butthead]
+    MODE: COLLECT
+    MSG:
+      RU: Запрос выполняется больше 70 минут
+      EN: Query running for more than 70 minutes
+    INCLUDE: PG_ACTIVITY_SELECT
+    QUERY: >
+      WHERE usename not in (
+          'robot-taxi-gpadmin','etl','robot-taxi-stat','robot-taxi-business', 'robot-market-analyst',
+          'robot-go-gp-high-res')
+        and current_timestamp - query_start > '70 minutes'::interval

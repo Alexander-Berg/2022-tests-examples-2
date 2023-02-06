@@ -1,0 +1,130 @@
+id: grocery-service-lpm
+title: Используем ответ grocery-payments-methods
+
+source:
+    request:
+        method: post
+        body:
+            location: [1, 1]
+            country_iso3: "RUS"
+
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods:
+                  - available: true
+                    type: "card"
+                    name: "MasterCard"
+                    id: "card-xf302c3bfd170df5c14f2aa65"
+                    bin: "530000"
+                    currency: "RUB"
+                    system: "MasterCard"
+                    number: "530000****5169"
+                    availability:
+                        available: true
+                        disabled_reason: ""
+                    updated_at: "2022-06-15T12:34:49.04+00:00"
+                    card_bank: "BANK OF AMERICA, NATIONAL ASSO"
+                    card_country: "USA"
+                  - type: "corp"
+                    name: "Yandex Badge"
+                    id: "badge:yandex_badge:RUB"
+                    currency: "RUB"
+                    availability:
+                        available: true
+                        disabled_reason: ""
+                    description: "оплата бейджиком"
+                additional_data:
+                    merchants:
+                      - id1
+                    service_token: "some-token"
+                    country_region_id: 225
+                    country_iso2: "RU"
+                    currency: "RUB"
+                    sbp_banks_info:
+                        bank_name: "bank-name"
+                        logo_url: "some-url"
+                        schema: "some-scheme"
+                        package_name: "package-name"
+                last_used_payment_method:
+                    type: "card"
+                    id: "cart-xxxxxx"
+                location_info:
+                    country_code: "RU"
+                    currency_code: "RUB"
+                    region_id: 225
+                merchant_id_list:
+                  - id1
+                service_token: "some-token"
+
+mocks:
+  - resource: grocery-payments-methods
+    response:
+        status-code: 200
+        body:
+            payment_methods:
+              - available: true
+                type: "card"
+                name: "MasterCard"
+                id: "card-xf302c3bfd170df5c14f2aa65"
+                bin: "530000"
+                currency: "RUB"
+                system: "MasterCard"
+                number: "530000****5169"
+                availability:
+                    available: true
+                    disabled_reason: ""
+                updated_at: "2022-06-15T12:34:49.04+00:00"
+                card_bank: "BANK OF AMERICA, NATIONAL ASSO"
+                card_country: "USA"
+              - type: "corp"
+                name: "Yandex Badge"
+                id: "badge:yandex_badge:RUB"
+                currency: "RUB"
+                availability:
+                    available: true
+                    disabled_reason: ""
+                description: "оплата бейджиком"
+            additional_data:
+                merchants:
+                  - id1
+                service_token: "some-token"
+                country_region_id: 225
+                country_iso2: "RU"
+                currency: "RUB"
+                sbp_banks_info:
+                    bank_name: "bank-name"
+                    logo_url: "some-url"
+                    schema: "some-scheme"
+                    package_name: "package-name"
+            last_used_payment_method:
+                type: "card"
+                id: "cart-xxxxxx"
+            location_info:
+                country_code: "RU"
+                currency_code: "RUB"
+                region_id: 225
+            merchant_id_list:
+              - id1
+            service_token: "some-token"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                location: [1, 1]
+                country_iso3: "RUS"
+
+configs:
+    values:
+        grocery_payments_methods_lpm_enable:
+            enabled: true

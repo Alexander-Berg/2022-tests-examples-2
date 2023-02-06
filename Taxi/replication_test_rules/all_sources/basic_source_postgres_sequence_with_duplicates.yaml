@@ -1,0 +1,22 @@
+name: postgres_sequence_with_duplicates
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: example_value
+    type_of_replicate_by: int
+    data_chunk_size: 2
+    iteration_type: sequence
+    connection:
+        secret: sequence
+    primary_key:
+      - id
+    table: sequence.table
+
+destinations:
+  - postgres_sequence_with_duplicates:
+        type: yt
+        mapper: dummy
+        target:
+            path: postgres/postgres_sequence_with_duplicates
+            cluster_groups:
+              - map_reduce

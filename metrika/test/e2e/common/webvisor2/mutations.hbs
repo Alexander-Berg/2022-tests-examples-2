@@ -1,0 +1,51 @@
+{{#> base}}
+    {{#*inline "content"}}
+        <div id="container">
+            <h1>Mutations page</h1>
+            <div>
+                <button id="button">Mutate everything</button>
+                <div id="container"></div>
+            </div>
+            <script>
+                const container = document.querySelector('#container');
+                const createNode = (id, nodeName = 'div') => {
+                    const node = document.createElement(nodeName);
+                    node.setAttribute('id', id);
+                    return node;
+                }
+
+                document.querySelector('#button').addEventListener('click', () => {
+                    const nodeToChangeAndRemove = createNode('changed');
+                    const nodeWithSpicyAttributes = createNode('spicy', 'script');
+                    nodeWithSpicyAttributes.setAttribute('normalAttribute', 'normalValue');
+                    nodeWithSpicyAttributes.setAttribute('onclick', 'console.log');
+                    nodeWithSpicyAttributes.setAttribute('src', '/somescript.js');
+                    nodeWithSpicyAttributes.setAttribute('type', 'scipt');
+                    nodeWithSpicyAttributes.setAttribute('srcset', 'something');
+                    nodeWithSpicyAttributes.setAttribute('integrity', 'ok');
+                    nodeWithSpicyAttributes.setAttribute('crossorigin', 'ok');
+                    nodeWithSpicyAttributes.setAttribute('password', 'pwd');
+                    const nodeToBeAfterAdded = createNode('afterNode');
+                    nodeToChangeAndRemove.setAttribute('attr', 'val');
+                    nodeToChangeAndRemove.innerText = 'Some text';
+
+                    setTimeout(() => {
+                        container.appendChild(nodeWithSpicyAttributes);
+                        container.appendChild(nodeToBeAfterAdded);
+                        container.insertBefore(nodeToChangeAndRemove, nodeToBeAfterAdded);
+                    }, 100);
+                    setTimeout(() => {
+                        nodeToChangeAndRemove.setAttribute('attr', 'val1');
+                        nodeToChangeAndRemove.innerText = 'Some changed text';
+                    }, 150);
+                    setTimeout(() => {
+                        container.removeChild(nodeToChangeAndRemove);
+                    }, 200);
+                    setTimeout(() => {
+                        container.appendChild(nodeToChangeAndRemove);
+                    }, 250);
+                });
+            </script>
+        </div>
+    {{/inline}}
+{{/base}}

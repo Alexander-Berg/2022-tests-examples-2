@@ -1,0 +1,28 @@
+data:
+    name: ChangeQuotaAwacsNamespace
+    provider_name: clowny-balancer
+    job_vars:
+      - new_quota_abc
+      - service_id
+      - user
+    stages:
+      - name: InternalGetNamespaces
+        provider_name: clowny-balancer
+        input:
+            service_id: service_id
+        output:
+            namespace_ids: namespace_ids
+
+      - name: MetaStartChangeQuotaAwacsForBalancers
+        provider_name: clowny-balancer
+        input:
+            user: user
+            namespace_ids: namespace_ids
+            new_quota_abc: new_quota_abc
+        output:
+            job_ids: job_ids
+
+      - name: MetaCubeWaitForJobsCommon
+        provider_name: clowny-balancer
+        input:
+            job_ids: job_ids

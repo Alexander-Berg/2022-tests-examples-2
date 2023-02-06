@@ -1,0 +1,121 @@
+default:
+    __default__:
+        enabled: false
+        read_batch_size: 100000
+        write_batch_size: 100
+        limit: 0
+        retries: 1
+        rate_limit: "1/1000"
+        write_threads: 1
+description: |
+    Включение/отключение шарповых задач синхронизации
+maintainers: [unpaleness]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/SyncJob'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/SyncJob'
+    definitions:
+        SyncJob:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                    description: Включена ли задача
+                read_batch_size:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        Количество документов, которое будет прочитано из монги
+                        за один раз перед действием
+                write_batch_size:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        Количество документов, над которыми будет совершено
+                        одно batch действие
+                limit:
+                    type: integer
+                    minimum: 0
+                    description: |
+                        Максимальное количество документов, которое будет
+                        обработано
+                        0 - нет ограничений
+                retries:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        Количество повторных попыток отправить данные, если
+                        произошла сетевая ошибка
+                rate_limit:
+                    type: string
+                    description: |
+                        Текстовое представление лимита исходящих запросов,
+                        например "50/1000", что означает "50 запросов в 1000 мс"
+                write_threads:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        Количество потоков для параллельного выполнения batch
+                        действий
+                redis_lock_ttl_s:
+                    type: number
+                    minimum: 0
+                    x-taxi-cpp-type: std::chrono::seconds
+                    description: |
+                        Время жизни Redis-блокировки задачи в секундах.
+                        Используется для того, чтобы другие задачи
+                        не стартовали, пока текущая не завершится
+            required:
+              - enabled
+              - read_batch_size
+              - write_batch_size
+              - limit
+              - retries
+              - rate_limit
+              - write_threads
+samples:
+  - __default__:
+        enabled: false
+        read_batch_size: 100000
+        write_batch_size: 100
+        limit: 0
+        retries: 1
+        rate_limit: "1/1000"
+        write_threads: 1
+    "sync_driver_personal_data":
+        enabled: true
+        read_batch_size: 1000
+        write_batch_size: 100
+        limit: 10000
+        retries: 5
+        rate_limit: "50/1000"
+        write_threads: 1
+        redis_lock_ttl_s: 300
+invalid-samples:
+  - "no_default_key":
+        enabled: false
+        read_batch_size: 100000
+        write_batch_size: 100
+        limit: 0
+        retries: 1
+        rate_limit: "1/1000"
+        write_threads: 1
+  - __default__:
+        enabled: true
+        wrong_prop_name: ":("
+  - __default__:
+        enabled: false
+        read_batch_size: 0
+        write_batch_size: -1
+        limit: -2
+        retries: -10
+        rate_limit: "1/1000"
+        write_threads: "fkfkfk"
+        redis_lock_ttl_s: -100500

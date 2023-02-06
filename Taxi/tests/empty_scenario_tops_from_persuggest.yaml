@@ -1,0 +1,85 @@
+id: empty_scenario_tops_from_persuggest
+title: при пустых scenario_tops из персаджеста и 400 от блендера ручка не должна отдавать
+    500
+source:
+    request:
+        method: post
+        body:
+            position: [1, 2]
+            shortcuts#object:
+              - supported_features#array:
+                  - value#object:
+                      - prefetch_strategies: []
+                      - type: taxi:expected-destination
+              - grids_support#array:
+                  - value#object:
+                      - width: 6
+                      - unit_width: 99.0
+              - mdash_width: 25.0
+              - ndash_width: 16.0
+    expectations:
+        response:
+            status-code#integer: 200
+            body: {"modes": [{"layout": {"grid_id": "_fallback_grid_id_", "width": 6,
+                            "type": "linear_grid"}, "mode": "taxi", "offers": {"items": [],
+                            "header": []}, "parameters": {}}], "typed_experiments": {
+                    "version": -1, "items": []}, "products": []}
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            modes:
+              - mode: taxi
+                parameters: {}
+            products: []
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 400
+        body: {}
+    expectations:
+        call-count: 1

@@ -1,0 +1,67 @@
+default:
+    __default__:
+        enabled: false
+        older_than_sec: 900
+        batch_size: 1000
+        batches_count: 10
+        parallel_requests: 8
+        client_request_size: 30
+description: Настройки воркеров периодической проверки водителей
+maintainers:
+  - basil-shuman
+  - vpalchikov
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/WorkerSettings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/WorkerSettings'
+    definitions:
+        WorkerSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                enabled:
+                    description: Разрешить проверку водителей
+                    type: boolean
+                older_than_sec:
+                    description: >
+                        Время, прошедшее с последней проверки,
+                        после которого необходимо повторить проверку
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::seconds
+                batch_size:
+                    description: >
+                        Максимальное количество водителей,
+                        выбираемых из базы за раз для проверки
+                    type: integer
+                    minimum: 1
+                batches_count:
+                    description: >
+                        Максимальное число проверок,
+                        выполняемое подряд за один период воркера
+                    type: integer
+                    minimum: 1
+                parallel_requests:
+                    description: >
+                        Максимальное число проверок, выполняемых параллельно
+                    type: integer
+                    minimum: 1
+                client_request_size:
+                    description: >
+                        Максимальное количество водителей,
+                        которое можно отдать внешнему сервису для проверки
+                    type: integer
+                    minimum: 1
+            required:
+              - enabled
+              - older_than_sec
+              - batch_size
+              - batches_count
+              - parallel_requests
+              - client_request_size

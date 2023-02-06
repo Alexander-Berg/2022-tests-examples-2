@@ -1,0 +1,32 @@
+settings:
+    collection: reaction_tests
+    connection: status_history
+    database: dbstatus_history
+indexes:
+  - key:
+      - name: unique_driver_id
+        type: hashed
+  - key: updated
+wiki_info: |
+    ####dbstatus_history.reaction_tests - логические тесты на усталость водителей
+    ```python
+    reaction_tests = {
+       '_id': ObjectId("5ab0c1ee174934eb1a0aff54"),          # уникальный id теста
+       'created' : ISODate("2018-03-29T13:47:16.204Z"),      # время создания документа
+       'updated' : ISODate("2018-04-04T03:59:41.509Z"),      # время последнего изменения документа
+       'unique_driver_id' : '5ab0c1ee174934eb1a0aff54',      # айди водителя, для которого предназначается этот тест
+       'type' : 'schulte',                                   # тип теста ENUM("schulte", "gopher")
+
+       # необязательные поля, заполняются когда водитель пройдет тест
+       'passed' : True,                                      # успешно ли пройден тест
+       'blocked_till' : ISODate("2018-04-04T01:59:41.509Z"), # время до которого заблокирован водитель
+       'results': [{                                         # массив результатов прохождения теста
+         'status': 'success',                                # статус завершения текущего этапа тестаб ENUM("success", "timed_out", "finished_on_errors", "finished_on_restart")
+         'total_time_ms': 80000,                             # время, затраченное на текущий этап теста
+         'clicks': [{                                        # клики во время теста
+           'is_hit': True,                                   # был ли клик в цель или мимо
+           'delay_ms': 840                                   # сколько времени потратил тестируемый на клик
+         }]
+       }]
+    }
+    ```

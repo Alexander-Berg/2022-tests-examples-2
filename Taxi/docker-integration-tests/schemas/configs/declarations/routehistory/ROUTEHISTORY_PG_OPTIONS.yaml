@@ -1,0 +1,38 @@
+description: PostgreSQL options
+default:
+    __default__:
+        execute_ms: 200
+        statement_ms: 200
+tags:
+  - notfallback
+maintainers:
+  - litvitskiy
+schema:
+    $ref: '#/definitions/ControlSet'
+    definitions:
+        Control:
+            type: object
+            additionalProperties: false
+            properties:
+                execute_ms:
+                    description: Overall timeout for a command being executed
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                statement_ms:
+                    description: PostgreSQL server-side timeout
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            required:
+              - execute_ms
+              - statement_ms
+        ControlSet:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Control'
+            properties:
+                __default__:
+                    $ref: '#/definitions/Control'
+            required:
+              - __default__

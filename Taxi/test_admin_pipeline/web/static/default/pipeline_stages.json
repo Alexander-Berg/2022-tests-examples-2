@@ -1,0 +1,187 @@
+[
+  {
+    "conditions": [],
+    "in_bindings": [],
+    "name": "start",
+    "optional": false,
+    "out_bindings": [
+      {
+        "alias": "places",
+        "query": "places"
+      }
+    ],
+    "source_code": "return {places: []};"
+  },
+  {
+    "conditions": [],
+    "name": "Group with name",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": {
+              "operations": [
+                {
+                  "property_name": "place_ids"
+                },
+                {
+                  "type": "iteration",
+                  "value_alias": "place_id"
+                }
+              ]
+            }
+          },
+          {
+            "domain": "input",
+            "query": {
+              "operations": [
+                {
+                  "property_name": "place_settings"
+                },
+                {
+                  "alias": "place_settings",
+                  "expression": "place_id"
+                }
+              ]
+            }
+          },
+          {
+            "domain": "input",
+            "query": "coeff"
+          }
+        ],
+        "name": "initialization",
+        "optional": false,
+        "out_bindings": [
+          {
+            "alias": "place_data",
+            "query": "places[?(@.id==place_id)]"
+          }
+        ],
+        "source_code": "return {place_data: {id: place_id, settings: place_settings, coeff: coeff}};"
+      }
+    ]
+  },
+  {
+    "conditions": [
+      {
+        "stage_name": "initialization",
+        "stage_statuses": [
+          "passed"
+        ],
+        "type": "stage_status"
+      }
+    ],
+    "in_bindings": [],
+    "name": "sample_resource_fetch",
+    "optional": false,
+    "resources": [
+      {
+        "name": "sample_resource_non_blocking"
+      }
+    ],
+    "source_code": "return {sample_resource_non_blocking: {fetch_arg_1: 1, fetch_arg_2: \"str\"}};"
+  },
+  {
+    "conditions": [
+      {
+        "stage_name": "sample_resource_fetch",
+        "stage_statuses": [
+          "passed"
+        ],
+        "type": "stage_status"
+      }
+    ],
+    "in_bindings": [
+      {
+        "domain": "resource",
+        "query": "sample_resource.params"
+      },
+      {
+        "domain": "resource",
+        "query": "sample_resource.string_field"
+      },
+      {
+        "domain": "resource",
+        "query": "sample_resource.number_field"
+      },
+      {
+        "domain": "resource",
+        "query": "sample_resource.integer_field"
+      },
+      {
+        "domain": "resource",
+        "query": "sample_resource.object_field.string_field{inner_string_field}"
+      },
+      {
+        "domain": "resource",
+        "query": "sample_resource.object_field.number_field{inner_number_field}"
+      },
+      {
+        "domain": "resource",
+        "query": "sample_resource.object_field.integer_field{inner_integer_field}"
+      },
+      {
+        "domain": "input",
+        "query": "place_ids.*{:place_id}"
+      }
+    ],
+    "name": "use_resource",
+    "optional": false,
+    "out_bindings": [
+      {
+        "alias": "data",
+        "query": "places[?(@.id==place_id)].data_from_resource"
+      }
+    ],
+    "source_code": "return {data: {params: params, string_field: string_field, number_field: number_field, integer_field: integer_field, inner_string_field: inner_string_field, inner_number_field: inner_number_field, inner_integer_field: inner_integer_field }};"
+  },
+  {
+    "args": [
+      {
+        "description": "The argument of predicate",
+        "name": "some_arg"
+      }
+    ],
+    "in_bindings": [
+      {
+        "domain": "resource",
+        "query": "sample_resource_non_blocking"
+      }
+    ],
+    "name": "predicate_cond",
+    "optional": false,
+    "source_code": "return some_arg == sample_resource_non_blocking;"
+  },
+  {
+    "conditions": [
+      {
+        "args": [
+          {
+            "name": "some_arg",
+            "value": "place_id"
+          }
+        ],
+        "predicate": "predicate_cond",
+        "type": "predicate"
+      }
+    ],
+    "in_bindings": [
+      {
+        "domain": "input",
+        "query": "place_ids.*{:place_id}"
+      }
+    ],
+    "name": "use_predicate",
+    "optional": false,
+    "out_bindings": [
+      {
+        "alias": "data",
+        "query": "places[?(@.id==place_id)].additional_data"
+      }
+    ],
+    "source_code": "return {data: {\"extra_field, guarded by predicate\"}};"
+  }
+]

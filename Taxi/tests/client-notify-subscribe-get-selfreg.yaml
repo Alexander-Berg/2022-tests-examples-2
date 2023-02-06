@@ -1,0 +1,57 @@
+id: client-notify-subscribe-get-selfreg
+title: Тест для проверки driver-v1-partner-v1-subscribe (GET) selfreg
+source:
+    request:
+        method: get
+        headers:
+            Content-Type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+        query:
+            service: 'taximeter'
+            device_id: '95FC5D7F-26F2'
+            selfreg_token: 'selfreg_token'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                ts: 1510268445
+                sign: '00a1560f46a1953645c9dd9fbcba4836'
+
+mocks:
+  - resource: selfreg-v1-validate
+    response:
+        status-code: 200
+        body:
+            selfreg_id: 'selfreg_1'
+            phone_pd_id: 'phone_pd_id_1'
+            city_id: '215'
+
+    expectations:
+        request:
+            query:
+                token: 'selfreg_token'
+        call-count: 1
+
+  - resource: client-notify-v1-get-token
+    response:
+        status-code: 200
+        body:
+            token:
+                sign: '00a1560f46a1953645c9dd9fbcba4836'
+                ts: '1510268445'
+
+    expectations:
+        request:
+            body:
+                channel:
+                    name: 'xiva_websocket'
+                service: 'taximeter'
+                client:
+                    client_id: 'selfreg-selfreg_1'
+                    device_id: '95FC5D7F-26F2'
+                    device_type: 'android'
+                    app_name: 'ru.yandex.unstable.taximeter'
+        call-count: 1
+
+taxi_config:
+    COMMUNICATIONS_TAXIMETER_DEFAULT_APPNAME: 'ru.yandex.unstable.taximeter'

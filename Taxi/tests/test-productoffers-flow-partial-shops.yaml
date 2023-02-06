@@ -1,0 +1,279 @@
+id: test-productoffers-flow-partial-shops
+title: 'Проверяем, что при походе в place=productoffers также случится запрос в сервис
+    market-shops, чтобы подменить данные о магазинах. Также считаем, что в сервисе
+    магазинов есть данные лишь по одному из двух запрашиваемых магазинов. В таком
+    случае магазины должны подменяться только в тех документах, ID которых был найден
+    в магазинном сервисе, в других документах остается все то, что вернул репорт.'
+
+parameters:
+  - case:
+      - report_mocked_body:
+            creditOptions#array:
+              - value#object:
+                  - key: bank
+                    value: tinkoff
+            search#object:
+              - key: total
+                value: 2
+              - key: results
+                value#array:
+                  # Оффер 1
+                  - value#object:
+                      - key: entity
+                        value: offer
+                      - key: showUid
+                        value#string: 16539930815762289521500001
+                      - key: classifierMagicId
+                        value#string: d479a6b48fc9ae1c17482fee7335bb2f
+                      - key: wareId
+                        value#string: NJsIyM0OlVuynTt58DjAjQ
+                      - key: isDefaultOffer
+                        value#boolean: true
+                      - key: prices
+                        value#object:
+                          - key: currency
+                            value: RUR
+                          - key: value
+                            value: 1000
+                      - key: supplier
+                        value#object:
+                          - key: id
+                            value: 250
+                          - key: name
+                            value: 'some shop'
+                          - key: ratingToShow
+                            value: 1.0
+                          - key: gradesCount
+                            value: 10
+                          - key: qualityRating
+                            value: 1
+                  # Оффер 2, про его магазин сервис магазинов ничего не знает
+                  - value#object:
+                      - key: entity
+                        value: offer
+                      - key: showUid
+                        value#string: 16539930815762289521500002
+                      - key: classifierMagicId
+                        value#string: 77db7b2b421f8d056534ad07d2728b2f
+                      - key: wareId
+                        value#string: YLKjb_f1te_PXprtTqQKEg
+                      - key: isDefaultOffer
+                        value#boolean: false
+                      - key: prices
+                        value#object:
+                          - key: currency
+                            value#string: RUR
+                          - key: value
+                            value: 1500
+                      - key: supplier
+                        value#object:
+                          - key: id
+                            value: 25
+                          - key: name
+                            value: 'some other shop'
+                          - key: ratingToShow
+                            value: 5.0
+                          - key: gradesCount
+                            value: 1
+                          - key: qualityRating
+                            value: 1
+        market_shops_mocked_body:
+          # Магазин оффера 1
+            250#object:
+              - key: id
+                value: 250
+              - key: name
+                value: 'some shop'
+              - key: entity
+                value: shop
+              - key: grades_count
+                value: 400
+              - key: quality_rating
+                value: 5
+              - key: shop_new_rating
+                value#object:
+                  - key: final_rating
+                    value: 4.0
+                  - key: new_grades_count_total
+                    value: 100500
+        report_expected_body:
+            creditOptions#array:
+              - value#object:
+                  - key: bank
+                    value: tinkoff
+            search#object:
+              - key: results
+                value#array:
+                  # Оффер 1
+                  - value#object:
+                      - key: showUid
+                        value#string: 16539930815762289521500001
+                      - key: classifierMagicId
+                        value#string: d479a6b48fc9ae1c17482fee7335bb2f
+                      - key: wareId
+                        value#string: NJsIyM0OlVuynTt58DjAjQ
+                      - key: isDefaultOffer
+                        value#boolean: true
+                      - key: prices
+                        value#object:
+                          - key: currency
+                            value: RUR
+                          - key: value
+                            value: 1000
+                      - key: urls
+                        value: {}
+                      - key: payments
+                        value: {}
+                      - key: delivery
+                        value: {}
+                      - key: entity
+                        value#string: offer
+                      - key: supplier
+                        value#object:
+                          - key: id
+                            value: 250
+                          - key: entity
+                            value: shop
+                          - key: name
+                            value: 'some shop'
+                          - key: business_id
+                            value: 0
+                          - key: business_name
+                            value: ''
+                          - key: slug
+                            value: ''
+                          - key: warehouseId
+                            value: 0
+                          - key: type
+                            value: ''
+                          - key: taxSystem
+                            value: ''
+                          - key: isGlobal
+                            value#boolean: false
+                          - key: isEats
+                            value#boolean: false
+                          - key: isCpaPrior
+                            value#boolean: false
+                          - key: qualityRating
+                            value: 5
+                          - key: gradesCount
+                            value: 400
+                          - key: isNewRating
+                            value: true
+                          - key: ratingToShow
+                            value: 4.0
+                          - key: ratingType
+                            value: 6
+                          - key: newGradesCount3M
+                            value: 0
+                          - key: newGradesCount
+                            value: 100500
+                          - key: overallGradesCount
+                            value: 0
+                          - key: newQualityRating3M
+                            value: 0.0
+                          - key: newQualityRating
+                            value: 0.0
+                  # Оффер 2
+                  - value#object:
+                      - key: showUid
+                        value#string: 16539930815762289521500002
+                      - key: classifierMagicId
+                        value#string: 77db7b2b421f8d056534ad07d2728b2f
+                      - key: wareId
+                        value#string: YLKjb_f1te_PXprtTqQKEg
+                      - key: isDefaultOffer
+                        value#boolean: false
+                      - key: prices
+                        value#object:
+                          - key: currency
+                            value: RUR
+                          - key: value
+                            value: 1500
+                      - key: urls
+                        value: {}
+                      - key: payments
+                        value: {}
+                      - key: delivery
+                        value: {}
+                      - key: entity
+                        value#string: offer
+                      - key: supplier
+                        value#object:
+                          - key: id
+                            value: 25
+                          - key: name
+                            value: 'some other shop'
+                          - key: entity
+                            value: ''
+                          - key: ratingToShow
+                            value: 5.0
+                          - key: gradesCount
+                            value: 1
+                          - key: business_id
+                            value: 0
+                          - key: business_name
+                            value: ''
+                          - key: slug
+                            value: ''
+                          - key: warehouseId
+                            value: 0
+                          - key: type
+                            value: ''
+                          - key: taxSystem
+                            value: ''
+                          - key: isGlobal
+                            value#boolean: false
+                          - key: isEats
+                            value#boolean: false
+                          - key: isCpaPrior
+                            value#boolean: false
+                          - key: qualityRating
+                            value: 1
+                          - key: isNewRating
+                            value: false
+                          - key: ratingType
+                            value: 6
+                          - key: newGradesCount3M
+                            value: 0
+                          - key: newGradesCount
+                            value: 0
+                          - key: overallGradesCount
+                            value: 0
+                          - key: newQualityRating3M
+                            value: 0.0
+                          - key: newQualityRating
+                            value: 0.0
+
+source:
+    request:
+        method: get
+        query:
+            place: productoffers
+        headers:
+            content-type: application/json
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/case/report_expected_body
+
+mocks:
+  - resource: report-rw-balancer
+    response:
+        status-code: 200
+        body#xget: /test-params/case/report_mocked_body
+    expectations:
+        call-count: 1
+        request:
+            method: get
+  - resource: market-shops-v2-shop
+    response:
+        status-code: 200
+        body#xget: /test-params/case/market_shops_mocked_body
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: ids
+                value#array: [250, 25]

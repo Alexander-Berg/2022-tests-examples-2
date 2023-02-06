@@ -1,0 +1,78 @@
+id: test-park-billing-info-no-tvm2-ticket
+title: Тест ошибки 403 для ручки park-billing-info-v1 (GET)
+source:
+    request:
+        method: get
+        query:
+            park_clid: 12345678
+            timestamp: 2022-03-02T12:25:08.928723
+            service_id: 128,139
+    expectations:
+        response:
+            status-code: 200
+            body:
+                park_clid: 12345678
+                raw_data:
+                  - entity_id: parks-activation
+                    data:
+                        code: 403
+                        message:
+                            code: 403
+                            message: No rule found for source from tvm2 ticket
+                  - entity_id: parks-replica-retrieve
+                    data:
+                        code: 403
+                        message:
+                            code: 403
+                            message: No rule found for source from tvm2 ticket
+                  - entity_id: parks-replica-billing-client-id
+                    data:
+                        code: 403
+                        message:
+                            code: 403
+                            message: No rule found for source from tvm2 ticket
+
+mocks:
+  - resource: v2-parks-activation-retrieve
+    expectations:
+        call-count: 1
+        request:
+            body:
+                ids_in_set:
+                  - 12345678
+    response:
+        status-code: 403
+        body:
+            code: 403
+            message: No rule found for source from tvm2 ticket
+  - resource: parks-replica-v1-retrieve
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id_in_set:
+                  - 12345678
+                projection:
+                  - park_id
+                  - data.city
+                  - data.threshold
+                  - data.promised_payment_till
+                  - data.requirements
+                  - data.corp_vats
+    response:
+        status-code: 403
+        body:
+            code: 403
+            message: No rule found for source from tvm2 ticket
+  - resource: parks-replica-v1-billing-client-id-retrieve
+    expectations:
+        call-count: 1
+        request:
+            query:
+                park_id#string: 12345678
+                consumer: api-proxy
+    response:
+        status-code: 403
+        body:
+            code: 403
+            message: No rule found for source from tvm2 ticket

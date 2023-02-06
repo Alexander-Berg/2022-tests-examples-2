@@ -1,0 +1,136 @@
+api:
+  - path: user/(?P<user>\w+)/retrieve/
+    methods:
+      - method: post
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: get_user_pd
+        object_id_retrieve_settings:
+            storage: endpoint
+            path: user
+        tplatform_namespace_retrieve_settings:
+            storage: request
+            path: tplatform_namespace
+  - path: gps-storage/get/
+    methods:
+      - method: get
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: get_driver_geotrack
+        object_id_retrieve_settings:
+            storage: query
+            path: driver_id
+  - path: user/search/
+    methods:
+      - method: post
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: search_by_pd
+        object_id_retrieve_settings:
+            storage: request
+            path: phone
+  - path: driver/search/
+    methods:
+      - method: post
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+  - path: order/search/
+    methods:
+      - method: post
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: search_by_pd
+        tplatform_namespace_retrieve_settings:
+            storage: response
+            path: some_data.tplatform_namespace
+  - path: create/something/
+    methods:
+      - method: post
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: create_something
+        object_id_retrieve_settings:
+            storage: response
+            path: innerdata.creature_id
+  - path: upload/file/
+    methods:
+      - method: post
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: upload_file
+        object_id_retrieve_settings:
+            storage: headers
+            path: X-File-Name
+  - path: approvals/path/
+    draft_api: true
+    methods:
+      - method: post
+        audit_action_id: approve_something
+        object_id_retrieve_settings:
+            storage: request
+            path: data.innerdata.entities.0.id
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+  - path: get-config/GREAT_CONFIG_NAME/
+    methods:
+      - method: get
+        permissions:
+            any_of_permission_groups:
+              - all_of_permissions:
+                  - permission_type: permission
+                    name: test_perm
+        audit_action_id: search_by_pd
+        object_id_retrieve_settings:
+            storage: const
+            path: GREAT_CONFIG_NAME
+
+hosts:
+    unstable: http://unstable-service.yandex.net
+    testing: http://testing-service.yandex.net
+    production: http://service.yandex.net
+audit_actions:
+  - action_id: get_user_pd
+    title: Просмотр персональных данных пользователей
+    comment: открыл(а) персональные данные пользователя
+    object_id_name: Test_object_name
+  - action_id: get_driver_geotrack
+    title: Просмотр геотрека водителя
+    comment: открыл(а) геотрек водителя
+  - action_id: search_by_pd
+    title: Поиск по персональным данным
+    comment: искал(а) по пресональным данным
+  - action_id: create_something
+    title: Создание чего-то прекрасного
+    comment: создал(а) что-то прекрасное
+  - action_id: upload_file
+    title: Загрузка важного файла
+    comment: загрузил(а) важный файл
+  - action_id: approve_something
+    title: Создание подтверждения чего-то прекрасного
+    comment: создал(а) подтверждение на что-то прекрасное
+admin_permissions:
+

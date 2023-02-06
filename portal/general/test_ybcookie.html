@@ -1,0 +1,165 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %]
+[% ttppspace_in_html_tag=1 %]
+[% space_in_html_tag=1 %]
+<!DOCTYPE HTML>
+<html>
+<head>
+    [% IF type %]
+        <script>var pageType="[% type %]";</script>
+    [% END %]
+    <script src="//yastatic.net/browser-cookie/_fc.js"></script>
+</head>
+<body>
+<div style="position:absolute;top:-100px">
+    <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="1" height="1" id="fco">
+        <param name="movie" value="//yastatic.net/browser-cookie/flash-cookie.swf"/>
+        <param name="allowScriptAccess" value="Always"/>
+        <embed src="//yastatic.net/browser-cookie/flash-cookie.swf" allowScriptAccess="Always" width="1" height="1" id="fce">
+        </embed>
+    </object>
+</div>
+<script>
+    var YCookie = function (ycname, ep) {
+        "use strict";
+        ep = ep || 0;
+        /* ep - expire policy:
+         0 - default, don't read, preserve on write;
+         1 - don't read, don't preserve;
+         2 - read, preserve;
+         3 - read, don't preserve;
+         */
+        ycname = ycname || 'yp';
+
+        var now = Math.round((new Date()).getTime() / 1000), ycookie = {};
+
+        function parse(str) {
+
+            if (str == '') {
+                return {};
+            }
+            if (str.indexOf('#') == -1 && /%23\d{10,}\./.test(str))
+            {
+                str = decodeURIComponent(str);
+            }
+            var o = {},
+                    l = str.split('#'),
+                    isBad,
+                    i, item, name, value, expire;
+
+            for (i = 0; i < l.length; i++) {
+                item = l[i].split('.');
+                isBad = (/%23\d{10,}\./.test(l[i]) || item.length < 3 || item[1] == '');
+
+                if (!isBad) {
+                    expire = parseInt(item.shift(), "10");
+                    name = item.shift();
+                    value = item.join('.');
+                    o[name] = {
+                        'expire': expire,
+                        'value': decodeURIComponent(value)
+                    };
+                }
+            }
+            return o;
+
+        }
+
+        function read() {
+            var parts = document.cookie.split('; '),
+                    i,
+                    l,
+                    cookie;
+
+            for (i = 0, l = parts.length; i < l; i++) {
+                //= нормальный символ в заначении куки, например куки "L", "my" у нас могуть содержать равно из-за base64
+                //для у контейнера '=' тоже возможно
+                cookie = parts[i].split('=', 2);
+                if (cookie[0] == ycname) {
+                    return cookie[1];
+                }
+            }
+            return '';
+
+        }
+
+        function write() {
+            var expire = new Date((new Date()).getTime() + 24 * 60 * 60 * 1000 * 365 * 10).toGMTString(),
+                    yc =[],
+                    p,
+                    domain = document.domain.replace(/^\S*yandex/, '.yandex');
+
+            for (p in ycookie) {
+                var isGood = (ycookie.hasOwnProperty(p) && (ycookie[p].expire >= now || ep == 0 || ep == 2));
+                if (isGood) {
+                    yc.push([ycookie[p].expire, p, encodeURIComponent(ycookie[p].value)].join('.'));
+                }
+            }
+            document.cookie = ycname + '=' + yc.join('#') + ';expires=' + expire + ';path=/;domain=' + domain;
+        }
+
+        this.get = function (name) {
+            ycookie = parse(read());
+            if (ycookie[name]) {
+                if (ycookie[name]['expire'] < now && ep < 2) return '';
+                return ycookie[name]['value'];
+            }
+            else {
+                return '';
+            }
+        };
+
+        this.dump = function() {
+            ycookie = parse(read());
+            return ycookie;
+        };
+
+        this.set = function (name, value, expires) {
+            ycookie = parse(read());
+            expires = expires || Math.round((new Date()).getTime() / 1000) + 315360000; // 365*24*10*3600 = 315360000
+            ycookie[name] = {
+                'value': value,
+                'expire': expires
+            };
+
+            write();
+        };
+
+        this.remove = function (name) {
+            ycookie = parse(read());
+            delete ycookie[name];
+            write();
+        };
+
+    };
+
+
+    var yCookie = new YCookie();
+
+    var val = yCookie.get('yb');
+
+    var res = ['Cookie: ' + val];
+
+    if (val) {
+        var s = val.split(':');
+        res.push('Version: ' + s[0]);
+        res.push('Channel: ' + s[1]);
+        res.push('Installed: ' + s[2] + ' : ' + new Date((s[2]|0) * 1000));
+        res.push('Last visited: ' + s[3] + ' : ' + new Date((s[3]|0) * 1000));
+        res.push('Visits counter: ' + s[4]);
+        res.push('Removed: ' + s[5] + (s[5] ? (' : ' + new Date((s[5]|0) * 1000)) : ''));
+    }
+
+    document.write(res.join('<br>'));
+</script>
+<form action="/test/ybcookie/" method="get">
+    <select name="type">
+        <option value="p">Promo</option>
+        <option value="b">Remove</option>
+        <option value="u">Upgrade</option>
+        <option value="w">Welcome</option>
+    </select>
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>

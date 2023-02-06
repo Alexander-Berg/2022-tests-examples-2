@@ -1,0 +1,79 @@
+default: {}
+description: "Конфигурация городов-призраков [EFFICIENCYDEV-957]. Настройки в CONFIG_OVERRIDE\
+    \ подвергаются слиянию с соответствующими глобальными, поэтому нет обязательных\
+    \ к заполнению полей настроек. Переопределяются только заданные поля настроек.\
+    \ Если настройка производится по зоне и классу обслуживания и соотв. зоны/класса\
+    \ в глобальных настройках нет, слияние происходит с __default__. При переопределении\
+    \ значений полей следует соблюдать их типы.\n\nSURGE Последовательность включения\
+    \ суржа MARK_PINS <-> SEPARATE_SUPPLY_AND_DEMAND <-> AFFECT_SURGE 1. MARK_PINS\
+    \ - cначала включаем пометку пинов и ждём заполнения исптории пинов. 2. SEPARATE_SUPPLY_AND_DEMAND\
+    \ - делим спрос и предложение, ждём заполнения истории пинов. 3. CREATE_ALTERNATIVE_SURGE_MAP\
+    \ - создаём вторую карты суржа . 4. AFFECT_SURGE - создаём альтернативную карту\
+    \ суржа для городов-призраков, объединённую для водителей и используем их. Выключаем\
+    \ в обратном порядке."
+tags: []
+validators:
+  - $dictionary_of:
+        value_validators:
+          - $dictionary:
+                extra_ok: false
+                missing_ok: false
+                optional_keys:
+                  - ENABLED
+                  - MARK_PINS
+                  - SEPARATE_SUPPLY_AND_DEMAND
+                  - AFFECT_DISPATCH
+                  - AFFECT_DISPATCH_CONFIG
+                  - CONFIG_OVERRIDE
+                scheme:
+                    ENABLED:
+                      - $boolean
+                    MARK_PINS:
+                      - $boolean
+                    SEPARATE_SUPPLY_AND_DEMAND:
+                      - $boolean
+                    AFFECT_DISPATCH:
+                      - $boolean
+                    AFFECT_DISPATCH_CONFIG:
+                      - $boolean
+                    CONFIG_OVERRIDE:
+                      - $dictionary:
+                            extra_ok: false
+                            missing_ok: true
+                            scheme:
+                                SEARCH_SETTINGS_CLASSES:
+                                  - $dictionary_of:
+                                        value_validators:
+                                          - $ghost_city_search_settings_classes_validator
+                                SEARCH_SETTINGS_QUERY_LIMIT_CLASSES:
+                                  - $dictionary_of:
+                                        value_validators:
+                                          - $dictionary:
+                                                extra_ok: false
+                                                missing_ok: true
+                                                scheme:
+                                                    CLASSES_PREFERRED:
+                                                      - $dictionary:
+                                                            extra_ok: false
+                                                            missing_ok: true
+                                                            scheme:
+                                                                has_classes:
+                                                                  - $sequence_of:
+                                                                      - $tariff
+                                                                has_not_classes:
+                                                                  - $sequence_of:
+                                                                      - $tariff
+                                                                preferred:
+                                                                  - $integer
+                                                                  - $gte: 0
+                                                    FREE_PREFERRED:
+                                                      - $integer
+                                                      - $gte: 0
+                                                    LIMIT:
+                                                      - $integer
+                                                      - $gte: 0
+                                                    MAX_LINE_DIST:
+                                                      - $integer
+                                                      - $gt: 0
+                    EXPERIMENT_NAME:
+                      - $string

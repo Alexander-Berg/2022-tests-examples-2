@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <link rel='stylesheet' type='text/css' href='report.css' />
+</head>
+<body>
+    <div class='head'>
+        <h4>{{ project }}</h4>
+<!--        <ul class='vteams'>
+            <li class='active' data-name=''><a href='#all'>Общее</a></li>
+            {% for vteam in vteams %}
+            <li data-name='vteam'><a href='#{{ vteam }}'>{{ vteam }}</a></li>
+            {% endfor %}
+        </ul> -->
+        <ul class='vteams'>
+            <li data-name=''><a href='#tc'>тесткейсы</a></li>
+            <li data-name=''><a href='#testid'>testid</a></li>
+            <li data-name=''><a href='#flags'>флаги</a></li>
+
+            {% for vteam in vteams %}
+            <li data-name='vteam'><a href='#{{ vteam }}'>{{ vteam }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <div class='info-blocks'>
+            <div class='info'>
+                <div class='info__title'>
+                    Доступно тесткейсов
+                </div>
+                <div class='progress'>
+                    <div class='progress__bar' style="width: {{ 100 * testcases.online/testcases.total }}%">{{ testcases.online }} / {{ testcases.total }}</div>
+                </div>
+            </div>
+            <div class='info'>
+                <div class='info__title'>
+                    Доступно testid онлайн
+                </div>
+                <div class='progress'>
+                    <div class='progress__bar' style="width: {{ 100 * stat.online/stat.total }}%">{{ stat.online }} / {{ stat.total }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a name='tc'></a>
+    <div class='data'>
+        <div class='data__row'>
+            <div class='table'>
+                <div class='table__title'>[{{ testcases.offline_total }}] Недоступные для асессоров тесткейсы</div>
+                <table class='table__data'>
+                    <thead>
+                        <tr>
+                            <th>Тесткейс</th>
+                            <th>Флаги</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tc in testcases.offline %}
+                        <tr>
+                            <td class='tc'>
+                                <a class='tc-id' href='https://testpalm.yandex-team.ru/testcase/{{ project }}-{{ tc.id }}'>{{ tc.id }}</a>
+                                <div class='tc-name'>{{ tc.name }}</div>
+                            </td>
+                            <td>
+                            {% for hash in tc.online %}
+                            {% set flag = flags[hash] %}
+                            <div class='testid'>
+                                <div class='badge badge_online'>online</div>
+                                <a href='https://ab.yandex-team.ru/testid/{{ flag.testid }}'>{{ flag.testid }}</a>
+                                <div class='testid-name'>{{ flag.hash }}</div>
+                            </div>
+                            {% endfor %}
+                            {% for hash in tc.offline %}
+                            {% set flag = flags[hash] %}
+                            <div class='testid'>
+                                {% if flag.testid == None %}
+                                <div class='badge badge_fail'>fail</div>
+                                {% else %}
+                                <div class='badge badge_offline'>offline</div>
+                                <a href='https://ab.yandex-team.ru/testid/{{ flag.testid }}'>{{ flag.testid }}</a>
+                                {% endif %}
+                                <div class='testid-name'>{{ flag.hash }}</div>
+                            </div>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <a name='testid'></a>
+        <div class='data__row'>
+            <div class='table'>
+                <div class='table__title'>Недоступные testid в продакшене</div>
+                <table class='table__data'>
+                    <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>Флаг</th>
+                            <th>Тесткейсы</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hash in stat.offline %}
+                        {% set flag = flags[hash] %}
+                        <tr>
+                            <td><a href='https://ab.yandex-team.ru/testid/{{ flag.testid }}'>{{ flag.testid }}</a></td>
+                            <td>{{ flag.hash }}</td>
+                            <td>
+                            {% for testcase in flag.testcases %}
+                            <a href='https://testpalm.yandex-team.ru/testcase/{{ project }}-{{ testcase }}'>{{ testcase }}</a>
+                            {% endfor %}
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <a name='flags'></a>
+        <div class='data__row'>
+            <div class='table'>
+                <div class='table__title'>Недоступные в testid флаги</div>
+                <table class='table__data'>
+                    <thead>
+                        <tr>
+                            <th>Флаг</th>
+                            <th>Тесткейсы</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hash in stat.no_testids %}
+                        {% set flag = flags[hash] %}
+                        <tr>
+                            <td>{{ flag.hash }}</td>
+                            <td>
+                            {% for testcase in flag.testcases %}
+                            <a href='https://testpalm.yandex-team.ru/testcase/{{ project }}-{{ testcase }}'>{{ testcase }}</a>
+                            {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class='table'>
+                <div class='table__title'>Флаги, отсутствующие в flag_storage</div>
+                <table class='table__data'>
+                    <thead>
+                        <tr>
+                            <th>Флаг</th>
+                            <th>Тесткейсы</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, testcases in stat.no_storage.items() %}
+                        <tr>
+                            <td>{{ name }}</td>
+                            <td>
+                            {% for testcase in testcases %}
+                            <a href='https://testpalm.yandex-team.ru/testcase/{{ project }}-{{ testcase }}'>{{ testcase }}</a>
+                            {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

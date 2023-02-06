@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+MACHINES_DIR='/var/lib/machines'
+
+if [[ "$(whoami)" != 'root' ]]; then
+    echo "root priv required too run this!"
+    exit 1
+fi
+
+set +e
+cnt_name="dnsl3r$(LC_CTYPE=C tr -dc "[:alpha:]" < /dev/urandom | head -c 8)"
+set -e
+cnt_dir="$MACHINES_DIR/$cnt_name"
+# that's very fragil mechanism of guessing a physical interface to attach a
+# macvlan of container to
+phys_iface="$(ip -o addr show | awk '
+/^[0-9]+: en/ { 
+    ifaces[$2]++;
+} 
+END {
+    max=0; 
+    for (i in ifaces) { 
+        if (ifaces[i] > max) { 
+            max=ifaces[i]; max_iface=i; 
+        }
+    } 
+    print max_iface; 
+}')"
+
+if [[ -d "$cnt_dir" ]]; then
+    echo "machine directory exists: $cnt_dir"
+    exit 1
+fi
+
+if [[ -z "$phys_iface" ]]; then
+    echo "can not found suitable interface"
+    exit 1
+fi
+
+mkdir --parents --verbose "$cnt_dir"
+pacstrap -c "$cnt_dir" base base-devel vim rxvt-unicode unbound tcpdump nftables bind-tools python
+if [[ ! -d '/etc/systemd/nspawn' ]]; then
+    mkdir '/etc/systemd/nspawn'
+fi
+cat >/etc/systemd/nspawn/"$cnt_name".nspawn <<EOF
+[Network]
+Private=yes
+MACVLAN=$phys_iface
+
+[Files]
+PrivateUsersOwnership=chown
+Bind=$PWD:/dom0tmp
+EOF
+machinectl start "$cnt_name"
+sleep 5  # wait for machine to boot
+machinectl shell root@"$cnt_name" /usr/bin/bash -c 'uptime'
+machinectl shell root@"$cnt_name" /usr/bin/cp /dom0tmp/tests/functional/prepare_env/provision_container /root/
+machinectl shell root@"$cnt_name" /usr/bin/bash /root/provision_container

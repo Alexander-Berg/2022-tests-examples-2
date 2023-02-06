@@ -1,0 +1,27 @@
+id: dragon_cargo_ref_id
+title: В случае префикса order/ ожидается upstream cargo-orders
+source:
+    request:
+        method: post
+        query:
+            claim_id: 'order/123'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'ok'
+
+mocks:
+  - resource: cargo-orders-protocol-handlers-post
+    response:
+        status-code: 200
+        body:
+            id: 'ok'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post

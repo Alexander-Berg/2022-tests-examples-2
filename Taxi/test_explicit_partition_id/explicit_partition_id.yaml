@@ -1,0 +1,43 @@
+module: testsuite-example
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        stq-starter: testsuite_starter
+        static-event-traits:
+            is-create: true
+        dynamic-event-traits:
+            partition-id#xget: /event/payload/partition-id
+        keys-mapping:
+            rules: []
+            default-keys: [handle-default]
+        state-manager:
+            initial:
+                tag: none
+            mutators:
+              - name: update-tag
+                condition#xhas: /event/tag
+                effects:
+                    tag#xget: /event/tag
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages:
+              - id: send-tag-stage
+                handlers:
+                  - id: send-tag-handler
+                    requests:
+                      - id: send-tag-request
+                        resource: tag-getter
+                        body:
+                            tag#xget: /event/tag
+                    result:
+                        status: "OK"
+                    resources:
+                      - id: tag-getter
+                        url: $tag_getter_url
+                        method: post

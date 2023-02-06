@@ -1,0 +1,34 @@
+data:
+    name: RemoveEntryPointWrapper
+    provider_name: clowny-balancer
+    job_vars:
+      - entry_point_id
+    stages:
+        # check if namespace can be deleted
+      - name: InternalFindModelsToRemove
+        input:
+            entry_point_id: entry_point_id
+        output:
+            awacs_namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: AwacsNamespaceCanBeDeleted
+        input:
+            awacs_namespace_id: awacs_namespace_id
+            check_backends: false
+        output:
+            namespace_can_be_deleted: namespace_can_be_deleted
+        provider_name: clowny-balancer
+        # run job (remove-entry-point if not else remove-balancer)
+      - name: MetaRunRemoveJob
+        input:
+            entry_point_id: entry_point_id
+            awacs_namespace_id: awacs_namespace_id
+            namespace_can_be_deleted: namespace_can_be_deleted
+        output:
+            remove_job_id: job_id
+        provider_name: clowny-balancer
+        # wait for job to stop
+      - name: MetaCubeWaitForJobCommon
+        input:
+            job_id: remove_job_id
+        provider_name: clowny-balancer

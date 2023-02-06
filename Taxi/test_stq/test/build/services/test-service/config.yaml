@@ -1,0 +1,185 @@
+components_manager:
+    components:
+        auth-checker-settings:
+        congestion-control:
+            fake-mode: false
+            load-enabled: true
+        dns-client:
+            fs-task-processor: $dns-resolver-task-processor
+        dump-configurator:
+            dump-root: $userver-dumps-root
+        dynamic-config:
+            fs-cache-path: $taxi_config_cache_path
+            fs-task-processor: $fs-task-processor
+        dynamic-config-client:
+            config-url: $config_server_url
+            configs-stage: $configs_stage
+            configs-stage-filepath: $configs_stage_filename
+            get-configs-overrides-for-service: $get_configs_overrides_for_service
+            http-retries: 5
+            http-timeout: 20s
+            service-name: $unit_name
+        dynamic-config-client-updater:
+            config-settings: false
+            deduplicate-update-types: full-and-incremental
+            fallback-path: $taxi_config_fallback_path
+            fs-task-processor: $fs-task-processor
+            full-update-interval: 1m
+            load-enabled: true
+            load-only-my-values: true
+            store-enabled: true
+            update-interval: 5s
+        handler-dns-client-control:
+            method: POST
+            path: /service/dnsclient/{command}
+            task_processor: $monitor-task-processor
+        handler-dynamic-debug-log:
+            method: GET,PUT,DELETE
+            path: /log/dynamic-debug
+            task_processor: $monitor-task-processor
+        handler-implicit-http-options:
+            as_fallback: implicit-http-options
+            auth_checkers:
+                type: tvm2
+            method: OPTIONS
+            task_processor: main-task-processor
+            throttling_enabled: false
+        handler-inspect-requests:
+            method: GET
+            path: /service/inspect-requests
+            task_processor: $monitor-task-processor
+        handler-jemalloc:
+            method: POST
+            path: /service/jemalloc/prof/{command}
+            task_processor: $monitor-task-processor
+        handler-log-level:
+            method: GET,PUT
+            path: /service/log-level/{level}
+            task_processor: $monitor-task-processor
+        handler-openapi_v1_run-post:
+            method: POST
+            path: /openapi/v1/run
+            propagate-client-errors:
+                ratelimit: $propagate_client_errors_ratelimit
+            task_processor: main-task-processor
+            url_trailing_slash: both
+        handler-ping:
+            throttling_enabled: false
+        handler-server-monitor:
+            method: GET
+            path: /*
+            task_processor: $monitor-task-processor
+        handler-testsuite-stq:
+            load-enabled: false
+            method: POST
+            path: /testsuite/stq
+            task_processor: main-task-processor
+            url_trailing_slash: strict-match
+        handler-v1_run-post:
+            method: POST
+            path: /v1/run
+            propagate-client-errors:
+                ratelimit: $propagate_client_errors_ratelimit
+            task_processor: main-task-processor
+            url_trailing_slash: both
+        http-client:
+            dns_resolver: $http_client_dns_resolver
+            fs-task-processor: $fs-task-processor
+            user-agent: $user_agent
+        http-client-statistics:
+            dns_resolver: $http_client_dns_resolver
+            fs-task-processor: $fs-task-processor
+            pool-statistics-disable: true
+            thread-name-prefix: stats
+            user-agent: $user_agent
+        library-stq:
+        logging:
+            fs-task-processor: $fs-task-processor
+            loggers:
+                access:
+                    file_path: $access_log_file_path
+                    format: raw
+                    overflow_behavior: discard
+                access-tskv:
+                    file_path: $access_log_tskv_file_path
+                    format: raw
+                    overflow_behavior: discard
+                default:
+                    file_path: $default_log_file_path
+                    format: $logger_format
+                    format#fallback: tskv
+                    level: $logger_level
+                    level#fallback: info
+                    overflow_behavior: discard
+        logging-configurator:
+            limited-logging-enable: $limited_logging_enable
+            limited-logging-interval: 1s
+        manager-controller:
+        secdist:
+            blocking-task-processor: $fs-task-processor
+            config: $secdist_path
+        server:
+            listener:
+                connection:
+                    in_buffer_size: 32768
+                    requests_queue_size_threshold: 100
+                port: $server_port
+                task_processor: main-task-processor
+                unix-socket: $unix_socket
+            listener-monitor:
+                connection:
+                    in_buffer_size: 32768
+                    requests_queue_size_threshold: 100
+                port: $monitor_server_port
+                port#fallback: 1188
+                task_processor: $monitor-task-processor
+            logger_access: ''
+            logger_access_tskv: ''
+            max_response_size_in_flight: 1000000000
+            server-name: $server_name
+            set-response-server-hostname: $http_server_set_response_server_hostname
+        statistics-storage:
+        stq-dispatcher:
+            testsuite-handler-enabled: false
+        stq-test:
+            queue_name: test
+        system-statistics-collector:
+            fs-task-processor: $fs-task-processor
+        tests-control:
+            load-enabled: $testsuite
+            method: POST
+            path: /tests/{action}
+            skip-unregistered-testpoints: true
+            task_processor: main-task-processor
+            testpoint-timeout: 10s
+            testpoint-url: $mockserver/testpoint
+            throttling_enabled: false
+        testsuite-support:
+            testsuite-tasks-enabled: $testsuite-tasks-enabled
+        tracer:
+            service-name: $service_name
+            tracer: native
+    coro_pool:
+        initial_size: $coro_pool_initial_size
+        initial_size#fallback: 5000
+        max_size: $coro_pool_max_size
+        max_size#fallback: 50000
+    default_task_processor: main-task-processor
+    event_thread_pool:
+        threads: $event_threads
+        threads#fallback: 2
+    task_processors:
+        dns-resolver-task-processor:
+            thread_name: dns-worker
+            worker_threads: $dns_resolver_worker_threads
+        fs-task-processor:
+            thread_name: fs-worker
+            worker_threads: $fs_worker_threads
+        main-task-processor:
+            guess-cpu-limit: $main_guess_cpu_limit
+            thread_name: main-worker
+            worker_threads: $main_worker_threads
+        monitor-task-processor:
+            thread_name: mon-worker
+            worker_threads: $monitor_worker_threads
+config_vars: /etc/yandex/taxi/test-service/config_vars.yaml

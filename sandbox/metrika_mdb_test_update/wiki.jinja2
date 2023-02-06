@@ -1,0 +1,42 @@
+#|
+
+||
+**№ п/п**
+|
+**Наименование, идентификатор, секрет**
+|
+**БД**
+|
+**haproxy**
+|
+**Дашборды**
+|
+**Графики**
+||
+{% for row in view.rows %}
+    ||
+    {{ loop.index }}
+    |
+    <{**{{ row.name }}**
+    %%{{ row.id }}%%
+    **((https://yc.yandex-team.ru/folders/{{ row.folder_id }}/managed-mysql/cluster/{{ row.id }} {{ row.name }}))**
+    ((https://yav.yandex-team.ru/secret/{{ row.secret_id }} {{ row.secret_id }}))
+    }>
+    |
+    {% for database in row.databases %}%%{{ database.name }}%%{% if not loop.last %}, {% endif %}{% endfor %}
+    |
+    %%{{ row.haproxy }}%%
+    |
+    ((https://solomon.yandex-team.ru/?cluster=mdb_{{ row.id }}&project=internal-mdb&service=mdb&dashboard=internal-mdb-cluster-mysql MySQL)) dom0:{{ " " }}
+    {%- for host in row.hosts -%}
+        ((https://solomon.yandex-team.ru/?cluster=internal-mdb_dom0&dc=by_cid_container&host=by_cid_container&project=internal-mdb&service=dom0&dashboard=internal-mdb-porto-instance&l.container={{ host.name }}&b=1h&e= {{ host.zone_id }}))
+        {%- if not loop.last %} {% endif %}
+    {%- endfor -%}
+    |
+    ((https://solomon.yandex-team.ru/?project=internal-mdb&cluster=mdb_{{ row.id }}&service=mdb&aggr=max&downsamplingAggr=max&graph=auto&l.sensor=mysql_Threads_connected&stack=true&l.node=*&l.host=*&l.dc=by_host&checks=&b=1d&e=&interpolate=left&description={{ row.name }} MySQL)) ((https://solomon.yandex-team.ru/?project=metrika&cluster={{ view.solomon_cluster }}&service=haproxy_runner&Svname=FRONTEND&host=all_host&graph=auto&l.Metric=scur%7Cslim&checks=-slim%2C%20{{ row.base_name }}_ro%3Bslim%2C%20{{ row.base_name }}_rw&l.unit_id={{ row.base_name }}&l.Pxname={{ row.base_name }}_*&b=1d&e=&stack=false&aggr=max&downsamplingAggr=max&secondaryGraphMode=bars&interpolate=left&description={{ row.name }} haproxy)) ((https://solomon.yandex-team.ru/?project=metrika&cluster={{ solomon_cluster_monitor }}&service=haproxy_monitor&l.name={{ row.base_name }}_*&l.Type=monitor&l.host=all_host&graph=auto&secondaryGraphMode=bars&stack=true&interpolate=left&aggr=max&downsamplingAggr=max&l.balancer={{ row.haproxy }}&b=1d&e=&description={{ row.name }} monitor))
+    ||
+{#    || | #}
+{#    %%mysql --host={{ row.haproxy }} --user=dba --password=$(ya vault get version sec-01ep6qbrjdxhpwrebchccqb8fz --only-value dba-password)%% #}
+{#    || #}
+{% endfor %}
+|#

@@ -1,0 +1,27 @@
+name: mssql_test_yav
+source:
+    type: mssql
+    iteration_type: internal
+    data_chunk_size: 2
+    connection:
+        secret: mssql_test_yav
+    table: test.test
+    primary_key:
+      - ID
+    replicate_by: utc_updated_dttm
+destinations:
+  - mssql_test_yav_raw:
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    input_column: ID
+                    type: string
+                    description: ID
+                    sort_order: ascending
+            cluster_groups:
+              - map_reduce
+            path: raw/test/test
+        type: yt
+replication_type: queue

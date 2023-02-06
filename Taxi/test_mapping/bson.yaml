@@ -1,0 +1,137 @@
+  - mapper_settings: {}
+    expected_target:
+        attributes:
+            optimize_for: lookup
+            schema:
+              - expression: farm_hash(id)
+                name: hash
+                sort_order: ascending
+                type: uint64
+                description: Значение хеш-функции от идентификатора документа
+              - name: id
+                sort_order: ascending
+                type: string
+                description: Идентификатор документа
+              - name: doc
+                type: any
+                description: Исходный документ в формате BSON
+        description: Документы коллекции в формате BSON
+    source_type: mongo
+    is_mapper_invalid: false
+    mapper_tests:
+      - expected:
+          - id: id_1
+            doc:
+                $bson:
+                    _id: id_1
+                    doc:
+                        _id: id_1
+        input:
+            data:
+                $bson:
+                    _id: id_1
+                    doc:
+                        _id: id_1
+
+  - mapper_settings:
+        hash_column:
+            use: true
+    source_type: mongo
+    expected_target:
+        attributes:
+            optimize_for: lookup
+            schema:
+              - expression: farm_hash(id)
+                name: hash
+                sort_order: ascending
+                type: uint64
+                description: Значение хеш-функции от идентификатора документа
+              - name: id
+                sort_order: ascending
+                type: string
+                description: Идентификатор документа
+              - name: doc
+                type: any
+                description: Исходный документ в формате BSON
+              - name: doc_hash
+                type: string
+                description: Значение хеш-функции от исходного документа
+        description: Документы коллекции в формате BSON
+    is_mapper_invalid: false
+    mapper_tests:
+      - expected:
+          - id: id_1
+            doc:
+                $bson:
+                    _id: id_1
+                    doc:
+                        _id: id_1
+            doc_hash: doc hash must be here
+        input:
+            data:
+                $bson:
+                    _id: id_1
+                    doc:
+                        _id: id_1
+
+  - mapper_settings:
+        hash_column:
+            use: false
+    source_type: mongo
+    expected_target:
+        attributes:
+            optimize_for: lookup
+            schema:
+              - expression: farm_hash(id)
+                name: hash
+                sort_order: ascending
+                type: uint64
+                description: Значение хеш-функции от идентификатора документа
+              - name: id
+                sort_order: ascending
+                type: string
+                description: Идентификатор документа
+              - name: doc
+                type: any
+                description: Исходный документ в формате BSON
+        description: Документы коллекции в формате BSON
+    is_mapper_invalid: false
+    mapper_tests:
+      - expected:
+          - id: id_1
+            doc:
+                $bson:
+                    _id: id_1
+                    doc:
+                        _id: id_1
+        input:
+            data:
+                $bson:
+                    _id: id_1
+                    doc:
+                        _id: id_1
+
+  - mapper_settings:
+        id_column:
+            cast: to_int_or_none
+            output_column: output_test
+    source_type: mongo
+    is_mapper_invalid: true
+    expected_target:
+        attributes:
+            optimize_for: lookup
+            schema:
+              - expression: farm_hash(output_test)
+                name: hash
+                sort_order: ascending
+                type: uint64
+                description: Значение хеш-функции от идентификатора документа
+              - name: output_test
+                sort_order: ascending
+                type: string
+                description: Идентификатор документа
+              - name: doc
+                type: any
+                description: Исходный документ в формате BSON
+        description: Документы коллекции в формате BSON
+    mapper_tests:

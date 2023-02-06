@@ -1,0 +1,54 @@
+default:
+    enabled: false
+    read_batch_size: 10000
+    write_batch_size: 50
+    retries: 8
+    rate_limit: "6/1000"
+    write_threads: 8
+description: Настройки крон джобы синхронизации баланса с биллингом
+tags: [notfallback]
+maintainers: [len-min]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enabled
+      - read_batch_size
+      - write_batch_size
+      - retries
+      - rate_limit
+      - write_threads
+    properties:
+        enabled:
+            type: boolean
+            description: Включена ли джоба
+        read_batch_size:
+            type: integer
+            minimum: 1
+            description: |
+                Количество документов, которое будет прочитано из монги
+                за один раз перед действием
+        write_batch_size:
+            type: integer
+            minimum: 1
+            description: |
+                Количество документов, над которыми будет совершено
+                одно batch действие
+        retries:
+            type: integer
+            minimum: 1
+            description: |
+                Количество повторных попыток отправить данные, если
+                произошла сетевая ошибка
+        rate_limit:
+            type: string
+            description: |
+                Текстовое представление лимита исходящих запросов,
+                например "50/1000", что означает "50 запросов в 1000 мс"
+        write_threads:
+            type: integer
+            minimum: 1
+            description: |
+                Количество потоков для параллельного выполнения batch
+                действий
+

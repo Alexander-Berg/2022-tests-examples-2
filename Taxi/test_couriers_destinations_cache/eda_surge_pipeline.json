@@ -1,0 +1,136 @@
+{
+  "name": "calc_surge",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "fetch_settings",
+      "resources": [
+        {
+          "name": "places_settings"
+        }
+      ],
+      "source_code": "return {places_settings: {}}"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "places"
+        },
+        {
+          "domain": "resource",
+          "query": "places_settings"
+        }
+      ],
+      "name": "fetch_counters",
+      "resources": [
+        {
+          "name": "eda_supply"
+        }
+      ],
+      "source_code": "let supply_params = []; for (let i in places) { let place = places[i]; let params = places_settings[place.place_id][place.zone_id]; supply_params.push({ place_id: place.place_id, zone_id: place.zone_id, region_id: params.region_id, radius: params.settings.max_distance, time_quants: params.settings.time_quants }); } return {eda_supply: supply_params}; "
+    },
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "init_out_array",
+      "out_bindings": [
+        {
+          "alias": "places_out",
+          "query": "places_out"
+        }
+      ],
+      "source_code": "return {places_out: []};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "places.*{idx:place}"
+        },
+        {
+          "domain": "resource",
+          "query": "eda_supply[place.place_id][place.zone_id]{place_supply}"
+        },
+        {
+          "domain": "resource",
+          "query": "places_settings[place.place_id][place.zone_id].settings{place_settings}"
+        }
+      ],
+      "name": "calc_load_level",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "places_out[idx]"
+        }
+      ],
+      "source_code": "function get_free(supply) { for (let i = 0; i < supply.length; i++) { let time_quant = supply[i]; if (time_quant.to == 0) { let res = 0; for (let j = 0; j < time_quant.values.length; j++) { res += time_quant.values[j].value.total; } return res; } } return 0; } function get_conditionally_free(supply, cond_free_threshold) { let res = 0; for (let i = 0; i < supply.length; i++) { let time_quant = supply[i]; if (time_quant.to == 0) continue; let avg_time = (time_quant.to + time_quant.from) / 2; if (avg_time > cond_free_threshold) continue; let weight = (cond_free_threshold - avg_time) / cond_free_threshold; for (let j = 0; j < time_quant.values.length; j++) { res += time_quant.values[j].value.total * weight; } } return res; } function get_busy(demand) { for (let i = 0; i < demand.length; i++) { let time_quant = demand[i]; if (time_quant.to == 0) { let res = 0; for (let j = 0; j < time_quant.values.length; j++) { res += time_quant.values[j].value.total; } return res; } } return 0; } function get_conditionally_busy(demand, cond_busy_threshold) { let res = 0; for (let i = 0; i < demand.length; i++) { let time_quant = demand[i]; if (time_quant.to == 0) continue; let avg_time = (time_quant.to + time_quant.from) / 2; if (avg_time > cond_busy_threshold) continue; let weight = (cond_busy_threshold - avg_time) / cond_busy_threshold; for (let j = 0; j < time_quant.values.length; j++) { res += time_quant.values[j].value.total * weight; } } return res; } let damper_x = place_settings.damper_x; let damper_y = place_settings.damper_y; let cond_free_threshold = place_settings.cond_free_threshold; let cond_busy_threshold = place_settings.cond_busy_threshold; let supply_quantums = place_supply.supply; let free = get_free(supply_quantums); let conditionally_free = get_conditionally_free(supply_quantums, cond_free_threshold); let demand_quantums = place_supply.demand; let busy = get_busy(demand_quantums); let conditionally_busy = get_conditionally_busy(demand_quantums, cond_busy_threshold); let load_level = (busy + conditionally_busy + damper_x) / (busy + conditionally_busy + free + conditionally_free + damper_y) * 100;  log.info('supply_quantums: ' + supply_quantums.length);log.info('demand_quantums: ' + demand_quantums.length); log.info('damper_x: ' + damper_x); log.info('damper_y: ' + damper_y); log.info('cond_free_threshold: ' + cond_free_threshold); log.info('cond_busy_threshold: ' + cond_busy_threshold); log.info('free: ' + free); log.info('conditionally_free: ' + conditionally_free); log.info('busy: ' + busy); log.info('conditionally_busy: ' + conditionally_busy); log.info('load_level: ' + load_level); return {data: {place_id: place.place_id, zone_id: place.zone_id, result: {load_level: load_level, free: free, busy: busy}}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "places.*{idx:place}"
+        },
+        {
+          "domain": "output",
+          "query": "places_out[idx].result.load_level"
+        },
+        {
+          "domain": "output",
+          "query": "places_out[idx].result.free"
+        },
+        {
+          "domain": "output",
+          "query": "places_out[idx].result.busy"
+        },
+        {
+          "domain": "resource",
+          "query": "places_settings[place.place_id][place.zone_id].settings{place_settings}"
+        }
+      ],
+      "name": "calc_surge_level",
+      "out_bindings": [
+        {
+          "alias": "surge_level",
+          "query": "places_out[idx].result.surge_level"
+        }
+      ],
+      "source_code": "let c1 = place_settings.c1; let c2 = place_settings.c2; for (let i = 0; i < 3; i++) { let l = 100 * (c2[i] + (c1[i] / (free + busy))); log.info('l = ' + l); if(load_level < l) return {surge_level: i}; } return {surge_level: 3};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "places.*{idx:place}"
+        },
+        {
+          "domain": "output",
+          "query": "places_out[idx].result.surge_level"
+        },
+        {
+          "domain": "resource",
+          "query": "places_settings[place.place_id][place.zone_id].settings{place_settings}"
+        }
+      ],
+      "name": "react",
+      "out_bindings": [
+        {
+          "alias": "delivery_fee",
+          "query": "places_out[idx].result.delivery_fee"
+        },
+        {
+          "alias": "additional_time_percents",
+          "query": "places_out[idx].result.additional_time_percents"
+        }
+      ],
+      "source_code": "return {delivery_fee: place_settings.delivery_fee[surge_level], additional_time_percents: place_settings.additional_time_percents[surge_level]};"
+    }
+  ],
+  "state": "active"
+}

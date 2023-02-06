@@ -1,0 +1,66 @@
+{
+  "consumer": "taxi-surge",
+  "name": "test_pipeline_name",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "point_a"
+            }
+          ],
+          "domain": "input",
+          "query": "request"
+        }
+      ],
+      "name": "resource_fetch",
+      "resources": [
+        {
+          "field": "surge_value_graph_map",
+          "name": "surge_value_graph_map"
+        }
+      ],
+      "source_code": "let params = {point: point_a, categories: ['econom']}; return {surge_value_graph_map: params};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": {
+            "operations": [
+              {
+                "property_name": "required_categories"
+              },
+              {
+                "type": "iteration",
+                "value_alias": "category"
+              }
+            ]
+          }
+        },
+        {
+          "domain": "resource",
+          "query": {
+            "operations": [
+              {
+                "property_name": "surge_value_graph_map"
+              }
+            ]
+          }
+        }
+      ],
+      "name": "use_resource",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[category]"
+        }
+      ],
+      "source_code": "let ret_value = surge_value_graph_map.values.econom?.value || 0; return {data: {name: category, value_raw: ret_value, surge: {value: ret_value}}};"
+    }
+  ],
+  "state": "active"
+}

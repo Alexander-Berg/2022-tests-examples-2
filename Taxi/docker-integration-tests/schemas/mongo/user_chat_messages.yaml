@@ -1,0 +1,125 @@
+description: chats from app
+settings:
+    collection: user_chat_messages
+    connection: user_communication
+    database: dbuser_communication
+indexes:
+  - key: close_ticket
+    partialFilterExpression:
+        open: false
+        visible: false
+  - key: messages.id
+    unique: true
+  - default_language: ru
+    key:
+      - name: messages.message
+        type: text
+    partialFilterExpression:
+        text_indexed: true
+  - key: messages.timestamp
+  - key:
+      - name: open
+        type: ascending
+      - name: support_timestamp
+        type: ascending
+  - key:
+      - name: owner_id
+        type: ascending
+      - name: type
+        type: ascending
+      - name: visible
+        type: ascending
+      - name: open
+        type: ascending
+  - key: send_push
+    partialFilterExpression:
+        open: true
+        visible: true
+  - key: ticket_id
+  - key:
+      - name: type
+        type: ascending
+      - name: open
+        type: ascending
+      - name: eats_order_id
+        type: ascending
+      - name: order_finished
+        type: ascending
+    partialFilterExpression:
+        eats_order_id:
+            $exists: true
+  - key: updated
+  - key:
+      - name: user_phone_id
+        type: ascending
+      - name: visible
+        type: ascending
+      - name: open
+        type: ascending
+  - key:
+      - name: visible
+        type: ascending
+      - name: open
+        type: ascending
+      - name: support_timestamp
+        type: ascending
+wiki_info: |
+    #### user_chat_messages
+    *Назначение:* Коллекция с информацией о чатах пользователя.
+
+    *Структура документа:*
+    ```python
+    user_chat_messages = {
+        # Идентификатор записи
+        '_id' : ObjectId,
+        # Идентификтор пользователя
+        'user_id': 'a57507e5a4c04f75bab83cdbdc596070',
+        # Идентифкатор пользователя в зендекске
+        'author_id': '12345',
+        # Идентификатор связанного тикета
+        'ticket_id': '12345',
+        # Имя сотрудника поддержки
+        'support_name': 'name',
+        # Идентификатор аватара сотрудника поддержки
+        'support_avatar_url': '1',
+        # Время инцидента
+        'incident_timestamp': datetime.datetime,
+        # Время последнего ответа поддержки
+        'support_timestamp': datetime.datetime,
+        # Локаль пользователя
+        'user_locale': 'ru',
+        # Часовой пояс пользователя
+        'user_tz': 'Europe/Moscow'
+        # Флаг открытости чата
+        'chat_open': True,
+        # Флаг видимости чата
+        'chat_visible': True
+        # Флаг необходимости отправки пушей
+        'send_push': False,
+        # Количество новых сообщений
+        'new_messages': 2,
+        # Последнее сообщение от пользователя
+        'last_message_from_user': True|False,
+        # Номер заказа в Еде
+        'eats_order_id': '190814-434928',
+        # Таймстамп завершения заказа в Еде
+        'order_finished': datetime.datetime,
+        # Заказ не найден в Еде
+        'order_missing': False,
+        # Таймстамп обновления документа
+        'updated': datetime.datetime,
+
+        'messages': [
+            {
+                # Идентификатор сообщения
+                'id': '234567',
+                # Автор сообщения
+                'author': 'user|support',
+                # Тип сообщения
+                'message_type': 'text|csat',
+                # Текст сообщения
+                'message': 'text'
+            }
+        ]
+    }
+    ```

@@ -1,0 +1,37 @@
+id: test_get_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: post
+        body:
+            email: test@test.test
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true}
+
+mocks:
+  - resource: backend-service-vendor-v1-client-password-request-reset
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-v1-password-request-reset
+    response:
+        status-code: 200
+        body:
+            is_success: true
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_email
+            type: string
+            value: test@test.test

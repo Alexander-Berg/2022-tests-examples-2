@@ -1,0 +1,36 @@
+INSERT INTO fleet.park_order (
+  park_id,
+  id,
+  number,
+  status,
+  tariff_class,
+  personal_phone_id,
+  address_from,
+  addresses_to,
+  geopoint_from,
+  geopoints_to,
+  created_at,
+  is_creator,
+  event_index,
+  record_created_at,
+  record_updated_at,
+  update_seq_no
+)
+VALUES (
+  'park_id1',
+  'order1',
+  1,
+  'waiting',
+  'econom',
+  'phone_id1',
+  'address_A',
+  ARRAY['address_B1', 'address_B2'],
+  '{37.6, 50.6}',
+  '{{37.6, 51.6}, {37.6, 52.6}}',
+  '2021-02-09T17:00:00Z',
+  True,
+  0,
+  '2021-02-09T19:00:00Z',
+  '2021-02-09T19:00:00Z',
+  1
+);

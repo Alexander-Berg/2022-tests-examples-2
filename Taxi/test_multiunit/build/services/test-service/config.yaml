@@ -1,0 +1,166 @@
+components_manager:
+    components:
+        auth-checker-settings:
+        client-test-service@unit-bank-client:
+            base-url: $client-test-service@unit-bank-client-base-url
+            body-log-level: debug
+            body-log-limit: 256
+        client-test-service@unit-taxi-client:
+            base-url: $client-test-service@unit-taxi-client-base-url
+            body-log-level: debug
+            body-log-limit: 256
+        congestion-control:
+            fake-mode: false
+            load-enabled: true
+        dns-client:
+            fs-task-processor: $dns-resolver-task-processor
+        dump-configurator:
+            dump-root: $userver-dumps-root
+        handler-dns-client-control:
+            method: POST
+            path: /service/dnsclient/{command}
+            task_processor: $monitor-task-processor
+        handler-implicit-http-options:
+            as_fallback: implicit-http-options
+            auth_checkers:
+                type: tvm2
+            task_processor: main-task-processor
+            throttling_enabled: false
+        handler-inspect-requests:
+            path: /service/inspect-requests
+            task_processor: $monitor-task-processor
+        handler-jemalloc:
+            method: GET
+            path: /service/jemalloc/prof/{command}
+            task_processor: $monitor-task-processor
+        handler-log-level:
+            method: GET,PUT
+            path: /service/log-level/{level}
+            task_processor: $monitor-task-processor
+        handler-openapi_v1_run-post:
+            method: POST
+            path: /openapi/v1/run
+            propagate-client-errors:
+                ratelimit: $propagate_client_errors_ratelimit
+            task_processor: main-task-processor
+            url_trailing_slash: both
+        handler-ping:
+            throttling_enabled: false
+        handler-server-monitor:
+            path: /*
+            task_processor: $monitor-task-processor
+        handler-v1_run-post:
+            method: POST
+            path: /v1/run
+            propagate-client-errors:
+                ratelimit: $propagate_client_errors_ratelimit
+            task_processor: main-task-processor
+            url_trailing_slash: both
+        http-client:
+            fs-task-processor: $fs-task-processor
+            user-agent: $user_agent
+        http-client-statistics:
+            fs-task-processor: $fs-task-processor
+            pool-statistics-disable: true
+            thread-name-prefix: stats
+            user-agent: $user_agent
+        logging:
+            fs-task-processor: $fs-task-processor
+            loggers:
+                access:
+                    file_path: /var/log/yandex/taxi-test-service/access.log
+                    overflow_behavior: discard
+                    format: raw
+                access-tskv:
+                    file_path: /var/log/yandex/taxi-test-service/access_tskv.log
+                    overflow_behavior: discard
+                    format: raw
+                default:
+                    file_path: /var/log/yandex/taxi-test-service/server.log
+                    level: $logger_level
+                    level#fallback: info
+                    overflow_behavior: discard
+        logging-configurator:
+            limited-logging-enable: $limited_logging_enable
+            limited-logging-interval: 1s
+        manager-controller:
+        secdist:
+            config: /etc/yandex/taxi-secdist/taxi.json
+        server:
+            listener:
+                connection:
+                    in_buffer_size: 32768
+                    requests_queue_size_threshold: 100
+                port: $server_port
+                task_processor: main-task-processor
+                unix-socket: $unix_socket
+            listener-monitor:
+                connection:
+                    in_buffer_size: 32768
+                    requests_queue_size_threshold: 100
+                port: $monitor_server_port
+                port#fallback: 1188
+                task_processor: $monitor-task-processor
+            logger_access: ''
+            logger_access_tskv: ''
+            max_response_size_in_flight: 1000000000
+            server-name: $server_name
+            set-response-server-hostname: $http_server_set_response_server_hostname
+        statistics-storage:
+        system-statistics-collector:
+            fs-task-processor: $fs-task-processor
+        dynamic-config:
+            fs-cache-path: /var/cache/yandex/taxi-test-service/config_cache.json
+            fs-task-processor: $fs-task-processor
+        dynamic-config-client-updater:
+            config-settings: false
+            fallback-path: /etc/yandex/taxi/test-service/taxi_config_fallback.json
+            full-update-interval: 1m
+            load-enabled: true
+            load-only-my-values: true
+            store-enabled: true
+            update-interval: 5s
+        dynamic-config-client:
+            config-url: $config_server_url
+            get-configs-overrides-for-service: $get_configs_overrides_for_service
+            http-retries: 5
+            http-timeout: 20s
+            service-name: $unit_name
+            uconfigs-url: $uconfigs_server_url
+            use-uconfigs: $use_uconfigs
+        tests-control:
+            load-enabled: $testsuite
+            path: /tests/control
+            skip-unregistered-testpoints: true
+            task_processor: main-task-processor
+            testpoint-timeout: 10s
+            testpoint-url: $mockserver/testpoint
+            throttling_enabled: false
+        testsuite-support:
+        tracer:
+            service-name: $service_name
+            tracer: native
+    coro_pool:
+        initial_size: $coro_pool_initial_size
+        initial_size#fallback: 5000
+        max_size: $coro_pool_max_size
+        max_size#fallback: 50000
+    default_task_processor: main-task-processor
+    event_thread_pool:
+        threads: $event_threads
+        threads#fallback: 2
+    task_processors:
+        dns-resolver-task-processor:
+            thread_name: dns-worker
+            worker_threads: $dns_resolver_worker_threads
+        fs-task-processor:
+            thread_name: fs-worker
+            worker_threads: $fs_worker_threads
+        main-task-processor:
+            guess-cpu-limit: $main_guess_cpu_limit
+            thread_name: main-worker
+            worker_threads: $main_worker_threads
+        monitor-task-processor:
+            thread_name: mon-worker
+            worker_threads: $monitor_worker_threads
+config_vars: /etc/yandex/taxi/test-service/config_vars.yaml

@@ -1,0 +1,5 @@
+TICKET_ID = 'mg:main_ticket_id___________size_32'
+PHONE = '+79950001122'
+EMAIL = 'admin@yandex.ru'
+COMPANY_NAME = 'NameMePlz'
+COUNTRY_RUS = 'rus'

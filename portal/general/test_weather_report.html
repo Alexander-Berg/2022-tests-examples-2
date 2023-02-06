@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>Сводные данные о погоде</title>
+</head>
+<body>
+[<a href="/test/">Вивисектор</a>]
+<h1>Погода</h1>
+<h3>[% IF toalldata %]<a href="[% toalldata %]">[% END %]все данные[% IF toalldata %]</a>[% END %]&nbsp;|&nbsp;[% IF toalerts %]<a href="[% toalerts %]">[% END %]предупреждения[% IF toalerts %]</a>[% END %]&nbsp;|&nbsp;[% IF toevening %]<a href="[% toevening %]">[% END %]вечерние предупреждения</h3>
+
+Мы как бы в&nbsp;<a href="[% globlalmordalink %]" title="[% currentgeo %]" target="_blank">[% currentgeoname %]</a>&nbsp;
+[% UNLESS ooops %]
+<hr>
+
+[% PROCESS Paginator %]
+
+<hr>
+<table width="100%" cellspacing="1" cellpadding="0" border="1">
+[% FOR witem IN Weather %]
+<tr>
+<td width="17%">
+<a href="[% witem.geosethref %]" title="[% witem.geo %]" target="_blank">[% witem.geoname %]</a>
+</td>
+[% IF witem.error %]
+<td colspan = "3"><center>[% witem.error %]</center></td>
+[% ELSE %]
+<td width="17%">
+<a href = "http://export.yandex.ru/weather-ng/forecasts-by-geo/[% witem.geo %].xml" target = "_blank">[% witem.temp %]</a>
+</td>
+<td width="17%">
+<span title="[% witem.staterus %]">[% witem.state %]</span>
+</td>
+<td>
+[% IF witem.alerts.size %]<font color="#663399">[% witem.when %]</font>&nbsp;[% FOR alert IN witem.alerts %]
+[% alert.title %]&nbsp;([% alert.code %]),&nbsp;
+[% END %][% END %][% IF witem.ealerts.size %][% IF witem.alerts.size %]<br>[% END %]<font 
+color="#000099">[% witem.ewhen %]</font>&nbsp;[% FOR alert IN witem.ealerts %]
+[% alert.title %]&nbsp;([% alert.code %]),&nbsp;
+[% END %][% END %]
+&nbsp;
+</td>
+[% END %]
+</tr>
+[% END %]
+</table>
+<hr>
+
+[% PROCESS Paginator %]
+[% ELSE %]
+<hr>
+<div>Ooops, данных нет.</div>
+<hr>
+[% END %]
+
+</body>
+</html>
+
+[% BLOCK Paginator %]
+<small>
+[% FOR page IN Weatherpages %]
+[% IF page.href %]
+<a href = "[% page.href %]">[% page.ltitle %]</a>
+[% ELSE %]
+[% page.ltitle %]
+[% END %]
+&nbsp; &nbsp;
+[% END %]
+</small>
+[% END %]
+

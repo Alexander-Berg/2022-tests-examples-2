@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+package runtest;
+
+use lib::abs qw(.);
+use common::sense;
+use File::Spec;
+use TAP::Harness;
+
+use TAP::Formatter::Color;
+
+sub list {
+    my $dir = lib::abs::path(".");
+    my %skip = (
+        '12-catalog-cpm.t' => 'to heavy',
+        'test_speed.pl'    => 'to heavy',
+        'wbox_db_conf_test.pl' => 'ask eldar to fix',
+        'xiva-server.pl'   => 'nontest',
+        'libauthtest.pl'   => 'nontest', 
+        'hockey2011data.pl'=> 'nontest',
+        'langdetect.lib.t' => 'too long',
+        'scan-ipv4.pl'     => 'nontest',
+        't-uatraits-cover.t'=>'nocover file',
+    );
+
+    opendir my $IN, $dir;
+    my @files = readdir $IN;
+    closedir $IN;
+
+    print STDERR "# in dir: $dir, found " . scalar( @files ) . "files\n";
+
+    my @tests = grep { !$skip{$_} } grep { m/\.(t)$/ } @files;
+    #print "Run tests: \n" . join("\n", @tests) . "\n";
+    @tests =  grep { -f $_ } map { File::Spec->catfile( $dir, $_ ) } @tests;
+
+    return @tests;
+};
+
+# my $formatter   = TAP::Formatter::Color->new;
+sub run {
+    print STDERR "#HARNESS: $TAP::Harness::VERSION, $TAP::Formater::Color::VERSION\n";
+#my $harness     = TAP::Formatter::Color->new( );
+    my $harness     = TAP::Harness->new( );
+    my $aggregator  = $harness->runtests( list() );
+}
+#$harness->summary( $aggregator );
+
+run() unless caller;
+1;

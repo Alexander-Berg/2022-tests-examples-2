@@ -1,0 +1,136 @@
+settings:
+    collection: subvention_rules
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: confirmation_id
+    sparse: true
+    unique: true
+  - key:
+      - name: end
+        type: ascending
+      - name: _id
+        type: ascending
+  - key:
+      - name: geoareas
+        type: ascending
+      - name: end
+        type: ascending
+  - key:
+      - name: group_id
+        type: ascending
+      - name: group_member_id
+        type: ascending
+    partialFilterExpression:
+        group_member_id:
+            $exists: true
+    unique: true
+  - key:
+      - name: idempotency_token
+        type: ascending
+    partialFilterExpression:
+        idempotency_token:
+            $exists: true
+    unique: true
+  - key:
+      - name: tariffzone
+        type: ascending
+      - name: end
+        type: ascending
+  - key: updated
+wiki_info: |
+    #### subvention_rules
+
+    *Назначение:* содержит информацию о правилах начисления субсидий. При
+    начислении субсидий заказ проверяется на соответствие каждому
+    правилу. Из всех подходящих правил используется то, которое дает
+    максимальную сумму доплаты.
+
+    *Структура документа*:
+    ```python
+    {
+        # все поля обязательные
+        # _id правила в формате mongo ObjectId
+        '_id': bson.ObjectId(''),
+
+        # город, в котором применяется правило
+        'region': u'Санкт-Петербург',
+
+        # id тарифной зоны, в которой применяется правило, список из одного
+        # элемента
+        'tariffzone': [],
+
+        # ids геозон субсидий, в которой применяется правило
+        'geoareas': [],
+
+        # дни недели, когда применяется правило (1 - пн, 7 - вс)
+        # если список пустой, то применяется во все дни
+        'dayofweek': [],
+
+        # часы, когда применяется правило (0-23), по местному времени
+        # если список пустой, то применяется во все часы
+        'hour': [],
+
+        # тип оплаты, для которого применяется данное правило
+        # card - для карточных заказов, cash - для наличных
+        # None - для любых типов оплаты
+        'paymenttype': None,
+
+        # категории тарифов, для которых применяется данное правило
+        'class': ['econom'],
+
+        # требуемое число поездок (в dayridecount_days), для которых применяется данное правило
+        'dayridecount': [
+            [1, 8],    # правило применяется при 1 <= N <= 8
+            [9],      # правило применяется при N >= 9
+        ],
+
+        # момент начала действия правила, naive utc
+        # бесконечное прошлое должно быть в виде datetime.datetime.min
+        'start': datetime.datetime(2016, 7, 5, 21, 0),
+
+        # момент окончания действия правила, naive utc
+        # бесконечное будущее должно быть в виде datetime.datetime.max
+        'end': datetime.datetime(2015, 8, 2, 21, 0),
+
+        # тип субсидии (add - фиксированная доплата, guarantee - доплата
+        # до определенной суммы, если стоимость заказа ниже этой суммы
+        # discount_payback - компенсация скидки)
+        'type': 'guarantee',
+
+        # сумма доплаты
+        # если тип субсидии - add, то правило говорит "заплати эту сумму"
+        # если тип субсидии - guarantee, то правило говорит
+        # "доплати разницу до этой суммы, если стоимость заказа ниже неё"
+        # если тип субсидии - discount_payback, то поле можно игнорировать (будет 0)
+        'sum': 250.0,
+        # если true, то субсидии, посчитанные по этому правилу не поступают на баланс
+        # водителя и не оплачиваются (фэйковые правила нужны для оперативного отображения
+        # информации о субсидиях в Таксометре)
+        'is_fake': false,
+        # вычитать комиссию из субсидии?
+        'sub_commission': false,
+        # если true, то передавать на Таксометр информацию о поездках за `dayridecount_days`.
+        'has_fake_counterpart': false,
+        # число дней, за которое надо совершить число поездок из dayridecount
+        'dayridecount_days': 7,
+        # счетчик поездок для dayridecount действует для любой категории, а не только для
+        # `class`
+        'dayridecount_is_for_any_category': true,
+        # водитель может получить эту субсидию только раз в день?
+        'is_once': True,
+        # сумма прибавляется к основной субсидии?
+        'is_bonus': True,
+        # null или список [] с возможными значениями 'full_branding', 'sticker',
+        # если непустой список, то счетчик поездок будет действовать только для
+        # заказов с заданным уровнем брендирования
+        'branding_type': null,
+        'kind': 'daily_guarantee',  # вид субсидии
+        'group_id': 'some_group_id',  # id группы
+        'group_member_id': 'num_orders/30/weekdays/1,2,3,4,5,6,7',  # id внутри группы
+        'idempotency_token': 'abcde1234',  # токен идемпотентности для правил без group_id
+        'day_beginning_offset_in_seconds': 14000,  # смещение рабочего дня водителя в секундах
+        'time_zone': 'Europe/Moscow',  # временная зона
+        'currency': 'RUB',  # валюта
+    }
+    ```

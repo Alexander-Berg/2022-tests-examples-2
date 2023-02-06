@@ -1,0 +1,74 @@
+INSERT INTO hiring_candidates.communication_yt_tables(
+    table_path,
+    created_ts
+)
+VALUES (
+        'test_path',
+        '2020-01-01'::TIMESTAMP
+);
+
+
+INSERT INTO hiring_candidates.communication_drivers(
+    created_dttm,
+    driver_id,
+    is_rent,
+    table_path,
+    personal_phone_id,
+    name,
+    unique_driver_id,
+    driver_license_personal_id,
+    comm_type,
+    city,
+    created_row_ts
+    ) VALUES (
+    '2020-08-01',
+    'driver_id',
+    'true',
+    'test_path',
+    'personal_phone_id',
+    'Ivan',
+    'unique_driver_id',
+    'bd4c88e3e36b4cc58f993c2d19794dca',
+    'text',
+    'moscow',
+    '2020-08-01'::TIMESTAMP
+),
+(
+    '2020-08-01',
+    'driver_id_1',
+    'false',
+    'test_path',
+    'personal_phone_id',
+    'Vasya',
+    'unique_driver_id',
+    'b096c787cc744c33bca703990fef384b',
+    'text',
+    'moscow',
+    '2020-08-01'::TIMESTAMP
+),
+(
+    '2020-08-01',
+    'driver_id_2',
+    'false',
+    'test_path',
+    'personal_phone_id',
+    'Kirill',
+    'unique_driver_id',
+    '260c2e98b6514594bc988171ba2b16f7',
+    'text',
+    'moscow',
+    '2020-08-01'::TIMESTAMP
+),
+(
+    '2020-08-01',
+    'free_driver_id',
+    'true',
+    'test_path',
+    'personal_phone_id',
+    'Free',
+    'unique_driver_id',
+    'FREEDRIVERPD',
+    'text',
+    'moscow',
+    '2020-08-01'::TIMESTAMP
+);

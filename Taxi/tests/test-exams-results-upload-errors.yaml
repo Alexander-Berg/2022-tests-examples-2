@@ -1,0 +1,128 @@
+id: test-exams-results-upload-errors
+title: Тест для обработки ошибок ручки exams-platform-v20-exams-results-upload (POST)
+
+parameters:
+  - group:
+      - expect_code_taxi_exams: 200
+        expect_body_taxi_exams:
+            id: TAXIEXAMS_ID1
+        expect_call_exams_platform_results: 1
+        expect_code_exams_platform_results: 400
+        expect_body_exams_platform_results:
+            code: error
+            message: error
+        expect_call_exams_platform_compare: 1
+        expect_code_exams_platform_compare: 400
+
+      - expect_code_taxi_exams: 200
+        expect_body_taxi_exams:
+            id: TAXIEXAMS_ID1
+        expect_call_exams_platform_results: 1
+        expect_code_exams_platform_results: 500
+        expect_body_exams_platform_results:
+            code: error
+            message: error
+        expect_call_exams_platform_compare: 1
+        expect_code_exams_platform_compare: 500
+
+      - expect_code_taxi_exams: 200
+        expect_body_taxi_exams:
+            id: TAXIEXAMS_ID1
+            warning:
+                code: error
+                message: error
+        expect_call_exams_platform_results: 1
+        expect_code_exams_platform_results: 200
+        expect_body_exams_platform_results:
+            id: PLATFORM_ID1
+        expect_call_exams_platform_compare: 1
+        expect_code_exams_platform_compare: 400
+
+      - expect_code_taxi_exams: 400
+        expect_body_taxi_exams:
+            code: error
+            message: Error
+        expect_call_exams_platform_results: 1
+        expect_code_exams_platform_results: 400
+        expect_body_exams_platform_results:
+            code: error
+            message: error
+        expect_call_exams_platform_compare: 0
+        expect_code_exams_platform_compare: 0
+
+      - expect_code_taxi_exams: 400
+        expect_body_taxi_exams:
+            code: error
+            message: Error
+        expect_call_exams_platform_results: 1
+        expect_code_exams_platform_results: 200
+        expect_body_exams_platform_results:
+            id: PLATFORM_ID1
+        expect_call_exams_platform_compare: 0
+        expect_code_exams_platform_compare: 0
+
+source:
+    request:
+        method: post
+        headers:
+            Cookie: "Session_id=3:SESSION_ID"
+        query:
+            X-Ya-Request-Id: REQUEST_ID
+        body:
+            city: Moscow
+            center: Center
+            license: 12AA123456
+            course: ultima
+            result: 5
+            exam_date: "2022-07-01T12:00:01Z"
+    expectations:
+        response:
+            status-code#xget: /test-params/group/expect_code_taxi_exams
+            body#xget: /test-params/group/expect_body_taxi_exams
+
+mocks:
+  - resource: taxi-exams-api-v20-exam-result
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                Cookie: "Session_id=3:SESSION_ID"
+            query:
+                X-Ya-Request-Id: REQUEST_ID
+            body:
+                city: Moscow
+                center: Center
+                license: 12AA123456
+                course: ultima
+                result: 5
+                exam_date: "2022-07-01T12:00:01Z"
+    response:
+        status-code#xget: /test-params/group/expect_code_taxi_exams
+        body#xget: /test-params/group/expect_body_taxi_exams
+
+  - resource: exams-platform-v20-exams-results-upload
+    expectations:
+        call-count#xget: /test-params/group/expect_call_exams_platform_results
+        request:
+            query:
+                X-Ya-Request-Id: REQUEST_ID
+            body:
+                city: Moscow
+                center: Center
+                license: 12AA123456
+                course: ultima
+                result: 5
+                exam_date: "2022-07-01T12:00:01Z"
+    response:
+        status-code#xget: /test-params/group/expect_code_exams_platform_results
+        body#xget: /test-params/group/expect_body_exams_platform_results
+
+  - resource: exams-platform-v10-compare-responses
+    expectations:
+        call-count#xget: /test-params/group/expect_call_exams_platform_compare
+        request:
+            body:
+                taxi-exams_response#xget: /test-params/group/expect_body_taxi_exams
+                exams-platform_response#xget: /test-params/group/expect_body_exams_platform_results
+    response:
+        status-code#xget: /test-params/group/expect_code_exams_platform_compare

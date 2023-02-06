@@ -1,0 +1,21 @@
+name: basic_source_postgres_sequence_ts
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: replica_ts
+    data_chunk_size: 2
+    iteration_type: sequence
+    connection:
+        secret: sequence
+    primary_key:
+      - id
+    table: sequence.table_by_ts
+
+destinations:
+  - basic_source_postgres_sequence_ts:
+        type: yt
+        mapper: dummy
+        target:
+            path: postgres/basic_source_postgres_sequence_ts
+            cluster_groups:
+              - map_reduce

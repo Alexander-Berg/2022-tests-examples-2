@@ -1,0 +1,41 @@
+description: MongoDB read operation options
+default:
+    max_time_ms: 0
+    read_preference: secondary_preferred
+tags:
+  - notfallback
+maintainers:
+  - litvitskiy
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        max_time_ms:
+            description: параметр maxTimeMS MongoDB (серверный таймаут на операцию)
+            type: integer
+            minimum: 0
+            x-taxi-cpp-type: std::chrono::milliseconds
+        cache_wait_ms:
+            description: таймаут на получение данных для кеша (возвращаем 503 в случае
+                превышения)
+            type: integer
+            minimum: 0
+            default: 0
+            x-taxi-cpp-type: std::chrono::milliseconds
+        handler_wait_ms:
+            description: таймаут на ручку get (возвращаем 503 в случае превышения)
+            type: integer
+            minimum: 0
+            default: 0
+            x-taxi-cpp-type: std::chrono::milliseconds
+        read_preference:
+            type: string
+            enum:
+              - primary
+              - secondary
+              - primary_preferred
+              - secondary_preferred
+              - nearest
+    required:
+      - max_time_ms
+      - read_preference

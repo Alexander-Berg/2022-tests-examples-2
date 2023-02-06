@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-screens
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-screens
+  template:
+    metadata:
+      labels:
+        app: static-screens
+    spec:
+      containers:
+        - name: static-screens
+          image: cr.yandex/crpss8bfd1shnvbptaji/kiosk-4.0/static-screens:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DB_USERPASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-user
+                  key: userpass
+            - name: ORIGIN
+              value: http://router.internal
+            - name: DB_URL
+              value: postgres://$(DB_USERPASS)@rc1a-i1mk6kh8gi4em5ho.mdb.yandexcloud.net:6432/static-screens
+            - name: REMOTE_BROWSER_URL
+              value: http://browser/wd/hub
+            - name: S3_ENDPOINT_URL
+              value: https://storage.yandexcloud.net
+            - name: S3_AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: s3
+                  key: aws_access_key_id
+            - name: S3_AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: s3
+                  key: aws_secret_access_key
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: static-screens
+spec:
+  type: ClusterIP
+  selector:
+    app: static-screens
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000

@@ -1,0 +1,144 @@
+#
+# Regular cron jobs for the yandex-taxi package
+#
+# ТЫ БУДЕШЬ ОСТАВЛЯТЬ ПУСТУЮ СТРОКУ В КОНЦЕ ЭТОГО ФАЙЛА
+#
+
+PATH="/usr/lib/yandex/taxi-py2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+MAILTO=""
+YT_LOG_LEVEL=WARNING
+TAXI_CONFIGS_PATH="/usr/lib/yandex/taxi-import/taxi/config/declarations/"
+
+0 * * * *          root    taxi-maintenance auto_prices
+25 * * * *         root    taxi-maintenance update_auto_dictionary
+15 3 * * *         root    taxi-maintenance banner_crutch
+* * * * *          root    taxi-maintenance update_holded_driver_balances
+* * * * *          root    taxi-maintenance send_taximeter_balance_changes --partition 0/4
+* * * * *          root    taxi-maintenance send_taximeter_balance_changes --partition 1/4
+* * * * *          root    taxi-maintenance send_taximeter_balance_changes --partition 2/4
+* * * * *          root    taxi-maintenance send_taximeter_balance_changes --partition 3/4
+*/5 * * * *        root    taxi-maintenance send_yt_taximeter_balance_changes
+* * * * *          root    taxi-maintenance send_driver_partner_payment_events
+* * * * *          root    taxi-maintenance send_scout_payment_events
+* * * * *          root    taxi-maintenance process_mia_requests
+* * * * *          root    taxi-maintenance send_driver_workshifts_events
+* * * * *          root    taxi-maintenance send_driver_workshifts_tlog_events
+7 * * * *          root    taxi-maintenance rollup_balances
+* * * * *          root    taxi-maintenance billing_monitoring_graphite
+* * * * *          root    taxi-maintenance billing_transactions_graphite
+*/20 * * * *       root    taxi-maintenance billing_scripts_monitoring
+* * * * *          root    taxi-maintenance update_transactions_restart
+* * * * *          root    taxi-maintenance cleanup_minutely
+30 0 * * *         root    taxi-maintenance generate_grafana_dashboards
+* * * * *          root    taxi-maintenance graphite_holded_subventions
+* * * * *          root    taxi-maintenance svo_restart_abandoned
+* * * * *          root    taxi-maintenance execute_scripts
+0 * * * *          root    taxi-maintenance expire_scripts
+*/2 * * * *        root    taxi-maintenance repair_failed_subventions
+* * * * *          root    taxi-maintenance report_scripts
+*/10 * * * *       root    taxi-maintenance run_stq_processing_starter
+*/10 * * * *       root    taxi-maintenance union_drivers
+*/10 * * * *       root    taxi-maintenance update_spendable_contracts
+*/10 * * * *       root    taxi-maintenance update_currency_rates
+35 */8 * * *       root    taxi-maintenance get_fias_city_codes
+*/10 * * * *       root    taxi-maintenance svo_update_user
+*/10 * * * *       root    taxi-maintenance pool_update_user
+0 * * * *          root    taxi-maintenance cleanup_hourly
+0 4 * * *          root    taxi-maintenance cleanup
+0 4 * * *          root    taxi-maintenance cleanup_whitelist
+3 3 * * *          root    taxi-maintenance archive_personal_subventions
+28 3 * * *         root    taxi-maintenance archive_personal_subvention_rules
+*/5 * * * *        root    taxi-maintenance graphite_billing
+* * * * *          root    taxi-maintenance graphite_billing_replication
+*/5 * * * *        root    taxi-maintenance graphite_driver_client_chat
+*/5 4-22 * * *     root    taxi-maintenance update_day_ride_count_subventions --partition 0/4
+*/5 4-22 * * *     root    taxi-maintenance update_day_ride_count_subventions --partition 1/4
+*/5 4-22 * * *     root    taxi-maintenance update_day_ride_count_subventions --partition 2/4
+*/5 4-22 * * *     root    taxi-maintenance update_day_ride_count_subventions --partition 3/4
+*/5 4-23 * * *     root    taxi-maintenance update_day_ride_count_subventions_watcher
+*/10 9-22 * * *    root    taxi-maintenance antifraud_replicate_subvention_frauders
+*/10 9-22 * * *    root    taxi-maintenance antifraud_replicate_personal_subvention_frauders
+*/10 9-22 * * *    root    taxi-maintenance antifraud_replicate_personal_guarantee_fraud_checks
+*/5 4-22 * * *     root    taxi-maintenance antifraud_check_hold_orders
+45 */3 * * *       root    taxi-maintenance antifraud_update_partners_blacklists
+* * * * *          root    taxi-maintenance antifraud_simple_autofallback
+*/30 * * * *       root    taxi-maintenance bulk_drivers_info
+0 4-23 1,20 * *       root    taxi-maintenance calc_corp_payments_audit
+* * * * *          root    taxi-maintenance order_proc_statistics.main
+2-59/5 * * * *     root    taxi-maintenance graphite_orders
+*/5 * * * *        root    taxi-maintenance graphite_assign_time
+* * * * *          root    taxi-maintenance graphite_requirements
+* * * * *          root    taxi-maintenance graphite_referrals_promocodes
+* * * * *          root    taxi-maintenance send_promocode_notification
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 0/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 1/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 2/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 3/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 4/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 5/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 6/8
+5 */3 * * *        root    taxi-maintenance update_corp_vat --partition 7/8
+30 2 * * *         root    taxi-maintenance yt_ratings_core
+0 */4 * * *        root    taxi-maintenance yt_driver_stats
+30 5 * * *         root    find /var/log/yandex/ -path "*taxi*twistd*" -mtime +10 -delete
+* * * * *          root    taxi-maintenance update_exams
+17 * * * *         root    taxi-maintenance exams_apply
+*/5 * * * *        root    taxi-maintenance calc_grades
+50 10 * * *        root    taxi-maintenance check_discounts_daily_budget
+* * * * *          root    taxi-maintenance uber_token_refresh
+4 6 * * *          root    taxi-maintenance antifraud_orders
+51 3 * * *         root    taxi-maintenance antifraud_orders
+50 * * * *         root    taxi-maintenance update_parks_balances
+47 2 * * *         root    taxi-maintenance expand_classifier_wildcards
+* * * * *          root    taxi-maintenance admin_confirmations
+0 */3 * * *        root    taxi-maintenance import_frequent_permits
+0 17 * * *         root    taxi-maintenance import_permits
+*/10 * * * *       root    taxi-maintenance import_permits_monitoring
+*/5 * * * *        root    taxi-maintenance zendesk_stat_graphite
+*/5 * * * *        root    taxi-maintenance zendesk_invalid_data_monitoring
+41 * * * *         root    taxi-maintenance eta_stats_yt_upload
+52 * * * *         root    taxi-maintenance point_b_stats_yt_upload
+29 * * * *         root    taxi-maintenance seen_stats_yt_upload
+*/5 * * * *        root    taxi-maintenance cleanup_driver_payment_type
+*/20 * * * *       root    taxi-maintenance update_user_phones
+* * * * *          root    taxi-maintenance graphite_yt_import
+* * * * *          root    taxi-maintenance graphite_yt_replication --quiet
+* * * * *          root    taxi-maintenance graphite_yt_errors
+* * * * *          root    taxi-maintenance graphite_yt_upload
+*/5 * * * *        root    taxi-maintenance cleanup_user_chats
+*/10 * * * *       root    taxi-maintenance close_zendesk_chat_tickets
+* * * * *        root    taxi-maintenance send_user_chat_push
+*/15 * * * *       root    taxi-maintenance graph_route_metrics --partition 0/2
+*/15 * * * *       root    taxi-maintenance graph_route_metrics --partition 1/2
+#  * * * * *       root    taxi-maintenance graphite_yt_resources --quiet
+*/5 * * * *        root    taxi-maintenance yt_combine_chunks
+50 * * * *         root    taxi-maintenance yt_monitoring_check_orders_bson
+23 * * * *         root    taxi-maintenance yt_resources_forecast --quiet
+0 */2 * * *        root    taxi-maintenance yt_backups
+0 6-12 * * *       root    taxi-maintenance yt_backups_rotate
+44 * * * *         root    taxi-maintenance yt_tables_rotate_merge
+15 12 * * *        root    taxi-maintenance yt_tables_rotate_remove
+* * * * *          root    taxi-maintenance calculate_support_metrics
+* * * * *          root    taxi-maintenance update_taximeter_balance_changes_metrics
+* * * * *          root    taxi-maintenance-yt-import --quiet
+0 3-23/6 * * *     root    taxi-maintenance yt_upload_partner_payments_reports
+30 */2 * * *       root    taxi-maintenance yt_upload_taximeter_report_payments
+13 * * * *         root    taxi-maintenance yt_export_sms_report
+30 3-23/6 * * *    root    taxi-maintenance yt_upload_partner_orders_reports
+* * * * *          root    taxi-maintenance ensure_personal_email_ids
+* * * * *          root    taxi-maintenance ensure_personal_phone_ids
+* * * * *          root    taxi-maintenance import_bpq
+* * * * *          root    taxi-maintenance send_bpq_push --partition 0/1
+* * * * *          root    taxi-maintenance update_autoactivated_promostories
+*/5 * * * *        root    taxi-maintenance use_extra_thresholds
+0 4 * * *          root    taxi-maintenance supply_diagnostic_dumps_cleanup
+* * * * *          root    taxi-maintenance --debug update_localizations_cache
+0 */12 * * *       root    taxi-maintenance yt_driver_scores
+* * * * *          root    taxi-maintenance graphite_driver_manager_revise
+* * * * *          root    taxi-maintenance ensure_unique_drivers_license_ids
+* * * * *          root    taxi-maintenance ensure_orders_personal_ids
+* * * * *          root    taxi-maintenance ensure_order_proc_personal_ids
+* * * * *          root    taxi-maintenance ensure_taxi_parks_personal_ids
+* * * * *          root    taxi-maintenance ensure_pda_drivers_personal_ids
+* * * * *          root    taxi-maintenance ensure_excluded_drivers_personal_ids
+* * * * *          root    taxi-maintenance ensure_union_unique_drivers_personal_ids

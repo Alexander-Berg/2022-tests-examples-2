@@ -1,0 +1,20 @@
+INSERT INTO callcenter_operators.skills
+(
+    name,
+    alias,
+    active,
+    domain
+)
+VALUES
+(
+    'russia',
+    'Россия',
+    True,
+    'taxi'
+),
+(
+    'nerussia',
+    'Нероссия',
+    True,
+    'taxi'
+);

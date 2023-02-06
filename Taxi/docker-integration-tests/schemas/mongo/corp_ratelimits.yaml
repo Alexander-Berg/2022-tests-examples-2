@@ -1,0 +1,35 @@
+settings:
+    collection: ratelimits
+    connection: corp
+    database: dbcorp
+indexes:
+  - expireAfterSeconds: 86400
+    key: last
+wiki_info: |
+    #### corp_ratelimits
+
+    *Назначение:* Содержит историю запросов в ручки Корпоративного кабинета для ограничения RPS.
+    Ключ записи является уникальным значением, может содеражать дополнительные постфиксы
+    (yandexuid, login и т.д.) для ограничения RPS в пределах пользователя, ip-адреса и т.д.
+    Note: В список request попадают не все запросы в ручку, а только те, которые
+    удовлетворили требованиям по RPS.
+
+    *Структура документа*:
+    ```python
+    {
+        # ключ
+        '_id': 'passport_internal_register_12345',
+
+        # запросы
+        'request': [
+            datetime.datetime(2018, 10, 10, 18, 9, 1, 123456)
+            datetime.datetime(2018, 10, 10, 18, 9, 2, 123456)
+            datetime.datetime(2018, 10, 10, 18, 9, 3, 123456)
+            datetime.datetime(2018, 10, 10, 18, 9, 3, 234567)
+
+        ],
+
+        # время последнего запроса
+        'last': datetime.datetime(2018, 10, 10, 18, 9, 1, 123456)
+    }
+    ```

@@ -1,0 +1,112 @@
+[% ttppnomin=1 %]
+<head>
+    <link rel="stylesheet" href="//yastatic.net/bootstrap/3.1.1/css/bootstrap.css">
+    <script type="text/javascript" src="//yastatic.net/jquery/2.1.1/jquery.js"></script>
+    <script type="text/javascript" src="//yastatic.net/bootstrap/3.1.1/js/bootstrap.js"></script>
+    <title>MADM:: Rapid controller</title>
+</head>
+<body>
+    [% IF r.errors.keys.size %]
+    <div class="container">
+        <h1> Rapid Errors</h1>
+        [% FOR block IN r.errors.keys %]
+        <div class="row">
+            <span>[% block %]:</span> [% FOR needed IN r.errors.$block %]
+            <span class="label label-danger">[% needed %]</span>
+            [% END %]
+        </div>
+        [% END %]
+    </div>
+    [% END %]
+
+    <div class="container">
+        <h1>Rapid debug info</h1>
+    [% FOR type IN ['input', 'init', 'component', 'block', 'handler', 'template' ] %]
+        <h2>[% type %]</h2>
+        [% items = desc.$type %]
+        [% FOR name IN items.keys.sort %]
+            [% item = desc.$type.$name %]
+        <div class="row">
+            <div class="col-md-2 lead"><a name="item_[% type %]_[% name %]" ></a>[% type %] [% name %]</div>
+            <!-- CALL POINT -->
+            <div class=""> [% desc.$type.$name.callfrom %]</div>
+            </div>
+        [% IF item.set OR item.get %]
+        <div class="row">
+            <div class="col-md-2">vars:</div>
+            <div class="col-md-10">
+                [% FOR var IN item.set.keys %]
+                <span class="label label-info"><span class="glyphicon glyphicon-log-in"></span> [% var %]</span>
+                [% END %]
+                
+                [% FOR var IN item.get.keys %]
+                <span class="label label-success"><span class="glyphicon glyphicon-log-out"></span> [% var %]</span>
+                [% END %]
+            </div>
+        </div>
+        [% END %]
+        [% IF item.require OR item.drequire %]
+        <div class="row">
+
+            <div class="col-md-2">standard require</div>
+            <div class="dependency col-md-10">
+                [% FOR rtype IN ['input', 'init', 'component','block', 'handler'] %]
+                    [% deps = item.require.$rtype %]
+                    [% FOR rname IN deps.keys %]
+                    <a 
+                        class="label label-[% SWITCH rtype %][% CASE 'input' %]success[% CASE 'init' %]primary[% CASE 'component'%]info[% CASE 'block' %]danger[% END %]" 
+                        href="#item_[% rtype %]_[% rname %]">[% rtype %] [% rname %]</a>
+                    [% END %]
+                [% END %]
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">compiled require</div>
+            <div class="dependency col-md-10">
+                [% FOR rtype IN ['input', 'init', 'component','block', 'handler'] %]
+                    [% deps = item.full_require.$rtype %]
+                    [% FOR rname IN deps %]
+                    [% NEXT IF rname == name AND rtype == type %]
+                    <a 
+                        class="label label-[% SWITCH rtype %][% CASE 'input' %]success[% CASE 'init' %]primary[% CASE 'component'%]info[% CASE 'block' %]danger[% END %]" 
+                        href="#item_[% rtype %]_[% rname %]">[% rtype %] [% rname %]</a>
+                    [% END %]
+                [% END %]
+            </div>
+ 
+        </div>
+        [% END %]
+        [% IF item.drequire %]
+        <div class="row">
+            <div class="col-md-2">Unfilled require</div>
+            <div class="dependency col-md-10">
+
+                [% FOR rtype IN item.drequire.keys %]
+                    [% deps = item.drequire.$rtype %]
+                    [% FOR rname IN deps.keys %]
+                    <a 
+                        class="label label-[% SWITCH rtype %][% CASE 'input' %]warning[% CASE 'block' %]danger[% CASE %]warning[% END %]" 
+                        href="#item_[% dep %]_[% dep_name %]">[% rtype %] [% rname %]</a>
+                    [% END %]
+                [% END %]
+            </div>
+        </div>
+        [% END %]
+ 
+        <div class="row">&nbsp;</div>
+        [% END %]
+    [% END %]
+    </div>
+
+
+
+    <hr />
+    <h1>Dependency</h1>
+    <div>
+    </div>
+
+    <h1>CallLog</h1>
+    <pre>
+    [% calljson %]
+    </pre>
+</body>

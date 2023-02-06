@@ -1,0 +1,6 @@
+export {addCategoryItemToCart} from './addCategoryItemToCart'
+export {backHeaderButtonClick} from './backHeaderButtonClick'
+export {openCategoryPage} from './openCategoryPage'
+export {removeCategoryItemFromCart} from './removeCategoryItemFromCart'
+export {categoryCardClick} from './categoryCardClick'
+export {categoryProductItemClick} from './categoryProductItemClick'

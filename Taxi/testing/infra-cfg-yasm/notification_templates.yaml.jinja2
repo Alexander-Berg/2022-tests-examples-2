@@ -1,0 +1,175 @@
+taxi_doesnt_care:
+  refresh_time: 5
+  ttl: 900
+  namespace: {{ namespace }}
+  tags: {{ tags }}
+  flaps:
+    stable: 600
+    critical: 1800
+    boost: 0
+  aggregator: 'timed_more_than_limit_is_problem'
+  aggregator_kwargs:
+    unreach_service:
+      -
+        check: yasm_alert:virtual-meta
+    unreach_mode: force_ok
+    nodata_mode: force_ok
+    limits:
+      -
+       time_start: 12
+       time_end: 20
+       day_start: 1
+       day_end: 5
+       warn: 0
+       crit: 101%
+      -
+       time_start: 12
+       time_end: 20
+       day_start: 6
+       day_end: 7
+       warn: 0
+       crit: 101%
+      -
+       time_start: 21
+       time_end: 11
+       day_start: 1
+       day_end: 7
+       warn: 0
+       crit: 101%
+  notifications:
+{%- if reference_notifications %}
+    {{ reference_notifications|yaml_safe_dump()|indent(4) }}
+{%- else %}
+  {%- for telegram_param in telegram_params %}
+    -
+      template_name: on_status_change
+      template_kwargs:
+        method: telegram
+        status: {{ telegram_param['status'] }}
+        login: {{ telegram_param['login'] }}
+  {%- endfor %}
+    -
+      template_name: phone_escalation
+      template_kwargs:
+        delay: 900
+        logins:
+          {{ resps }}
+        on_success_next_call_delay: 60
+        repeat: 2
+{%- endif %}
+{%- if meta %}
+  meta:
+    {{ meta|yaml_safe_dump()|indent(4) }}
+{%- endif %}
+
+taxi_never_sleep:
+  refresh_time: 5
+  ttl: 900
+  namespace: {{ namespace }}
+  tags: {{ tags }}
+  flaps:
+    stable: 600
+    critical: 1800
+    boost: 0
+  aggregator: 'timed_more_than_limit_is_problem'
+  aggregator_kwargs:
+    unreach_service:
+      -
+        check: yasm_alert:virtual-meta
+    unreach_mode: force_ok
+    nodata_mode: force_ok
+    limits:
+      -
+       time_start: 12
+       time_end: 20
+       day_start: 1
+       day_end: 5
+       warn: 0
+       crit: 0
+      -
+       time_start: 12
+       time_end: 20
+       day_start: 6
+       day_end: 7
+       warn: 0
+       crit: 0
+      -
+       time_start: 21
+       time_end: 11
+       day_start: 1
+       day_end: 7
+       warn: 0
+       crit: 0
+  notifications:
+{%- for telegram_param in telegram_params %}
+    -
+      template_name: on_status_change
+      template_kwargs:
+        method: telegram
+        status: {{ telegram_param['status'] }}
+        login: {{ telegram_param['login'] }}
+{%- endfor %}
+    -
+      template_name: phone_escalation
+      template_kwargs:
+        delay: 900
+        logins:
+          {{ resps }}
+        on_success_next_call_delay: 60
+        repeat: 2
+
+taxi_sleep:
+  refresh_time: 5
+  ttl: 900
+  namespace: {{ namespace }}
+  tags: {{ tags }}
+  flaps:
+    stable: 600
+    critical: 1800
+    boost: 0
+  aggregator: 'timed_more_than_limit_is_problem'
+  aggregator_kwargs:
+    unreach_service:
+      -
+        check: yasm_alert:virtual-meta
+    unreach_mode: force_ok
+    nodata_mode: force_ok
+    limits:
+      -
+       time_start: 12
+       time_end: 20
+       day_start: 1
+       day_end: 5
+       warn: 0
+       crit: 0
+      -
+       time_start: 12
+       time_end: 20
+       day_start: 6
+       day_end: 7
+       warn: 0
+       crit: 0
+      -
+       time_start: 21
+       time_end: 11
+       day_start: 1
+       day_end: 7
+       warn: 0
+       crit: 101%
+  notifications:
+{%- for telegram_param in telegram_params %}
+    -
+      template_name: on_status_change
+      template_kwargs:
+        method: telegram
+        status: {{ telegram_param['status'] }}
+        login: {{ telegram_param['login'] }}
+{%- endfor %}
+    -
+      template_name: phone_escalation
+      template_kwargs:
+        delay: 900
+        logins:
+          {{ resps }}
+        on_success_next_call_delay: 60
+        repeat: 2

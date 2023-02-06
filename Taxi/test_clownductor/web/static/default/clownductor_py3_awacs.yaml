@@ -1,0 +1,71 @@
+python_service:
+    service_name: service_exist
+
+units:
+  - name: web
+    web:
+        description: Yandex.Taxi clownductor web package
+        add_taxi_config_package: true
+        hostname:
+            production:
+              - clownductor.taxi.yandex.net
+            testing:
+              - clownductor.taxi.tst.yandex.net
+        num_procs:
+            production: 4
+            testing: 2
+            unstable: 2
+    debian:
+        binary_package_name: yandex-taxi-clownductor-web
+    task_processor: true
+    scripts_executor: true
+    tvm:
+        service_name: service_exist
+
+clownductor_service_info:
+    preset:
+        production:
+            name: x2micro
+        testing:
+            name: x2nano
+            overrides:
+                ram: 2
+                instances_count: 3
+    awacs_preset:
+        production:
+            name: MICRO
+            io_intensity: HIGH
+            instances:
+                man: 3
+                vla: 2
+                sas: 1
+        testing:
+            name: MICRO
+            io_intensity: NORMAL
+    design_review: https://st.yandex-team.ru
+    duty:
+        abc_slug: some_abc
+        primary_schedule: some_schedule
+    clownductor_project: taxi-devops
+    disk_profile:
+        production:
+            name: default
+            overrides:
+              - path: /cores
+                size: 0
+                type: hdd
+        testing:
+            name: default
+            overrides:
+              - path: /cores
+                size: 0
+                type: hdd
+              - path: /var/custom
+                size: 1024
+                type: hdd
+                bandwidth_guarantee_mb_per_sec: 2
+
+wiki: https://wiki.yandex-team.ru
+
+maintainers:
+  - Zhuchkov Aleksey <azhuchkov@yandex-team.ru>

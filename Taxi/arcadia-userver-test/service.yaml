@@ -1,0 +1,174 @@
+project-name: yandex-taxi-arcadia-userver-test
+short-name: arcadia-userver-test
+wiki: https://wiki.yandex-team.ru/taxi/backend/automatization/arcadia/
+maintainers:
+  - Sergey Pomazanov <alberist@yandex-team.ru>
+libraries:
+  - pugixml
+  - yandex-taxi-library-agl
+  - yandex-taxi-library-client-api-cache
+  - yandex-taxi-library-client-routing
+  - yandex-taxi-library-client-stq-agent
+  - yandex-taxi-library-client-user-statistics
+  - yandex-taxi-library-experiments3
+  - yandex-taxi-library-framing  # has proto-files in library
+  - yandex-taxi-library-geobase
+  - yandex-taxi-library-geometry-fbs
+  - yandex-taxi-library-logbroker-producer
+  - yandex-taxi-library-lz4
+  - yandex-taxi-library-yamaps   # common Protobuf dependency
+  - yandex-taxi-library-ydblib
+  - yandex-taxi-library-local-metrics-monitorings
+  - yandex-taxi-library-yt-replica-reader
+  - yandex-userver-core
+teamcity:
+    conductor-disabled: true
+
+docker-deploy:
+    os-name: bionic
+
+target-os:
+  - bionic
+
+debian:
+    source_package_name: yandex-taxi-arcadia-userver-test
+    maintainer_name: Sergey Pomazanov
+    maintainer_login: alberist
+
+# TODO: please follow these simple steps to finish TVM setup (already done if your service is in RTC):
+# https://wiki.yandex-team.ru/taxi/backend/userver/tvm/#podkljuchenie
+tvm2:
+    secdist-service-name: arcadia-userver-test
+
+secdist:
+    testsuite:
+        values:
+            settings_override:
+                TVM_SERVICES:
+                    arcadia-userver-test:
+                        secret: "secret"
+                        id: 2345
+            ydb_settings:
+                test_db:
+                    $ydb_settings:
+        substitute-vars-fixtures: [ydb_settings_substitute]
+
+units:
+  - debian:
+        binary_package_name: yandex-taxi-arcadia-userver-test
+    uservice_unit:
+        name: arcadia-userver-test
+        description: main unit
+
+        hostname:
+            production:
+              - arcadia-userver-test.taxi.yandex.net
+            testing:
+              - arcadia-userver-test.taxi.tst.yandex.net
+
+clients:
+  - bigb
+  - stq-agent
+
+flatbuffers:
+    schemas:
+      - convoluted_example.fbs
+      - common.fbs
+      - schemas/fbs/userver-sample/autogen/testing_request.fbs
+
+protobuf:
+    google-api: true
+    tier0-only: true
+    schemas:
+      - sample.proto
+    grpc:
+        schemas:
+          - grpc_sample.proto
+          - schemas/proto/arcadia_userver_test/proto/grpc_sample_shared.proto
+
+mongo:
+    collections:
+      - dump_sample
+
+postgresql:
+    databases:
+      - arcadia_test
+      - arcadia_test_old
+
+redis:
+    databases:
+      - arcadia_test
+      - arcadia_test_pubsub
+    subscribe-databases:
+      - arcadia_test_pubsub
+
+clickhouse:
+    databases:
+      - arcadia_test
+
+stq-client:
+    queues:
+      - name: sample_queue_with_args
+        args_schema: true
+      - name: sample_queue
+        args_schema: false
+
+stq-worker:
+    queues:
+      - name: sample_queue_with_args
+        args_schema: true
+      - name: sample_queue
+        args_schema: false
+
+experiments3:
+    matching_logs:
+        enabled: true
+
+sidecar:
+    exp3-matcher:
+        from-sandbox: true
+        environment: prestable
+    rate-limiter-proxy:
+        from-sandbox: true
+        environment: prestable
+
+# TODO: Customize your dashboard:
+# https://wiki.yandex-team.ru/taxi/backend/userver/dashboards-generation/
+# https://wiki.yandex-team.ru/taxi/backend/dashboards/
+dashboards:
+    service_group:
+        rtc:
+            name: arcadia-userver-test
+    grafana_additional_layouts:
+      - userver_common:
+            collapsed: true
+            uservice_name: arcadia-userver-test
+
+linters:
+    extra-application-package-names:
+      - arcadia_userver_test_plugins
+
+
+clownductor_service_info:
+    # Documentation: https://wiki.yandex-team.ru/taxi-ito/cloudhowto/#sborkaokruzhenijaservisacherezservice.yaml
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    design_review: https://wiki.yandex-team.ru/taxi/backend/automatization/arcadia/
+    disk_profile: ssd-default
+    duty_group_id: 5c014e7ba387beb7722c622f
+    # Your project. One of a list https://tariff-editor.taxi.yandex-team.ru/services/
+    clownductor_project: taxi-infra
+
+ya-make:
+    enabled: true
+    pytest-peerdirs:
+      - contrib/python/lz4
+    pytest-requirements:
+        ram: 8
+    deploy: true
+
+ya-package:
+    enabled: true

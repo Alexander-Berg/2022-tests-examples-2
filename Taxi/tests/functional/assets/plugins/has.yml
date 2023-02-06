@@ -1,0 +1,84 @@
+options:
+  base_url: http://nginx
+  timeout: 5
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - has: /html/body/h1
+  - _inner_test:
+      success: True
+      description: Has /html/body/h1
+      tap_description: Passed common case.
+
+  - has: /not/existing/path
+  - _inner_test:
+      success: False
+      message: Page has no element with locator "/not/existing/path"
+      tap_description: Failed non existing path.
+
+  - has: [/html/body/h1, Has header]
+  - _inner_test:
+      success: True
+      description: Has header
+      tap_description: Passed common case.
+
+  - has: [/html/body/h1, Wrong args count, Redundant arg]
+  - _inner_test:
+      success: False
+      message: allowed max
+      tap_description: Failed wrong args num.
+
+  - has: []
+  - _inner_test:
+      success: False
+      message: Test must contain single key
+      tap_description: Failed empty short args set.
+
+  - has:
+      xpath: /html/body/h1
+      description: Has header
+  - _inner_test: [True, Passed dict notation.]
+
+  - has:
+      description: Wrong pah test. Has no "xpath" arg
+  - _inner_test:
+      success: False
+      message: missed args
+      tap_description: Failed with wrong dict args
+
+  - has: [xpath:/html/body/h1, With "xpath:" prefix]
+  - _inner_test: [True, Passed short xpath notation.]
+
+  - has: [x:/html/body/h1, Wrong xpath notation]
+  - _inner_test: [False, Falsed wrong short notation.]
+
+  - has: [/html/body/h1, null]
+  - _inner_test: [True, Autocasted for none description.]
+
+  - has:
+      css: div > .text
+      description: With CSS selector
+  - _inner_test: [True, Passed css selector.]
+
+  - has:
+      css: div > .text
+      description: With CSS selector
+      timeout: 10
+  - _inner_test: [True, Passed css selector (timeout).]
+
+  - has:
+      css: div > .not-existing-class
+      description: With not existing CSS selector
+  - _inner_test: [False, Failed with non existing css selector.]
+
+  - has:
+      css: "> .not-existing-class"
+      desc: With invalid CSS selector
+  - _inner_test: [False, Failed with invalid css selector.]

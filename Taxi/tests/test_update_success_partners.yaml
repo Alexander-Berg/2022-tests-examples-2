@@ -1,0 +1,166 @@
+id: test_update_success_partners
+title: Проверка получения ошибочного ответа из сервиса eats-partners
+
+parameters:
+  - group:
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+            timezone: Moscow
+            roles: [2, 8]
+            countryCode: RU
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+            is_fast_food: false
+            timezone: Moscow
+            roles: [2, 8]
+            country_code: RU
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+            timezone: Moscow
+            roles: [2, 8]
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+            is_fast_food: false
+            timezone: Moscow
+            roles: [2, 8]
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+            timezone: Moscow
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+            is_fast_food: false
+            timezone: Moscow
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+            is_fast_food: false
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+      - input_request_body:
+            email: test@test.test
+        expected_request_body:
+            email: test@test.test
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: ""
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+      - input_request_body:
+            email: ""
+            name: ""
+            password: ""
+            restaurants: []
+            isFastFood: false
+            timezone: ""
+            roles: []
+            countryCode: ""
+        expected_request_body:
+            is_fast_food: false
+
+source:
+    request:
+        method: post
+        url: /api/v1/server/users/1
+        body#xget: /test-params/group/input_request_body
+
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true, "payload": {"timezone": "Moscow", "isFastFood": false,
+                    "countryCode": "RU", "name": "some_name", "roles": [{"role": "ROLE_OPERATOR",
+                            "id": 1, "title": "Оператор"}, {"role": "ROLE_MANAGER",
+                            "id": 2, "title": "Управляющий"}], "email": "test@test.test",
+                    "id": 1, "restaurants": [1, 2, 3]}}
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-user-post
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-update
+    response:
+        status-code: 200
+        body:
+            payload:
+                id: 1
+                name: some_name
+                email: test@test.test
+                is_blocked: false
+                places: [1, 2, 3]
+                is_fast_food: false
+                country_code: RU
+                roles:
+                  - slug: ROLE_OPERATOR
+                    title: Оператор
+                    id: 1
+                  - slug: ROLE_MANAGER
+                    title: Управляющий
+                    id: 2
+                timezone: Moscow
+                partner_id: some_partner_id
+    expectations:
+        call-count: 1
+        request:
+            query:
+                partner_id#string: 1
+            body#xget: /test-params/group/expected_request_body
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: true
+        enabled: true

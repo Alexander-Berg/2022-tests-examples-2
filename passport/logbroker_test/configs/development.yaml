@@ -1,0 +1,41 @@
+use_native_runner: True
+stat_socket: /tmp/lbc-logbroker-test-stat.sock
+lbc:
+  base:
+    connect_timeout: 5.0
+    client_id: passport/lbc-logbroker-test
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    partitions: 2
+    fixed_partitions: True
+    handler_class: passport.backend.logbroker_client.logbroker_test.handler.LogbrokerTestHandler
+    handler_args:
+        message_class: passport.backend.core.protobuf.logbroker_test.logbroker_test_pb2.LogbrokerTestMessage
+  per_host:
+    .*?:
+      targets:
+        - host: myt.logbroker.yandex.net
+          topic: passport/logbroker-test-development
+        - host: man.logbroker.yandex.net
+          topic: passport/logbroker-test-development
+        - host: sas.logbroker.yandex.net
+          topic: passport/logbroker-test-development
+        - host: vla.logbroker.yandex.net
+          topic: passport/logbroker-test-development
+        - host: iva.logbroker.yandex.net
+          topic: passport/logbroker-test-development
+
+blackbox:
+  url: https://pass-test.yandex.ru/
+  timeout: 1
+  retries: 2
+  use_tvm: false
+  get_hidden_aliases: false
+passport:
+  url: https://passport-test-internal.yandex.ru
+  timeout: 3
+  retries: 2
+  use_tvm: false
+logpath: ~/.arcadia_logs/logbroker-client/logbroker-test/

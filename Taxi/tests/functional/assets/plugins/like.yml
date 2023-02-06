@@ -1,0 +1,78 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - like:
+      css: p.text
+      text: text. First
+      description: Common short like
+  - _inner_test: [True, Passed for common text with like (timeout is not ignored)]
+
+  - like:
+      xpath: /html/body/div/p
+      text: text. First
+      description: Common full like.
+  - _inner_test: [True, Passed for common text with like in full form.]
+
+  - like:
+      xpath: /html/body/div/p
+      text: Not existing text
+      description: Common full like.
+  - _inner_test:
+      success: False
+      message: should contain
+      tap_description: Failed for not existing text.
+
+  - like:
+      xpath: /html/body/div/p
+      text: Not existing text
+      description: Common full like.
+      timeout: 3600
+  - _inner_test:
+      success: False
+      tap_description: Failed for not existing text.
+
+  - like:
+      xpath: /html/body/div/p
+      re: '[a-zA-Z]+'
+      description: Common regexp.
+  - _inner_test: [True, Passed for regexp match.]
+
+  - like:
+      xpath: /html/body/div/p
+      re: '[0-9]+\.'
+      description: Common regexp.
+  - _inner_test:
+      success: False
+      message: should match
+      tap_description: Failed for text with regexp.
+
+  - like: [css:div#test-like .text, Some like text]
+  - _inner_test: [True, Like finds in elements set.]
+
+  - like: [css:div#test-like .text, Not existing text]
+  - _inner_test: [False, Like fails trying to find in elements set.]
+
+  - like:
+      css: div#test-like .text
+      re: Some [a-zA-Z]+
+  - _inner_test: [True, Like with re finds throw every element]
+
+  - like:
+      css: div#test-like .text
+      re: Some [a-zA-Z]+
+      timeout: 1000
+  - _inner_test:
+      success: True
+      tap_description: Like with re finds throw every element (timeout is ignored).
+
+  - like: [css:div#test-like .num, 123]
+  - _inner_test: [True, Should find over num.]

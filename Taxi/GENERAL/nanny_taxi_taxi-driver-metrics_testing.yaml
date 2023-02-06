@@ -1,0 +1,27 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:driver-metrics:testing
+
+http_hosts:
+  - driver-metrics.taxi.tst.yandex.net
+awacs_namespace: driver-metrics-lb.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http:
+        collapsed: true
+  - py3_common:
+        collapsed: true
+        service_name: taxi_driver_metrics_web|taxi_driver_metrics_stq3|taxi_driver_metrics_cron
+  - metrics:
+        metrics_list:
+          - client_service: taxi_driver_metrics_stq3
+            name: Event types count
+            prefix: driver_metrics.event.*
+  - fallbacks:
+        services:
+          - taxi_driver_metrics_*
+  - stq:
+        queues:
+          - driver_metrics_client
+          - driver_metrics_processing
+          - driver_metrics_query_processing

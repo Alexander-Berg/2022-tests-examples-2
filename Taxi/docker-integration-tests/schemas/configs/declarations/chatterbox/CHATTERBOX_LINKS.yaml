@@ -1,0 +1,231 @@
+default:
+  - name: order
+    chat_type:
+      - startrack
+      - driver
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TARIFF_EDITOR_URL}/orders/{order_id}"
+    iframe: true
+    default_iframe_url: true
+  - name: all_orders
+    chat_type:
+      - startrack
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    conditions:
+        fields/phone_type:
+            "#exists": true
+    link: "{TARIFF_EDITOR_URL}/orders?phone={user_phone}&phone_type={phone_type}"
+    with_previous: order
+  - name: all_orders
+    chat_type:
+      - startrack
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TARIFF_EDITOR_URL}/orders?phone={user_phone}"
+    with_previous: order
+  - name: payments
+    chat_type:
+      - startrack
+      - driver
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TARIFF_EDITOR_URL}/payments/?order_id={order_id}"
+  - name: all_payments
+    chat_type:
+      - startrack
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TARIFF_EDITOR_URL}/payments?phone={user_phone}"
+    with_previous: payments
+  - name: logs
+    chat_type:
+      - startrack
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TARIFF_EDITOR_URL}/logs?order_id={order_id}"
+  - name: taximeter
+    chat_type:
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TAXIMETER_ADMIN_URL}/redirect/to/order?db={park_db_id}&order={order_alias_id}"
+  - name: driver
+    chat_type:
+      - startrack
+      - driver
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    link: "{TARIFF_EDITOR_URL}/show-driver?uuid={driver_uuid}"
+  - name: promocode
+    chat_type:
+      - startrack
+      - driver
+    link: "{TARIFF_EDITOR_URL}/promocodes-support/for-drivers/create?clid={clid}&uuid={driver_uuid}&zendesk_ticket={_id}"
+  - name: taxi
+    chat_type:
+      - startrack
+      - driver
+    link: "{TARIFF_EDITOR_URL}/parks/edit/{clid}"
+  - name: chats-client
+    chat_type:
+      - startrack
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    conditions:
+        fields/user_phone:
+            "#exists": true
+    link: "{SUPCHAT_URL}/chat?user_phone={user_phone}"
+  - name: chats-client
+    chat_type:
+      - startrack
+      - client
+      - client_eats
+      - sms
+      - facebook_support
+    conditions:
+        fields/user_email:
+            "#exists": true
+    link: "{SUPCHAT_URL}/chat?user_email={user_email}"
+  - name: chats-driver
+    chat_type:
+      - startrack
+      - driver
+    link: "{SUPCHAT_URL}/chat?driver_license={driver_license}"
+  - name: amocrm
+    chat_type:
+      - startrack
+      - driver
+    link: "{AMOCRM_URL}/dashboard/?sel=all&period=week&view=conversion&typing=y&term={driver_phone}"
+  - name: startrack
+    chat_type:
+      - startrack
+    link: "{TRACKER_HOST}/{external_id}"
+  - name: eats-order
+    chat_type:
+      - client
+      - client_eats
+    link: "{EATS_ADMIN_URL}/orders/{eats_order_id}/edit"
+  - name: eats-orders
+    chat_type:
+      - client
+      - client_eats
+    link: "{EATS_ADMIN_URL}/crm-users/?crm_user_search%5BphoneNumber%5D={user_phone}"
+    with_previous: eats-order
+  - name: d-office
+    chat_type:
+      - startrack
+      - driver
+    link: "{TAXIMETER_ADMIN_URL}/db/login/{park_db_id}"
+  - name: opteum
+    chat_type:
+      - startrack
+      - driver
+    link: "{TAXIMETER_ADMIN_URL}/db/opteum/{park_db_id}"
+  - name: park
+    chat_type:
+      - startrack
+      - driver
+    link: "{TAXIMETER_ADMIN_URL}/db/{park_db_id}"
+  - name: taximeter
+    chat_type:
+      - startrack
+      - driver
+    link: "{TAXIMETER_ADMIN_URL}/redirect/to/order?db={park_db_id}&order={order_alias_id}"
+  - name: balance-admin
+    chat_type:
+      - startrack
+      - driver
+    link: "{BALANCE_ADMIN_URL}/passports.xml"
+
+description: Описание ссылок в Chatterbox
+tags: []
+schema:
+    type: array
+    items:
+        $ref: "#/definitions/Link"
+
+    definitions:
+        Link:
+            type: object
+            properties:
+                name:
+                    type: string
+                chat_type:
+                    type: array
+                    items:
+                        $ref: 'common/chat_types.yaml#/ChatType'
+                iframe:
+                    type: boolean
+                iframe_url:
+                    type: string
+                default_iframe_url:
+                    type: boolean
+                with_previous:
+                    type: string
+                link:
+                    type: string
+                conditions:
+                    $ref: "#/definitions/LineCondition"
+                not_encode_fields:
+                    type: array
+                    items:
+                        type: string
+
+            required:
+              - name
+              - chat_type
+              - link
+
+            additionalProperties: false
+
+        LineCondition:
+            type: object
+            properties:
+
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/LineCondition"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/LineCondition"
+
+                "#not":
+                    $ref: "#/definitions/LineCondition"
+
+                line:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                type:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                tags:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            patternProperties:
+                ^fields\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            minProperties: 1
+            additionalProperties: false

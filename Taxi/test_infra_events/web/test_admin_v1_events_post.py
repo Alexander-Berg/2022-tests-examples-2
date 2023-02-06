@@ -1,0 +1,66 @@
+import datetime
+
+import bson
+import pytest
+
+from infra_events.common import db
+
+INFRA_EVENTS_VIEWS = {'test_view': {'release_schedule': 'default'}}
+
+
+@pytest.mark.config(INFRA_EVENTS_VIEWS=INFRA_EVENTS_VIEWS)
+async def test_admin_v1_events_post(web_context, web_app_client):
+    response = await web_app_client.post(
+        '/admin/v1/events',
+        headers={'X-Yandex-Login': 'tester1'},
+        json={
+            'events': [
+                {
+                    'timestamp': '2020-01-01T00:00:00+00:00',
+                    'header': 'header',
+                    'body': 'body',
+                    'tags': ['test_tag'],
+                    'views': ['test_view'],
+                },
+            ],
+        },
+    )
+    assert response.status == 200
+    events_ids = (await response.json())['events_ids']
+    event = await db.find_event(
+        web_context, event_id=bson.ObjectId(events_ids[0]),
+    )
+    del event['_id']
+    assert event == {
+        'timestamp': datetime.datetime(2020, 1, 1),
+        'header': 'header',
+        'body': 'body',
+        'tags': ['test_tag', 'staff:tester1'],
+        'source': 'userinput',
+        'views': ['test_view'],
+    }
+
+
+@pytest.mark.config(INFRA_EVENTS_VIEWS=INFRA_EVENTS_VIEWS)
+async def test_admin_v1_events_post_no_ts_no_tags_no_body(
+        web_context, web_app_client,
+):
+    response = await web_app_client.post(
+        '/admin/v1/events',
+        headers={'X-Yandex-Login': 'tester1'},
+        json={'events': [{'header': 'header', 'views': ['test_view']}]},
+    )
+    assert response.status == 200
+    events_ids = (await response.json())['events_ids']
+    event = await db.find_event(
+        web_context, event_id=bson.ObjectId(events_ids[0]),
+    )
+    del event['_id']
+    del event['timestamp']
+    assert event == {
+        'header': 'header',
+        'body': None,
+        'tags': ['staff:tester1'],
+        'source': 'userinput',
+        'views': ['test_view'],
+    }

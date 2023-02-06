@@ -1,0 +1,53 @@
+default:
+    __default__:
+        retries: 2
+        timeout_ms: 1000
+description: Таймаут и число повторов запросов в клиенте parks. Задается для каждой
+    ручки в отдельности, если не задан, то берется из default.
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Handler'
+    properties:
+        __default__:
+            $ref: '#/definitions/Handler'
+    required:
+      - __default__
+    definitions:
+        Handler:
+            type: object
+            additionalProperties: false
+            properties:
+                retries:
+                    type: integer
+                    minimum: 1
+                timeout_ms:
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            required:
+              - retries
+              - timeout_ms
+samples:
+  - __default__:
+        retries: 3
+        timeout_ms: 100
+  - __default__:
+        retries: 3
+        timeout_ms: 100
+    handler:
+        retries: 2
+        timeout_ms: 50
+invalid-samples:
+  - __default__:
+        retries: 3
+        timeout_ms: 0
+  - __default__:
+        retries: 3
+        timeout_ms: 100
+    handler:
+        retries: 1
+  - handler:
+        retries: 3
+        timeout_ms: 100

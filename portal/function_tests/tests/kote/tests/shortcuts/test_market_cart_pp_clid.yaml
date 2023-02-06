@@ -1,0 +1,29 @@
+meta:
+    task: 'HOME-74871: переименование шортката корзины Маркета из market в market_cart'
+    desc: Тесты, проверяющий отображение шотката и правильность clid
+config:
+  client: api_search_android_oauth
+get_params:
+    cleanvars: 1
+    httpmock: market_cart@market_cart_with_one_item_subreq
+    ab_flags: get_market_cart_data_from_mars=0
+    madm_mocks: shortcuts_settings_market_cart=shortcuts_settings_market_cart_mock:shortcuts_settings_v2=shortcuts_settings_v2_market_mock
+    processAssist: 1
+result:
+    raw_data:
+        alerts:
+            alerts:
+                informers:
+                    cards:
+                      FILTER:
+                          data: 
+                              shortcuts: IS_ARRAY
+                      FILTERED_LENGTH: '0 .. 1'
+                      ITEM:
+                        data:
+                          shortcuts:
+                            FILTER:
+                                type: "market_cart"
+                            FILTERED_LENGTH: 1 
+                            ITEM:
+                                url: [ RE, 'https://m.market.yandex.ru/my/cart\?.*\bclid=992\b' ]

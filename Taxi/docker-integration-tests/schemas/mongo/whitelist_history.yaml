@@ -1,0 +1,50 @@
+settings:
+    collection: whitelist_history
+    connection: misc
+    database: dbmisc
+indexes:
+  - key:
+      - name: car_number
+        type: ascending
+      - name: is_last
+        type: ascending
+    partialFilterExpression:
+        is_last:
+            $exists: true
+    unique: true
+  - key:
+      - name: created
+        type: descending
+  - key:
+      - name: till
+        type: descending
+      - name: is_last
+        type: ascending
+    sparse: true
+wiki_info: |
+    #### whitelist_history
+
+    *Назначение:* хранение истории добавления/удаления автомобилей в/из whitelist.
+    Коллекция реплицируется в yt (struct и bson).
+
+    *Структура документа*
+
+    ```python
+    {
+        # ID документа
+        '_id': ObjectId,
+        # Номер автомобиля
+        'car_number': 'A777AA199',
+        # Время создания документа
+        'created': datetime.datetime(),
+        # True - добавление, False - удаление
+        'whitelisted': True,
+        # Логин оператора
+        'login': 'root',
+        # Время автоматического удаления из whitelist
+        'till': datetime.datetime(),
+        # Указывает на то, что этот документ является
+        # последним для данного автомобиля
+        'is_last': True,
+    }
+    ```

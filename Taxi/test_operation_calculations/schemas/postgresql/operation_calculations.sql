@@ -1,0 +1,19 @@
+\set role testsuite
+\ir ../../../postgresql/operation_calculations/migrations/V1__operation_calculations.sql
+\ir ../../../postgresql/operation_calculations/migrations/V2__add_geotool_schemes.sql
+\ir ../../../postgresql/operation_calculations/migrations/V3__add_geotool_scarlett_schemes.sql
+\ir ../../../postgresql/operation_calculations/migrations/V4__add_geotool_cache_info.sql
+\ir ../../../postgresql/operation_calculations/migrations/V5__add_geotool_experiment_cols.sql
+\ir ../../../postgresql/operation_calculations/migrations/V6__add_geotool_tasks_counter.sql
+\ir ../../../postgresql/operation_calculations/migrations/V7__add_new_operations_schemes.sql
+\ir ../../../postgresql/operation_calculations/migrations/V8__add_geotool_multidraft_task_schemes.sql
+\ir ../../../postgresql/operation_calculations/migrations/V9__add_geotool_draft_status.sql
+\ir ../../../postgresql/operation_calculations/migrations/V10__add_geotool_task_status_errors.sql
+\ir ../../../postgresql/operation_calculations/migrations/V11__add_doxgety_schemas.sql
+\ir ../../../postgresql/operation_calculations/migrations/V12__add_operations_result_ticket.sql
+\ir ../../../postgresql/operation_calculations/migrations/V13__add_nmfg_draft_status.sql
+\ir ../../../postgresql/operation_calculations/migrations/V14__add_doxgety_multidraft_task_schemes.sql
+\ir ../../../postgresql/operation_calculations/migrations/V15__move_doxgety_tables.sql
+\ir ../../../postgresql/operation_calculations/migrations/V16__add_geotool_primary_key_and_index_for_replication.sql
+\ir ../../../postgresql/operation_calculations/migrations/V17__add_doxgety_multidraft_params.sql
+\ir ../../../postgresql/operation_calculations/migrations/V18__drop_scarlett_tables.sql

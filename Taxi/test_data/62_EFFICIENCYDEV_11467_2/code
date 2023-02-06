@@ -1,0 +1,106 @@
+function abs(val : double) {
+    return {res = (val < 0) ? -val : val};
+}
+
+function processTableElement(elem : clients::discounts::TableDataA,
+                             has_result: bool,
+                             result : double,
+                             price : double,
+                             first_iteration : bool,
+                             prev_elem_price : double,
+                             prev_elem_coeff : double) {
+    // если результат уже получен, то сразу отдаём его обратно
+    if (has_result) {
+        return {
+            has_result = true,
+            result = result,
+            // следующие 4 строчки одинаковые во всех return
+            price = price,
+            first_iteration = false,
+            prev_elem_price = elem.price,
+            prev_elem_coeff = elem.coeff
+        };
+    }
+
+    // если цена меньше первой цены в таблице, то используем первый элемент
+    if (first_iteration && price < elem.price) {
+        return {
+            has_result = true,
+            result = elem.coeff,
+            price = price,
+            first_iteration = false,
+            prev_elem_price = elem.price,
+            prev_elem_coeff = elem.coeff
+        };
+    }
+
+    // если цена между предыдущим элементом таблицы и текущим
+    if (!first_iteration && prev_elem_price <= price && price < elem.price) {
+        // избегаем деления на 0
+        if (abs(val=elem.price - prev_elem_price).res < 0.0001) {
+            return {
+                has_result = true,
+                result = 0,
+                price = price,
+                first_iteration = false,
+                prev_elem_price = elem.price,
+                prev_elem_coeff = elem.coeff
+            };
+        }
+        // делаем линейную интерполяцию
+        return {
+            has_result = true,
+            result = prev_elem_coeff
+                + (elem.coeff - prev_elem_coeff) * (price - prev_elem_price)
+                    / (elem.price - prev_elem_price),
+            price = price,
+            first_iteration = false,
+            prev_elem_price = elem.price,
+            prev_elem_coeff = elem.coeff
+        };
+    }
+
+    // результат ещё не получен
+    return {
+        has_result = false,
+        result = result,
+        price = price,
+        first_iteration = false,
+        prev_elem_price = elem.price,
+        prev_elem_coeff = elem.coeff
+    };
+}
+
+function calculateTableDiscountPercent(table : std::vector<clients::discounts::TableDataA>, price : double) {
+    // проходим по элементам таблицы функцией processTableElement
+    let process_table_result = fold(table as elem, processTableElement, {
+        has_result = false,
+        result = 0,
+        price = price,
+        first_iteration = true,
+        prev_elem_price = 0,
+        prev_elem_coeff = 0
+    });
+
+    // если результат получен, то отдаём его
+    if (process_table_result.has_result) {
+        return {res = process_table_result.result};
+    }
+
+    // если пришли сюда, то значит цена больше или равна последней цене в таблице, используем последний элемент
+    return {res = process_table_result.prev_elem_coeff};
+}
+
+if (fix.discount as discount) {
+    let affected_price = *ride.price - ride.price.waiting
+                                     - ride.price.transit_waiting
+                                     - ride.price.destination_waiting;
+
+    let percent = (discount.calc_data_table_data as tbl)                          // если задана таблица
+        ? calculateTableDiscountPercent(table = tbl, price = affected_price).res  // считаем скидку по таблице
+        : 0;                                                                      // иначе нет скидки
+
+    return {metadata=["percent": percent]};
+}
+
+return ride.price;

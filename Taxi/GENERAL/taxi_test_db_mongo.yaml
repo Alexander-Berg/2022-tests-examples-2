@@ -1,0 +1,61 @@
+---
+# Выбросы queries по хостам монги
+- service: mongo_query_outliers
+  alert_type: expression
+  program: |
+    let selector = {project="taxi", cluster="testing", service="app",
+        application="mongo-stats", sensor="opcounters_query",
+        host!="cluster|Man|Sas|Vla|Myt|Iva|*-dev-*|*-dev0*|*backup-*|*-back0*"};
+    let series = moving_avg(drop_below(diff(selector), 0), 30m);
+    let sigma = std(series);
+    let abs_diff = abs(last(series) - avg(series));
+  checkExpression: abs_diff > 3.5 * sigma
+  period: 10800
+# Выбросы queries по хостам монги без скользящего среднего
+- service: mongo_query_outliers_without_moving_avg
+  alert_type: expression
+  program: |
+    let selector = {project="taxi", cluster="testing", service="app",
+        application="mongo-stats", sensor="opcounters_query",
+        host!="cluster|Man|Sas|Vla|Myt|Iva|*-dev-*|*-dev0*|*backup-*|*-back0*"};
+    let series = drop_below(diff(selector), 0);
+    let sigma = std(series);
+    let abs_diff = abs(last(series) - avg(series));
+  checkExpression: abs_diff > 3 * sigma
+  period: 10800
+# Алерт на отсутствие траффика в течение 3 минут
+- service: mongo_network_requests_check
+  alert_type: expression
+  program: |
+    let selector = {project="taxi", cluster="testing", service="app",
+      application="mongo-stats", sensor="network_requests",
+      host!="cluster|Man|Sas|Vla|Myt|Iva|*-dev-*|*-dev0*|*backup-*|*-back0*"};
+    let result = sum(diff(selector));
+  checkExpression: result == 0
+  period: 180
+# Алерт на отсутствие активных клиентов в течение 3 минут
+- service: mongo_global_lock_active_clients_check
+  alert_type: threshold
+  selectors: |
+    { project="taxi", cluster="testing", service="app",
+      application="mongo-stats", sensor="globalLock_activeClients_total",
+      host!="cluster|Man|Sas|Vla|Myt|Iva|*-dev-*|*-dev0*|*backup-*|*-back0*" }
+  period: 180
+# Алерт на отсутствие соединений в течение 3 минут
+  predicateRules:
+  - timeAggregation: Sum
+    comparison: EQ
+    threshold: 0
+    targetStatus: ALARM
+- service: mongo_connections_check
+  alert_type: threshold
+  selectors: |
+    { project="taxi", cluster="testing", service="app",
+      application="mongo-stats", sensor="connections_current",
+      host!="cluster|Man|Sas|Vla|Myt|Iva|*-dev-*|*-dev0*|*backup-*|*-back0*" }
+  period: 180
+  predicateRules:
+  - timeAggregation: Sum
+    comparison: EQ
+    threshold: 0
+    targetStatus: ALARM

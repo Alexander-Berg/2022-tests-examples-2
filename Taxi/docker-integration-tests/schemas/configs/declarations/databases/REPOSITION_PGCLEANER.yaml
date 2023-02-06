@@ -1,0 +1,31 @@
+default:
+    __default__:
+        __default__:
+            age_hours: 1
+            limit: 5000
+
+description: 'Настройки удаления устаревших записей из таблиц БД reposition. Схема
+    хранения: { "shema_name": {                     # Имя схемы БД "table_name": {                 #
+    Имя таблицы БД "age_hours": integer,       # Период устаревания записей в таблице
+    (час): подлежат удалению записи старше, чем (now() - age_hours) "limit": integer            #
+    Количество удаляемых записей за одно выполнение cron-таски: <= limit }, }, }'
+tags: []
+validators:
+  - $default_dict:
+        key_validators:
+          - $not_empty_string
+        value_validators:
+          - $dictionary_of:
+                key_validators:
+                  - $not_empty_string
+                value_validators:
+                  - $dictionary:
+                        extra_ok: false
+                        missing_ok: false
+                        scheme:
+                            age_hours:
+                              - $integer
+                              - $gte: 0
+                            limit:
+                              - $integer
+                              - $gt: 0

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:stocks.exports.morda.autotests.yandex.ru"
+            xmlns:ns="urn:stocks.exports.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="stocks_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.ListDeserializer
+                    &lt;ru.yandex.autotests.morda.exports.stocks.StocksEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="stocks_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.exports.annotations.MordaExportDescription"
+                                    name="stocks"
+                                    clazz="ru.yandex.autotests.morda.exports.stocks.StocksExport"/>
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.MordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.exports.stocks.StocksExport,
+                    ru.yandex.autotests.morda.exports.stocks.StocksEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:stocks_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.stocks.StocksDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="stocks_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.exports.MordaExportEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithId</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="text" type="xsd:string"/>
+            <xsd:element name="short" type="xsd:string"/>
+            <xsd:element name="bank" type="xsd:string"/>
+            <xsd:element name="groupname" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="tomorrow" type="xsd:string"/>
+            <xsd:element name="onlydate" type="xsd:string"/>
+            <xsd:element name="alt" type="xsd:string"/>
+            <xsd:element name="popup" type="xsd:string"/>
+            <xsd:element name="klimit" type="xsd:string"/>
+            <xsd:element name="precision" type="xsd:string"/>
+            <xsd:element name="is_currency" type="xsd:int"/>
+            <xsd:element name="ispercent" type="xsd:int"/>
+            <xsd:element name="geo" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

@@ -1,0 +1,27 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#object:
+      - key: data
+        value#xget: /request/passenger-authorizer/user-personal
+      - key: personal1
+        value#xget: /request/passenger-authorizer/user-personal/personal_phone_id
+      - key: personal2
+        value#xget: /request/passenger-authorizer/user-personal/personal_email_id
+      - key: personal3
+        value#xget: /request/passenger-authorizer/user-personal/eats_user_id
+      - key: has_personal1
+        value#contains:
+            key: personal_phone_id
+            object#xget: /request/passenger-authorizer/user-personal
+      - key: has_secondary_phone_id
+        value#contains:
+            key: secondary_phone_id
+            object#xget: /request/passenger-authorizer/user-personal
+      - key: secondary_phone_id
+        value#xget:
+            path: /request/passenger-authorizer/user-personal/secondary_phone_id
+            default-value: 8-800-555-35-35

@@ -1,0 +1,181 @@
+{
+  "name": "test_entry_template_create_check",
+  "project": "taxi",
+  "start_date": "2020-01-01T00:00:00+00:00",
+  "value": {
+    "actions": [
+      {
+        "$func": "send_to_taximeter",
+        "$vars": {
+          "alias_id": {
+            "$context": "alias_id"
+          },
+          "driver_uuid": {
+            "$context": "driver_uuid"
+          },
+          "park_id": {
+            "$context": "park_id"
+          },
+          "taximeter_kind": "balance_change"
+        }
+      },
+      {
+        "$func": "create_income_journal",
+        "$vars": {
+          "income_event_at": {
+            "$context": "order_event_at"
+          }
+        }
+      },
+      {
+        "$func": "send_balance_update",
+        "$vars": {}
+      },
+      {
+        "$func": "send_income_entries",
+        "$vars": {}
+      }
+    ],
+    "entries": [
+      {
+        "agreement_id": "taxi/yandex_ride/mode/driver_fix",
+        "amount": {
+          "$context": "amount"
+        },
+        "currency": {
+          "$context": "currency"
+        },
+        "details": {
+          "alias_id": {
+            "$context": "alias_id"
+          }
+        },
+        "entity_external_id": {
+          "$format": "taximeter_driver_id/{park_id}/{driver_uuid}"
+        },
+        "event_at": {
+          "$context": "event_at"
+        },
+        "sub_account": "tips/googlepay"
+      },
+      {
+        "agreement_id": "taxi/driver_balance",
+        "amount": {
+          "$context": "amount"
+        },
+        "currency": {
+          "$context": "currency"
+        },
+        "details": {},
+        "entity_external_id": {
+          "$format": "taximeter_driver_id/{park_id}/{driver_uuid}"
+        },
+        "event_at": {
+          "$context": "event_at"
+        },
+        "sub_account": "total"
+      },
+      {
+        "agreement_id": "taxi/yandex_ride/mode/driver_fix",
+        "amount": {
+          "$context": "amount"
+        },
+        "currency": {
+          "$context": "currency"
+        },
+        "details": {
+          "alias_id": {
+            "$context": "alias_id"
+          },
+          "driver": {
+            "driver_uuid": {
+              "$context": "driver_uuid"
+            }
+          }
+        },
+        "entity_external_id": {
+          "$format": "taximeter_park_id/{park_id}"
+        },
+        "event_at": {
+          "$context": "event_at"
+        },
+        "sub_account": "tips/googlepay"
+      }
+    ],
+    "examples": [
+      {
+        "context": {
+          "alias_id": "some_alias_id",
+          "amount": "100.0000",
+          "currency": "RUB",
+          "driver_uuid": "some_driver_uuid",
+          "event_at": "2020-01-01T00:00:00+00:00",
+          "order_event_at": "2019-10-22T12:00:00.000000+00:00",
+          "park_id": "some_park_id"
+        },
+        "expected_actions": [
+          {
+            "func": "send_to_taximeter",
+            "keywords": {
+              "alias_id": "some_alias_id",
+              "driver_uuid": "some_driver_uuid",
+              "park_id": "some_park_id",
+              "taximeter_kind": "balance_change"
+            }
+          },
+          {
+            "func": "create_income_journal",
+            "keywords": {
+              "income_event_at": "2019-10-22T12:00:00.000000+00:00"
+            }
+          },
+          {
+            "func": "send_balance_update",
+            "keywords": {}
+          },
+          {
+            "func": "send_income_entries",
+            "keywords": {}
+          }
+        ],
+        "expected_entries": [
+          {
+            "agreement_id": "taxi/yandex_ride/mode/driver_fix",
+            "amount": "100.0000",
+            "currency": "RUB",
+            "details": {
+              "alias_id": "some_alias_id"
+            },
+            "entity_external_id": "taximeter_driver_id/some_park_id/some_driver_uuid",
+            "event_at": "2020-01-01T00:00:00+00:00",
+            "sub_account": "tips/googlepay"
+          },
+          {
+            "agreement_id": "taxi/driver_balance",
+            "amount": "100.0000",
+            "currency": "RUB",
+            "details": {},
+            "entity_external_id": "taximeter_driver_id/some_park_id/some_driver_uuid",
+            "event_at": "2020-01-01T00:00:00+00:00",
+            "sub_account": "total"
+          },
+          {
+            "agreement_id": "taxi/yandex_ride/mode/driver_fix",
+            "amount": "100.0000",
+            "currency": "RUB",
+            "details": {
+              "alias_id": "some_alias_id",
+              "driver": {
+                "driver_uuid": "some_driver_uuid"
+              }
+            },
+            "entity_external_id": "taximeter_park_id/some_park_id",
+            "event_at": "2020-01-01T00:00:00+00:00",
+            "sub_account": "tips/googlepay"
+          }
+        ]
+      }
+    ]
+  },
+  "version": 23
+}

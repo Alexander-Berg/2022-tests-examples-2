@@ -1,0 +1,52 @@
+include conf.d/99-yandex-taxi-wind-yango-website-web-upstream;
+variables_hash_max_size 2048;
+
+server {
+    listen [::]:80;
+    listen [::]:8179;
+    listen [::]:8180;
+    server_name wind-yango-website.taxi.tst.yandex.net;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host www-stage.wind.co;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Connection "";
+    proxy_set_header x-redirect-rule "bRa2enBrdeJRtbpSDg5pa8xqagFQzzkN";
+    client_max_body_size 10m;
+    proxy_intercept_errors off;
+    proxy_ssl_server_name on;
+
+    proxy_hide_header       Authorization;
+    proxy_hide_header       Set-Cookie;
+    proxy_ignore_headers    Set-Cookie;
+    proxy_set_header        Cookie "";
+
+    resolver [fd64::1] ipv6=on;
+
+    location / {
+        proxy_pass https://www-stage.wind.co/;
+    }
+
+    location /ping {
+        return 200 "OK";
+    }
+
+    location ~ ^/imgs(/.*)?$  {
+        proxy_pass https://www-stage.wind.co/imgs/$1$is_args$args;
+    }
+
+    location ~ ^/aboutus(/.*)?$ {
+        proxy_pass https://www-stage.wind.co/aboutus/$1$is_args$args;
+    }
+
+    location ~ ^/blog(/.*)?$ {
+        proxy_pass https://www-stage.wind.co/blog/$1$is_args$args;
+    }
+
+    location ~ ^/static(/.*)?$ {
+        proxy_pass https://www-stage.wind.co/static/$1$is_args$args;
+    }
+    location ~ ^/official-website(/.*)?$  {
+        proxy_pass https://www-stage.wind.co/official-website/$1$is_args$args;
+    }
+}

@@ -1,0 +1,273 @@
+{
+  "createOrReplace": {
+    "object": {
+      "database": "[-gp_prefix-][-database-]"
+    },
+    "database": {
+      "name": "[-gp_prefix-][-database-]",
+      "compatibilityLevel": 1400,
+      "model": {
+        "culture": "en-US",
+        "dataSources": [
+          {
+            "name": "Custom",
+            "connectionString": "Provider=PGNP.1;Data Source=[-greenplum_host-];Persist Security Info=True;User ID=[-user_id-];Password=[-password-];Initial Catalog=[-greenplum_database-];AutoCommit=true;Extended Properties=\"REFRESH_META=1;NUM_SCALE=2;MIN_FETCH_ROWS=25000;SSL=require;SEARCH_PATH=olap;HIDE_GPFDIST=NO;Database=ritchie;\";Location=ritchie",
+            "impersonationMode": "impersonateServiceAccount",
+            "annotations": [
+              {
+                "name": "ConnectionEditUISource",
+                "value": "Others"
+              }
+            ]
+          }
+        ],
+        "tables": [
+          {
+            "name": "rep_operator_stat_halfhourly",
+            "columns": [
+              {
+                "name": "Staff Login",
+                "dataType": "string",
+                "sourceColumn": "staff_login",
+                "sourceProviderType": "VarChar"
+              },
+              {
+                "name": "Report Time UTC",
+                "dataType": "dateTime",
+                "sourceColumn": "utc_report_dttm",
+                "formatString": "General Date",
+                "sourceProviderType": "Date"
+              },
+              {
+                "name": "action_cnt",
+                "dataType": "int64",
+                "isHidden": true,
+                "sourceColumn": "action_cnt",
+                "sourceProviderType": "Int"
+              }
+            ],
+            "partitions": [[-rep_operator_stat_halfhourly-]],
+            "measures": [
+              {
+                "name": "Action Count",
+                "expression": "SUM([action_cnt])"
+              }
+            ]
+          },
+          {
+            "name": "Time UTC",
+            "dataCategory": "Time",
+            "columns": [
+              {
+                "name": "Date Half hour",
+                "dataType": "dateTime",
+                "isUnique": true,
+                "isKey": true,
+                "isNullable": false,
+                "sourceColumn": "date_halfhour",
+                "sourceProviderType": "Date",
+                "encodingHint": "hash"
+              },
+              {
+                "name": "Half Hour",
+                "dataType": "string",
+                "sourceColumn": "date_halfhour_name",
+                "sourceProviderType": "VarChar",
+                "encodingHint": "hash"
+              },
+              {
+                "name": "Day",
+                "dataType": "string",
+                "sourceColumn": "date_day_name",
+                "sourceProviderType": "VarChar",
+                "encodingHint": "hash"
+              },
+              {
+                "name": "Week",
+                "dataType": "string",
+                "sourceColumn": "date_week_name",
+                "sourceProviderType": "VarChar",
+                "encodingHint": "hash"
+              },
+              {
+                "name": "Month",
+                "dataType": "string",
+                "sourceColumn": "date_month_name",
+                "sourceProviderType": "VarChar",
+                "encodingHint": "hash"
+              },
+              {
+                "name": "Year",
+                "dataType": "int64",
+                "sourceColumn": "date_year",
+                "sourceProviderType": "SmallInt",
+                "encodingHint": "hash"
+              },
+              {
+                "name": "Date day",
+                "dataType": "int64",
+                "isHidden": true,
+                "sourceColumn": "date_day",
+                "sourceProviderType": "SmallInt"
+              },
+              {
+                "name": "Date month",
+                "dataType": "int64",
+                "isHidden": true,
+                "sourceColumn": "date_month",
+                "sourceProviderType": "SmallInt"
+              },
+              {
+                "name": "Quarter",
+                "dataType": "string",
+                "sourceColumn": "date_quarter"
+              }
+            ],
+            "partitions": [
+              {
+                "name": "Time created UTC",
+                "dataView": "full",
+                "source": {
+                  "query": "SELECT * FROM taxi_olap_contactcenter.v_support_operator_cube_dim_time_sequence",
+                  "dataSource": "Custom"
+                },
+                "annotations": [
+                  {
+                    "name": "QueryEditorSerialization",
+                    "value": [
+                      "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\">",
+                      "\t",
+                      "\t<AnnotationContent><![CDATA[<RSQueryCommandText>SELECT * FROM taxi_olap_contactcenter.v_support_operator_cube_dim_time_sequence</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent>",
+                      "",
+                      "</Gemini>"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "hierarchies": [
+              {
+                "name": "Year-Month-Day-Halfhour",
+                "levels": [
+                  {
+                    "name": "Year",
+                    "ordinal": 0,
+                    "column": "Year"
+                  },
+                  {
+                    "name": "Month",
+                    "ordinal": 1,
+                    "column": "Month"
+                  },
+                  {
+                    "name": "Day",
+                    "ordinal": 2,
+                    "column": "Day"
+                  },
+                  {
+                    "name": "Half Hour",
+                    "ordinal": 3,
+                    "column": "Half Hour"
+                  }
+                ]
+              },
+              {
+                "name": "Year-Week-Day-Halfhour",
+                "levels": [
+                  {
+                    "name": "Year",
+                    "ordinal": 0,
+                    "column": "Year"
+                  },
+                  {
+                    "name": "Week",
+                    "ordinal": 1,
+                    "column": "Week"
+                  },
+                  {
+                    "name": "Day",
+                    "ordinal": 2,
+                    "column": "Day"
+                  },
+                  {
+                    "name": "Half Hour",
+                    "ordinal": 3,
+                    "column": "Half Hour"
+                  }
+                ]
+              },
+              {
+                "name": "Year-Quarter-Month-Day-Halfhour",
+                "levels": [
+                  {
+                    "name": "Year",
+                    "ordinal": 0,
+                    "column": "Year"
+                  },
+                  {
+                    "name": "Quarter",
+                    "ordinal": 1,
+                    "column": "Quarter"
+                  },
+                  {
+                    "name": "Month",
+                    "ordinal": 2,
+                    "column": "Month"
+                  },
+                  {
+                    "name": "Day",
+                    "ordinal": 3,
+                    "column": "Day"
+                  },
+                  {
+                    "name": "Half Hour",
+                    "ordinal": 4,
+                    "column": "Half Hour"
+                  }
+                ]
+              }
+            ],
+            "annotations": [
+              {
+                "name": "_TM_ExtProp_QueryDefinition",
+                "value": "SELECT * FROM taxi_olap_contactcenter.v_support_operator_cube_dim_time_sequence"
+              },
+              {
+                "name": "_TM_ExtProp_DbTableName",
+                "value": "Time created Moscow"
+              },
+              {
+                "name": "QueryEditorSerialization",
+                "value": [
+                  "<?xml version=\"1.0\" encoding=\"UTF-16\"?><Gemini xmlns=\"QueryEditorSerialization\">",
+                  "\t",
+                  "\t<AnnotationContent><![CDATA[<RSQueryCommandText>SELECT * FROM taxi_olap_contactcenter.v_support_operator_cube_dim_time_sequence</RSQueryCommandText><RSQueryCommandType>Text</RSQueryCommandType><RSQueryDesignState></RSQueryDesignState>]]></AnnotationContent>",
+                  "",
+                  "</Gemini>"
+                ]
+              }
+            ]
+          }
+        ],
+        "roles": [
+          {
+            "name": "CallcenterReader",
+            "modelPermission": "read",
+            "members": [
+              {
+                "memberName": "LD\\vasilevel"
+              }
+            ]
+          }
+        ],
+        "annotations": [
+          {
+            "name": "ClientCompatibilityLevel",
+            "value": "500"
+          }
+        ]
+      }
+    }
+  }
+}
+

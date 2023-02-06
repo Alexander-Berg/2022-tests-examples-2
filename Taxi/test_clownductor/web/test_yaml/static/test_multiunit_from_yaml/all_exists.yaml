@@ -1,0 +1,154 @@
+python_service:
+    service_name: service-exist
+teamcity:
+    conductor-disabled: true
+docker-deploy: {}
+debian:
+    source_package_name: yandex-taxi-service-exist
+    maintainer_name: Pavel Potapenkov
+    maintainer_login: oxcd8o
+units:
+  - name: web
+    web:
+        description: Yandex.Taxi service-exist web package
+        add_taxi_config_package: true
+        hostname:
+            production:
+              - service-exist.taxi.yandex.net
+            testing:
+              - service-exist.taxi.tst.yandex.net
+        num_procs:
+            production: 4
+            testing: 2
+            unstable: 2
+    debian:
+        binary_package_name: yandex-taxi-service-exist-web
+    task_processor: true
+    scripts_executor: true
+    tvm:
+        service_name: service-exist
+  - name: cron
+    cron:
+        description: Yandex.Taxi service-exist cron package
+        add_taxi_config_package: true
+        tasks:
+          - module: service-exist.crontasks.update_hosts
+            autoprolong: true
+            lock_for: 120
+            settings:
+                production:
+                    launch_at: '*/5 * * * *'
+                testing:
+                    launch_at: '*/5 * * * *'
+                unstable:
+                    launch_at: '*/5 * * * *'
+          - module: service-exist.crontasks.sync_to_conductor
+            autoprolong: true
+            lock_for: 120
+            settings:
+                production:
+                    launch_at: '*/5 * * * *'
+                testing:
+                    launch_at: '*/5 * * * *'
+                unstable:
+                    launch_at: '*/5 * * * *'
+          - module: service-exist.crontasks.regen_resource_alerts
+            autoprolong: true
+            lock_for: 120
+            settings:
+                production:
+                    launch_at: '0 * * * *'
+                testing:
+                    launch_at: '0 * * * *'
+                unstable:
+                    launch_at: '0 * * * *'
+    debian:
+        binary_package_name: yandex-taxi-service-exist-cron
+    monrun:
+        checks:
+          - full_check_name: service-exist-abc-owners-check
+            module: service-exist.monrun_checks.abc_owners_check
+            execution_interval: 14400 # 4 hours
+          - full_check_name: service-exist-long-running-jobs
+            module: service-exist.monrun_checks.long_running_jobs
+            execution_interval: 60
+tvm:
+    service_name: service-exist
+postgresql:
+    databases:
+      - name: clownductor
+        settings:
+            default:
+                min_size: 1
+                max_size: 5
+            production:
+                min_size: 10
+                max_size: 20
+postgres_queries:
+nanny: true
+nanny_yp: true
+login_api: true
+dns_api: true
+puncher_api: true
+solomon_api: true
+staff_api: true
+abc_api: true
+awacs_api: true
+mdb_api: true
+yav_api: true
+l3mgr_api: true
+abc_nonofficial_api: true
+abk_configs: true
+conductor_api: true
+service_manager: true
+golovan: true
+grafana_api: true
+lenta_api: true
+client_github: true
+client_startrek:
+    profile: robot-taxi-clown
+clients:
+    services:
+      - strongbox
+      - dispenser
+      - kibana
+client_tvm: true
+config:
+  - CLOWNDUCTOR_ABC_OWNERS_CHECK_SETTINGS
+  - CLOWNDUCTOR_LONG_RUNNING_JOBS_CHECK_SETTINGS
+  - CLOWNDUCTOR_NEW_SERVICE_TICKET_SETTINGS
+  - CLOWNDUCTOR_RELEASE_ST_COMMENT_SETTINGS
+  - CLOWNDUCTOR_FEATURES
+syslog:
+    rtc_postrotate: false
+
+clownductor_service_info:
+    preset:
+        name: x2nano
+        overrides:
+            ram: 2
+    design_review: https://st.yandex-team.ru
+    clownductor_project: taxi-devops
+    duty_group_id: 5b69be79c5755f678048a169
+    disk_profile: default
+    abc:
+        service_name:
+            ru: service-exist
+            en: service-exist
+        description:
+            ru: Крутой сервис
+            en: The cool one
+    robots:
+        production:
+          - robot-tester
+          - nanny-robot
+        testing:
+          - robot-tester
+    networks:
+        production: _TAXI_BOT_YANFORMATOR_NETS_
+        testing: _TAXI_TEST_BOT_YANFORMATOR_NETS_
+
+wiki: https://wiki.yandex-team.ru
+
+maintainers:
+  - Karachev Dmitriy <karachevda@yandex-team.ru>

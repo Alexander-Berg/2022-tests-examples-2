@@ -1,0 +1,144 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'dev1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'ABCD11',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    FALSE
+);
+
+INSERT INTO signal_device_api.car_device_bindings
+(
+    id,
+    park_id,
+    car_id,
+    device_id,
+    created_at,
+    detached_at,
+    updated_at
+)
+VALUES
+(
+    '1',
+    'p1',
+    'car1',
+    1,
+    now(),
+    NULL,
+    now()
+);
+
+INSERT INTO signal_device_api.statuses
+(
+    id,
+    cpu_temperature,
+    disk_bytes_free_space,
+    disk_bytes_total_space,
+    root_bytes_free_space,
+    root_bytes_total_space,
+    ram_bytes_free_space,
+    gps_position_lat,
+    gps_position_lon,
+    gnss_latitude,
+    gnss_longitude,
+    gnss_speed_kmph,
+    gnss_accuracy_m,
+    gnss_direction_deg,
+    software_version,
+    uptime_ms,
+    sim_iccid,
+    sim_phone_number,
+    sim_imsi,
+    status_at,
+    created_at,
+    updated_at,
+    position_updated_at,
+    driver_detected
+)
+VALUES
+(
+    1,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    73.3242,
+    54.9885,
+    53.3242,
+    34.9885,
+    10,
+    3,
+    100,
+    '',
+    90555,
+    '89310410106543789301',
+    '+7 (913) 617-82-58',
+    '502130123456789',
+    '2020-01-23 15:44:02 +00:00',
+    '2019-09-04 T08:18:54 +00:00',
+    '2020-08-11 15:00:00 +00:00',
+    '2020-08-11 15:00:00 +00:00',
+    'd1'
+)

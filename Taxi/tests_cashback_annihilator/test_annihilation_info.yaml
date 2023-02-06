@@ -1,0 +1,203 @@
+type: apitest
+version: 0
+service: taxi_cashback_annihilator
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: pgsql
+    args:
+      - cashback_annihilator
+    kwargs:
+        files:
+          - balances.sql
+
+
+mockserver:
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "1337"
+                currency: "RUB"
+                wallet_id: "w/eb92da32-3174-5ca0-9df5-d42db472a355"
+
+
+  - url: /blackbox
+    response:
+        body:
+            users:
+              - aliases:
+                    1: "portal-account"
+                uid:
+                    value: "1111111"
+
+tests:
+  - name: empty_annihilation
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "not_found"
+    response:
+        status: 200
+        body:
+            annihilations: []
+
+  - name: empty_uid_info_in_blackbox
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+    response:
+        status: 200
+        body:
+            annihilations:
+              - annihilation_date: "2024-07-13T01:01:50+00:00"
+                balance_to_annihilate: "1337"
+                currency: "RUB"
+                wallet_id: "w/eb92da32-3174-5ca0-9df5-d42db472a355"
+    mockserver:
+      - url: /blackbox
+        response:
+            body:
+                users:
+                  - uid: {}
+
+  - name: uid_not_in_exp_handle_is_disabled
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "7777777"
+    response:
+        status: 200
+        body:
+            annihilations: []
+
+  - name: ideal_variant
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+    response:
+        status: 200
+        body:
+            annihilations:
+              - annihilation_date: "2024-07-13T01:01:50+00:00"
+                balance_to_annihilate: "1337"
+                currency: "RUB"
+                wallet_id: "w/eb92da32-3174-5ca0-9df5-d42db472a355"
+
+  - name: zero_balance
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "0"
+                    currency: "RUB"
+                    wallet_id: "w/eb92da32-3174-5ca0-9df5-d42db472a355"
+    response:
+        status: 200
+        body:
+            annihilations: []
+  - name: not_zero_balance
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+    response:
+        status: 200
+        body:
+            annihilations:
+              - annihilation_date: "2024-07-13T01:01:50+00:00"
+                balance_to_annihilate: "1337"
+                currency: "RUB"
+                wallet_id: "w/eb92da32-3174-5ca0-9df5-d42db472a355"
+
+  - name: with_has_plus_true
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+            has_plus: "True"
+    response:
+        status: 200
+        body:
+            annihilations: []
+
+  - name: with_has_plus_false
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+            has_plus: "False"
+    response:
+        status: 200
+        body:
+            annihilations:
+              - annihilation_date: "2024-07-13T01:01:50+00:00"
+                balance_to_annihilate: "1337"
+                currency: "RUB"
+                wallet_id: "w/eb92da32-3174-5ca0-9df5-d42db472a355"
+
+  - name: config_disabled
+    marks:
+      - name: config
+        kwargs:
+            CASHBACK_ANNIHILATOR_INFO_ENABLED: false
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "1111111"
+    response:
+        status: 200
+        body:
+            annihilations: []
+
+  - name: check_user_has_plus_in_blackbox
+    marks:
+      - name: now
+        args:
+          - "2022-10-12 06:00:00.0000+03"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "123"
+                    currency: "RUB"
+                    wallet_id: "w/123"
+      - url: /blackbox
+        response:
+            body:
+                users:
+                  - aliases: {"1": "portal-account"}
+                    attributes: {"1015": 1, "1025": 1}
+                    uid: {"value": "123"}
+    request:
+        method: GET
+        path: /v1/annihilation/info
+        query_params:
+            yandex_uid: "123"
+    response:
+        status: 200
+        body:
+            annihilations:
+              - annihilation_date: "2024-10-13T01:01:50+00:00"
+                balance_to_annihilate: "123"
+                currency: "RUB"
+                wallet_id: "w/123"

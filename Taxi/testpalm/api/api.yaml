@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+    title: Testpalm REST API
+    version: '0.1.0'
+
+x-taxi-client-qos:
+    taxi-config: TESTPALM_CLIENT_QOS
+
+paths:
+    /definition/{projectName}:
+        get:
+            operationId: getDefinitions
+            parameters:
+              - name: projectName
+                in: path
+                required: true
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: successful operation
+                    content:
+                        '*/*':
+                            schema:
+                                $ref: '#/components/schemas/Definitions'
+
+    /testcases/{projectName}:
+        get:
+            operationId: getTestcases
+            parameters:
+              - name: projectName
+                in: path
+                required: true
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: successful operation
+                    content:
+                        '*/*':
+                            schema:
+                                $ref: '#/components/schemas/Testcases'
+
+components:
+    schemas:
+        Definition:
+            type: object
+            additionalProperties: false
+            properties:
+                removed:
+                    type: boolean
+                hidden:
+                    type: boolean
+                values:
+                    type: array
+                    items:
+                        type: string
+                order:
+                    type: integer
+                    format: int32
+                title:
+                    type: string
+                description:
+                    type: string
+                    nullable: true
+                    x-taxi-optional-nullable-reason: description can be null
+                restricted:
+                    type: boolean
+                recommended:
+                    type: boolean
+                createdTime:
+                    type: integer
+                    format: int64
+                lastModifiedTime:
+                    type: integer
+                    format: int64
+                id:
+                    type: string
+        Definitions:
+            type: array
+            items:
+                $ref: '#/components/schemas/Definition'
+        Testcase:
+            type: object
+            additionalProperties: false
+            properties:
+                removed:
+                    type: boolean
+                descriptionFormatted:
+                    type: string
+                automationFormatted:
+                    type: string
+                preconditionsFormatted:
+                    type: string
+                status:
+                    type: string
+                isAutotest:
+                    type: boolean
+                attributes:
+                    x-taxi-additional-properties-true-reason: dynamic object with
+                        variable number of keys.
+                    type: object
+                    additionalProperties: true
+                createdTime:
+                    type: integer
+                    format: int64
+                id:
+                    type: integer
+                    format: int64
+        Testcases:
+            type: array
+            items:
+                $ref: '#/components/schemas/Testcase'

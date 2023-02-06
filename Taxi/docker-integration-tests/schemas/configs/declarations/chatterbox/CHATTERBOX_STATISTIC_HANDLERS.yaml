@@ -1,0 +1,177 @@
+default:
+  - id: 'chats-by-status'
+    name: 'stats.config.chats_by_status'
+    url: '/chats_by_status'
+    refreshPeriods:
+      - 900
+      - 1200
+      - 1800
+      - 3600
+
+  - id: 'supporters-online'
+    name: 'stats.config.supporters_online'
+    url: '/supporters_online'
+    refreshPeriods:
+      - 900
+      - 1200
+      - 1800
+      - 3600
+
+  - id: 'offline'
+    name: 'stats.config.offline'
+    url: '/offline'
+    refreshPeriods:
+      - 900
+      - 1200
+      - 1800
+      - 3600
+    params:
+        limit: 100
+        sort_by: 'login'
+        sort_order: 'asc'
+    filterFields:
+      - id: 'in_addition'
+        label: 'stats.config.in_addition'
+        type: 'boolean'
+      - id: 'line'
+        label: 'stats.config.line'
+        type: 'line-take'
+      - id: 'day'
+        checks:
+          - 'not-empty'
+        label: 'stats.config.date'
+        type: 'date'
+      - id: 'logins'
+        label: 'stats.config.logins'
+        type: 'logins'
+
+  - id: 'online-by-lines'
+    name: 'stats.config.online_by_lines'
+    url: '/realtime/lines'
+    refreshPeriods:
+      - 900
+      - 1200
+      - 1800
+      - 3600
+    filterFields:
+      - id: 'lines'
+        checks:
+          - 'not-empty'
+        label: 'stats.config.lines'
+        type: 'lines-take'
+      - id: 'date'
+        checks:
+          - 'not-empty'
+        label: 'stats.config.date'
+        type: 'date'
+
+  - id: 'online-by-supporters'
+    name: 'stats.config.online_by_supporters'
+    url: '/realtime/supporters'
+    refreshPeriods:
+      - 900
+      - 1200
+      - 1800
+      - 3600
+    filterFields:
+      - id: 'logins'
+        checks:
+          - 'not-empty'
+        label: 'stats.config.logins'
+        type: 'logins'
+      - id: 'date'
+        checks:
+          - 'not-empty'
+        label: 'stats.config.date'
+        type: 'date'
+      - id: 'statuses'
+        label: 'stats.config.statuses'
+        type: 'support-statuses'
+
+  - id: 'online-by-hours'
+    name: 'stats.config.online_by_hours'
+    url: '/realtime/by_hour'
+    refreshPeriods:
+      - 900
+      - 1200
+      - 1800
+      - 3600
+    filterFields:
+      - id: 'lines'
+        label: 'stats.config.lines'
+        type: 'online-lines-take'
+      - id: 'date'
+        label: 'stats.config.date'
+        type: 'date'
+
+
+description: Описание ручек статы для фронта
+tags: []
+schema:
+    type: array
+    minItems: 1
+    items:
+        type: object
+        additionalProperties: false
+        properties:
+            id:
+                description: Строковый  идентификатор ручки
+                type: string
+            name:
+                description: Заголовок таблицы со статой (танкер)
+                type: string
+            url:
+                description: Url ручки относительно /stat
+                type: string
+            refreshPeriods:
+                description: Доступные периоды автообновления (секунды)
+                type: array
+                items:
+                    type: integer
+            filterFields:
+                description: Список полей фильтра
+                type: array
+                items:
+                    $ref: "#/definitions/FilterField"
+            params:
+                description: Дополнительные параметры, которые нужно прислать в теле
+                    запроса
+                type: object
+                additionalProperties: true
+        required:
+          - id
+          - name
+          - url
+
+    definitions:
+        FilterField:
+            type: object
+            additionalProperties: false
+            properties:
+                id:
+                    description: Строковый  идентификатор поля фильтра
+                    type: string
+                type:
+                    description: Тип переменной (список возможных типов согласовывать
+                        с фронтом)
+                    type: string
+                label:
+                    description: Название поля для поиска (танкер)
+                    type: string
+                checks:
+                    description: Список кодов проверок на поле (взять у фронта)
+                    type: array
+                    items:
+                        type: string
+                        example: not-empty
+                options_url:
+                    description: url ручки относительно /, откуда брать саджесты по
+                        полю
+                    type: string
+                multiple:
+                    description: Можно ли отправлять больше одного параметра в фильтре
+                    type: boolean
+            required:
+              - id
+              - type
+              - label

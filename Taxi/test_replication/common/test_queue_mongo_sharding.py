@@ -1,0 +1,157 @@
+import pytest
+
+from taxi import db
+
+from replication.common.queue_mongo import sharding as queue_mongo_sharding
+
+
+@pytest.mark.parametrize(
+    'collection_base_name,sharding,expected',
+    [
+        (
+            'default_cluster_one_shard',
+            [queue_mongo_sharding.QueueSharding()],
+            [
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_default_cluster_one_shard',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_1',
+                        database='replication_queue_mdb_1',
+                        collection='default_cluster_one_shard',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_1',
+                    shard_num=0,
+                    source_unit_name=None,
+                ),
+            ],
+        ),
+        (
+            'one_cluster_one_shard',
+            [
+                queue_mongo_sharding.QueueSharding(
+                    db_cluster='replication_queue_mdb_0',
+                ),
+            ],
+            [
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_one_cluster_one_shard',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_0',
+                        database='replication_queue_mdb_0',
+                        collection='one_cluster_one_shard',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_0',
+                    shard_num=0,
+                    source_unit_name=None,
+                ),
+            ],
+        ),
+        (
+            'one_cluster_multi_shards',
+            [
+                queue_mongo_sharding.QueueSharding(
+                    db_cluster='replication_queue_mdb_0', shards_num=2,
+                ),
+            ],
+            [
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_one_cluster_multi_shards_0_2',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_0',
+                        database='replication_queue_mdb_0',
+                        collection='one_cluster_multi_shards_0_2',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_0',
+                    shard_num=0,
+                    source_unit_name='0_2',
+                ),
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_one_cluster_multi_shards_1_2',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_0',
+                        database='replication_queue_mdb_0',
+                        collection='one_cluster_multi_shards_1_2',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_0',
+                    shard_num=1,
+                    source_unit_name='1_2',
+                ),
+            ],
+        ),
+        (
+            'multi_clusters_multi_shards',
+            [
+                queue_mongo_sharding.QueueSharding(
+                    db_cluster='replication_queue_mdb_0', shards_num=2,
+                ),
+                queue_mongo_sharding.QueueSharding(
+                    db_cluster='replication_queue_mdb_1', shards_num=3,
+                ),
+            ],
+            [
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_multi_clusters_multi_shards_0_5',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_0',
+                        database='replication_queue_mdb_0',
+                        collection='multi_clusters_multi_shards_0_5',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_0',
+                    shard_num=0,
+                    source_unit_name='0_5',
+                ),
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_multi_clusters_multi_shards_1_5',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_0',
+                        database='replication_queue_mdb_0',
+                        collection='multi_clusters_multi_shards_1_5',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_0',
+                    shard_num=1,
+                    source_unit_name='1_5',
+                ),
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_multi_clusters_multi_shards_2_5',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_1',
+                        database='replication_queue_mdb_1',
+                        collection='multi_clusters_multi_shards_2_5',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_1',
+                    shard_num=2,
+                    source_unit_name='2_5',
+                ),
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_multi_clusters_multi_shards_3_5',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_1',
+                        database='replication_queue_mdb_1',
+                        collection='multi_clusters_multi_shards_3_5',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_1',
+                    shard_num=3,
+                    source_unit_name='3_5',
+                ),
+                queue_mongo_sharding.CollectionSettings(
+                    'staging_multi_clusters_multi_shards_4_5',
+                    db.CollectionData(
+                        connection='replication_queue_mdb_1',
+                        database='replication_queue_mdb_1',
+                        collection='multi_clusters_multi_shards_4_5',
+                    ),
+                    queue_db_cluster='replication_queue_mdb_1',
+                    shard_num=4,
+                    source_unit_name='4_5',
+                ),
+            ],
+        ),
+    ],
+)
+def test_wrap_collection_settings(collection_base_name, sharding, expected):
+    assert (
+        queue_mongo_sharding.wrap_collection_settings(
+            collection_base_name, sharding,
+        )
+        == expected
+    )

@@ -1,0 +1,26 @@
+id: test_tpp_timeout
+title: Возврат 504 в случае таймаута Tracking++
+
+source:
+    request:
+        method: get
+        headers:
+            X-YaTaxi-User: 'eats_user_id=id1'
+            X-Request-Application: 'app_info=ab3'
+    expectations:
+        response:
+            status-code: 504
+            body:
+                source: 'tracking++'
+
+mocks:
+  - resource: eats-orders-tracking
+    exception: timeout
+    expectations:
+        call-count: 1
+
+experiments:
+    values:
+        use_eats_orders_tracking_service:
+            source: 'eats-orders-tracking'
+            mirror: ''

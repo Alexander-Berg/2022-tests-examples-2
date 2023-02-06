@@ -1,0 +1,119 @@
+INSERT INTO approvals_schema.drafts (
+    created_by,
+    comments,
+    created,
+    updated,
+    description,
+    approvals,
+    status,
+    version,
+    request_id,
+    run_manually,
+    service_name,
+    api_path,
+    data,
+    change_doc_id,
+    apply_time,
+    mode,
+    tickets,
+    summary,
+    deferred_apply,
+    is_multidraft,
+    multidraft_id,
+    tplatform_namespace
+)
+VALUES (
+        'test_user2',
+        '[{"login": "asd",
+        "comment": "ert"}]',
+        '2017-11-01T01:10:00'::timestamp,
+        '2017-11-01T01:10:00'::timestamp,
+        'test',
+        '[]',
+        'failed',
+        1,
+        '123',
+        FALSE,
+        'test_service',
+        'test_api',
+        '{"test_key": "test_value"}',
+        '234',
+        '2017-11-01T01:10:00'::timestamp,
+        'push',
+        '[]',
+        '{}',
+        '2017-11-01T01:10:00'::timestamp,
+        false,
+        null::integer,
+        'taxi'
+        ),
+        (
+        'test_user2',
+        '[]',
+        '2017-11-01T01:10:00'::timestamp,
+        '2017-11-01T01:10:00'::timestamp,
+        'test2',
+        '[]',
+        'failed',
+        2,
+        '124',
+        FALSE,
+        'test_service',
+        'test_api2',
+        '{"test_key": "test_value"}',
+        '235',
+        '2017-11-01T01:10:00'::timestamp,
+        'push',
+        '["TAXIRATE-35"]',
+        '{}',
+        null::timestamp,
+        false,
+        null::integer,
+        'taxi'
+)
+;
+
+INSERT INTO approvals_schema.summons (
+    draft_id,
+    yandex_login,
+    summoned
+)
+VALUES (
+        1,
+        'test_login1',
+        '2017-11-01T01:10:00'::timestamp
+        ),
+        (
+        1,
+        'test_login2',
+        '2017-11-01T01:10:00'::timestamp
+        ),
+        (
+        2,
+        'test_login1',
+        '2017-11-01T01:10:00'::timestamp
+        )
+;
+
+INSERT INTO approvals_schema.lock_ids (
+    draft_id,
+    lock_id
+)
+VALUES
+        (
+        1,
+        'test_service:test_api:lock_id_1'
+        ),
+        (
+        1,
+        'test_service:test_api:lock_id_2'
+        ),
+        (
+        2,
+        'test_service:test_api2:lock_id_1'
+        ),
+        (
+        2,
+        'test_service:test_api2:lock_id_3'
+        )
+;

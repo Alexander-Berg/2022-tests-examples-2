@@ -1,0 +1,46 @@
+name: test_rule
+queue_data:
+    db_cluster: replication_queue_mdb_0
+    extra_indexes:
+      - foo.bar
+      - value_1
+    read_from_master_whitelist: []
+    verify_on_queue_archiving:
+        destinations:
+          - name: test_rule_bson
+            settings:
+                type: insert_rows
+                cluster_group: map_reduce
+replication_type: queue
+source:
+    type: mongo
+    collection_name: test_coll
+    replicate_by: updated
+    upload_planner:
+        schedule:
+            cron: '*/3 * * * *'
+destinations:
+  - test_rule_bson:
+        type: yt
+        mapper: $bson
+        target:
+            path: test/test_bson
+            cluster_groups:
+              - map_reduce
+    test_rule_struct:
+        type: yt
+        mapper: test_struct_mapper
+        target:
+            path: test/test_struct
+            cluster_groups:
+              - map_reduce
+    test_rule_external:
+        type: ext
+        target:
+            info:
+                text: extra info
+    test_rule_external_2:
+        type: ext
+        target:
+            info:
+                text: extra info

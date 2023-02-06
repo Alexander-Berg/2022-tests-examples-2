@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+import "ci/tasklet/common/proto/service.proto";
+import "tasklet/api/tasklet.proto";
+import "tasklet/services/yav/proto/yav.proto";
+
+package taxi.eda.test_arc_project.tasks.check_metrics;
+
+message Config {
+    double current_ratio = 1;
+}
+
+message Input {
+    ci.TaskletContext context = 1;
+    Config config = 2;
+}
+
+message Payload {
+    string message = 1;
+}
+
+message Output {
+    Payload result = 1;
+}
+
+message Context {
+    option (tasklet.context) = true;
+    yav_service.YavService yav = 1 [(tasklet.inject) = true];
+}
+
+message CheckMetrics {
+    option (tasklet.tasklet_interface) = true;
+
+    Input input = 1 [(tasklet.input) = true];
+    Output output = 2 [(tasklet.output) = true];
+
+    Context ctx = 3;
+}

@@ -1,0 +1,87 @@
+project-name: yandex-taxi-api-proxy
+short-name: api-proxy
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/protocol-4.0/
+maintainers:
+  - Igor Berezniak <bznk@yandex-team.ru>
+  - Ilya Sidorov <lol4t0@yandex-team.ru>
+libraries:
+  - yandex-taxi-library-agl
+  - yandex-taxi-userver-core
+  - yandex-taxi-library-passenger-authorizer-backend
+  - yandex-taxi-library-experiments3
+  - yandex-taxi-library-localization
+  - yandex-taxi-library-http-language
+  - yandex-taxi-library-mime
+
+debian:
+    source_package_name: yandex-taxi-api-proxy
+    maintainer_name: Igor Berezniak
+    maintainer_login: bznk
+
+postgresql:
+    databases:
+      - api-proxy
+
+configs:
+    names:
+      - LOCALES_SUPPORTED
+      - LOCALES_MAPPING
+      - API_PROXY_ENABLE_SNAPSHOTS
+      - TVM_ENABLED
+
+tvm2:
+    secdist-service-name: api-proxy
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy: {}
+
+secdist:
+    testsuite:
+        values:
+            settings_override:
+                COOP_ACCOUNT_APIKEY: coop-account-apikey
+                TVM_SERVICES:
+                    api-proxy:
+                        secret: "secret"
+                        id: 2013862
+                    api-proxy-manager:
+                        secret: "secret"
+                        id: 2018406
+
+push-client:
+    files:
+        production:
+          - name: /var/log/yandex/taxi-api-proxy/server.log
+            log_type: taxi-api-proxy-yandex-taxi-api-proxy-log
+            logrotate: false
+          - name: /var/log/yandex/taxi-api-proxy/exp3-matched.log
+            log_type: taxi-exp3-log
+            logrotate: false # лог и так ротируется, видимо ещё одно правило не нужно
+
+uservice_unit:
+    description: Provides API for complex handlers
+
+    hostname:
+        production:
+          - api-proxy.taxi.yandex.net
+        testing:
+          - api-proxy.taxi.tst.yandex.net
+        unstable:
+          - api-proxy.taxi.dev.yandex.net
+
+    grafana:
+        production: grafana
+
+    logrotate:
+        maxsize: 7G
+        rotate: 2
+
+clownductor:
+    aliases:
+      - api-proxy
+      - api-proxy-manager
+
+handlers:
+    autogenerate: true

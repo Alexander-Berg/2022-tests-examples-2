@@ -1,0 +1,4 @@
+from tests.service_name_test import check_service_name_by_path
+
+
+check_service_name_by_path(__file__)

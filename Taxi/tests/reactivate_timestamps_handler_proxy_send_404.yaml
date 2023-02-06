@@ -1,0 +1,61 @@
+id: reactivate_timestamps_handler_proxy_send_404
+title: Проверка проксирующей ручки
+
+source:
+    request:
+        url: /4.0/restapp-front/api/v1/client/menu/123/reactivate-timestamps
+        method: get
+        headers:
+            X-YaEda-PartnerId#string: "123123"
+    expectations:
+        response:
+            status-code: 400
+            body#object:
+              - key: isSuccess
+                value: false
+              - key: errors
+                value#array:
+                  - value#object:
+                      - key: code
+                        value: 404
+                      - key: message
+                        value: not_found
+
+mocks:
+  - resource: eats-core-v1-places-reactivate-timestamps-get
+    response:
+        status-code: 404
+        body#object:
+          - key: isSuccess
+            value: false
+          - key: statusCode
+            value: 404
+          - key: type
+            value: not_found
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            headers#object:
+              - key: X-Vendor-User-Id
+                value#string: "123123"
+            path-params:
+                placeId: "123"
+  - resource: eats-restapp-authorizer-user-check-access
+    response:
+        status-code: 200
+        body:
+            role#string: "ROLE_MANAGER"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: partner_id
+                value: 123123
+              - key: place_ids
+                value: [123]
+              - key: permissions
+                value: ["permission.restaurant.menu"]

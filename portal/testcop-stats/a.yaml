@@ -1,0 +1,106 @@
+service: home
+title: Статистика Testcop
+
+arcanum:
+  review:
+     auto_assign: true
+     required: true
+     skip_review_for: "robots"
+     min_approvers_count: 1
+     groups:
+        - name: frontend-developers
+          roles: ["gnc:frontend_developer, !duty", duty]
+
+     rules:
+        - reviewers:
+            name: frontend-developers
+            ship: 1
+            assign: 2
+
+  auto_merge:
+    enabled: false
+    requirements:
+      - system: arcanum
+        type: comment_issues_closed
+
+      - system: arcanum
+        type: st_issue_linked
+        data:
+          in_commit_message: true
+
+      - system: portal/frontend/testcop-stats
+        type: Eslint
+        disabling_policy: denied
+
+      - system: portal/frontend/testcop-stats
+        type: Jest
+        disabling_policy: denied
+
+shared:
+  sandbox: &sandbox
+    client_tags: GENERIC & LINUX & SSD & LXC
+    container_resource: 2979504608
+    dns: dns64
+
+  requirements: &requirements-checks
+    cores: 8
+    ram: 8 GB
+    disk: 8 GB
+    sandbox: *sandbox
+
+  config: &config
+    arc_mount_config:
+      enabled: true
+
+    logs_config:
+      stdout_ci_badge: true
+      redirect_stderr_to_stdout: true
+
+  secretEnvVars: &secretEnvVars
+    secret_environment_variables:
+      - key: ARCANUM_API_OAUTH_TOKEN
+        secret_spec:
+          # robot-morda-releaser
+          key: ci.token
+
+ci:
+  secret: sec-01f1556ednmftm1bjrwty9x9vj
+  runtime:
+    sandbox-owner: HOME
+
+  release-title-source: flow
+
+  flows:
+    checks:
+      title: Checks
+      jobs:
+        run:
+          title: Основные проверки
+          task: common/misc/run_command
+          requirements: *requirements-checks
+
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+                cd ${context.config_info.dir}
+
+                npm ci
+                node ./ci/checks.js
+
+  triggers:
+    - on: pr
+      flow: checks
+      into:
+        - trunk
+        - release-branch
+
+    - on: commit
+      flow: checks
+      into:
+        - trunk

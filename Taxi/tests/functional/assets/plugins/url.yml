@@ -1,0 +1,41 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - url: base.html
+  - _inner_test: [True, Passed common case with url part.]
+
+  - url: not-existing
+  - _inner_test: [False, Failed with with not existing part.]
+
+  - url: [/base.html, Url part.]
+  - _inner_test: [True, Passed with url part and desc.]
+
+  - url:
+      like: base
+      description: Like in full notation.
+  - _inner_test: [True, Passed like in full notation.]
+
+  - url:
+      is: http://nginx/base.html
+      description: Full url.
+  - _inner_test: [True, Passed with full url.]
+
+  - url:
+      is: http://nginx/base.html
+      description: Full url.
+      timeout: 10
+  - _inner_test: [True, Passed with full url.]
+
+  - url:
+      is: http://nginx/base
+      description: Not full url
+  - _inner_test: [False, Falied full url check with part url.]

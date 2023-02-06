@@ -1,0 +1,40 @@
+description: order requirements configuration
+settings:
+    collection: requirements
+    connection: taxi
+    database: dbtaxi
+wiki_info: |
+    ####dbtaxi.requirements - требования
+
+    Информация о новых, управляемых с сервера требованиях (```supported_requirements```, [TAXIBACKEND-2665](https://st.yandex-team.ru/TAXIBACKEND-2665))
+
+    ```python
+    {
+        'type': 'boolean' | 'select',                       # тип требования - флажок или вложенный выбор
+        'name': 'childchair_moscow',                        # внутреннее название - идентификатор требования
+        'driver_name': 'childchair',                        # старое название требования; поле появилось после костыля childhair_moscow
+        'default': 0,                                       # значение по умолчанию (тип зависит от type)
+        'description_key': 'req.childchair.moscow'          # ключ в танкере (в client_messages)
+        'multiselect': True,                                # разрешить множественный выбор, по умолчанию False
+        'max_weight': 3,                                    # если есть, максимальный суммарный вес выбираемых опций
+
+
+         # Необязательные атрибуты
+        'select': {                                         # только если 'type: select' - вложенный выбор
+            'type': 'number' | 'string',                    # тип значений в options
+            'options': [
+                {
+                    'name': 'seat',                         # внутреннее название - идентификатор вложенного выбора
+                    'value': 0,                             # вариант вложенного выбора (тип зависит от select.type)
+                    'weight': 1.4,                          # вес опции, по умолчанию 1
+                    'max_count': 3,                         # сколько опций можно выбрать, по умолчанию 1
+                },
+                ...
+            ]
+
+            # Необязательные атрибуты
+            'range': [min, max],                           # пределы, в которых могут изменяться select.options.value (включительно)
+                                                           # если присутствует, валидация производится по диапазону, если нет - по перечислению
+        }
+    }
+    ```

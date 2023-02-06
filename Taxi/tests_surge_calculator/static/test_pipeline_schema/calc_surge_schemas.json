@@ -1,0 +1,2157 @@
+{
+  "empty_query_resources": {
+    "additionalProperties": false,
+    "properties": {
+      "config": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "dynamic_config": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "experiments3": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "pin_stats": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "surge_map": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "zone": {
+        "additionalProperties": true,
+        "type": "object"
+      }
+    },
+    "type": "object"
+  },
+  "input": {
+    "additionalProperties": false,
+    "properties": {
+      "application_info": {
+        "additionalProperties": false,
+        "description": "Информация о клиенте пользователя",
+        "properties": {
+          "name": {
+            "description": "Имя клиента",
+            "example": "iphone",
+            "type": "string"
+          },
+          "version": {
+            "description": "Версия клиента",
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "layer_meta": {
+        "additionalProperties": false,
+        "description": "Метаданные о слое для которого происходит расчет",
+        "properties": {
+          "experiment": {
+            "additionalProperties": false,
+            "properties": {
+              "is_signal": {
+                "description": "Флаг is_signal",
+                "type": "boolean"
+              },
+              "name": {
+                "description": "Имя эксперимента",
+                "type": "string"
+              },
+              "position": {
+                "description": "Смещение описания значения эксперимента в списке описаний",
+                "format": "int64",
+                "type": "integer"
+              },
+              "value": {
+                "additionalProperties": true,
+                "description": "Значение эксперимента",
+                "type": "object"
+              },
+              "version": {
+                "description": "версия эксперимента (время последней модификации)",
+                "format": "int64",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "is_signal",
+              "name",
+              "position",
+              "value",
+              "version"
+            ],
+            "type": "object"
+          },
+          "name": {
+            "enum": [
+              "default",
+              "alternative"
+            ],
+            "type": "string"
+          },
+          "separate_counts": {
+            "description": "Использовать отдельные счетчики для этого слоя",
+            "type": "boolean"
+          },
+          "suffix": {
+            "description": "Суффикс слоя карты",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "separate_counts",
+          "suffix"
+        ],
+        "type": "object"
+      },
+      "request": {
+        "additionalProperties": false,
+        "properties": {
+          "application": {
+            "additionalProperties": false,
+            "description": "Информация о приложении пользователя",
+            "properties": {
+              "name": {
+                "description": "тип приложения",
+                "type": "string"
+              },
+              "platform_version": {
+                "description": "версия платформы",
+                "type": "string"
+              },
+              "version": {
+                "description": "версия приложения",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "version",
+              "platform_version"
+            ],
+            "type": "object"
+          },
+          "authorized": {
+            "default": true,
+            "description": "Авторизован ли пользователь",
+            "type": "boolean"
+          },
+          "classes": {
+            "description": "Тарифы, для которых считается коэффициент. Если пустое, то возвращается сурдж для всех тарифов, доступных в данной сурдж зоне",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "corp_client_id": {
+            "description": "Идентификатор клиента в корпоративном тарифе\nдля ограничения суржа в b2b\n",
+            "type": "string"
+          },
+          "distance": {
+            "description": "Дистанция поездки в метрах. Если пустое, то коэффициент не будет пересчитан с учетом расстояния",
+            "type": "integer"
+          },
+          "due": {
+            "description": "Для какого времени рассчитать сурдж (предсказание по ML)",
+            "type": "string"
+          },
+          "fixed_price_classes": {
+            "description": "Тарифы с фиксированной стоимостью",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "geopoint_id": {
+            "description": "Идентификатор фиксированной точки семплирования суржа",
+            "type": "string"
+          },
+          "intent": {
+            "description": "Для чего производится расчет",
+            "enum": [
+              "price_calculation",
+              "surge_sampling"
+            ],
+            "type": "string"
+          },
+          "orders_complete": {
+            "description": "Количество выполненных заказов",
+            "type": "integer"
+          },
+          "payment_type": {
+            "description": "Способ оплаты",
+            "type": "string"
+          },
+          "phone_id": {
+            "description": "_id  из dbusers.user_phones",
+            "type": "string"
+          },
+          "point_a": {
+            "description": "[lon, lat]",
+            "example": [
+              52.569089,
+              39.60258
+            ],
+            "items": {
+              "maximum": 180,
+              "minimum": -180,
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "point_b": {
+            "description": "[lon, lat]",
+            "example": [
+              52.569089,
+              39.60258
+            ],
+            "items": {
+              "maximum": 180,
+              "minimum": -180,
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "prefetched_counts": {
+            "additionalProperties": false,
+            "description": "Cчётчики пинов и водителей",
+            "properties": {
+              "counts": {
+                "additionalProperties": true,
+                "description": "Счётчики водителей в формате instance-schema count_by_categories",
+                "type": "object"
+              },
+              "pins": {
+                "additionalProperties": false,
+                "properties": {
+                  "global_pins": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "global_pins_with_driver": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "global_pins_with_order": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "pins": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "pins_with_b": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "pins_with_driver": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "pins_with_order": {
+                    "format": "int64",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "prev_pins": {
+                    "format": "double",
+                    "type": "number"
+                  },
+                  "values_by_category": {
+                    "additionalProperties": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "estimated_waiting": {
+                          "format": "double",
+                          "type": "number"
+                        },
+                        "prev_drivers": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "free": {
+                              "format": "double",
+                              "type": "number"
+                            },
+                            "free_chain": {
+                              "format": "double",
+                              "type": "number"
+                            },
+                            "total": {
+                              "format": "double",
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "free",
+                            "free_chain",
+                            "total"
+                          ],
+                          "type": "object"
+                        },
+                        "surge": {
+                          "format": "double",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "estimated_waiting",
+                        "prev_drivers",
+                        "surge"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "pins",
+                  "pins_with_b",
+                  "pins_with_order",
+                  "prev_pins",
+                  "values_by_category",
+                  "global_pins",
+                  "global_pins_with_order",
+                  "global_pins_with_driver"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "pins",
+              "counts"
+            ],
+            "type": "object"
+          },
+          "tariff_zone": {
+            "description": "Тарифная зона пользователя",
+            "type": "string"
+          },
+          "use_cache": {
+            "default": true,
+            "description": "Следует ли использовать внутренний кеш калькулятора",
+            "type": "boolean"
+          },
+          "user_id": {
+            "description": "id пользователя",
+            "type": "string"
+          }
+        },
+        "required": [
+          "point_a"
+        ],
+        "type": "object"
+      },
+      "required_categories": {
+        "description": "Тарифы для которых необходимо посчитать сурдж",
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    },
+    "required": [
+      "request",
+      "layer_meta",
+      "required_categories"
+    ],
+    "type": "object"
+  },
+  "output": {
+    "additionalProperties": false,
+    "properties": {
+      "calculation_type": {
+        "description": "Тип расчета. Внимание! Элементы этого enum нельзя удалять или переупорядочивать",
+        "enum": [
+          "default",
+          "user_light",
+          "user_balance",
+          "fixed_point",
+          "fixed_point_calc_only"
+        ],
+        "type": "string"
+      },
+      "classes": {
+        "additionalProperties": {
+          "additionalProperties": false,
+          "properties": {
+            "calculation_meta": {
+              "additionalProperties": false,
+              "description": "Все имеющиеся метаданные расчета",
+              "properties": {
+                "counts": {
+                  "additionalProperties": false,
+                  "description": "Cчётчики пинов и водителей",
+                  "properties": {
+                    "free": {
+                      "description": "Количество свободных водителей",
+                      "type": "integer"
+                    },
+                    "free_chain": {
+                      "description": "Количество освобождающихся по цепочке водителей",
+                      "type": "integer"
+                    },
+                    "pins": {
+                      "description": "Количество пинов",
+                      "type": "integer"
+                    },
+                    "radius": {
+                      "description": "Половина стороны квадрата, по которому считаются эти значения",
+                      "type": "integer"
+                    },
+                    "total": {
+                      "description": "Общее количество водителей",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "free",
+                    "free_chain",
+                    "total",
+                    "pins",
+                    "radius"
+                  ],
+                  "type": "object"
+                },
+                "deviation_from_target_abs": {
+                  "description": "Отклонение от таргетируемой доли свободных водителей (количество водителей)",
+                  "type": "number"
+                },
+                "extra": {
+                  "additionalProperties": true,
+                  "description": "Дополнительные произвольные промежуточные данные расчета",
+                  "type": "object"
+                },
+                "f_derivative": {
+                  "description": "Значение производной в уравнении баланса",
+                  "type": "number"
+                },
+                "pins_meta": {
+                  "additionalProperties": false,
+                  "description": "Агрегированные метаданные по пинам принявшим участие в расчете",
+                  "properties": {
+                    "cost": {
+                      "description": "Средняя стоимость поездки",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "distance": {
+                      "description": "Средняя дистанция поездки",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "eta_in_tariff": {
+                      "description": "Среднее значение estimated_waiting в найденных пинах по выбранному тарифу",
+                      "type": "number"
+                    },
+                    "pins_b": {
+                      "description": "Количество пинов с точкой Б",
+                      "type": "integer"
+                    },
+                    "pins_driver": {
+                      "description": "Количество пинов с назначенным водителем",
+                      "type": "integer"
+                    },
+                    "pins_driver_in_tariff": {
+                      "description": "Количество пинов с назначенным водителем в выбранном тарифе",
+                      "format": "int64",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "pins_order": {
+                      "description": "Количество пинов сконвертировавшихся в заказ",
+                      "type": "integer"
+                    },
+                    "pins_order_in_tariff": {
+                      "description": "Количество пинов с заказом в выбранном тарифе",
+                      "format": "int64",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "pins_surge_b_percentiles": {
+                      "description": "Распределение percentile - значение smooth surge b из пина на этом персентиле. Значения percentile задаются параметром при вызове ручки get_stats",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "percentile": {
+                            "maximum": 100,
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "value": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "percentile",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "prev_pins": {
+                      "description": "Среднее значение pins*surge_max_dynamic_radius^2/radius^2 в найденных пинах",
+                      "type": "number"
+                    },
+                    "surge_b_in_tariff": {
+                      "description": "Среднее значение surge в точке Б в найденных пинах c недефолтной картой по выбранному тарифу",
+                      "type": "number"
+                    },
+                    "surge_in_tariff": {
+                      "description": "Среднее значение surge в найденных пинах по выбранному тарифу",
+                      "type": "number"
+                    },
+                    "time": {
+                      "description": "Среднее время поездки",
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "pins_b",
+                    "pins_order",
+                    "pins_driver",
+                    "prev_pins"
+                  ],
+                  "type": "object"
+                },
+                "point_b_adj_percentiles": {
+                  "description": "Перцентили корректировки по точке B",
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "point_b_surge_adjustment": {
+                  "description": "Значение которое прибавили к сурджу в результате корректировки по точке Б",
+                  "type": "number"
+                },
+                "ps": {
+                  "description": "Вероятность конверсии",
+                  "type": "number"
+                },
+                "ps_shift_past_raw": {
+                  "description": "Ошибка конверсии за предыдущие 10 минут",
+                  "type": "number"
+                },
+                "reason": {
+                  "description": "Причина множителя сурджа",
+                  "type": "string"
+                },
+                "reposition": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "free": {
+                      "description": "Количество свободных водителей",
+                      "type": "integer"
+                    },
+                    "free_chain": {
+                      "description": "Количество освобождающихся по цепочке водителей",
+                      "type": "integer"
+                    },
+                    "total": {
+                      "description": "Общее количество водителей",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "free",
+                    "free_chain",
+                    "total"
+                  ],
+                  "type": "object"
+                },
+                "smooth": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "point_a": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "is_default": {
+                          "description": "Было ли использовано значение по-умолчанию или это реальное значение из карты",
+                          "type": "boolean"
+                        },
+                        "value": {
+                          "description": "Опорное значения сглаживания из карты",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "is_default"
+                      ],
+                      "type": "object"
+                    },
+                    "point_b": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "is_default": {
+                          "description": "Было ли использовано значение по-умолчанию или это реальное значение из карты",
+                          "type": "boolean"
+                        },
+                        "value": {
+                          "description": "Опорное значения сглаживания из карты",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "value",
+                        "is_default"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "point_a"
+                  ],
+                  "type": "object"
+                },
+                "value_raw_graph": {
+                  "description": "Значение суржа, посчитанное по графу",
+                  "type": "number"
+                },
+                "viewport": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "br": {
+                      "description": "[lon, lat]",
+                      "example": [
+                        52.569089,
+                        39.60258
+                      ],
+                      "items": {
+                        "maximum": 180,
+                        "minimum": -180,
+                        "type": "number"
+                      },
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "type": "array"
+                    },
+                    "tl": {
+                      "description": "[lon, lat]",
+                      "example": [
+                        52.569089,
+                        39.60258
+                      ],
+                      "items": {
+                        "maximum": 180,
+                        "minimum": -180,
+                        "type": "number"
+                      },
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "tl",
+                    "br"
+                  ],
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "explicit_antisurge": {
+              "additionalProperties": false,
+              "description": "Коэффициенты сурджа для ценообразования",
+              "properties": {
+                "surcharge": {
+                  "additionalProperties": false,
+                  "description": "Коэффициенты в формуле cost_1 = cost_0 * (surge_value * alpha + beta) + beta * surcharge",
+                  "properties": {
+                    "alpha": {
+                      "description": "Коэффициент alpha расчета надбавки",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "beta": {
+                      "description": "Коэффициент beta расчета надбавки",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "value": {
+                      "description": "Надбавка",
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "alpha",
+                    "beta",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "value": {
+                  "format": "double",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "type": "object"
+            },
+            "name": {
+              "description": "Название тарифа",
+              "type": "string"
+            },
+            "pins_approx": {
+              "description": "Примерное количество пинов в окрестности",
+              "type": "number"
+            },
+            "surge": {
+              "additionalProperties": false,
+              "description": "Коэффициенты сурджа для ценообразования",
+              "properties": {
+                "surcharge": {
+                  "additionalProperties": false,
+                  "description": "Коэффициенты в формуле cost_1 = cost_0 * (surge_value * alpha + beta) + beta * surcharge",
+                  "properties": {
+                    "alpha": {
+                      "description": "Коэффициент alpha расчета надбавки",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "beta": {
+                      "description": "Коэффициент beta расчета надбавки",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "value": {
+                      "description": "Надбавка",
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "alpha",
+                    "beta",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "value": {
+                  "format": "double",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "value"
+              ],
+              "type": "object"
+            },
+            "surge_trend": {
+              "description": "Изменение суржа за последнее время (~10 min)",
+              "type": "number"
+            },
+            "trend_time_delta_sec": {
+              "description": "Ожидаемая дельта времени до того, как изменится сурж",
+              "type": "number"
+            },
+            "value_raw": {
+              "description": "повышающий коэффициент до преобразований (без учета модификаций за длину поездки и пр.)",
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "surge",
+            "value_raw"
+          ],
+          "type": "object"
+        },
+        "type": "object"
+      },
+      "extra": {
+        "additionalProperties": true,
+        "description": "Дополнительные произвольные промежуточные данные расчета",
+        "type": "object"
+      }
+    },
+    "type": "object"
+  },
+  "pin_stats": {
+    "additionalProperties": false,
+    "properties": {
+      "global_pins": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "global_pins_with_driver": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "global_pins_with_order": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "graph_fixed_points": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "distance": {
+              "description": "Расстояние в метрах до этой точки",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "pins": {
+              "description": "среднее значение счетчика пинов в surge-calculations, взвешенное для текущего времени",
+              "type": "number"
+            },
+            "pins_shifted": {
+              "description": "среднее значение счетчика пинов в surge-calculations, взвешенное для времени now - TIME_SHIFT",
+              "type": "number"
+            },
+            "position_id": {
+              "description": "position_id фиксированной точки",
+              "type": "string"
+            },
+            "surge_value": {
+              "description": "среднее значение суржа в surge-calculations, взвешенное для текущего времени",
+              "type": "number"
+            },
+            "surge_value_shifted": {
+              "description": "среднее значение суржа в surge-calculations, взвешенное для времени now - TIME_SHIFT",
+              "type": "number"
+            },
+            "tags": {
+              "description": "Тэги фиксированной точки (из surge-points-cache)",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "position_id",
+            "distance",
+            "surge_value",
+            "surge_value_shifted",
+            "pins",
+            "pins_shifted"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "pins": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "pins_with_b": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "pins_with_driver": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "pins_with_order": {
+        "format": "int64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "prev_pins": {
+        "format": "double",
+        "type": "number"
+      },
+      "values_by_category": {
+        "additionalProperties": {
+          "additionalProperties": false,
+          "properties": {
+            "cost": {
+              "description": "Средняя стоимость поездки",
+              "format": "double",
+              "minimum": 0,
+              "type": "number"
+            },
+            "estimated_waiting": {
+              "format": "double",
+              "type": "number"
+            },
+            "pins_driver_in_tariff": {
+              "description": "Количество пинов с назначенным водителем, у которых selected_class совпадает с названием категории",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "pins_order_in_tariff": {
+              "description": "Количество пинов с заказом, у которых selected_class совпадает с названием категории",
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "pins_surge_b_percentiles": {
+              "description": "Распределение percentile - значение smooth surge b из пина на этом персентиле. Значения percentile задаются параметром при вызове ручки get_stats",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "percentile": {
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "value": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "percentile",
+                  "value"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "surge": {
+              "format": "double",
+              "type": "number"
+            },
+            "surge_b": {
+              "description": "Средний сурж в точке Б по пинам с недефолтной картой",
+              "format": "double",
+              "type": "number"
+            },
+            "trip": {
+              "additionalProperties": false,
+              "description": "Данные о полном маршруте",
+              "properties": {
+                "distance": {
+                  "format": "double",
+                  "type": "number"
+                },
+                "time": {
+                  "format": "double",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "distance",
+                "time"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "surge",
+            "pins_order_in_tariff",
+            "pins_driver_in_tariff"
+          ],
+          "type": "object"
+        },
+        "type": "object"
+      }
+    },
+    "required": [
+      "pins",
+      "pins_with_b",
+      "pins_with_order",
+      "pins_with_driver",
+      "prev_pins",
+      "values_by_category",
+      "global_pins",
+      "global_pins_with_order",
+      "global_pins_with_driver"
+    ],
+    "type": "object"
+  },
+  "surge": {
+    "additionalProperties": false,
+    "description": "Коэффициенты сурджа для ценообразования",
+    "properties": {
+      "surcharge": {
+        "additionalProperties": false,
+        "description": "Коэффициенты в формуле cost_1 = cost_0 * (surge_value * alpha + beta) + beta * surcharge",
+        "properties": {
+          "alpha": {
+            "description": "Коэффициент alpha расчета надбавки",
+            "minimum": 0,
+            "type": "number"
+          },
+          "beta": {
+            "description": "Коэффициент beta расчета надбавки",
+            "minimum": 0,
+            "type": "number"
+          },
+          "value": {
+            "description": "Надбавка",
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "alpha",
+          "beta",
+          "value"
+        ],
+        "type": "object"
+      },
+      "value": {
+        "format": "double",
+        "type": "number"
+      }
+    },
+    "required": [
+      "value"
+    ],
+    "type": "object"
+  },
+  "surge_value_map": {
+    "additionalProperties": {
+      "type": "number"
+    },
+    "description": "значения суржа в запрошенной точке по тарифам",
+    "type": "object"
+  },
+  "zone": {
+    "additionalProperties": false,
+    "properties": {
+      "base_class": {
+        "description": "базовый класс зоны",
+        "type": "string"
+      },
+      "experiment": {
+        "additionalProperties": false,
+        "description": "описание настроек эксперимента",
+        "properties": {
+          "adjustments": {
+            "additionalProperties": false,
+            "description": "Настройки различных поправок",
+            "properties": {
+              "default_surge": {
+                "additionalProperties": false,
+                "description": "Настройки корректировки",
+                "properties": {
+                  "enabled": {
+                    "description": "Включить корректировку",
+                    "type": "boolean"
+                  },
+                  "table": {
+                    "description": "2D таблица задающая сплайн",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "description": "x компонента",
+                          "type": "number"
+                        },
+                        "y": {
+                          "description": "y компонента",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "table"
+                ],
+                "type": "object"
+              },
+              "eta": {
+                "additionalProperties": false,
+                "description": "Настройки корректировки",
+                "properties": {
+                  "enabled": {
+                    "description": "Включить корректировку",
+                    "type": "boolean"
+                  },
+                  "table": {
+                    "description": "2D таблица задающая сплайн",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "description": "x компонента",
+                          "type": "number"
+                        },
+                        "y": {
+                          "description": "y компонента",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "table"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "eta"
+            ],
+            "type": "object"
+          },
+          "antisurge_discount_enabled": {
+            "description": "включена ли возможность отдавать сурж меньше 1",
+            "type": "boolean"
+          },
+          "balance": {
+            "additionalProperties": false,
+            "description": "правила для расчета сурджа по формуле баланса",
+            "properties": {
+              "add_free": {
+                "description": "свободный член для free в расчете коэффициента утилизации",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "add_total": {
+                "description": "свободный член для total в расчете коэффициента утилизации",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "avg_cost": {
+                "description": "Средний чек",
+                "minimum": 0,
+                "type": "number"
+              },
+              "chain_factor": {
+                "description": "множитель для free_chain в расчете коэффициента утилизации",
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "custom_properties": {
+                "additionalProperties": true,
+                "description": "дополнительные параметры для настройки для подсчёта",
+                "type": "object"
+              },
+              "f_delta_left": {
+                "description": "параметр f' = f_delta_left * (f_equal - f(t)) при f < f_equal",
+                "type": "number"
+              },
+              "f_delta_right": {
+                "description": "параметр f' = f_delta_right * (f_equal - f(t)) при f >= f_equal",
+                "type": "number"
+              },
+              "f_equal": {
+                "description": "параметр для определения f_delta: f < f_equal ? f_delta_left : f_delta_right",
+                "type": "number"
+              },
+              "f_equal_dyn": {
+                "additionalProperties": false,
+                "description": "Настройки динамического таргета",
+                "properties": {
+                  "enabled": {
+                    "description": "включен ли динамический таргет",
+                    "type": "boolean"
+                  },
+                  "table": {
+                    "description": "2D таблица задающая сплайн",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "x": {
+                          "description": "x компонента",
+                          "type": "number"
+                        },
+                        "y": {
+                          "description": "y компонента",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "x",
+                        "y"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "type": {
+                    "description": "тип динамического таргета",
+                    "enum": [
+                      "time",
+                      "total"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "type",
+                  "table"
+                ],
+                "type": "object"
+              },
+              "f_init": {
+                "description": "минимальная доля, при которой не происходит расчет по формуле баланса",
+                "minimum": 0,
+                "type": "number"
+              },
+              "fs_coef_chain": {
+                "description": "множитель для free_chain в скорости изменения пинов для уравнении баланса",
+                "minimum": 0,
+                "type": "number"
+              },
+              "fs_coef_total": {
+                "description": "множитель для total в скорости изменения пинов для уравнении баланса",
+                "minimum": 0,
+                "type": "number"
+              },
+              "fs_intercept": {
+                "description": "свободный член для скорости изменения пинов в уранении баланса",
+                "minimum": 0,
+                "type": "number"
+              },
+              "fs_pins_driver": {
+                "description": "коэффициент New Free fs_pins_driver",
+                "type": "number"
+              },
+              "fs_pins_order": {
+                "description": "коэффициент New Free fs_pins_order",
+                "type": "number"
+              },
+              "graph_surge": {
+                "additionalProperties": false,
+                "description": "математические параметры для формулы баланса",
+                "properties": {
+                  "add_free": {
+                    "description": "свободный член для free в расчете коэффициента утилизации",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "add_total": {
+                    "description": "свободный член для total в расчете коэффициента утилизации",
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "chain_factor": {
+                    "description": "множитель для free_chain в расчете коэффициента утилизации",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "f_delta_left": {
+                    "description": "параметр f' = f_delta_left * (f_equal - f(t)) при f < f_equal",
+                    "type": "number"
+                  },
+                  "f_delta_right": {
+                    "description": "параметр f' = f_delta_right * (f_equal - f(t)) при f >= f_equal",
+                    "type": "number"
+                  },
+                  "f_equal": {
+                    "description": "параметр для определения f_delta: f < f_equal ? f_delta_left : f_delta_right",
+                    "type": "number"
+                  },
+                  "f_init": {
+                    "description": "минимальная доля, при которой не происходит расчет по формуле баланса",
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "fs_coef_chain": {
+                    "description": "множитель для free_chain в скорости изменения пинов для уравнении баланса",
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "fs_coef_total": {
+                    "description": "множитель для total в скорости изменения пинов для уравнении баланса",
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "fs_intercept": {
+                    "description": "свободный член для скорости изменения пинов в уранении баланса",
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "min_pins": {
+                    "description": "минимальное число пинов для подсчета сурджа на основе уравнения баланса",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "min_total": {
+                    "description": "минимальное число машина для подсчета сурджа на основе уравнения баланса. Активно только для эконома",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "reposition_discount": {
+                    "description": "множитель для водителей, находящихся в reposition, в расчете surge",
+                    "maximum": 1.0,
+                    "minimum": 0.0,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "min_pins",
+                  "f_init",
+                  "f_equal",
+                  "f_delta_left",
+                  "f_delta_right",
+                  "add_free",
+                  "add_total",
+                  "fs_intercept",
+                  "fs_coef_chain",
+                  "fs_coef_total"
+                ],
+                "type": "object"
+              },
+              "min_pins": {
+                "description": "минимальное число пинов для подсчета сурджа на основе уравнения баланса",
+                "minimum": 1,
+                "type": "integer"
+              },
+              "min_total": {
+                "description": "минимальное число машина для подсчета сурджа на основе уравнения баланса. Активно только для эконома",
+                "minimum": 1,
+                "type": "integer"
+              },
+              "ps_corr": {
+                "additionalProperties": false,
+                "description": "Настройки корректировки конверсии",
+                "properties": {
+                  "coef": {
+                    "description": "Коэффициент корректировки конверсии",
+                    "type": "number"
+                  },
+                  "enabled": {
+                    "description": "Включить корректировку конверсии",
+                    "type": "boolean"
+                  },
+                  "max_corr": {
+                    "description": "Максимальная коррекция",
+                    "type": "number"
+                  },
+                  "min_corr": {
+                    "description": "Минимальная коррекция",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "min_corr",
+                  "max_corr",
+                  "coef"
+                ],
+                "type": "object"
+              },
+              "reposition_discount": {
+                "description": "множитель для водителей, находящихся в reposition, в расчете surge",
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              "script": {
+                "description": "название скрипта уравнения баланса",
+                "type": "string"
+              },
+              "surcharge_step": {
+                "description": "Шаг сурчарджа",
+                "minimum": 0,
+                "type": "number"
+              },
+              "table_coef_ps": {
+                "description": "таблица соотвествия p(s) и сурджа",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "alpha": {
+                      "default": 1,
+                      "description": "коэффициент надбавки",
+                      "type": "number"
+                    },
+                    "beta": {
+                      "default": 0,
+                      "description": "коэффициент надбавки",
+                      "type": "number"
+                    },
+                    "coeff": {
+                      "description": "значение суржа",
+                      "exclusiveMinimum": true,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "ps": {
+                      "description": "p(s)",
+                      "exclusiveMinimum": true,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "ps_b": {
+                      "description": "p(s) для пинов с точкой B",
+                      "exclusiveMinimum": true,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "surcharge": {
+                      "default": 0,
+                      "description": "слагаемое надбавки",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "coeff",
+                    "ps"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "utilization_for_non_econom": {
+                "default": false,
+                "description": "включать ли функцию утилизацию для классов, отличных от базового",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "table_coef_ps",
+              "min_pins",
+              "f_init",
+              "f_equal",
+              "f_delta_left",
+              "f_delta_right",
+              "add_free",
+              "add_total",
+              "fs_intercept",
+              "fs_coef_chain",
+              "fs_coef_total"
+            ],
+            "type": "object"
+          },
+          "currency": {
+            "description": "валюта зоны",
+            "type": "string"
+          },
+          "experiment_id": {
+            "description": "идентификатор эксперимента",
+            "type": "string"
+          },
+          "experiment_name": {
+            "description": "текстовое название эксперимента",
+            "type": "string"
+          },
+          "explicit_antisurge_enabled": {
+            "description": "включен ли явный антисурдж",
+            "type": "boolean"
+          },
+          "explicit_antisurge_threshold": {
+            "description": "пороговое значение сурджа ниже которого начинает работать явный антисурдж",
+            "type": "number"
+          },
+          "graph_surge": {
+            "additionalProperties": false,
+            "description": "параметры суржа на графе",
+            "properties": {
+              "balancertimeout": {
+                "description": "параметр запроса к 42 таймаут балансера (мс)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "border": {
+                "description": "параметр запроса к 42 и к трекеру размер ETA окрестности (сек)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "border_walk": {
+                "description": "параметр запроса к 42 размер пешей ETA окрестности",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "d": {
+                "description": "параметр запроса к 42 радиус для притягивания точки к графу",
+                "type": "integer"
+              },
+              "enabled": {
+                "description": "включен ли расчет суржа на графе",
+                "type": "boolean"
+              },
+              "pron": {
+                "description": "параметр запроса к 42 позволяет получать более подробный ответ",
+                "type": "string"
+              },
+              "service": {
+                "description": "параметр запроса к 42 service",
+                "type": "string"
+              },
+              "time_active": {
+                "description": "параметр запроса к 42 срок жизни объектов по умолчанию (сек)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "time_active_PIN": {
+                "description": "параметр запроса к 42 срок жизни пинов (сек)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "time_active_TAXI": {
+                "description": "параметр запроса к 42 срок жизни геопозиций водителей (сек)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "time_active_TRACK_END": {
+                "description": "параметр запроса к 42 срок жизни точек Б (сек)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "timeout": {
+                "description": "параметр запроса к 42 таймаут (мкс)",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "weights": {
+                "additionalProperties": false,
+                "description": "lol",
+                "properties": {
+                  "PIN": {
+                    "description": "функция взвешивания для объектов суржа на графе",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "time": {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "weight": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "time",
+                        "weight"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "TAXI": {
+                    "description": "функция взвешивания для объектов суржа на графе",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "time": {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "weight": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "time",
+                        "weight"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "TRACK_END": {
+                    "description": "функция взвешивания для объектов суржа на графе",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "time": {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "weight": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "time",
+                        "weight"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 2,
+                    "type": "array"
+                  },
+                  "default": {
+                    "description": "функция взвешивания для объектов суржа на графе",
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "time": {
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "weight": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "time",
+                        "weight"
+                      ],
+                      "type": "object"
+                    },
+                    "minItems": 2,
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "is_active": {
+            "description": "включено ли вычисление суржа",
+            "type": "boolean"
+          },
+          "method": {
+            "description": "алгоритм подсчёта pins/free",
+            "enum": [
+              "balance"
+            ],
+            "type": "string"
+          },
+          "ml": {
+            "additionalProperties": false,
+            "description": "параметры применения машинного обучения",
+            "properties": {
+              "action": {
+                "description": "режим работы",
+                "enum": [
+                  "ignore",
+                  "calculate",
+                  "apply"
+                ],
+                "type": "string"
+              },
+              "model": {
+                "description": "дескриптор модели",
+                "type": "string"
+              },
+              "new_free": {
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "description": "Включить ML корректировку",
+                    "type": "boolean"
+                  },
+                  "max_deviation": {
+                    "description": "Максимальное отклонение",
+                    "type": "number"
+                  },
+                  "min_deviation": {
+                    "description": "Минимальное отклонение",
+                    "type": "number"
+                  },
+                  "model_name": {
+                    "description": "Название ML модели",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "model_name",
+                  "min_deviation",
+                  "max_deviation"
+                ],
+                "type": "object"
+              },
+              "pins": {
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "description": "Включить ML корректировку",
+                    "type": "boolean"
+                  },
+                  "max_deviation": {
+                    "description": "Максимальное отклонение",
+                    "type": "number"
+                  },
+                  "min_deviation": {
+                    "description": "Минимальное отклонение",
+                    "type": "number"
+                  },
+                  "model_name": {
+                    "description": "Название ML модели",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "model_name",
+                  "min_deviation",
+                  "max_deviation"
+                ],
+                "type": "object"
+              },
+              "point_b": {
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "description": "Включить ML корректировку",
+                    "type": "boolean"
+                  },
+                  "max_deviation": {
+                    "description": "Максимальное отклонение",
+                    "type": "number"
+                  },
+                  "min_deviation": {
+                    "description": "Минимальное отклонение",
+                    "type": "number"
+                  },
+                  "model_name": {
+                    "description": "Название ML модели",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "model_name",
+                  "min_deviation",
+                  "max_deviation"
+                ],
+                "type": "object"
+              },
+              "ps": {
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "description": "Включить ML корректировку",
+                    "type": "boolean"
+                  },
+                  "max_deviation": {
+                    "description": "Максимальное отклонение",
+                    "type": "number"
+                  },
+                  "min_deviation": {
+                    "description": "Минимальное отклонение",
+                    "type": "number"
+                  },
+                  "model_name": {
+                    "description": "Название ML модели",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "model_name",
+                  "min_deviation",
+                  "max_deviation"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "pipeline_name": {
+            "description": "Строка которая может служить как идентификатор в JS",
+            "minLength": 1,
+            "pattern": "^[^_\\d\\W]\\w*$",
+            "type": "string"
+          },
+          "rules": {
+            "additionalProperties": {
+              "additionalProperties": false,
+              "properties": {
+                "avg_cost": {
+                  "description": "Средний чек",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "custom_properties": {
+                  "additionalProperties": true,
+                  "description": "дополнительные параметры для настройки для подсчёта",
+                  "type": "object"
+                },
+                "disable_antisurge": {
+                  "description": "отключение антисурджа",
+                  "type": "boolean"
+                },
+                "linear_dependency_formula": {
+                  "additionalProperties": false,
+                  "description": "параметры формулы линейной зависимости",
+                  "properties": {
+                    "enabled": {
+                      "description": "включена ли линейная зависимость сурджа",
+                      "type": "boolean"
+                    },
+                    "from_class": {
+                      "description": "базовый класс, от которого зависит формула",
+                      "type": "string"
+                    },
+                    "surge_linear_coeff": {
+                      "description": "коэффициент линейной зависимости",
+                      "type": "number"
+                    },
+                    "use_base_class_table": {
+                      "description": "использовать таблицы базового класса вместо своих",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "from_class",
+                    "surge_linear_coeff"
+                  ],
+                  "type": "object"
+                },
+                "method": {
+                  "description": "Метод расчета суржа",
+                  "enum": [
+                    "none",
+                    "linear",
+                    "utilization"
+                  ],
+                  "type": "string"
+                },
+                "method_convert_ratio": {
+                  "description": "метод подсчета коэффициента из pins/free ratio",
+                  "enum": [
+                    "rules"
+                  ],
+                  "type": "string"
+                },
+                "reason": {
+                  "description": "причина установки суржа",
+                  "enum": [
+                    "no",
+                    "rain",
+                    "snow"
+                  ],
+                  "type": "string"
+                },
+                "surcharge_step": {
+                  "description": "Шаг сурчарджа",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "surge_max_bound": {
+                  "description": "верхняя граница суржа",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "surge_min_bound": {
+                  "description": "нижняя граница суржа",
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "surge_rules": {
+                  "description": "правила суржа по соотношению pins/free",
+                  "items": {
+                    "additionalProperties": false,
+                    "description": "правило суржа по соотношению pins/free",
+                    "properties": {
+                      "alpha": {
+                        "default": 1,
+                        "description": "коэффициент надбавки",
+                        "type": "number"
+                      },
+                      "beta": {
+                        "default": 0,
+                        "description": "коэффициент надбавки",
+                        "type": "number"
+                      },
+                      "min_coeff": {
+                        "description": "минимальное значение коэффициента",
+                        "minimum": 0,
+                        "type": "number"
+                      },
+                      "surcharge": {
+                        "default": 0,
+                        "description": "слагаемое надбавки",
+                        "type": "number"
+                      },
+                      "surge_value": {
+                        "description": "значение суржа",
+                        "exclusiveMinimum": true,
+                        "minimum": 0,
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "min_coeff",
+                      "surge_value"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "surge_value": {
+                  "description": "значение суржа",
+                  "exclusiveMinimum": true,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "time_rules": {
+                  "description": "правила включения по времени",
+                  "items": {
+                    "additionalProperties": false,
+                    "description": "правило включения по времени",
+                    "properties": {
+                      "surge_value": {
+                        "description": "значение суржа",
+                        "minimum": 1,
+                        "type": "number"
+                      },
+                      "time_from": {
+                        "additionalProperties": false,
+                        "description": "время",
+                        "properties": {
+                          "hour": {
+                            "description": "часы",
+                            "maximum": 23,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "minute": {
+                            "description": "минуты",
+                            "maximum": 59,
+                            "minimum": 0,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "hour",
+                          "minute"
+                        ],
+                        "type": "object"
+                      },
+                      "time_to": {
+                        "additionalProperties": false,
+                        "description": "время",
+                        "properties": {
+                          "hour": {
+                            "description": "часы",
+                            "maximum": 23,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "minute": {
+                            "description": "минуты",
+                            "maximum": 59,
+                            "minimum": 0,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "hour",
+                          "minute"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "time_from",
+                      "time_to"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "weighted_surge_adjustment": {
+                  "additionalProperties": false,
+                  "description": "параметры функциональности взвешенной коррекции сурджа",
+                  "properties": {
+                    "enabled": {
+                      "description": "включена ли взвешенная коррекция сурджа",
+                      "type": "boolean"
+                    },
+                    "settings": {
+                      "additionalProperties": true,
+                      "description": "параметры формулы взвешенной коррекции сурджа",
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "settings"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "time_rules",
+                "surge_rules"
+              ],
+              "type": "object"
+            },
+            "description": "описание принудительного суржа по тарифам",
+            "type": "object"
+          },
+          "smooth_surge": {
+            "additionalProperties": false,
+            "description": "правила для сглаживания сурджа",
+            "properties": {
+              "default_smooth_surge": {
+                "description": "сглаженный сурдж по-умолчанию (точка А)",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "default_smooth_surge_b": {
+                "description": "сглаженный сурдж по-умолчанию (точка Б)",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "default_target_surge": {
+                "description": "целевой сурдж в точке Б",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "enable": {
+                "description": "включено ли сглаживание сурджа",
+                "type": "boolean"
+              },
+              "max_jump_down": {
+                "description": "максимальный скачок вниз для сглаженного сурджа",
+                "type": "number"
+              },
+              "max_jump_up": {
+                "description": "максимальный скачок вверх для сглаженного сурджа",
+                "type": "number"
+              },
+              "surge_adjustment_coeff_left": {
+                "description": "коэффициент поправки суржа в точке А (слева)",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "surge_adjustment_coeff_right": {
+                "description": "коэффициент поправки суржа в точке А (справа)",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "target_surge_coeff_left": {
+                "description": "коэффициент поправки суржа в точке Б (слева)",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "target_surge_coeff_right": {
+                "description": "коэффициент поправки суржа в точке Б (справа)",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "smooth_timings": {
+            "additionalProperties": false,
+            "description": "правила для вычисления ETA и ETR",
+            "properties": {
+              "add_free": {
+                "description": "слагаемое при расчете ETA/ETR в пине",
+                "type": "integer"
+              },
+              "gamma": {
+                "description": "коэффициент для расчета ETA в пине",
+                "exclusiveMinimum": true,
+                "minimum": 0,
+                "type": "number"
+              },
+              "kappa_eta": {
+                "description": "коэффициент для расчета ETA в пине",
+                "type": "number"
+              },
+              "kappa_etr": {
+                "description": "коэффициент для расчета ETR в пине",
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "surcharge_enabled": {
+            "default": false,
+            "description": "применение расчета надбавки",
+            "type": "boolean"
+          },
+          "version": {
+            "description": "версия",
+            "type": "integer"
+          },
+          "weighted_surge_adjustment_script": {
+            "description": "скрипт с формулой притягивания сурджа",
+            "type": "string"
+          }
+        },
+        "required": [
+          "is_active",
+          "experiment_id",
+          "experiment_name"
+        ],
+        "type": "object"
+      },
+      "id": {
+        "description": "идентификатор зоны",
+        "type": "string"
+      },
+      "local_time_shift": {
+        "description": "сдвиг локального времени к UTC",
+        "exclusiveMaximum": false,
+        "exclusiveMinimum": false,
+        "maximum": 14,
+        "minimum": -12,
+        "type": "integer"
+      },
+      "name": {
+        "description": "текстовое название зоны",
+        "type": "string"
+      },
+      "type": {
+        "description": "тип зоны",
+        "type": "string"
+      }
+    },
+    "required": [
+      "id",
+      "name",
+      "base_class",
+      "experiment"
+    ],
+    "type": "object"
+  }
+}

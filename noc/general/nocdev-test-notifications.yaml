@@ -1,0 +1,69 @@
+# AUTHOR: kglushen@yandex-team.ru
+- name: nocdev_test_notifications
+  description: NOCDev common TEST notifications
+  juggler_namespace: nocdev-test
+  hosts: fake_hosts # we do not need host filter, as we have no aggregates
+  notifications:
+    - description: omfp working hours crit config
+      template_name: phone_escalation
+      match_raw_events: false
+      namespace: nocdev
+      selector: namespace=nocdev-test & tag=crit_phone_working
+      template_kwargs:
+        logins:
+        - '@svc_NOCDEV:omfp'
+        - borislitv
+        - skacheev
+        - kglushen
+        - gescheit
+        time_start: "10:00"
+        time_end: "21:00"
+        day_start: 1
+        day_end: 5
+
+    - description: omfp days warn notifications
+      namespace: nocdev
+      selector: namespace=nocdev-test & tag=warn_phone_working
+      template_name: on_status_change
+      template_kwargs:
+        status:
+          - { from: OK, to: WARN }
+        method:
+          - phone
+        login:
+          - '@svc_NOCDEV:omfp'
+        time_start: "10:00"
+        time_end: "21:00"
+        day_start: 1
+        day_end: 5
+        delay: 1800
+
+    - description: NOCDev Telegram main notification
+      match_raw_events: false
+      namespace: nocdev
+      selector: namespace=nocdev-test & tag=crit_telegram_all
+      template_kwargs:
+        login:
+        - NOCDEV-Monitoring
+        method:
+        - telegram
+        status:
+        - {from: OK, to: CRIT}
+        - {from: WARN, to: CRIT}
+        - {from: CRIT, to: OK}
+      template_name: on_status_change
+
+    - description: NOCDev Telegram working hours notification
+      match_raw_events: false
+      namespace: nocdev
+      selector: tag=warn_telegram_working & namespace=nocdev-test
+      template_kwargs:
+        login:
+        - NOCDEV-Monitoring
+        method:
+        - telegram
+        status:
+        - {from: OK, to: WARN}
+        - {from: WARN, to: OK}
+        delay: 1200
+      template_name: on_status_change

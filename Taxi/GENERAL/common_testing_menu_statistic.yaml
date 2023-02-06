@@ -1,0 +1,58 @@
+# Created with generator. Save this comment for future reference.
+# Launch args: --source postgres --tables orders_update_info menu_statistic menu_statistic_files collector_synchronization_tasks --scope eda_integrations_common_testing --database eda_integrations_common_testing
+name: eda_integrations_common_testing_menu_statistic
+replication_type: queue
+source:
+    type: postgres
+    connection:
+        secret: POSTGRES_EDA_EDA_INTEGRATIONS_COMMON_TESTING
+    table: menu_statistic
+    primary_key:
+      - id
+    replicate_by: updated_at
+    iteration_type: sequence
+    replicate_by_type: timestampz
+    prepared_statement_disabled: true
+destinations:
+  - eda_integrations_common_testing_menu_statistic_raw:
+        type: yt
+        mapper: $raw
+        target:
+            cluster_groups:
+              - map_reduce
+            prefix: eda-dwh
+            path: raw/eda_integrations_common_staging/menu_statistic/menu_statistic
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    sort_order: ascending
+                    description: Идентификатор
+            raw_rebuild_data: true
+    eda_integrations_common_testing_menu_statistic_raw_history:
+        type: yt
+        mapper: $raw
+        target:
+            cluster_groups:
+              - map_reduce
+            prefix: eda-dwh
+            path: etl/raw_history/eda_integrations_common_staging/menu_statistic
+            raw_settings:
+                yt_columns_info:
+                  - input_column: updated_at
+                    name: utc_updated_dttm
+                    cast: datetime_to_datetime_format
+                    type: string
+                    sort_order: ascending
+                    description: Дата последнего изменения в UTC
+                  - name: id
+                    type: string
+                    sort_order: ascending
+                    description: Идентификатор
+                partitioning:
+                    rotate_policy: raw_history
+                    type: by_years
+                    cast_to_date: utc_from_isostring
+                    field_name: utc_updated_dttm
+queue_data:
+    db_cluster: replication_queue_mdb_2_eats

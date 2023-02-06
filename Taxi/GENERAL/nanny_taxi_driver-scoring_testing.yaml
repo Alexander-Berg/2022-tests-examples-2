@@ -1,0 +1,47 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:driver-scoring:testing
+
+http_hosts:
+  - driver-scoring.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: driver-scoring-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - include:
+        collapsed: false
+        path: nanny_taxi_driver-scoring/lookup-ordering.json
+        title: Lookup-ordering
+        variables:
+          - cluster: production_uservices
+  - include:
+        collapsed: true
+        path: nanny_taxi_driver-scoring/external.json
+        title: External
+        variables:
+          - cluster: testing_uservices
+  - include:
+        collapsed: true
+        path: nanny_taxi_driver-scoring/fallbacks.json
+        title: Fallbacks
+        variables:
+          - cluster: testing_uservices
+  - http
+  - userver_common:
+        collapsed: true
+        uservice_name: driver-scoring
+  - include:
+        path: js_execution.json
+        row_panels:
+          - 2
+          - 3
+          - 3
+        title: JS Execution
+        variables:
+          - project: taxi
+          - cluster: testing_uservices
+          - application: driver-scoring
+  - system

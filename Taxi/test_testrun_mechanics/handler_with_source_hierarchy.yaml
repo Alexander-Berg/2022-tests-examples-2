@@ -1,0 +1,27 @@
+default-response: resp-ok
+enabled: true
+sources:
+  - id: test-resource1
+    content-type: application/json
+    resource: resource1
+    body: {}
+    before:
+      - test-resource2
+      - test-resource3
+  - id: test-resource2
+    content-type: application/json
+    resource: resource2
+    body: {}
+    before:
+      - test-resource3
+  - id: test-resource3
+    content-type: application/json
+    resource: resource3
+    body: {}
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#concat-objects:
+      - value#source-response-body: test-resource1
+      - value#source-response-body: test-resource2
+      - value#source-response-body: test-resource3

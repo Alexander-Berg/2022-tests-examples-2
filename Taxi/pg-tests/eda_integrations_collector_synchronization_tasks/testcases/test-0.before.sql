@@ -1,0 +1,63 @@
+INSERT INTO collector_synchronization_tasks
+(
+    id,
+    status,
+    type,
+    place_id,
+    data_file_url,
+    data_file_version,
+    message_id,
+    reason,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    '7511b40f-c0b8-4deb-8982-2a80f85e0000',
+    '1',
+    '1',
+    '1',
+    'fghj',
+    'fghj',
+    'fghj',
+    'fghj',
+    '2020-04-20T15:00:00',
+    '2020-04-20T15:00:00'
+),
+(
+    '7511b40f-c0b8-4deb-8982-2a80f85e0001',
+    '1',
+    '1',
+    '1',
+    'fghj',
+    'fghj',
+    'fghj',
+    'fghj',
+    '2020-03-22T15:00:01',
+    '2020-03-22T15:00:01'
+),
+(
+    '7511b40f-c0b8-4deb-8982-2a80f85e0002',
+    '1',
+    '1',
+    '1',
+    'fghj',
+    'fghj',
+    'fghj',
+    'fghj',
+    '2020-03-21T15:00:00',
+    '2020-03-21T15:00:00'
+),
+(
+    '7511b40f-c0b8-4deb-8982-2a80f85e0003',
+    '1',
+    '1',
+    '1',
+    'fghj',
+    'fghj',
+    'fghj',
+    'fghj',
+    '2020-03-20T14:59:59',
+    '2020-03-20T14:59:59'
+)
+;

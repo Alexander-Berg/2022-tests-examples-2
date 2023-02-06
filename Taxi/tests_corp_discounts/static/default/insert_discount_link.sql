@@ -1,0 +1,47 @@
+INSERT INTO corp_discounts.discount_links
+(
+    discount_id,
+    client_id,
+    times_used,
+    amount_used,
+    amount_used_vat,
+    amount_used_w_vat,
+    valid_since,
+    valid_until,
+    activated_at
+)
+VALUES
+-- insert absurdly large interval
+(
+    1,
+    'client_id_1',
+    1,
+    '50',
+    '10',
+    '60',
+    '2021-08-17T23:54:00+00:00',
+    '2031-08-17T23:54:00+00:00',
+    '2021-10-01T00:00:00+00:00'
+),
+(
+    2,
+    'client_id_1',
+    1,
+    '100',
+    '20',
+    '120',
+    '2031-09-01T00:00:00+00:00',
+    '2031-10-01T00:00:00+00:00',
+    NULL -- it can't be null if discount was used, but let's check absence of activated_at
+),
+(
+    1,
+    'client_id_3',
+    1,
+    '50',
+    '10',
+    '60',
+    '2021-08-17T23:54:00+00:00',
+    '2031-08-17T23:54:00+00:00',
+    '2021-10-01T00:00:00+00:00'
+)

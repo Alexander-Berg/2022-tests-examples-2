@@ -1,0 +1,69 @@
+{
+  "name": "calc_surge",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "optional": false,
+          "query": {
+            "operations": [
+              {
+                "property_name": "depot_ids"
+              }
+            ]
+          }
+        }
+      ],
+      "name": "fetch_settings",
+      "optional": false,
+      "resources": [
+        {
+          "field": "depot_settings",
+          "name": "depot_settings"
+        }
+      ],
+      "source_code": "return {depot_settings: {depot_ids: depot_ids}}"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "init_out_array",
+      "out_bindings": [
+        {
+          "alias": "depots_out",
+          "query": "depots_out"
+        }
+      ],
+      "source_code": "return {depots_out: []};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "depot_ids.*{idx:depot_id}"
+        },
+        {
+          "children": [
+            {
+              "query": "radius"
+            }
+          ],
+          "domain": "resource",
+          "query": "depot_settings[depot_id]"
+        }
+      ],
+      "name": "calc_load_level",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "depots_out[idx]"
+        }
+      ],
+      "source_code": "return {data: {depot_id: depot_id, result: {load_level: radius * 2}}};"
+    }
+  ],
+  "state": "active"
+}

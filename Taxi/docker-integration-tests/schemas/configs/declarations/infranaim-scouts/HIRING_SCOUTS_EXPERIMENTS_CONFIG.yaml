@@ -1,0 +1,116 @@
+maintainers:
+  - pirateship <pirateship@yandex-team.ru>
+  - chief <chief@yandex-team.ru>
+
+tags:
+  - notfallback
+
+default:
+    URL: 'http://experiments3.taxi.tst.yandex.net'
+    TVM_TICKET: "2013670"
+    EXPERIMENTS: {}
+
+description: Конфиги Экспериментов3 для infranaim
+
+schema:
+    type: object
+    required:
+      - URL
+      - TVM_TICKET
+      - EXPERIMENTS
+    additionalProperties: false
+    properties:
+        URL:
+            type: string
+        TVM_TICKET:
+            type: string
+        EXPERIMENTS:
+            type: object
+            additionalProperties:
+                type: object
+                additionalProperties: false
+                properties:
+                    name:
+                        type: string
+                    route:
+                        type: string
+                    consumer:
+                        type: string
+                    fields:
+                        type: object
+                        additionalProperties:
+                            additionalProperties: false
+                            type: object
+                            required:
+                              - name
+                              - type
+                            properties:
+                                name:
+                                    type: string
+                                type:
+                                    type: string
+                                nullable:
+                                    type: boolean
+                    history:
+                        type: object
+                        additionalProperties: false
+                        required:
+                          - perform_search
+                          - days_limit
+                          - update_on_existing_result
+                        properties:
+                            perform_search:
+                                type: boolean
+                            days_limit:
+                                type: integer
+                            auditorium:
+                                type: string
+                                description: >-
+                                    Determines when to perform search in exp3 history
+                                default: check_all
+                            update_on_existing_result:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - value
+                                properties:
+                                    value:
+                                        type: object
+                                        additionalProperties: false
+                                        required:
+                                          - ticket_schema
+                                          - ticket_tags
+                                        properties:
+                                            ticket_schema:
+                                                type: array
+                                                minItems: 0
+                                                maxItems: 100
+                                                uniqueItems: true
+                                                items:
+                                                    type: object
+                                                    additionalProperties: false
+                                                    required:
+                                                      - tag
+                                                      - ticket_param_name
+                                                    properties:
+                                                        tag:
+                                                            type: string
+                                                            description: >
+                                                                Actual value of field
+                                                                in zendesk
+                                                        name:
+                                                            type: string
+                                                            description: >
+                                                                Human-readable field
+                                                                value
+                                                        ticket_param_name:
+                                                            type: string
+                                                            description: >
+                                                                Name of field in zendesk
+                                            ticket_tags:
+                                                type: array
+                                                minItems: 0
+                                                maxItems: 100
+                                                uniqueItems: true
+                                                items:
+                                                    type: string

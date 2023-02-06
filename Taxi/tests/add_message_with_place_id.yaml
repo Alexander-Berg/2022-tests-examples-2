@@ -1,0 +1,48 @@
+id: add_message_with_place_id
+title: Проверка добавления сообщения с переданным place_id
+
+source:
+    request:
+        url: /4.0/support_chat/v2/chats/123/message
+        method: post
+        body:
+            message_metadata:
+                restapp_place_id: place_id_value
+        headers:
+            X-YaEda-PartnerId: partner_id
+            content-type: application/json
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: eats-restapp-support-chat-partner-check-access
+    response:
+        status-code: 200
+        body:
+            role#string: "ROLE_OPERATOR"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            query#object:
+              - key: chat_id
+                value#string: "123"
+  - resource: taxi-protocol-chats-chat_id-message
+    response:
+        status-code: 200
+        body:
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            headers#object:
+              - key: X-YaEda-PartnerId
+                value#string: place_id_value
+            body#object:
+              - key: message_metadata
+                value#object:
+                  - key: restapp_place_id
+                    value: place_id_value

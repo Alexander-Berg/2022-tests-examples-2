@@ -1,0 +1,93 @@
+services:
+  - service: l7_balancer_cpu_usage
+    children_service: cpu_usage
+    ignore_nodata: 1
+    methods: phone_escalation
+    flaps:
+        stable_time: 600
+        critical_time: 1200
+    unreach:
+        mode: force_ok
+        service:
+          - check: :unispace
+          - check: :l7_balancer_cpu_wait_cores
+    times:
+      - days: Mon-Fri
+        time: 12-20
+        warn: 0
+        crit: 0
+      - days: Sat-Sun
+        time: 12-20
+        warn: 101%
+        crit: 101%
+      - days: Mon-Sun
+        time: 21-11
+        warn: 101%
+        crit: 101%
+  - service: l7_balancer_cpu_wait_cores
+    children_service: cpu_wait_cores
+    ignore_nodata: 1
+    methods: phone_escalation
+    flaps:
+        stable_time: 600
+        critical_time: 1200
+    times:
+      - days: Mon-Fri
+        time: 12-20
+        warn: 0
+        crit: 0
+      - days: Sat-Sun
+        time: 12-20
+        warn: 101%
+        crit: 101%
+      - days: Mon-Sun
+        time: 21-11
+        warn: 101%
+        crit: 101%
+  - service: l7_balancer_logs_vol_usage
+    children_service: logs_vol_usage
+    ignore_nodata: 1
+    methods: phone_escalation
+    flaps:
+        stable_time: 600
+        critical_time: 1200
+    times:
+      - days: Mon-Fri
+        time: 12-20
+        warn: 0
+        crit: 0
+      - days: Sat-Sun
+        time: 12-20
+        warn: 101%
+        crit: 101%
+      - days: Mon-Sun
+        time: 21-11
+        warn: 101%
+        crit: 101%
+  - service: l7_balancer_mem_usage
+    children_service: mem_usage
+    ignore_nodata: 1
+    methods: phone_escalation
+    flaps:
+        stable_time: 600
+        critical_time: 1200
+    telegram: balancer_channel
+    times:
+      - days: Mon-Fri
+        time: 12-20
+        warn: 0
+        crit: 0
+      - days: Sat-Sun
+        time: 12-20
+        warn: 101%
+        crit: 101%
+      - days: Mon-Sun
+        time: 21-11
+        warn: 101%
+        crit: 101%
+    startrek:
+        queue: TAXIADMIN
+        status:
+          - WARN
+          - CRIT
+        delay: 3600

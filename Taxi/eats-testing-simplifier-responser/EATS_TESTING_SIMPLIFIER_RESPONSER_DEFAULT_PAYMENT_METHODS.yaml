@@ -1,0 +1,413 @@
+description: Default payments methods for mock
+
+maintainers: [ro-whale]
+tags: [notfallback]
+
+schema:
+    type: object
+    properties:
+        default_payment_methods:
+            type: array
+            items:
+                $ref: '#/definitions/PaymentMethod'
+    additionalProperties: false
+
+    definitions:
+        PaymentMethod:
+            oneOf:
+              - $ref: '#/definitions/CardPaymentMethod'
+              - $ref: '#/definitions/PersonalWalletPaymentMethod'
+              - $ref: '#/definitions/CorpPaymentMethod'
+              - $ref: '#/definitions/ApplePayPaymentMethod'
+              - $ref: '#/definitions/GooglePayPaymentMethod'
+              - $ref: '#/definitions/AddNewCardMethod'
+              - $ref: '#/definitions/OtherPaymentMethod'
+
+        CardPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - name
+              - id
+              - bin
+              - currency
+              - system
+              - number
+              - availability
+              - service_token
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - card
+                name:
+                    $ref: '#/definitions/PaymentMethodName'
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                bin:
+                    type: string
+                currency:
+                    $ref: '#/definitions/Currency'
+                system:
+                    type: string
+                    description: VISA, MasterCard
+                number:
+                    type: string
+                    description: Yes, it is like 447624****6581
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                service_token:
+                    type: string
+                    description: Токен для инициализации PaymentSDK
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+                short_title:
+                    description: Сокращённое отображение метода оплаты в приложении
+                    type: string
+        PersonalWalletPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - name
+              - id
+              - availability
+              - description
+              - currency_rules
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - personal_wallet
+                name:
+                    $ref: '#/definitions/PaymentMethodName'
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                money_left:
+                    $ref: '#/definitions/Decimal'
+                description:
+                    description: money_left_as_str
+                    type: string
+                currency_rules:
+                    $ref: '#/definitions/CurrencyRules'
+                is_complement:
+                    description: |
+                        Признак того, является ли данный способ оплаты второстепенным,
+                        то есть можно ли его использовать в дополнение к другому способу
+                        оплаты, который является основным.
+                    type: boolean
+                complement_attributes:
+                    $ref: '#/definitions/ComplementAttributes'
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+        CorpPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - name
+              - id
+              - currency
+              - availability
+              - description
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - corp
+                name:
+                    $ref: '#/definitions/PaymentMethodName'
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                currency:
+                    $ref: '#/definitions/Currency'
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                description:
+                    description: Arbitrary method example
+                    type: string
+                    example: 203.00 из 6000.00 руб
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+                balance_left:
+                    description: Amount of money left
+                    type: string
+                    example: 203.03
+        ApplePayPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - merchant_id_list
+              - service_token
+              - id
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - applepay
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                merchant_id_list:
+                    type: array
+                    items:
+                        type: string
+                service_token:
+                    type: string
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+        GooglePayPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - merchant_id
+              - service_token
+              - id
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - googlepay
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                merchant_id:
+                    type: string
+                service_token:
+                    type: string
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+        AddNewCardMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - binding_service_token
+              - id
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - add_new_card
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                binding_service_token:
+                    type: string
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+        OtherPaymentMethod:
+            type: object
+            additionalProperties: false
+            required:
+              - type
+              - availability
+              - id
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - cash
+                      - sbp
+                availability:
+                    $ref: '#/definitions/PaymentMethodAvailability'
+                    description: Cash, Sbp
+                id:
+                    $ref: '#/definitions/PaymentMethodId'
+                is_default:
+                    type: boolean
+                    description: Включен ли по дефолту для всех
+
+        PaymentMethodName:
+            description: Human readable payment method name
+            type: string
+            example: Команда Яндекс.Такси
+        PaymentMethodId:
+            description: Идентификатор метода оплаты
+            type: string
+        PaymentMethodAvailability:
+            type: object
+            required:
+              - available
+              - disabled_reason
+            properties:
+                available:
+                    description: true if method can be used, false otherwise
+                    type: boolean
+                disabled_reason:
+                    description: Human readable description of why method is unavailable
+                    type: string
+                    example: Услуга отключена
+                view:
+                    $ref: '#/components/schemas/PaymentMethodView'
+            additionalProperties: false
+        Currency:
+            type: string
+            description: Валюта заказа
+        CurrencyRules:
+            type: object
+            additionalProperties: false
+            properties:
+                code:
+                    description: код валюты
+                    type: string
+                    example: "RUB"
+                sign:
+                    description: символ валюты для отображения
+                    type: string
+                    example: "₽"
+                template:
+                    description: шаблон для текста с этой валютой
+                    type: string
+                    example: "$VALUE$ $SIGN$$CURRENCY$"
+                text:
+                    type: string
+                    example: "руб."
+            required:
+              - code
+              - template
+              - text
+        Decimal:
+            type: string
+            description: Сумма
+            pattern: '^(\d+)(.\d+)?$'
+        ComplementAttributes:
+            description: |
+                Атрибуты метода оплаты, который может выступать в качестве
+                второстепенного.
+            type: object
+            properties:
+                name:
+                    description: Название метода оплаты для окна списка оплат.
+                    type: string
+                compatibility_description:
+                    description: Cтрока с описанием совместимых основных методов оплаты.
+                    type: string
+                payment_types:
+                    description: Список совместимых основных методов оплаты.
+                    type: array
+                    items:
+                        type: string
+            required:
+              - payment_types
+            additionalProperties: false
+            example:
+                name: Плюс - потратить на поездку
+                compatibility_description: Работает с картой или ApplePay
+                payment_types: [card, applepay, googlepay]
+        PaymentMethodView:
+            type: object
+            description: Параметры, которые отвечают за отображение платежного метода
+            required:
+              - can_show
+            properties:
+                can_show:
+                    type: boolean
+                    description: Можно ли показывать этот платежный метод пользователю
+                text:
+                    $ref: '#/components/schemas/ColoredText'
+                button:
+                    $ref: '#/components/schemas/PaymentMethodButton'
+            additionalProperties: false
+        PaymentMethodButton:
+            type: object
+            description: Объект описывает контрол рядом c платежным методом (кнопка/ссылка)
+            required:
+              - title
+              - color
+              - id
+            additionalProperties: false
+            properties:
+                title:
+                    $ref: '#/components/schemas/ColoredText'
+                    description: Текст кнопки
+                deeplink:
+                    type: string
+                color:
+                    $ref: '#/components/schemas/ThemedColor'
+                id:
+                    type: string
+                    description: Идентификатор кнопки (для аналитики)
+        ColoredText:
+            type: object
+            description: Окрашенный текст
+            required:
+              - color
+              - text
+            properties:
+                color:
+                    $ref: '#/components/schemas/ThemedColor'
+                text:
+                    type: string
+            additionalProperties: false
+        ThemedColor:
+            type: array
+            description: |
+                Цвет элемента для разных тем (светлой / темной).
+            items:
+                type: object
+                required:
+                  - theme
+                  - value
+                additionalProperties: false
+                properties:
+                    theme:
+                        $ref: '#/components/schemas/Theme'
+                    value:
+                        $ref: '#/components/schemas/Color'
+        Theme:
+            type: string
+            description: Цветовая тема приложения (светлая / темная).
+            enum:
+              - light
+              - dark
+        Color:
+            type: string
+            example: '#ffffff'
+            description: Цвет элемента.
+
+default: {"default_payment_methods": [{"availability": {"available": true, "disabled_reason": ""},
+            "bin": "424242", "currency": "RUB", "id": "card-x8e000cd57550021906e9ee43",
+            "name": "VISA", "number": "424242****4242", "service_token": "testtoken",
+            "system": "VISA", "type": "card", "is_default": true}, {"availability": {
+                "available": false, "disabled_reason": "Требуется верификация на этом\
+                    \ устройстве"}, "bin": "555555", "currency": "RUB", "id": "card-x8e000cd57550021906e9ee43",
+            "name": "MasterCard", "number": "555555****4444", "service_token": "testtoken2",
+            "system": "MasterCard", "type": "card", "is_default": true}, {"availability": {
+                "available": true, "disabled_reason": ""}, "merchant_id_list": ["merchant.ru.yandex.ytaxi.trust",
+                "merchant.ru.yandex.mobile.development", "merchant.ru.yandex.taxi.develop"],
+            "service_token": "tokenapple", "type": "applepay", "id": "applepay", "is_default": true},
+        {"availability": {"available": true, "disabled_reason": ""}, "merchant_id": "merchant.ru.yandex.ytaxi.trust",
+            "service_token": "google", "type": "googlepay", "id": "googlepay", "is_default": true},
+        {"availability": {"available": true, "disabled_reason": ""}, "binding_service_token": "add_new_card",
+            "type": "add_new_card", "id": "add_new_card", "is_default": false}, {
+            "availability": {"available": false, "disabled_reason": ""}, "type": "cash",
+            "id": "cash", "is_default": false}, {"availability": {"available": true,
+                "disabled_reason": ""}, "type": "sbp", "id": "cash", "is_default": true},
+        {"availability": {"available": true, "disabled_reason": ""}, "currency": "RUB",
+            "description": "", "id": "corp:7c3a629872d944d8b7fad154aff37b14:RUB",
+            "name": "Кабинет для QA Еды", "type": "corp", "is_default": true}, {"availability": {
+                "available": false, "disabled_reason": "нужна подписка на Плюс"},
+            "complement_attributes": {"compatibility_description": "Работает с картой",
+                "name": "Плюс — потратить на поездку", "payment_types": ["card"]},
+            "currency_rules": {"code": "RUB", "sign": "₽", "template": "$VALUE$ $SIGN$$CURRENCY$",
+                "text": "руб."}, "description": "1154", "id": "w/031bb88c-2e53-5f95-a2f6-82b6886c61f2",
+            "is_complement": true, "money_left": "1154", "name": "Плюс", "type": "personal_wallet",
+            "is_default": true}]}

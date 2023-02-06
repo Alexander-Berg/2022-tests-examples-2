@@ -1,0 +1,31 @@
+default: {}
+description: |
+    Параметры разгрузки для грузовых тарифов по зонам и категориям.
+    free_time: время бесплатной разгрузки (в секундах, тип double)
+    max_distance_to_destination: максимальное расстояние (в метрах, тип double) до точки b, при котором можно начать разгрузку
+    Добавляются в сеткар сервисом driver-orders-builder, в поле unloading_config.
+    Формат: {"зона": {"категория" : {"free_time": 1.0, "max_distance_to_destination": 2.0}}}
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/unloading_config_by_category'
+    definitions:
+        unloading_config:
+            type: object
+            properties:
+                free_time:
+                    type: number
+                    format: double
+                max_distance_to_destination:
+                    type: number
+                    format: double
+            required:
+              - free_time
+              - max_distance_to_destination
+            additionalProperties: false
+        unloading_config_by_category:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/unloading_config'
+    example: {'zone1': {'cargo': {'free_time': 1.0, 'max_distance_to_destination': 500.0}}}

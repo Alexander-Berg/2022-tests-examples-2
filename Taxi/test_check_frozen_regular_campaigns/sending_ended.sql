@@ -1,0 +1,20 @@
+INSERT INTO crm_admin.campaign
+(id, entity_type, name, created_at, state, discount, trend, is_regular, is_active)
+VALUES
+(1, '', '', '2022-12-28 10:00:00', 'SCHEDULED', true, '', true, true),
+(2, '', '', '2022-12-28 10:00:00', 'SCHEDULED', true, '', true, true);
+
+
+INSERT INTO crm_admin.schedule
+(campaign_id, final_state, scheduled_for, started_at, finished_at, sending_stats)
+VALUES
+(1, '', '2022-12-28 11:00:00', null, null, '{}'),
+(2, '', '2022-12-28 11:00:00', null, '2022-12-28 12:00:00', '{}');
+
+
+
+INSERT INTO crm_admin.campaign_state_log
+(campaign_id, state_from, state_to, updated_at)
+VALUES
+(1, '', 'SCHEDULED', '2022-12-27 14:58:00'),
+(2, '', 'SCHEDULED', '2022-12-28 12:00:00');

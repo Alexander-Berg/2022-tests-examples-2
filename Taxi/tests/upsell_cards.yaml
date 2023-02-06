@@ -1,0 +1,98 @@
+id: upsell_cards
+title: Проверка апселл-карточек над активными заказами
+
+parameters:
+  - case:
+      - card_objects: [{"type": "order_card", "max_show_count": 10, "statuses": [
+                    "transporting"], "card": {"subtitle": "Азбука вкуса", "title": "Докупить\
+                        \ рыбы", "icon_tag": "some_tag"}, "action": {"deeplink": "yandextaxi://...",
+                    "type": "deeplink"}, "hide_on_action": true, "order_id": "some_order_id",
+                "id": "unique_id_(grocery)"}]
+        response_body: {"modes": [{"layout": {}, "mode": "taxi", "card_objects": [
+                        {"type": "order_card", "max_show_count": 10, "statuses": [
+                                "transporting"], "card": {"subtitle": "Азбука вкуса",
+                                "title": "Докупить рыбы", "icon_tag": "some_tag"},
+                            "action": {"deeplink": "yandextaxi://...", "type": "deeplink"},
+                            "hide_on_action": true, "order_id": "some_order_id", "id": "unique_id_(grocery)"}],
+                    "offers": {"items": [], "header": []}, "parameters": {"product_tag": "taxi",
+                        "available": true}}], "typed_experiments": {"items": []},
+            "products": [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]}
+      - response_body: {"modes": [{"layout": {}, "mode": "taxi", "offers": {"items": [],
+                        "header": []}, "parameters": {"product_tag": "taxi", "available": true}}],
+            "typed_experiments": {"items": []}, "products": [{"tag": "taxi", "service": "taxi",
+                    "title": "Taxi"}]}
+
+source:
+    request:
+        method: post
+        body:
+            position: [1, 2]
+            shortcuts: {"grids_support": [{"width": 6, "unit_width": 54.5}], "supported_features": [
+                    {"type": "taxi:route-input", "services": [], "prefetch_strategies": []}],
+                "ndash_width": 9, "mdash_width": 14}
+    expectations:
+        response:
+            status-code#integer: 200
+            body#xget: /test-params/case/response_body
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+            typed_experiments: {"items": []}
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body#object:
+          - key: card_objects
+            enabled#xhas: /test-params/case/card_objects
+            value#xget: /test-params/case/card_objects
+          - key: offers
+            value: {"items": []}
+          - key: layout
+            value: {}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1

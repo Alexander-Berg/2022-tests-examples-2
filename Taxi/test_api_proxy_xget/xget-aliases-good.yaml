@@ -1,0 +1,50 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+aliases:
+    alias1: some_alias_1
+    alias2#concat-strings:
+      - value#xget: /aliases/alias1
+      - value: "_"
+      - value#xget: /aliases/alias3
+    alias3: some_alias_3
+    alias4#xget: /sources/foo/response/body/foo_key_one
+    alias5#xget: /sources/bar/response/body/bar_key_one
+    alias6#concat-strings:
+      - value#xget: /aliases/alias4
+      - value: "_"
+      - value#xget: /aliases/alias5
+    alias7#xget: /sources/bar/response/body/bar_key_two
+    alias8#xget: /sources/bar/response/body/bar_key_three
+    alias9#xget: /sources/bar/response/body/bar_key_four
+    foo_enabled_alias#source-enabled: foo
+sources:
+  - id: foo
+    body#xget: /aliases/alias5
+    enabled#xget: /aliases/alias9
+    headers:
+        foo_header#xget: /aliases/alias7
+    query:
+        foo_query_param#xget: /aliases/alias8
+    resource: test-resource-one
+    content-type: application/json
+  - id: bar
+    resource: test-resource-two
+    content-type: application/json
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#if:
+        condition#xget: /aliases/foo_enabled_alias
+        then:
+            /aliases/alias1#xget: /aliases/alias1
+            /aliases/alias2#xget: /aliases/alias2
+            /aliases/alias3#xget: /aliases/alias3
+            /aliases/alias4#xget: /aliases/alias4
+            /aliases/alias5#xget: /aliases/alias5
+            /aliases/alias6#xget: /aliases/alias6
+            /aliases/alias7#xget: /aliases/alias7
+            /aliases/alias8#xget: /aliases/alias8
+            /aliases/alias9#xget: /aliases/alias9
+        else:
+            data: foo_disabled

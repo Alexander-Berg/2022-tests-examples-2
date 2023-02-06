@@ -1,0 +1,67 @@
+settings:
+    collection: driver_workshifts
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - expireAfterSeconds: 15552000
+    key: created
+  - key: created_ts
+    sparse: true
+    unique: true
+  - key: date_finish
+  - key:
+      - name: db_id
+        type: ascending
+      - name: driver_profile_id
+        type: ascending
+  - key:
+      - name: driver_id
+        type: ascending
+      - name: date_finish
+        type: ascending
+  - key: updated
+  - key: workshifts_counter
+    sparse: true
+    unique: true
+wiki_info: |
+    #### driver_workshifts
+    *Назначение:* хранит список купленных смен.
+
+    *Структура документа:*
+    ```python
+    driver_workshifts = {
+        'driver_id': 'clid_uuid',  # идентификатор водителя (clid_uuid)
+        'workshifts_counter': 'clid_uuid:7',  # поле, по которому построен уникальный индекс для обеспечения атомарности покупки смен
+        'created': datetime,       # время покупки смены
+        'created_ts': 'mongo::Timestamp', # mongo timestamp создания документа
+        'updated': datetime,       # время обновления смены
+        'date_finish': datetime,   # время окончания купленной смены
+        'offer_id': 'offer_id',    # идектификатор предложения
+        'workshift_id': 'id',      # идентификатор смены
+        'title_key': 'workshift_rule_title.my_title', # ключ имени смены в кейсете taximeter_messages
+        'home_zone': 'moscow',     # будет изведено, для новых смен используйте поле zones
+        'zones': ['moscow'],       # зоны, в которых смена может быть куплена
+        'tariffs': ['econom'],     # тарифы, для которых будет работать смена
+        'price': '1000',           # стоимость смены
+        'without_vat': '954.1234', # стоимость без НДС
+        'park_price': '1954.1234',  # стоимость смены для парка
+        'park_price_without_vat': '1954.1234', # стоимость смены для парка без НДС
+        'hiring_price': '23.223',  # комиссия за найм
+        'hiring_without_vat': '23.223',  # комиссия за найм без НДС
+        'currency': 'RUB',         # валюта
+        'driver_profile_id': 'uuid', #  идентификатор водителя
+        'db_id': 'db_id',          # id базы в таксометре
+        'usages': ['order1'],      # заказы к которым была применена смена
+        'park_contract_currency': {
+          'currency': 'RUB',               # валюта договора парка
+          'price': '1000',                 # стоимость смены в валюте договора парка
+          'without_vat': '954.1234',       # стоимость без НДС в валюте договора парка
+          'park_price': '1954.1234',       # стоимость смены для парка в валюте договора парка
+          'park_price_without_vat': '1954.1234', # стоимость смены для парка без НДС в валюте договора парка
+          'hiring_price': '23.223',        # комиссия за найм в валюте договора парка
+          'hiring_without_vat': '23.223',  # комиссия за найм без НДС в валюте договора парка
+        },
+        # Статус отправки в billing-orders
+        'billing_orders_status': u'success',
+    }
+    ```

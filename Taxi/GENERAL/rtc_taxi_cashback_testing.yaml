@@ -1,0 +1,15 @@
+---
+- service: cashback_transactions_ratelimit_exceeded_testing
+  description: |
+    Превышен рейтлимит походов в /v2/cashback/update сервиса transactions
+    конфиг на управление поведением CASHBACK_CASHBACK_UPDATE_RETRY_DELAY
+    В случае проблем обращаться к shchesnyak@, jolfzverb@, danielkono@
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing", service="app", application="cashback_stq3", http_destination="http://transactions.taxi.tst.yandex.net/v2/cashback/update-POST", group="taxi_cashback_testing", sensor="httpclient.response", http_code="429", host="cluster"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Sum
+    comparison: GT
+    threshold: 1
+    targetStatus: ALARM

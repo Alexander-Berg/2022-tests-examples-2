@@ -1,0 +1,224 @@
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,  
+    created_at, 
+    updated_at, 
+    is_active,
+    group_id
+)
+VALUES
+(
+    'p1',
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE,
+    NULL
+),
+(
+    'p2',
+    2,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    TRUE,
+    NULL
+);
+
+INSERT INTO signal_device_api.events
+(
+    id,
+    public_event_id,
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    event_at,
+    event_type,
+    park_id,
+    resolution
+)
+VALUES 
+-- To simplify: values grouped by park_id and ordered by DESC
+-- p1
+-- 2020
+-- April in +03
+-- 27 day in +03
+(
+    1,
+    '4213d7ec-gggg-llll-94a8-11dbv8ae404c',
+    1,
+    '2020-04-27T23:00:00+03',
+    '2020-04-27T23:00:00+03',
+    '5120466elko331b3a7d35c585983076a',
+    '2020-04-27T23:00:00+03',
+    'driver_lost',
+    'p1',
+    NULL
+),
+(
+    2,
+    '1233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    1,
+    '2020-04-27T13:00:00+03',
+    '2020-04-27T13:00:00+03',
+    'zzzzz6elko331b3a7d35c585983076a',
+    '2020-04-27T13:10:00+03',
+    'sleep',
+    'p1',
+    'hide'
+),
+(
+    3,
+    '44b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    2,
+    '2020-04-27T12:00:00+03',
+    '2020-04-27T12:00:00+03',
+    '7faebfa97bfafe293023a41a49250ac3',
+    '2020-04-27T12:43:11+03',
+    'fart',
+    'p1',
+    NULL
+),
+(
+    4,
+    '5233d7ec-xxxx-cccc-94a8-11dbv8ae404c',
+    2,
+    '2020-04-27T00:00:00+03',
+    '2020-04-27T00:00:00+03',
+    '0ef0466elko331b3a7d35c585983076a',
+    '2020-04-27T00:00:00+03',
+    'sleep',
+    'p1',
+    NULL
+),
+-- 1 day in +03
+(
+    5,
+    '555lllll-zzzz-tttt-94a8-salamaaley',
+    1,
+    '2020-04-01T11:00:00+03',
+    '2020-04-01T11:00:00+03',
+    'zzzzz66elko331b3a7d35c585983076a',
+    '2020-04-01T11:00:00+03',
+    'distraction',
+    'p1',
+    NULL
+),
+(
+    6,
+    '5553d7ec-xxxx-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-04-01T00:00:00+03',
+    '2020-04-01T00:00:00+03',
+    'xxxxx66elko331b3a7d35c585983076a',
+    '2020-04-01T00:00:00+03',
+    'distraction',
+    'p1',
+    NULL
+),
+-- March in +03
+-- 30 day in +03
+(
+    7,
+    '555lllll-zzzz-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-03-30T11:00:00+03',
+    '2020-03-30T11:00:00+03',
+    'zzzzzdsdsa7d35c585983076a',
+    '2020-03-30T11:00:00+03',
+    'sleep',
+    'p1',
+    NULL
+),
+(
+    8,
+    '5553d7ec-lllx-xxxx-94a8-11dbv8ae404c',
+    1,
+    '2020-03-30T00:00:00+03',
+    '2020-03-30T00:00:00+03',
+    'yyyxx66elko331b3a7d35c585983076a',
+    '2020-03-30T00:00:00+03',
+    'distraction',
+    'p1',
+    NULL
+),
+-- February
+-- 3 day in +03
+(
+    9,
+    '555llaaa-zzzz-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-02-03T11:00:00+03',
+    '2020-02-03T11:00:00+03',
+    'zsdgh66elko331b3a7d35c585983076a',
+    '2020-02-03T11:00:00+03',
+    'sleep',
+    'p1',
+    NULL
+),
+(
+    10,
+    '6663d7ec-lllx-xxxx-94a8-11dbv8ae404c',
+    1,
+    '2020-02-03T00:00:00+03',
+    '2020-02-03T00:00:00+03',
+    'yyyxxxxazo331b3a7d35c585983076a',
+    '2020-02-03T00:00:00+03',
+    'distraction',
+    'p1',
+    NULL
+),
+-- 2 day in (IMPORTANT) +00
+(
+    11,
+    'gasslll-zzzz-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-02-02T23:00:00+00',
+    '2020-02-02T23:00:00+00',
+    'k21ls66elko331b3a7d35c585983076a',
+    '2020-02-02T23:00:00+00',
+    'sleep',
+    'p1',
+    NULL
+),
+-- January
+-- 1 day
+(
+    12,
+    'galmsns-lllx-xxxx-94a8-11dbv8ae404c',
+    1,
+    '2020-01-01T00:00:00+03',
+    '2020-01-01T00:00:00+03',
+    '111426elko331b3a7d35c585983076a',
+    '2020-01-01T00:00:00+03',
+    'seatbelt', -- By default WEB_WHITELIST is not shown
+    'p1',
+    NULL
+),
+-- p2
+-- 2020-02-27 in +03
+(
+    13,
+    'oooodddd-xxxx-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+03',
+    '2020-02-27T13:00:00+03',
+    'ooooo66elko331b3a7d35c585983076a',
+    '2020-02-27T00:00:00+03',
+    'distraction',
+    'p2',
+    NULL
+),
+(
+    14,
+    'ffoodddd-xxxx-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:02+03',
+    '2020-02-27T13:00:02+03',
+    'ffooo66elko331b3a7d35c585983076a',
+    '2020-02-27T00:00:00+03',
+    'distraction',
+    'p2',
+    'delete'
+);

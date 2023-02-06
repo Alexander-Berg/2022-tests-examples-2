@@ -1,0 +1,36 @@
+id: test_protocol_fallback
+title: Сервис routestats в фолбеке, переключаемся на protocol
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                iam: 'protocol'
+
+experiments:
+    values#object:
+      - key: api_proxy_use_new_routetestats
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-routestats
+    response:
+        status-code: 200
+        body:
+            iam: 'protocol'
+    expectations:
+        request:
+            body:
+                id: 'user_id'
+  - resource: routestats-v1-routestats
+    exception: fallbacking
+    expectations:
+        request:
+            body:
+                id: 'user_id'

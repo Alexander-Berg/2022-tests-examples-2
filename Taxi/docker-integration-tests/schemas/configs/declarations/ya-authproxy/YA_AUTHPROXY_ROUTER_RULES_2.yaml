@@ -1,0 +1,95 @@
+default: []
+description: |
+    Правила роутинга запросов в сервисе ya-authproxy.
+    Подробнее про формат см. https://wiki.yandex-team.ru/taxi/backend/api-4.0/#vkljucheniesvoejjruchkivtestinge/prode
+tags: [notfallback]
+# TODO: schema must be the same as PASS_AUTH_ROUTE_RULES_2
+#       until definitions.yaml works with configs
+maintainers: [segoon, dzhuk]
+schema:
+    type: array
+    items:
+        type: object
+        additionalProperties: false
+        required:
+          - prefix
+          - to
+          - server-hosts
+          - tvm-service
+        properties:
+            prefix:
+                type: string
+            to:
+                type: string
+            probability-percent:
+                type: integer
+                minimum: 0
+                maximum: 100
+            proxy-401:
+                type: boolean
+            allow-dbusers-authorized:
+                type: boolean
+            check-user-id-in-db:
+                type: boolean
+            parse-user-id-from-jwt:
+                type: boolean
+            check-session-id-cookie:
+                type: boolean
+            check-eats-php-session-id:
+                type: boolean
+            allow-late-login:
+                type: boolean
+            user-id-generator:
+                type: boolean
+            stable:
+                type: boolean
+            timeout-ms:
+                type: integer
+                minimum: 1
+                x-taxi-cpp-type: std::chrono::milliseconds
+            attempts:
+                type: integer
+                minimum: 1
+            tvm-service:
+                type: string
+            server-hosts:
+                type: array
+                items:
+                    type: string
+            cookie-enabled:
+                type: boolean
+            cookies-to-proxy:
+                description: |
+                    имена cookies, которые разрешено пробрасывать
+                    до бекенда
+                type: array
+                items:
+                    type: string
+            parse-user-id-from-body:
+                type: boolean
+            passport-scopes:
+                type: array
+                items:
+                    type: string
+            phone-validation-rule:
+                $ref: '#/definitions/PhoneValidationRule'
+            personal:
+                type: object
+                properties:
+                    phone_id:
+                        type: boolean
+                    email_id:
+                        type: boolean
+                    bounded_uids:
+                        type: boolean
+                    need_eats_user_info:
+                        type: boolean
+                additionalProperties: false
+    definitions:
+        PhoneValidationRule:
+            type: string
+            enum:
+              - strict
+              - proxy
+              - disabled
+            default: disabled

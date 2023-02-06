@@ -1,0 +1,54 @@
+---
+# дропы входящего сетевого трафика (в штуках за интервал сбора - 15 сек)
+- service: rx_drops
+  alert_type: threshold
+  selectors: |
+    { project="taxi", cluster="testing", service="sys",
+    path="/Net/Ifs/RxDrop", intf="eth0", host!="cluster|Man|Sas|Vla|Myt|Iva",
+    group="taxi_test_srv*" }
+  period: 60
+# нехватка ЦПУ (процент использования > порога)
+  predicateRules:
+  - timeAggregation: All
+    comparison: GT
+    threshold: 10
+    targetStatus: ALARM
+- service: out_of_cpu
+  alert_type: expression
+  program: |
+    let idle = {project="taxi", cluster="testing", service="sys",
+        host!="cluster|Man|Sas|Vla|Myt|Iva", group="taxi_test_srv*",
+        path="/System/IdleTime", cpu="all"};
+    let total = group_lines("sum", {project="taxi", cluster="testing",
+        service="sys", host!="cluster|Man|Sas|Vla|Myt|Iva",
+        group="taxi_test_srv*", path="/System/*", cpu="all"});
+    let used = avg((1 - idle / total) * 100);
+  checkExpression: used > 90
+  period: 300
+# нехватка памяти (процент занятой > порога)
+- service: out_of_memory
+  alert_type: expression
+  program: |
+    let available = {project="taxi", cluster="testing", service="sys",
+        host!="cluster|Man|Sas|Vla|Myt|Iva", group="taxi_test_srv*",
+        path="/Memory/MemAvailable"};
+    let total = {project="taxi", cluster="testing", service="sys",
+        host!="cluster|Man|Sas|Vla|Myt|Iva", group="taxi_test_srv*",
+        path="/Memory/MemTotal"};
+    let used = avg((1 - available / total) * 100);
+  checkExpression: used > 95
+  period: 300
+# перегруженность ядра прерываниями
+# /System/IrqTime в мс за 1 сек
+- service: cpu_overload_by_interrupts
+  alert_type: threshold
+  selectors: |
+    { project='taxi', cluster='testing', service='sys',
+    path='/System/IrqTime', host!='cluster|Man|Sas|Vla|Myt|Iva', cpu!='all',
+    group='taxi_test_srv|taxi_test_srv_l3|taxi_test_srv_analytics_l3|taxi_test_srv_buildagents' }
+  period: 300
+  predicateRules:
+  - timeAggregation: Avg
+    comparison: GT
+    threshold: 800
+    targetStatus: ALARM

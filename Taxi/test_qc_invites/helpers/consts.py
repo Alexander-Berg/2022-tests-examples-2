@@ -1,0 +1,6 @@
+BASE_PATH = 'qc-invites'
+INVITE_URL = f'/admin/{BASE_PATH}/v1/invite'
+FIND_URL = f'/admin/{BASE_PATH}/v1/find'
+INVITE_ENTITIES_URL = f'/admin/{BASE_PATH}/v1/entities'
+INVITE_INFO_URL = f'/api/{BASE_PATH}/v1/invite_info'
+SETTINGS_URL = f'/admin/{BASE_PATH}/v1/settings'

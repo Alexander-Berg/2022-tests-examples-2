@@ -1,0 +1,133 @@
+id: order_sbp_widget
+title: Проверка выдачи информации по виджету и нотификации клиенту
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                notifications#object:
+                  - key: top_notifications
+                    value#array:
+                      - value#object:
+                          - key: id
+                            value#string: notification_id
+                          - key: text
+                            value#string: Оплата прошла
+                          - key: icon_tag
+                            value#string: some_icon_tag_notifications
+                  - key: order_status_window
+                    value#object:
+                      - key: id
+                        value#string: modal_window_id
+                      - key: title
+                        value#string: some_title
+                      - key: text
+                        value#string: some_text
+                sbp_widget#object:
+                  - key: icon_tag
+                    value#string: some_icon_tag_widget
+                  - key: deadline_timestamp
+                    value: 1234
+                  - key: service_token
+                    value#string: service_token
+                higher_class_dialog:
+                    image: class_comfortplus_car
+                    text: some_text
+                    title: some_title
+                    class_after_upgrade: comfortplus
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+    TAXI_PAYMENTS_SBP_SHOW_TOTW_STATUSES:
+      - driving
+
+experiments:
+    values#object:
+      - key: sbp_totw_promotion
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: user_id
+            higher_class_dialog:
+                image: class_comfortplus_car
+                title: some_title
+                text: some_text
+                class_after_upgrade: comfortplus
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: order-sbp-v1-widget
+    response:
+        status-code: 200
+        body:
+            widget:
+                icon_tag: some_icon_tag_widget
+                deadline_timestamp: 1234
+                service_token: service_token
+            modal_window:
+                id: modal_window_id
+                title: some_title
+                text: some_text
+            notifications:
+              - id: notification_id
+                text: Оплата прошла
+                icon_tag: some_icon_tag_notifications
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                order_id: order_id
+                plan_transporting_time_sec: 123
+                status_updates:
+                  - created: '1647551198516'
+                    reason: 'requestconfirm_waiting'
+                  - created: '1647551198916'
+                    reason: 'requestconfirm_transporting'
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                nz: moscow
+                driver_id: driver_id_1
+                status_updates:
+                  - created: '1647551198516'
+                    reason: 'requestconfirm_waiting'
+                  - created: '1647551198916'
+                    reason: 'requestconfirm_transporting'
+            request:
+                route: ['geopoint': [37.5, 57.5], 'geopoint': [37.8, 59.7]]
+            tariff:
+                class: comfortplus
+            status: driving
+            payment:
+                type: sbp
+            calc:
+                time: 123
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1

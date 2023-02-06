@@ -1,0 +1,55 @@
+INSERT INTO logistic_supply_conductor.workshift_slots
+    (workshift_slot_id, workshift_rule_version_id, stored_geoarea_id,
+    siblings_group_id, week_day, time_start, time_stop, quota_ref_id)
+VALUES
+(
+    '76a3176e-f759-44bc-8fc7-43ea091bd68b',
+    3,
+    1,
+    1,
+    'wednesday',
+    '2033-04-06T08:00:00Z',
+    '2033-04-06T20:00:00Z',
+    1
+),
+(
+    'a278134c-49f2-48bc-b9b6-941c76650508',
+    3,
+    1,
+    1,
+    'friday',
+    '2033-04-08T08:00:00Z',
+    '2033-04-08T20:00:00Z',
+    2
+),
+(
+    '2bb2deea-7892-4d47-a43b-b9bf2a99f5b3',
+    3,
+    1,
+    1,
+    'sunday',
+    '2033-04-10T08:00:00Z',
+    '2033-04-10T20:00:00Z',
+    3
+),
+/* should not show up anywhere */
+(
+    '57079d82-fabd-4e70-9961-09a4733bbc57',
+    2,
+    1,
+    1,
+    'sunday',
+    '2033-04-10T08:00:00Z',
+    '2033-04-10T20:00:00Z',
+    3
+),
+(
+    'a4e20684-fd40-490c-b6ac-faf0ee074b89',
+    1,
+    1,
+    1,
+    'sunday',
+    '2033-04-10T08:00:00Z',
+    '2033-04-10T20:00:00Z',
+    3
+);

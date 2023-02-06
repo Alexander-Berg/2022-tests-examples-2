@@ -1,0 +1,190 @@
+<head>
+    <script src="http://yastatic.net/jquery/1.4.2/jquery.min.js"></script>
+</head>
+<h1>Good News everyone</h1>
+
+
+<div onclick="javascript: $('#about').toggle();"><span style="color: blue; border-bottom: blue 1px dashed;">описание</span></div>
+<div id="about" style="display:none;">
+<p>  основной принцип хороших новостей -- не быть плохими, отсекаем
+cмерти , убийства, теракты, жертвы, ДТП, атаки,  избиения, ранения, и прочюю агрессию<br/>
+бытовые проблемы - поджоги, пожары, отравления, реанимации, <br/>
+негативную деятельность нашей полиции -задержания, аресты<br />
+</p>
+
+<p>
+про интерфейс,
+<br />
+F1 -  эффективность половины обучающей выборки - в процентах -- стремиммся к 99%<br /> 
+<br />
+<img src="http://jing.yandex-team.ru/files/mellior/2012-04-03_1306.png" />
+<br />
+черные записи -- не оценненые пользователем<br/>
+цвет строчки -- наша оценка для обучения<br/> 
+красные и зеленые полосочки - вероятное ражированием (по 10 испытаниям)<br/>
+красный или зеленый квадратик - финальное решение с помощью всей обучающей выборке<br />
+синий блок - количество ошибок которые вызвала запись при обучении на половинных выборках
+</p>
+</div>
+
+<style>
+    .i-good {
+        color: #0a0;
+    }
+    .i-bad {
+        color: #a00;
+    }
+
+    ul {list-style: none;}
+    li {list-style: none; margin: 0 10px; padding: 0;}
+    .b-predicts {
+        width: 100%;
+        overflow: hidden;
+    }
+    .b-predict {
+        float: left;
+        width: 4px;
+        display: block;
+        height: 4px;
+    }
+    .b-predict-full {
+        height: 5px;
+        border: solid black 1px;
+    }
+    .b-predict-g { background: green; }
+    .b-predict-b { background: red; }
+    .b-predict-error { background: blue;  }
+
+    .i-text span { border-bottom: 1px solid #fff;}
+    .i-text .i-word-bad-9 { border-color: #f22; }
+    .i-text .i-word-bad-8 { border-color: #f22; }
+    .i-text .i-word-bad-7 { border-color: #f22; }
+    .i-text .i-word-bad-6 { border-color: #f44; }
+    .i-text .i-word-bad-5 { border-color: #f88; }
+    .i-text .i-word-bad-4 { border-color: #eaa; }
+    .i-text .i-word-bad-3 { border-color: #dbb; } 
+    .i-text .i-word-bad-2 { border-color: #ccc; }
+    .i-text .i-word-bad-1 { border-color: #ddd; }
+
+</style>
+</style>
+
+<div id="result">
+    [% FOREACH key IN train_res.keys %]
+    <li>[% key %]: <span id="[% key %]-prc">[% train_res.$key.prc %]</span>
+    </li>
+    [% END %]
+</div>
+
+[% BLOCK NewsLiItem %]
+        <li class="[% IF item.user AND item.user > 0 %]i-good[% ELSIF item.user AND item.user < 0 %]i-bad[% END %]">
+            <div class="b-predicts">
+            [% IF item.predict %]
+                [% FOREACH pr IN item.predict %]
+                    <div class="b-predict b-predict-[% pr %]"></div>
+                [% END %]
+            [% END %]
+            [% IF item.predict_errors %]
+                [% FOREACH err_cx IN [ 1 .. item.predict_errors ] %]
+                    <div class="b-predict b-predict-error"> </div>
+                [% END %]
+            [% END %]
+            [% IF item.predict_full %]
+                    <div class="b-predict b-predict-full b-predict-[% item.predict_full %]"></div>
+            [% END %]
+            </div>
+            <div class="b-text">
+                [<a href="#" class="b-make-good">GOOD</a>]
+                [<a href="#" class="b-make-bad">BAD</a>]
+                [<a href="#" class="b-del">x</a>]
+                <span class="i-text" alt="[% item.text %]">[% IF item.warm_text %][% item.warm_text %][% ELSE %][% item.text %][% END %]</span>
+            </div>
+        </li>
+ 
+[% END %]
+
+
+<div id="all_news">
+    <div id="current-news">
+        [% FOREACH region IN current_news.keys %]
+        <h4>Current: [% region %]</h4>
+        <div>
+            [% FOREACH item IN current_news.$region.values %]
+                [% PROCESS NewsLiItem item = item %]
+            [% END %]
+        </div>
+        [% END %]
+    </div>
+
+    <h4>New ones</h4>
+    <div class="b-new">
+        [% FOREACH item IN news %]
+            [% NEXT IF item.user %]
+            [% PROCESS NewsLiItem item = item %]
+        [% END %]
+    </div>
+    <h4>Rnked ones</h4>
+    <div class="b-ranked">
+        [% FOREACH item IN news %]
+            [% NEXT UNLESS item.user %]
+            [% PROCESS NewsLiItem item = item %]
+        [% END %]
+    </div>
+</div>
+
+<script>
+    function mark_bad (){
+        mark( this, 'bad' );
+        return false;
+    }
+    function mark_good(){
+        mark( this, 'good' );
+        return false;
+    }
+    function del_item(){
+        mark( this, 'del' );
+        return false;
+    }
+    function mark( obj, type ){
+        var item = $( obj ).parent();
+        var text = item.find('.i-text').attr('alt');
+
+        console.log("obj", text, type);        
+        jQuery.ajax({
+            url: "/test/good/ajax/",
+            method: 'get',
+            cache: false,
+            data: {
+                text: text,
+                type: type,
+            },
+            dataType: 'json',
+            success: function( data ){
+                console.log('ajax ok', data);
+                if( data.mark ){
+                    $(item).removeClass('i-good i-bad').addClass('i-' + data.mark ); 
+                }
+                if( data.mark == 'del' ){
+                    $(item).parent().remove();
+                }
+
+                for( var Fn in data.train ){
+                    $('#' + Fn + '-prc').html( data.train[Fn].prc );
+                }
+
+                
+            },
+        });
+
+    }
+
+    $( function() {
+        $("#all_news a.b-make-good" ).bind('click', mark_good );
+        $("#all_news a.b-make-bad" ).bind('click', mark_bad );
+        $("#all_news a.b-del" ).bind('click', del_item );
+    } );
+
+
+</script>
+
+

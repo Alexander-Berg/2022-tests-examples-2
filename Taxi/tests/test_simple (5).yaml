@@ -1,0 +1,73 @@
+id: test_simple
+title: Проверяем что был поход в модификатор с ответом коры
+
+source:
+    request:
+        method: get
+        query:
+            shippingType: delivery
+            deliveryTime: 2022-06-01T00:00:00+03:00
+            foo: bar
+        url: /api/v2/menu/retrieve/ccc
+        headers:
+            X-aaa: x-bbb
+            X-Device-Id: deice_id
+            X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+    expectations:
+        response:
+            status-code: 200
+            body:
+                resp: data
+
+mocks:
+  - resource: eats-core-menu-retrieve
+    response:
+        status-code: 200
+        body:
+            resp1: data1
+    expectations:
+        call-count: 1
+        request:
+            query:
+                shippingType: delivery
+                deliveryTime: 2022-06-01T00:00:00+03:00
+                foo: bar
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+  - resource: eats-restaurant-menu-modify
+    response:
+        status-code: 200
+        body:
+            resp: data
+    expectations:
+        call-count: 1
+        request:
+            query:
+                shippingType: delivery
+                deliveryTime: 2022-06-01T00:00:00+03:00
+                foo: bar
+            body:
+                resp1: data1
+                slug: ccc
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+experiments:
+    values#object:
+      - key: do_modify_eats_restaraunt_menu_exp
+        value:
+            enabled: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: device_id
+            type: string
+            value: deice_id
+          - key: personal_phone_id
+            type: string
+            value: phone_id

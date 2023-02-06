@@ -1,0 +1,319 @@
+openapi: 3.0.0
+info:
+    title: Hejmdal collect data API
+    description: Handlers for collecting data
+    version: '1.0'
+x-taxi-middlewares:
+    tvm: true
+x-taxi-client-qos:
+    taxi-config: HEJMDAL_CLIENT_QOS
+paths:
+    /v1/test-data/save:
+        post:
+            summary: Сохранить временные ряды для заданного circuit_id.
+            parameters:
+              - in: header
+                name: X-Yandex-Login
+                required: false
+                schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SaveDataRequestBody'
+            responses:
+                '200':
+                    description: Ok
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Circuit not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-data/create:
+        post:
+            summary: Создать тестовые данные и сохранить их в базу
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertTestDataRequestBody'
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertTestDataResponse'
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-data/read:
+        post:
+            summary: Полчить тестовые данные по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тестовых данных
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RetrieveTestDataResponse'
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test data is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-data/update:
+        put:
+            summary: Обновить тестовые данные по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тестовых данных
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertTestDataRequestBody'
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertTestDataResponse'
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test data is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-data/delete:
+        delete:
+            summary: Удалить тестовые данные по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тестовых данных
+            responses:
+                '200':
+                    description: Ok
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test data is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-data/list:
+        post:
+            summary: Получить упорядоченный по id список id, schema_id и описаний
+                тестовых данных
+            parameters:
+              - in: query
+                name: schema_id
+                description: Идентификатор схемы, для которой необходимо получить
+                    список тестовых данных. Если не указан, получить список для всех
+                    схем
+                schema:
+                    type: string
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestDataList'
+
+
+components:
+    schemas:
+        TargetState:
+            type: string
+            enum:
+              - Ok
+              - Warning
+              - Critical
+              - Compute
+        SaveDataRequestBody:
+            type: object
+            additionalProperties: false
+            required:
+              - circuit_id
+              - precedent_time
+            properties:
+                circuit_id:
+                    type: string
+                    description: id циркута
+                out_point_id:
+                    type: string
+                    description: id выхода
+                precedent_time:
+                    type: string
+                    format: date-time
+                    description: время алерта
+                duration_after_min:
+                    description: Длительность после момента precedent_time, дефолт
+                        в конфиге HEJMDAL_TEST_DATA_SAVER
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::minutes
+                duration_before_min:
+                    description: Длительность до момента precedent_time (не считая
+                        истории) в минутах, дефолт в конфиге HEJMDAL_TEST_DATA_SAVER
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::minutes
+                target_state:
+                    $ref: '#/components/schemas/TargetState'
+                alert_state:
+                    type: string
+                    description: Состояние, которое было при алерте
+                how_bad_is_it:
+                    type: string
+                    description: Насколько все плохо
+                reason:
+                    type: string
+                    description: Что не так с алертом
+        UpsertTestDataRequestBody:
+            type: object
+            additionalProperties: false
+            required:
+              - schema_id
+              - description
+              - entry_point_inputs
+            properties:
+                schema_id:
+                    type: string
+                    description: Идентификатор схемы
+                description:
+                    type: string
+                    description: Описание данных
+                entry_point_inputs:
+                    $ref: '../definitions.yaml#/definitions/EntryPointInputs'
+        UpsertTestDataResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - test_data_id
+              - start_time
+              - end_time
+            properties:
+                test_data_id:
+                    type: integer
+                    description: Идентификатор созданых тестовых данных
+                start_time:
+                    type: string
+                    format: date-time
+                    description: Начало интервала тестовых данных
+                end_time:
+                    type: string
+                    format: date-time
+                    description: Конец интервала тестовых данных
+        RetrieveTestDataResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - schema_id
+              - description
+              - test_data
+              - start_time
+              - end_time
+            properties:
+                schema_id:
+                    type: string
+                    description: Идентификатор схемы
+                description:
+                    type: string
+                    description: Описание данных
+                test_data:
+                    type: array
+                    description: Данные enrty_point-ов в формате JSON
+                    items:
+                        $ref: '../definitions.yaml#/definitions/NamedTimeSeries'
+                start_time:
+                    type: string
+                    format: date-time
+                    description: Начало интервала тестовых данных
+                end_time:
+                    type: string
+                    format: date-time
+                    description: Конец интервала тестовых данных
+        TestDataListItem:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - description
+              - schema_id
+            properties:
+                id:
+                    type: integer
+                    description: Идентификатор тестовых данных
+                description:
+                    type: string
+                    description: Описание данных
+                schema_id:
+                    type: string
+                    description: Идентификатор схемы
+                test_case_ids:
+                    type: array
+                    description: Идентификаторы тест кейсов
+                    items:
+                        type: integer
+                        x-taxi-cpp-type: std::uint32_t
+        TestDataList:
+            type: object
+            additionalProperties: false
+            required:
+              - test_data_items
+            properties:
+                test_data_items:
+                    type: array
+                    description: Информация о тестовых данных
+                    items:
+                        $ref: '#/components/schemas/TestDataListItem'

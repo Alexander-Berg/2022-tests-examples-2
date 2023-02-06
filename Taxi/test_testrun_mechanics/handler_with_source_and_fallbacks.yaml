@@ -1,0 +1,50 @@
+default-response: resp-ok
+enabled: true
+sources:
+  - id: test-resource
+    content-type: application/json
+    resource: resource
+    body:
+        value: 1234
+    fail-policy:
+      - selector: timeout
+        action: fallback
+        fallback: resource-timeout
+      - selector: fallbacking
+        action: fallback
+        fallback: resource-fallbacking
+      - selector: tech
+        action: fallback
+        fallback: resource-tech
+      - selector: source_validation
+        action: fallback
+        fallback: resource-source_validation
+      - selector: rps-limit-breach
+        action: fallback
+        fallback: resource-rps-limit-breach
+fallbacks:
+  - id: resource-timeout
+    status-code: 408
+    body:
+        message: timeout
+  - id: resource-fallbacking
+    status-code: 200
+    body:
+        message: fallbacking
+  - id: resource-tech
+    status-code: 503
+    body:
+        message: tech
+  - id: resource-source_validation
+    status-code: 400
+    body:
+        message: source_validation
+  - id: resource-rps-limit-breach
+    status-code: 429
+    body:
+        message: rps-limit-breach
+responses:
+  - id: resp-ok
+    content-type: application/json
+    status-code#xget: /sources/test-resource/response/status-code
+    body#xget: /sources/test-resource/response/body

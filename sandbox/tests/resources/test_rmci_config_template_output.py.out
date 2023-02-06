@@ -1,0 +1,73 @@
+# -*- coding: utf-8 -*-
+
+
+from sandbox.projects.release_machine.components import configs
+from sandbox.projects.release_machine.components.config_core.jg.preset import apphost_vertical_presets
+from sandbox.projects.release_machine.core import releasable_items as ri
+
+
+RESOURCES = [
+    "HORIZON_AGENT_CONFIG_TESTFUL",
+    "APP_HOST_STABLE_BRANCH_TESTFUL",
+]
+
+
+class DireStraitsCfg(configs.ReferenceCIConfig):
+
+    component_group = "apphost_verticals"
+    name = "dire_straits"
+
+    responsible = configs.Responsible(
+        abc=configs.Abc(service_name="direstraits"),
+        login="mark_knopfler",
+    )
+
+    class JG(apphost_vertical_presets.ApphostVerticalJGCfg):
+        vertical_name = "testful"
+
+    class CI(configs.ReferenceCIConfig.CI):
+        a_yaml_dir = "apphost/conf/verticals/TESTFUL"
+        secret = "sec-01desry8fbgvnkbeybem81ferv"
+        sb_owner_group = "DIRESTRAITS"
+
+        ya_make_abs_paths_glob = [
+            "apphost/conf/verticals/TESTFUL/**",
+        ]
+
+    class Releases(configs.ReferenceCIConfig.Releases):
+
+        @property
+        def releasable_items(self):  # type: () -> List[ri.AbstractReleasableItem]
+            return [
+                ri.ReleasableItem(
+                    name=resource.lower(),
+                    data=ri.SandboxResourceData(resource, ttl=90),
+                    deploy_infos=[
+                        ri.NannyDeployInfo(
+                            ri.DeployService("hammersmith_odeon"),
+                            dashboards=["hammersmith_odeon_dashboard"],
+                        ),
+                    ],
+                ) for resource in RESOURCES
+            ]
+
+        allow_robots_to_release_stable = True
+
+    class SvnCfg(configs.ReferenceCIConfig.SvnCfg):
+        branch_name = "apphost/conf/testful"
+        tag_name = "apphost/conf/testful"
+
+    class Notify(configs.ReferenceCIConfig.Notify):
+        class Startrek(configs.ReferenceCIConfig.Notify.Startrek):
+            assignee = "mark_knopfler"
+            queue = "DS"
+            summary_template = u"Приемка графов TESTFUL {}"
+            add_commiters_as_followers = True
+            use_task_author_as_assignee = False
+            deadline = 7
+
+    class ChangelogCfg(configs.ReferenceCIConfig.ChangelogCfg):
+        wiki_page = ""
+        observed_paths = [
+            "arcadia/apphost/conf/verticals/TESTFUL",
+        ]

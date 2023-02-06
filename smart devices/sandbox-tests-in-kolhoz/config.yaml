@@ -1,0 +1,31 @@
+# Teamcity: https://teamcity.yandex-team.ru/project.html?projectId=YandexTvHome_Tests_Kolhoz&tab=projectOverview&branch_YandexTvHome_Tests_Kolhoz=%3Cdefault%3E
+templates:
+  - smart_devices/android/tv/ci/regression_tests_template.yaml
+
+config:
+  name:
+    TV:Home:Regression Tests in kolhoz
+  runner_version:
+    2022.07.28-9784758
+stages:
+  regression_tests:
+    <<: *basic
+    <<: *lxc_with_api25_28
+    cmd:
+      - python3 -m pip install requests --user
+      - >
+        python3 -u tv/ci/ui-tests/run_tests.py
+        --product="%env.PRODUCT%"
+        --branch="%env.BRANCH%"
+        --droideka_url="%env.DROIDEKA_URL%"
+        --test_suite="%env.TEST_SUITE%"
+        --test_class="%env.TEST_CLASS%"
+        --kolhoz_device_id="%env.KOLHOZ_DEVICE%"
+        --testpalm_report="%env.SEND_TESTPALM_REPORT%"
+    artifacts:
+      +tv/home-app/app/build/reports/marathon/*: marathon
+      +tv/ci/ui-tests/build/logs/*: logs
+      +tv/ci/ui-tests/build/ANR/*: ANR
+      +tv/ci/ui-tests/build/screenshots/app_spoon-screenshots/*: screenshots
+    junit:
+      - tv/home-app/app/build/reports/marathon/tests

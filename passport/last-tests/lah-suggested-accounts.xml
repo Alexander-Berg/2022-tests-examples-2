@@ -1,0 +1,498 @@
+<test>
+
+    <variables>
+
+        <path>
+            <instance id="suggested_accounts">suggested_accounts</instance>
+            <instance id="suggested_accounts_show_and_postpone">suggested_accounts/show_and_postpone</instance>
+            <instance id="suggested_accounts_close">suggested_accounts/close</instance>
+        </path>
+
+        <cgi name="multi">
+            <instance id="yes">yes</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <cgi name="popup">
+            <instance id="yes">yes</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <cgi name="yu">
+            <instance id="yu1">some_yandexuid_1</instance>
+            <instance id="yu2">some_yandexuid_2</instance>
+        </cgi>
+
+        <cgi name="postpone_delay">
+            <instance id="malformed">qwerty</instance>
+            <instance id="malformed2">-42</instance>
+            <instance id="2min">120</instance>
+            <instance id="12hours">43200</instance>
+            <instance id="2weeks">1209600</instance>
+            <instance id="1year">31536000</instance>
+        </cgi>
+
+        <cookie name="yandexuid">
+            <instance id="yu1">some_yandexuid_1</instance>
+            <instance id="yu2">some_yandexuid_2</instance>
+        </cookie>
+
+        <cookie name="lah" func="genlah" pregeneration="1">
+            <instance id="one">
+                <arg name="version">2</arg>
+                <arg name="row">70497;100500;1</arg>
+            </instance>
+            <instance id="two">
+                <arg name="version">2</arg>
+                <arg name="row">70497;100500;1</arg>
+                <arg name="row">70500;100501;0</arg>
+            </instance>
+            <instance id="uid_not_found">
+                <arg name="version">2</arg>
+                <arg name="row">0;100500;1</arg>
+            </instance>
+            <instance id="uid_glogouted">
+                <arg name="version">2</arg>
+                <arg name="row">71004;100500;1</arg>
+            </instance>
+        </cookie>
+
+        <cookie name="ilahu" func="genunixtime">
+            <instance id="past">
+                <arg name="time">-100</arg>
+            </instance>
+            <instance id="future_in_1_hour">
+                <arg name="time">+3600</arg>
+            </instance>
+            <instance id="future_in_week">
+                <arg name="time">+604800</arg>
+            </instance>
+            <instance id="future_in_1_month">
+                <arg name="time">+2592000</arg>
+            </instance>
+        </cookie>
+
+        <header name="Host">
+            <instance id="api.passport.yandex.ru">api.my-passport.yandex.ru</instance>
+        </header>
+
+        <result name="empty_accs">
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">0</arg>
+            </body>
+        </result>
+        <result name="one_acc">
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">1</arg>
+                <arg name="/accounts/0/display_name">ko-shaki</arg>
+                <arg name="/accounts/0/avatar/default">0/0-0</arg>
+                <arg name="/accounts/0/avatar/empty">true</arg>
+                <arg name="/accounts/0/uid">70497</arg>
+                <arg name="/accounts/0/method">password</arg>
+                <arg name="/accounts/0" res_mod="key_count">4</arg>
+            </body>
+        </result>
+        <result name="two_accs">
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">2</arg>
+                <arg name="/accounts/0/display_name">ko-shaki</arg>
+                <arg name="/accounts/0/avatar/default">0/0-0</arg>
+                <arg name="/accounts/0/avatar/empty">true</arg>
+                <arg name="/accounts/0/uid">70497</arg>
+                <arg name="/accounts/0/method">password</arg>
+                <arg name="/accounts/0" res_mod="key_count">4</arg>
+                <arg name="/accounts/1/display_name">😂 Я 'Тестовый" / &amp;&lt;тестер&gt;</arg>
+                <arg name="/accounts/1/avatar/default">0/0-0</arg>
+                <arg name="/accounts/1/avatar/empty">true</arg>
+                <arg name="/accounts/1/uid">70500</arg>
+                <arg name="/accounts/1/method">__null__</arg>
+                <arg name="/accounts/1" res_mod="key_count">4</arg>
+            </body>
+        </result>
+
+        <result name="one_acc__ilahu_in_12_hours">
+             <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">43200</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">1</arg>
+                <arg name="/accounts/0/display_name">ko-shaki</arg>
+                <arg name="/accounts/0/avatar/default">0/0-0</arg>
+                <arg name="/accounts/0/avatar/empty">true</arg>
+            </body>
+        </result>
+        <result name="two_accs__ilahu_in_12_hours">
+            <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">43200</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">2</arg>
+                <arg name="/accounts/0/display_name">ko-shaki</arg>
+                <arg name="/accounts/0/avatar/default">0/0-0</arg>
+                <arg name="/accounts/0/avatar/empty">true</arg>
+                <arg name="/accounts/0/uid">70497</arg>
+                <arg name="/accounts/1/display_name">😂 Я 'Тестовый" / &amp;&lt;тестер&gt;</arg>
+                <arg name="/accounts/1/avatar/default">0/0-0</arg>
+                <arg name="/accounts/1/avatar/empty">true</arg>
+                <arg name="/accounts/1/uid">70500</arg>
+            </body>
+        </result>
+
+        <result name="one_acc__ilahu_in_day">
+             <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">86400</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">1</arg>
+                <arg name="/accounts/0/display_name">ko-shaki</arg>
+                <arg name="/accounts/0/avatar/default">0/0-0</arg>
+                <arg name="/accounts/0/avatar/empty">true</arg>
+            </body>
+        </result>
+        <result name="two_accs__ilahu_in_day">
+            <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">86400</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/accounts" res_mod="array_size">2</arg>
+                <arg name="/accounts/0/display_name">ko-shaki</arg>
+                <arg name="/accounts/0/avatar/default">0/0-0</arg>
+                <arg name="/accounts/0/avatar/empty">true</arg>
+                <arg name="/accounts/0/uid">70497</arg>
+                <arg name="/accounts/1/display_name">😂 Я 'Тестовый" / &amp;&lt;тестер&gt;</arg>
+                <arg name="/accounts/1/avatar/default">0/0-0</arg>
+                <arg name="/accounts/1/avatar/empty">true</arg>
+                <arg name="/accounts/1/uid">70500</arg>
+            </body>
+        </result>
+
+        <result name="status_ok">
+            <body func="matchjsonpoint">
+                <arg name="/status">OK</arg>
+            </body>
+        </result>
+        <result name="status_ok__ilahu_in_12_hours">
+            <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">43200</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/status">OK</arg>
+            </body>
+        </result>
+        <result name="status_ok__ilahu_in_week">
+            <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">604800</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/status">OK</arg>
+            </body>
+        </result>
+        <result name="status_ok__ilahu_in_2_weeks">
+            <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">1209600</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/status">OK</arg>
+            </body>
+        </result>
+        <result name="status_ok__ilahu_in_1_month">
+            <set-cookie name="ilahu">
+                <value func="checkunixtime">
+                    <arg name="time">2592000</arg>
+                </value>
+                <attribute name="expires" func="checkexpires">
+                    <arg name="time">7776000</arg>
+                </attribute>
+                <attribute name="path">/</attribute>
+                <attribute name="domain" func="ignore"/>
+                <attribute name="secure"/>
+                <attribute name="HttpOnly"/>
+                <attribute name="SameSite">None</attribute>
+            </set-cookie>
+            <body func="matchjsonpoint">
+                <arg name="/status">OK</arg>
+            </body>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>Sezamapi: suggest</description>
+
+        <case>
+            <description>Check permanent suggest</description>
+            <path>suggested_accounts</path>
+            <cgi name="multi" withnull="1">yes</cgi>
+            <cgi name="popup" withnull="1">empty</cgi>
+            <cookie name="lah" withnull="1">*</cookie>
+            <header name="Host">*</header>
+
+            <check>
+                <cookie name="lah" withnull="1">uid_not_found;uid_glogouted</cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cgi name="multi">yes</cgi>
+                <cookie name="lah">two</cookie>
+                <result>two_accs</result>
+            </check>
+
+            <check>
+                <cookie name="lah">one;two</cookie>
+                <result>one_acc</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Check popup suggest</description>
+            <path>suggested_accounts</path>
+            <cgi name="popup">yes</cgi>
+            <cookie name="lah" withnull="1">*</cookie>
+            <cookie name="ilahu" withnull="1">*</cookie>
+            <header name="Host">*</header>
+
+            <check>
+                <cookie name="lah" withnull="1">uid_not_found;uid_glogouted</cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cookie name="ilahu" withnull="1">past</cookie>
+                <result>one_acc</result>
+            </check>
+
+            <check>
+                <result>empty_accs</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Check "ilahu" on closing suggest</description>
+            <path>suggested_accounts_close</path>
+            <cookie name="lah" withnull="1">*</cookie>
+            <cookie name="ilahu" withnull="1">*</cookie>
+            <cgi name="yu">yu1</cgi>
+            <cookie name="yandexuid">yu1</cookie>
+            <cgi name="postpone_delay" withnull="1">*</cgi>
+            <header name="Host">*</header>
+            <post/>
+
+            <check>
+                <cgi name="postpone_delay">12hours</cgi>
+                <cookie name="ilahu" withnull="1">past;future_in_1_hour</cookie>
+                <result>status_ok__ilahu_in_12_hours</result>
+            </check>
+            <check>
+                <cgi name="postpone_delay">2weeks</cgi>
+                <cookie name="ilahu" withnull="1">past;future_in_1_hour;future_in_week</cookie>
+                <result>status_ok__ilahu_in_2_weeks</result>
+            </check>
+            <check>
+                <cookie name="ilahu">future_in_1_month</cookie>
+                <result>status_ok__ilahu_in_1_month</result>
+            </check>
+
+            <check>
+                <result>status_ok__ilahu_in_week</result>
+            </check>
+        </case>
+
+        <case>
+            <description>CSRF for /suggested_accounts/close</description>
+            <path>suggested_accounts_close</path>
+            <cgi name="yu" withnull="1">*</cgi>
+            <cookie name="yandexuid" withnull="1">*</cookie>
+            <cookie name="lah">two</cookie>
+            <header name="Host">*</header>
+            <post/>
+
+            <check>
+                <cgi name="yu" withnull="1"></cgi>
+                <result>status_ok</result>
+            </check>
+            <check>
+                <cookie name="yandexuid" withnull="1"></cookie>
+                <result>status_ok</result>
+            </check>
+
+            <check>
+                <cgi name="yu">yu1</cgi>
+                <cookie name="yandexuid">yu2</cookie>
+                <result>status_ok</result>
+            </check>
+            <check>
+                <cgi name="yu">yu2</cgi>
+                <cookie name="yandexuid">yu1</cookie>
+                <result>status_ok</result>
+            </check>
+
+            <check>
+                <cgi name="yu">yu1</cgi>
+                <cookie name="yandexuid">yu1</cookie>
+                <result>status_ok__ilahu_in_week</result>
+            </check>
+            <check>
+                <cgi name="yu">yu2</cgi>
+                <cookie name="yandexuid">yu2</cookie>
+                <result>status_ok__ilahu_in_week</result>
+            </check>
+        </case>
+
+        <case>
+            <description>CSRF for /suggested_accounts/show_and_postpone</description>
+            <path>suggested_accounts_show_and_postpone</path>
+            <cgi name="yu" withnull="1">*</cgi>
+            <cookie name="yandexuid" withnull="1">*</cookie>
+            <cookie name="lah">two</cookie>
+            <header name="Host">*</header>
+            <post/>
+
+            <check>
+                <cgi name="yu" withnull="1"></cgi>
+                <result>empty_accs</result>
+            </check>
+            <check>
+                <cookie name="yandexuid" withnull="1"></cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cgi name="yu">yu1</cgi>
+                <cookie name="yandexuid">yu2</cookie>
+                <result>empty_accs</result>
+            </check>
+            <check>
+                <cgi name="yu">yu2</cgi>
+                <cookie name="yandexuid">yu1</cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cgi name="yu">yu1</cgi>
+                <cookie name="yandexuid">yu1</cookie>
+                <result>one_acc__ilahu_in_day</result>
+            </check>
+            <check>
+                <cgi name="yu">yu2</cgi>
+                <cookie name="yandexuid">yu2</cookie>
+                <result>one_acc__ilahu_in_day</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Check regular /suggested_accounts/show_and_postpone</description>
+            <path>suggested_accounts_show_and_postpone</path>
+            <cgi name="multi" withnull="1">*</cgi>
+            <cookie name="lah" withnull="1">*</cookie>
+            <cookie name="ilahu" withnull="1">past;future_in_1_hour</cookie>
+            <post/>
+            <cgi name="yu">yu1</cgi>
+            <cookie name="yandexuid">yu1</cookie>
+            <cgi name="postpone_delay" withnull="1">12hours</cgi>
+            <header name="Host">*</header>
+
+            <check>
+                <cookie name="ilahu">future_in_1_hour</cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cookie name="lah">two</cookie>
+                <cgi name="postpone_delay">12hours</cgi>
+                <cgi name="multi">yes</cgi>
+                <result>two_accs__ilahu_in_12_hours</result>
+            </check>
+            <check>
+                <cookie name="lah">one;two</cookie>
+                <cgi name="postpone_delay">12hours</cgi>
+                <result>one_acc__ilahu_in_12_hours</result>
+            </check>
+
+            <check>
+                <cookie name="lah">two</cookie>
+                <cgi name="multi">yes</cgi>
+                <result>two_accs__ilahu_in_day</result>
+            </check>
+            <check>
+                <cookie name="lah">one;two</cookie>
+                <result>one_acc__ilahu_in_day</result>
+            </check>
+
+            <check>
+                <result>empty_accs</result>
+            </check>
+        </case>
+    </node>
+
+</test>

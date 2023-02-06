@@ -1,0 +1,51 @@
+/* eslint-disable */
+import Utils from '@core/utils'
+
+global.Utils = Utils
+
+import URLPatcher from '@core/url_patcher'
+
+const proxy = 'https://webvisor.dev/proxy?url='
+
+const location = {
+  protocol: 'https:',
+  host: 'example.com',
+}
+
+URLPatcher.configure({
+  proxy: `${proxy}{{RESOURCE_URL}}`,
+  location,
+  noEncode: true,
+  proxyWhiteList: [
+    'yandex-team.ru',
+    '*.yandex-team.ru',
+  ],
+})
+
+test('srcset', () => {
+  const resultURLPart = `${proxy}${location.protocol}//${location.host}`
+  expect(decodeURIComponent(URLPatcher.patchURL('/some/file.png')))
+    .toEqual(`${resultURLPart}/some/file.png`)
+
+  expect(decodeURIComponent(URLPatcher.patchURL('/some/file/other/file')))
+    .toEqual(`${resultURLPart}/some/file/other/file`)
+})
+
+test('whitelist', () => {
+  expect(URLPatcher.patchURL('https://yandex-team.ru/some/file.jpg'))
+    .toEqual(`${proxy}https://yandex-team.ru/some/file.jpg`)
+
+  expect(URLPatcher.patchURL('https://yandex-team.com/some/file.jpg'))
+    .toEqual(`${proxy}https://yandex-team.com/some/file.jpg`)
+})
+
+test('relative urls', () => {
+  const source = '/a/b'
+
+  expect(URLPatcher.resolvePath('file.css', source)).toEqual('/a/b/file.css')
+  expect(URLPatcher.resolvePath('./file.css', source)).toEqual('/a/b/file.css')
+  expect(URLPatcher.resolvePath('../file.css', source)).toEqual('/a/file.css')
+  expect(URLPatcher.resolvePath('../c/file.css', source)).toEqual('/a/c/file.css')
+  expect(URLPatcher.resolvePath('/file.css', source)).toEqual('/file.css')
+  expect(URLPatcher.resolvePath('/d/file.css', source)).toEqual('/d/file.css')
+})

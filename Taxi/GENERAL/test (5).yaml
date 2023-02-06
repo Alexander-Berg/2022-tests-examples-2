@@ -1,0 +1,71 @@
+components:
+    schemas:
+        RawJson:
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: RAW json
+
+        TestJsEngineRequest:
+            type: object
+            additionalProperties: false
+            properties:
+                task_name:
+                    type: string
+                code:
+                    type: string
+                    description: JS code
+                json_template:
+                    type: string
+                    description: nunjucks-templatized JSON
+                user_data:
+                    # data to substitute into template
+                    $ref: '#/components/schemas/RawJson'
+                init:
+                    description: default 'init'
+                    type: string
+                main:
+                    description: default 'main'
+                    type: string
+            required:
+              - task_name
+              - code
+              - json_template
+              - user_data
+
+    responses:
+        ErrorResponse:
+            description: Ошибка
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            code:
+                                description: Код ошибки (не http)
+                                type: string
+                            message:
+                                description: Текстовое описание ошибки
+                                type: string
+                        required:
+                          - code
+                          - message
+
+        TestJsEngineResponse:
+            description: Результат выполнения скрипта
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            result:
+                                $ref: '#/components/schemas/RawJson'
+                            duration:
+                                type: integer
+                                format: int64
+                                minimum: 0
+                                x-taxi-cpp-type: std::chrono::nanoseconds
+                        required:
+                          - result
+                          - duration

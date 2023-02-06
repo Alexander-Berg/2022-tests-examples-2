@@ -1,0 +1,20 @@
+- id: messenger_test
+  routes:
+    - from: whatsapp::messenger_services::taxi_test
+      to: logbroker::conversation-out-messages
+      handlers:
+        - whatsappInboundMessageHandler
+        - whatsappDeliveryReportHandler
+    - from: telegram::messenger_services::support_bot
+      to: logbroker::conversation-out-messages
+      handlers:
+        - telegramInboundMessageHandler
+        - telegramDeliveryReportHandler
+    - from: logbroker::conversation-in-whatsapp
+      to: whatsapp::messenger_services::taxi_test
+      handlers:
+        - whatsappOutgoingMessageHandler
+    - from: logbroker::conversation-in-telegram
+      to: telegram::messenger_services::support_bot
+      handlers:
+        - telegramOutgoingMessageHandler

@@ -1,0 +1,105 @@
+clownductor_config: eda:eats-tags:testing
+http_hosts:
+  - eats-tags.eda.tst.yandex.net
+layout:
+  - rps_share
+  - userver_common:
+      collapsed: true
+      uservice_name: eats-tags
+      hide:
+        - mongo
+        - redis_client
+        - redis_subscribe_client
+  - system:
+      collapsed: true
+  - include:
+      path: tags/customs.json
+      title: Intermediate tags queue
+      variables:
+        - cluster: testing_uservices
+        - group: eda_eats-tags_testing
+        - host: eda-eats-tags-testing-*
+  - include:
+      path: tags/count_monitor.json
+      title: Cached tag counts
+      variables:
+        - cluster: testing_uservices
+        - group: eda_eats-tags_testing
+        - host: eda-eats-tags-testing-*
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels:
+        - 2
+        - 2
+      title: Postgres statistics (meta)
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: eats-tags
+        - table_schema: meta
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels:
+        - 2
+        - 2
+      title: Postgres statistics (state)
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: eats-tags
+        - table_schema: state
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels:
+        - 2
+        - 2
+      title: Postgres statistics (service)
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: eats-tags
+        - table_schema: service
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - fallback_error_rates:
+      fallback_names:
+        - eats-tags.pg_*
+  - include:
+      collapsed: true
+      path: tags/cache_age.json
+      title: cache age
+      variables:
+        - cluster: testing_uservices
+        - group: eda_eats-tags_testing
+        - host: eda-eats-tags-testing-*
+  - include:
+      path: tags/yql_monitor.json
+      title: yql monitor
+      variables:
+        - cluster: testing_uservices
+        - group: eda_eats-tags_testing
+        - host: eda-eats-tags-testing-*
+  - include:
+      path: tags/yt_monitor.json
+      title: yt monitor
+      variables:
+        - cluster: testing_uservices
+        - group: eda_eats-tags_testing
+        - host: eda-eats-tags-testing-*
+  - statistics_rps_limiter:
+      service_name: rate-limiter-proxy
+      limiter_name: eats-tags-nginx-rate-limiter
+      panel_name: Nginx rps limiter
+      version: 2
+      collapsed: true
+  - http

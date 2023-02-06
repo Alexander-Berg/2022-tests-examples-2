@@ -1,0 +1,85 @@
+description: Fallback queue for SMS
+settings:
+    collection: sms_fallback_queue
+    connection: communications
+    database: dbcommunications
+indexes:
+  - key: created
+  - expireAfterSeconds: 0
+    key: delete_after
+jsonschema:
+    additionalProperties: false
+    properties:
+        _id:
+            description: ID записи в очереди (отличается от payload.id)
+            type: string
+        created:
+            description: Timestamp создания записи
+            type: datetime
+        delete_after:
+            description: Timestampt, после которого сообщение будет удалено из очереди
+                автоматически монгой
+            type: datetime
+        idempotency_token:
+            description: Токен идемпотентности (если передан)
+            type: string
+        payload:
+            additionalProperties: false
+            properties:
+                id:
+                    description: ID сообщения
+                    type: string
+                intent:
+                    description: Intent сообщения
+                    type: string
+                issuer_service:
+                    description: Сервис, сделавший запрос на отправку сообщения
+                    type: string
+                mask_text:
+                    description: Маскировать ли текст сообщения
+                    type: boolean
+                meta:
+                    description: Метаданные, переданные в ручку. Сериализованный JSON
+                    type: string
+                phone:
+                    description: Номер телефона получателя
+                    type: string
+                phone_id:
+                    description: ID телефона получателя
+                    type: string
+                provider:
+                    description: SMS-провайдер
+                    type: string
+                recipient_id:
+                    additionalProperties: true
+                    description: ID получателя (если известен - user_id либо park_id
+                        + driver_profile_id)
+                    type: object
+                recipient_type:
+                    description: Тип получателя (user, driver, general)
+                    type: string
+                text:
+                    description: Текст сообщения
+                    type: string
+            required:
+              - id
+              - recipient_type
+              - text
+              - provider
+              - intent
+              - issuer_service
+              - mask_text
+            type: object
+        ttl:
+            description: TTL сообщения, после которого оно будет удалено
+            type: number
+    required:
+      - _id
+      - created
+      - ttl
+      - delete_after
+      - payload
+    type: object
+wiki_info: '####dbcommunications.sms_fallback_queue - fallback-очередь для SMS
+
+    '

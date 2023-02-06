@@ -1,0 +1,50 @@
+id: basic_flow
+title: проверка работы ручки в обычном режиме
+source:
+    request:
+        method: post
+        headers:
+            X-YaTaxi-User: personal_phone_id=personal_123
+            X-Request-Language: ru
+        body:
+            state: {}
+            shortcuts: {"grids_support": [{"width": 6, "unit_width": 61}], "ndash_width": 9,
+                "mdash_width": 14}
+            position: [37.5, 55.5]
+            media_size_info: {}
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                screen:
+                    sections: [{"type": "items_linear_grid", "typed_header": {"type": "list_item",
+                                "lead": {"type": "app_title", "icon_tag": "image_restaurant_bag",
+                                    "title": {"text": "Рестораны поблизости"}}}, "shortcut_ids": []}]
+                    offers:
+                        items: []
+                    layout: {"width": 6, "type": "linear_grid", "grid_id": "products_screen_restaurants"}
+                products: [{"tag": "eats", "service": "eats", "title": "Eats"}]
+                modes: [{"mode": "eats", "parameters": {"product_tag": "eats", "available": true,
+                            "show_disabled": true, "resize_strategy": "resize_along_scroll_axis"}}]
+
+configs:
+    values#object:
+      - key: products_screen_restaurants
+        value: {"screen": {"offers": {"items": []}, "layout": {"width": 6, "type": "linear_grid",
+                    "grid_id": "products_screen_restaurants"}, "sections": [{"type": "items_linear_grid",
+                        "shortcut_ids": [], "typed_header": {"type": "list_item",
+                            "lead": {"type": "app_title", "title": {"text": "Рестораны\
+                                        \ поблизости"}, "icon_tag": "image_restaurant_bag"}}}]},
+            "products": [{"tag": "eats", "service": "eats", "title": "Eats"}], "modes": [
+                {"mode": "eats", "parameters": {"show_disabled": true, "resize_strategy": "resize_along_scroll_axis",
+                        "product_tag": "eats", "available": true}}]}
+        enabled: true
+    expectations:
+        consumer: api-proxy/products-screen-restaurants
+        kwargs:
+          - key: personal_phone_id
+            type: string
+            value: personal_123
+          - key: locale
+            type: string
+            value: ru

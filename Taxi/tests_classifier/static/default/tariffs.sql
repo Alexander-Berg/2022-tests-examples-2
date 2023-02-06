@@ -1,0 +1,26 @@
+INSERT INTO classifier.tariffs (
+    classifier_id,
+    tariff_id,
+    is_allowing
+)
+VALUES
+(
+    'classifier_id_1',
+    'tariff_id_1',
+    TRUE
+),
+(
+    'classifier_id_2',
+    'tariff_id_2',
+    FALSE
+),
+(
+    'classifier_id_2',
+    'tariff_id_2_1',
+    TRUE
+),
+(
+    'classifier_id_3',
+    'tariff_id_3',
+    FALSE
+);

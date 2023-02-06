@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+export CC=clang-9
+export CXX=clang++-9
+%:
+	dh $@ --with environment --with nginx --parallel --builddirectory=build_debian --buildsystem=cmake
+
+.PHONY: override_dh_auto_configure
+override_dh_auto_configure:
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DTESTSUITE_SEPARATE_TARGETS=ON -DTARGET_SERVICES="test-service" ../../..
+
+.PHONY: override_dh_nginx
+override_dh_nginx:
+	dh_nginx $@ --no-restart
+
+.PHONY: override_dh_strip
+override_dh_strip: ;

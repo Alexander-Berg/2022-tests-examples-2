@@ -1,0 +1,316 @@
+id: typed_experiments_fallback
+title: При неработающем finalsuggest возвращать typed_experiments из exp3-matcher'а
+source:
+    request:
+        method: post
+        body:
+            action: pin_drop
+            position: [37.544822, 55.700867]
+            type: a
+        headers:
+            X-Request-Language: en
+            User-Agent: some_agent
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                typed_experiments:
+                    items:
+                      - name: superapp-shortcuts
+                    version: 123
+                points: []
+                results#array:
+                  - value#object:
+                      - key: city
+                        value: Locality_Name
+                      - key: text
+                        value: text_1
+                      - key: log
+                        value: uri_1
+                      - key: uri
+                        value: uri_1
+                      - key: title
+                        value#object:
+                          - key: text
+                            value: name_1
+                          - key: hl
+                            value#array: []
+                      - key: subtitle
+                        value#object:
+                          - key: text
+                            value: description_1
+                          - key: hl
+                            value#array: []
+                      - key: position
+                        value#array: [37.544822, 55.700867]
+                      - key: type
+                        value: address
+                      - key: lang
+                        value: en
+                      - key: method
+                        value: fs_not_sticky
+                  - value#object:
+                      - key: city
+                        value: Area_Name
+                      - key: text
+                        value: text_2
+                      - key: log
+                        value: uri_2
+                      - key: uri
+                        value: uri_2
+                      - key: title
+                        value#object:
+                          - key: text
+                            value: name_2
+                          - key: hl
+                            value#array: []
+                      - key: subtitle
+                        value#object:
+                          - key: text
+                            value: description_2
+                          - key: hl
+                            value#array: []
+                      - key: position
+                        value#array: [37.544822, 55.700867]
+                      - key: type
+                        value: address
+                      - key: lang
+                        value: en
+                      - key: method
+                        value: fs_not_sticky
+                  - value#object:
+                      - key: city
+                        value: Province_Name
+                      - key: text
+                        value: text_3
+                      - key: log
+                        value: uri_3
+                      - key: uri
+                        value: uri_3
+                      - key: title
+                        value#object:
+                          - key: text
+                            value: name_3
+                          - key: hl
+                            value#array: []
+                      - key: subtitle
+                        value#object:
+                          - key: text
+                            value: description_3
+                          - key: hl
+                            value#array: []
+                      - key: position
+                        value#array: [37.544822, 55.700867]
+                      - key: type
+                        value: address
+                      - key: lang
+                        value: en
+                      - key: method
+                        value: fs_not_sticky
+                  - value#object:
+                      - key: city
+                        value: District_Name
+                      - key: text
+                        value: text_4
+                      - key: log
+                        value: uri_4
+                      - key: uri
+                        value: uri_4
+                      - key: title
+                        value#object:
+                          - key: text
+                            value: name_4
+                          - key: hl
+                            value#array: []
+                      - key: subtitle
+                        value#object:
+                          - key: text
+                            value: description_4
+                          - key: hl
+                            value#array: []
+                      - key: position
+                        value#array: [37.544822, 55.700867]
+                      - key: type
+                        value: address
+                      - key: lang
+                        value: en
+                      - key: method
+                        value: fs_not_sticky
+                zones:
+                    nearest_zones: []
+                services:
+                    taxi:
+                        nearest_zone: moscow
+                        available: true
+                points_icon_image_tag: test_config_value
+mocks:
+  - resource: persuggest-4.0-v1-finalsuggest
+    response:
+        status-code: 500
+    expectations:
+        call-count: 1
+  - resource: taxi-3.0-nearestzone
+    response:
+        status-code: 200
+        body:
+            nearest_zone: moscow
+    expectations:
+        call-count: 1
+        request:
+            body:
+                point: [37.544822, 55.700867]
+            headers:
+                Accept-Language: en
+                User-Agent: some_agent
+                X-Request-Language: en
+  - resource: yamaps-geosearch
+    response:
+        status-code: 200
+        body:
+            features#array:
+              - value#object:
+                  - key: properties
+                    value#object:
+                      - key: name
+                        value: name_1
+                      - key: description
+                        value: description_1
+                      - key: GeocoderMetaData
+                        value#object:
+                          - key: text
+                            value: text_1
+                          - key: Address
+                            value#object:
+                              - key: Components
+                                value#array:
+                                  - value#object:
+                                      - key: kind
+                                        value: locality
+                                      - key: name
+                                        value: Locality_Name
+                                  - value#object:
+                                      - key: kind
+                                        value: area
+                                      - key: name
+                                        value: Area_Name
+                                  - value#object:
+                                      - key: kind
+                                        value: province
+                                      - key: name
+                                        value: Province_Name
+                                  - value#object:
+                                      - key: kind
+                                        value: district
+                                      - key: name
+                                        value: District_Name
+                      - key: URIMetaData
+                        value#object:
+                          - key: URI
+                            value#object:
+                              - key: uri
+                                value: uri_1
+              - value#object:
+                  - key: properties
+                    value#object:
+                      - key: name
+                        value: name_2
+                      - key: description
+                        value: description_2
+                      - key: GeocoderMetaData
+                        value#object:
+                          - key: text
+                            value: text_2
+                          - key: Address
+                            value#object:
+                              - key: Components
+                                value#array:
+                                  - value#object:
+                                      - key: kind
+                                        value: area
+                                      - key: name
+                                        value: Area_Name
+                                  - value#object:
+                                      - key: kind
+                                        value: province
+                                      - key: name
+                                        value: Province_Name
+                                  - value#object:
+                                      - key: kind
+                                        value: district
+                                      - key: name
+                                        value: District_Name
+                      - key: URIMetaData
+                        value#object:
+                          - key: URI
+                            value#object:
+                              - key: uri
+                                value: uri_2
+              - value#object:
+                  - key: properties
+                    value#object:
+                      - key: name
+                        value: name_3
+                      - key: description
+                        value: description_3
+                      - key: GeocoderMetaData
+                        value#object:
+                          - key: text
+                            value: text_3
+                          - key: Address
+                            value#object:
+                              - key: Components
+                                value#array:
+                                  - value#object:
+                                      - key: kind
+                                        value: province
+                                      - key: name
+                                        value: Province_Name
+                                  - value#object:
+                                      - key: kind
+                                        value: district
+                                      - key: name
+                                        value: District_Name
+                      - key: URIMetaData
+                        value#object:
+                          - key: URI
+                            value#object:
+                              - key: uri
+                                value: uri_3
+              - value#object:
+                  - key: properties
+                    value#object:
+                      - key: name
+                        value: name_4
+                      - key: description
+                        value: description_4
+                      - key: GeocoderMetaData
+                        value#object:
+                          - key: text
+                            value: text_4
+                          - key: Address
+                            value#object:
+                              - key: Components
+                                value#array:
+                                  - value#object:
+                                      - key: kind
+                                        value: district
+                                      - key: name
+                                        value: District_Name
+                      - key: URIMetaData
+                        value#object:
+                          - key: URI
+                            value#object:
+                              - key: uri
+                                value: uri_4
+    expectations:
+        call-count: 1
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body:
+            version: 123
+            items:
+              - name: superapp-shortcuts
+
+taxi_config:
+    POINTS_ICON_IMAGE_TAG: test_config_value

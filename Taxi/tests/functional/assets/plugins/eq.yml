@@ -1,0 +1,74 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - eq: [/html/body/div/p, Some text. First paragraph.]
+  - _inner_test: [True, Passed with common text element.]
+
+  - eq: [/html/body/div/p, '  Some text. First paragraph.']
+  - _inner_test: [True, Passed with additional spaces.]
+
+  - eq: [/html/body/div/p, 'Some text.  	 First paragraph.']
+  - _inner_test: [True, Passed with spaces and tab characters.]
+
+  - eq: [/html/body/div/p, Some text. First]
+  - _inner_test:
+      success: False
+      message: should be equal
+      tap_description: Failed for not equal text.
+
+  - eq: [css:div#test-eq .text, Some eq text]
+  - _inner_test: [True, Finds in elements set.]
+
+  - eq: [css:div#test-eq .text, Not existing text]
+  - _inner_test: [False, Fails trying to find in elements set.]
+
+  - eq: [css:div#test-eq .num, 123]
+  - _inner_test: [True, Should find over num.]
+
+  - eq:
+      css: div#test-eq .text
+      value: Some eq text
+  - _inner_test: [True, Long form with css.]
+
+  - eq:
+      xpath: /html/body/div/p
+      value: Some text. First paragraph.
+  - _inner_test: [True, Long form with xpath.]
+
+  - eq:
+      xpath: /html/body/div/p
+      value: Some text. First paragraph.
+      timeout: 10
+  - _inner_test: [True, Long form with xpath and timeout.]
+
+  - eq:
+      css: div#test-eq .text
+  - _inner_test:
+      success: False
+      message: missed args
+      tap_description: Long form missed required arg.
+
+  - eq:
+      xpath: /html/body/not-existing
+      value: Some text
+  - _inner_test:
+      success: False
+      message: Page has no element
+      tap_description: Not existing element
+
+  - eq:
+      css: div#test-is
+      attr: value
+      value: tag attr
+  - _inner_test:
+      success: True
+      tap_description: Tag attr's value

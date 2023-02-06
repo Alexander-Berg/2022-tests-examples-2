@@ -1,0 +1,107 @@
+clownductor_config: taxi:passenger-tags:testing
+http_hosts:
+  - passenger-tags.taxi.tst.yandex.net
+awacs_namespace: passenger-tags-lb.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - userver_common:
+      collapsed: true
+      uservice_name: passenger-tags
+      hide:
+        - mongo
+        - redis_client
+        - redis_subscribe_client
+  - system:
+      collapsed: true
+  - include:
+      path: tags/customs.json
+      title: Intermediate tags queue
+      variables:
+        - cluster: testing_uservices
+        - group: taxi_passenger-tags_testing
+        - host: taxi-passenger-tags-testing-*
+  - include:
+      path: tags/count_monitor.json
+      title: Cached tag counts
+      collapsed: true
+      variables:
+        - cluster: testing_uservices
+        - group: taxi_passenger-tags_testing
+        - host: taxi-passenger-tags-testing-*
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels:
+        - 2
+        - 2
+      title: Postgres statistics (meta)
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: passenger-tags
+        - table_schema: meta
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels:
+        - 2
+        - 2
+      title: Postgres statistics (state)
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: passenger-tags
+        - table_schema: state
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels:
+        - 2
+        - 2
+      title: Postgres statistics (service)
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: passenger-tags
+        - table_schema: service
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - fallback_error_rates:
+      fallback_names:
+        - passenger-tags.pg_*
+  - include:
+      collapsed: true
+      path: tags/cache_age.json
+      title: cache age
+      variables:
+        - cluster: testing_uservices
+        - group: taxi_passenger-tags_testing
+        - host: taxi-passenger-tags-testing-*
+  - include:
+      path: tags/yql_monitor.json
+      title: yql monitor
+      variables:
+        - cluster: testing_uservices
+        - group: taxi_passenger-tags_testing
+        - host: taxi-passenger-tags-testing-*
+  - include:
+      path: tags/yt_monitor.json
+      title: yt monitor
+      variables:
+        - cluster: testing_uservices
+        - group: taxi_passenger-tags_testing
+        - host: taxi-passenger-tags-testing-*
+  - statistics_rps_limiter:
+      service_name: rate-limiter-proxy
+      limiter_name: passenger-tags-nginx-rate-limiter
+      panel_name: Nginx rps limiter
+      version: 2
+      collapsed: true
+  - http

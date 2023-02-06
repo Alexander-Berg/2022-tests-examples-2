@@ -1,0 +1,42 @@
+default:
+    read_db_command_control:
+        network_timeout_ms: 200
+        statement_timeout_ms: 200
+    write_db_command_control:
+        network_timeout_ms: 300
+        statement_timeout_ms: 300
+description: Настройки API работы с тест кейсами
+tags: [notfallback]
+maintainers:
+  - victorshch
+  - oboroth
+  - alklev
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - read_db_command_control
+      - write_db_command_control
+    properties:
+        read_db_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        write_db_command_control:
+            $ref: '#/definitions/DbCommandControl'
+    definitions:
+        DbCommandControl:
+            type: object
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout_ms
+              - statement_timeout_ms

@@ -1,0 +1,52 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - ne:
+      xpath: /html/body/div/p
+      value: Some text. First paragraph.
+      timeout: 0.2
+  - _inner_test:
+      success: False
+      message: should not be equal
+      tap_description: Failed for equal text.
+
+  - ne: [/html/body/div/p, Some text. First]
+  - _inner_test: [True, Passed for not equal text.]
+
+  - ne: [css:div#test-ne .text, Some ne text]
+  - _inner_test: [False, Failed for elements set with one eq.]
+
+  - ne: [css:div#test-ne .text, Not existing text]
+  - _inner_test: [True, Passed for elements set.]
+
+  - ne:
+      css: div#test-ne .text
+      value: Not existing text
+  - _inner_test: [True, Long form with css.]
+
+  - ne:
+      xpath: /html/body/div/p
+      value: Some text. First
+  - _inner_test: [True, Long form with xpath.]
+
+  - ne:
+      xpath: /html/body/div/p
+      value: Some text. First
+      timeout: 10
+  - _inner_test: [True, Long form with xpath and timeout.]
+
+  - ne:
+      css: div#test-eq .text
+  - _inner_test:
+      success: False
+      message: missed args
+      tap_description: Long form missed required arg.

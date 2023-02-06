@@ -1,0 +1,223 @@
+syntax = "proto2";
+package yandex.maps.proto.search.business;
+
+import "yandex/maps/proto/common2/attribution.proto";
+import "yandex/maps/proto/common2/geometry.proto";
+import "yandex/maps/proto/common2/i18n.proto";
+import "yandex/maps/proto/common2/metadata.proto";
+import "yandex/maps/proto/search/address.proto";
+import "yandex/maps/proto/search/advert.proto";
+import "yandex/maps/proto/search/hours.proto";
+import "yandex/maps/proto/search/precision.proto";
+
+message Category
+{
+    required string name = 1;
+    optional string class = 2;
+    repeated string tag = 3;
+    optional Properties properties = 4;
+
+    extensions 100 to max; // Internal info
+}
+
+message EnumItem
+{
+    required string id = 1;
+    required string name = 2;
+    optional string image_url_template = 3; // See http://api.yandex.ru/fotki/doc/format-ref/f-img.xml for supported sizes
+}
+
+message BooleanFilter {
+    message Value {
+        required bool value = 1;
+        optional bool selected = 2;
+    }
+    repeated Value value = 1;
+}
+
+message EnumFilter {
+    message Value {
+        required EnumItem value = 1;
+        optional bool selected = 2;
+        optional bool disabled = 3;
+    }
+    repeated Value value = 1;
+}
+
+message RangeFilter
+{
+    required double from = 1;
+    required double to = 2;
+}
+
+message DateFilter
+{
+}
+
+message Filter
+{
+    required string id = 1;
+    optional string name = 2;
+    optional bool disabled = 6;
+
+    // choice
+    optional BooleanFilter boolean_filter = 3;
+    optional EnumFilter enum_filter = 5;
+    optional RangeFilter range_filter = 7;
+    optional DateFilter date_filter = 8;
+}
+
+message GeocodeResult
+{
+    optional precision.Precision house_precision = 1;
+}
+
+message Phone
+{
+    enum Type
+    {
+        PHONE = 1;
+        FAX = 2;
+        PHONE_FAX = 3;
+    }
+
+    message Details
+    {
+        optional string country = 1;
+        optional string prefix = 2;
+        optional string number = 3;
+        optional string ext = 4;
+    }
+
+
+    required Type type = 1;
+    required string formatted = 2;
+    // TODO: country, prefix, number and ext should become strings in search/3.x
+    optional uint32 country = 3; // deprecated, use `details.country` instead
+    optional uint32 prefix = 4;  // deprecated, use `details.prefix` instead
+    required uint32 number = 5;  // deprecated, use `details.number` instead
+    optional uint32 ext = 6;     // deprecated, use `details.ext` instead
+    optional string info = 7;
+    optional Details details = 8;
+}
+
+message Feature
+{
+    message Value {
+        // choice
+        optional bool boolean_value = 1;
+        repeated string text_value = 2;
+        repeated EnumItem enum_value = 3;
+    }
+
+    required string id = 1;
+    required Value value = 2;
+    optional string name = 3;
+    optional string aref = 4;
+}
+
+message Snippet
+{
+    repeated string feature_ref = 1;
+}
+
+message Link
+{
+    enum Type
+    {
+        UNKNOWN = 0;
+        SELF = 1;
+        SOCIAL = 2;
+        ATTRIBUTION = 3;
+        SHOWTIMES = 4;
+        BOOKING = 5;
+    }
+
+    required common2.attribution.Link link = 1;
+    required Type type = 2;  // obsolete, use tag instead
+    optional string aref = 3;
+    optional string tag = 4 [default = "unknown"]; // one of "self", "social", "attribution", "showtimes", "booking", "menu"
+                                                   // additional values may be added later
+}
+
+message Chain
+{
+    required string id = 1;     // permanent chain id
+    required string name = 2;   // chain name
+    optional string seoname = 3; // chain seoname
+}
+
+enum Closed
+{
+   UNKNOWN = 0;
+   PERMANENT = 1;    // previously existing company, closed forever
+   TEMPORARY = 2;    // temporary closed (e.g. for the summer)
+}
+
+message Properties {
+    message Item {
+        required string key = 1;
+        required string value = 2;
+    }
+    repeated Item item = 1;
+}
+
+message GeoObjectMetadata
+{
+    required string id = 1;
+    required string name = 2;
+    required address.Address address = 3;
+    repeated Category category = 4;
+    repeated Phone phone = 6;
+    optional hours.OpenHours open_hours = 7;
+    required GeocodeResult geocode_result = 8;
+    repeated Feature feature = 9;
+    optional Snippet snippet = 10;
+    repeated Link link = 11;
+    optional common2.i18n.LocalizedValue distance = 12;
+    repeated Chain chain = 13;
+    optional Closed closed = 14;
+    optional bool unreliable = 15;     // if true, the information about the company may be inaccurate
+    optional string short_name = 16;
+    optional Properties properties = 17;
+
+    optional advert.ObsoleteAdvert obsolete_advert = 5;
+    optional advert.Advert advert = 18;
+
+    extensions 100 to max; // Internal info
+}
+
+message RequestMetadata
+{
+    required string text = 1;
+    optional common2.geometry.BoundingBox bounded_by = 2;
+    optional int32 results = 3;
+}
+
+message ResponseMetadata
+{
+    enum Sort
+    {
+        RANK = 1;
+        POINT = 2;
+        ROUTE = 3;
+    }
+
+    required RequestMetadata request = 1;
+    required int32 found = 2;   // TODO: remove in search/3.x
+    required Sort sort = 3;     // TODO: remove in search/3.x
+    repeated Category category = 4;
+    repeated Filter filter = 5;
+    repeated Chain chain = 6;
+    optional FilterSet important_filters = 7;
+}
+
+message FilterSet {
+    repeated string id = 1; // filter references
+}
+
+extend common2.metadata.Metadata
+{
+    optional ResponseMetadata RESPONSE_METADATA = 20;
+    optional GeoObjectMetadata GEO_OBJECT_METADATA = 21;
+}

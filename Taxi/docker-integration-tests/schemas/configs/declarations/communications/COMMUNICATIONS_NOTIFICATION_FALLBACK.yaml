@@ -1,0 +1,37 @@
+default:
+    enabled: false
+    min_requests_count: 3000
+    max_error_percent: 40
+    recheck_period_secs: 60
+    statistics_period_secs: 180
+    disable_period_secs: 600
+description: Управление автоматическим fallback-ом push-нотификаций. Если push-сервис
+    возвращает max_error_percent процентов ошибок на запросы в течение последних statistics_period_secs
+    секунд (и за этот период было не менее min_requests_count обращений к сервису),
+    то отправка через него будет отключена на следующие disable_period_secs секунд.
+    Проверка каждого push-сервиса выполняется не чаще чем раз в recheck_period_secs
+    секунд. Работает только при enabled=true. Не отменяет round-robin-fallback (если
+    не удалось отправить push через первый сервис, то он будет отправлен через следующий
+    и т.д.)
+tags: []
+schema:
+    type: object
+    enabled:
+        type: boolean
+    min_requests_count:
+        type: integer
+        minimum: 0
+    max_error_percent:
+        type: integer
+        minimum: 0
+        maximum: 100
+    recheck_period_secs:
+        type: integer
+        minimum: 0
+    statistics_period_secs:
+        type: integer
+        minimum: 0
+        maximum: 1800
+    disable_period_secs:
+        type: integer
+        minimum: 0

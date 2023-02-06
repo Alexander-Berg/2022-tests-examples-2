@@ -1,0 +1,30 @@
+settings:
+    collection: sms_queue
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: group_id
+  - key: task_id
+  - key:
+      - name: task_id
+        type: ascending
+      - name: status
+        type: ascending
+wiki_info: |
+    #### dbtaxi.sms_queue
+
+    ```python
+    sms_queue = {
+        'phone': '+71234567890',               # номер телефона, на который будет отправлена смс
+        'text': 'hello world',                 # текст сообщения
+        'task_id': 1,                          # номер таска для рассылки (целое число, растет инкрементально)
+        'group_id': 1,                         # один таск может состоять из нескольких групп, группы рассылаются параллельно
+        'status': 'new',                       # статус отправки сообщения (new|processing|complete|failed|cancelled)
+        'created_at': datetime(...),           # время, когда документ был создан
+        'start_processing_at': datetime(...),  # время, когда воркер последний раз подхватил сообщение
+        'failed_at': datetime(...),            # время, когда отправка сообщений последний раз зафейлилась
+        'cancelled_at': datetime(...),         # время, когда отправка сообщений была отменена
+        'route': 'taxi',                       # маршрут в API Паспорта
+        'identity': 'taxi_manual',             # класс сообщения
+    }
+    ```

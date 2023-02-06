@@ -1,0 +1,177 @@
+{
+  "configs": [
+    {
+      "clauses": [
+        {
+          "predicate": {
+            "init": {
+              "arg_name": "is_accept_step",
+              "arg_type": "bool",
+              "value": true
+            },
+            "type": "eq"
+          },
+          "title": "on_accept_screen",
+          "value": {
+            "delimeter": ", ",
+            "is_enabled": true,
+            "max_length": 80,
+            "order_show": {
+              "fields": [
+                "district",
+                "locality",
+                "short_text",
+                "title"
+              ],
+              "is_reverse": false
+            },
+            "priority": [
+              {
+                "field": "short_text",
+                "require_mode": "required"
+              },
+              {
+                "field": "locality",
+                "require_mode": "required",
+                "specific_logic": {
+                  "common_fields": [
+                    "locality"
+                  ],
+                  "result": "remove"
+                }
+              },
+              {
+                "field": "district",
+                "require_mode": "remove",
+                "specific_logic": {
+                  "in_whitelist": {
+                    "by_contains": {},
+                    "config_name": "address_whitelist_district_key_phrases"
+                  }
+                }
+              },
+              {
+                "field": "title",
+                "max_length": 15,
+                "require_mode": "optional"
+              }
+            ]
+          }
+        }
+      ],
+      "default_value": {
+        "delimeter": ", ",
+        "enabled": true,
+        "is_enabled": true,
+        "max_length": 100,
+        "order_show": {
+          "fields": [
+            "locality",
+            "short_text",
+            "title",
+            "porchnumber",
+            "fullname"
+          ],
+          "is_reverse": false
+        },
+        "priority": [
+          {
+            "field": "short_text",
+            "require_mode": "required"
+          },
+          {
+            "field": "locality",
+            "require_mode": "required",
+            "specific_logic": {
+              "common_fields": [
+                "locality"
+              ],
+              "result": "remove"
+            }
+          },
+          {
+            "field": "title",
+            "require_mode": "optional"
+          },
+          {
+            "field": "porchnumber",
+            "require_mode": "optional",
+            "translated_prefix": {
+              "fmt_join": "{translated_key} {field_value}",
+              "prefix_key": "porch"
+            }
+          },
+          {
+            "field": "fullname",
+            "require_mode": "remove",
+            "specific_logic": {
+              "in_whitelist": {
+                "config_name": "whitelist_fullname"
+              },
+              "result": "required"
+            }
+          }
+        ]
+      },
+      "description": "Задает формат адреса на экране принятия заказа",
+      "match": {
+        "consumers": [
+          {
+            "name": "driver-orders-builder/address-format"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "type": "true"
+        }
+      },
+      "name": "taximeter_address_format"
+    },
+    {
+      "clauses": [],
+      "closed": false,
+      "default_value": {
+        "items": [
+          "тест fullname whitelist"
+        ]
+      },
+      "description": "Whitelist of description",
+      "match": {
+        "consumers": [
+          {
+            "name": "driver-orders-builder/address-format"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "type": "true"
+        }
+      },
+      "name": "whitelist_fullname"
+    },
+    {
+      "clauses": [],
+      "closed": false,
+      "default_value": {
+        "items": [
+          "посёлок",
+          "село",
+          "деревня"
+        ]
+      },
+      "description": "Whitelist of key_phrases",
+      "match": {
+        "consumers": [
+          {
+            "name": "driver-orders-builder/address-format"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "type": "true"
+        }
+      },
+      "name": "address_whitelist_district_key_phrases"
+    }
+  ]
+}

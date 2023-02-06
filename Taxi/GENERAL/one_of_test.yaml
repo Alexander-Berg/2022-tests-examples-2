@@ -1,0 +1,415 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'API for testing one of realisation'
+
+basePath: /test_one_of
+
+paths:
+    /different_types:
+        post:
+            operationId: OneOfDifferentTypes
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    oneOf:
+                      - $ref: '#/definitions/SmallInt'
+                      - $ref: '#/definitions/LongString'
+            responses:
+                200:
+                    description: OK
+
+    /model_param:
+        post:
+            operationId: OneOfModel
+            consumes:
+              - application/json; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    $ref: '#/definitions/OneUser'
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/WeightedScore'
+
+    /nested:
+        get:
+            parameters:
+              - in: query
+                type: integer
+                name: integer_score
+              - in: query
+                type: string
+                name: string_score
+            operationId: OneOfNested
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/ScoreWrapper'
+
+    /same_type:
+        post:
+            operationId: OneOfSameType
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    $ref: '#/definitions/StrangeString'
+            produces:
+              - application/json; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/SmallInt'
+
+    /list_in_list:
+        post:
+            operationId: oneOfListInList
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    type: array
+                    items:
+                        type: array
+                        items:
+                            $ref: '#/definitions/StrangeString'
+            produces:
+              - application/json; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/SmallInt'
+
+    /ambiguous_int:
+        post:
+            operationId: OneOfAmbiguousInt
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                schema:
+                    type: integer
+            produces:
+              - application/json; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        oneOf:
+                          - $ref: '#/definitions/SmallInt'
+                          - $ref: '#/definitions/PositiveInt'
+
+    /bool_or_int:
+        post:
+            operationId: OneOfBoolOrInt
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - field
+                    properties:
+                        field:
+                            oneOf:
+                              - type: boolean
+                              - type: integer
+            produces:
+              - text/plain
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /discriminator-only-with-property:
+        post:
+            operationId: OneOfDiscriminatorProperty
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    oneOf:
+                      - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                      - $ref: '#/definitions/TwoDiscriminator'
+                    discriminator:
+                        propertyName: object_type
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        oneOf:
+                          - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                          - $ref: '#/definitions/TwoDiscriminator'
+                        discriminator:
+                            propertyName: object_type
+
+    /discriminator-with-mapping:
+        post:
+            operationId: OneOfDiscriminatorMapping
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    oneOf:
+                      - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                      - $ref: '#/definitions/TwoDiscriminator'
+                    discriminator:
+                        propertyName: object_type
+                        mapping:
+                            first: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                            eins: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                            second: '#/definitions/TwoDiscriminator'
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        oneOf:
+                          - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                          - $ref: '#/definitions/TwoDiscriminator'
+                        discriminator:
+                            propertyName: object_type
+                            mapping:
+                                premier: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                                deuxieme: '#/definitions/TwoDiscriminator'
+
+    /discriminator-internal-one-of:
+        post:
+            operationId: OneOfDiscriminatorInternalOneOf
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    oneOf:
+                      - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                      - $ref: '#/definitions/TwoDiscriminator'
+                      - $ref: '#/definitions/OneOfInsideDiscriminator'
+                    discriminator:
+                        propertyName: object_type
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: string
+
+    /discriminator-internal-all-of:
+        post:
+            operationId: OneOfDiscriminatorInternalAllOf
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    x-taxi-oneOf-in-body-true-reason: for testing
+                    oneOf:
+                      - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                      - $ref: '#/definitions/TwoDiscriminator'
+                      - $ref: '#/definitions/AllOfInsideDiscriminator'
+                    discriminator:
+                        propertyName: object_type
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: string
+
+definitions:
+    TwoDiscriminator:
+        type: object
+        x-taxi-strict-parsing: true
+        additionalProperties: false
+        required:
+          - object_type
+          - name
+          - age
+        properties:
+            object_type:
+                type: string
+            name:
+                type: string
+            age:
+                type: integer
+
+    OneOfInsideDiscriminator:
+        oneOf:
+          - type: object
+            x-taxi-strict-parsing: true
+            additionalProperties: false
+            required:
+              - object_type
+            properties:
+                object_type:
+                    type: string
+                name:
+                    type: string
+          - type: object
+            x-taxi-strict-parsing: true
+            additionalProperties: false
+            required:
+              - object_type
+            properties:
+                object_type:
+                    type: string
+                lame:
+                    type: string
+
+    AllOfInsideDiscriminator:
+        allOf:
+          - type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: allOf!
+            required:
+              - object_type
+            properties:
+                object_type:
+                    type: string
+                lame:
+                    type: string
+          - type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: allOf!
+            properties:
+                name:
+                    type: string
+
+
+    SmallInt:
+        type: integer
+        maximum: 10
+
+    PositiveInt:
+        type: integer
+        minimum: 1
+
+    LongString:
+        type: string
+        minLength: 10
+
+    StrangeString:
+        oneOf:
+          - type: string
+            minLength: 10
+          - type: string
+            maxLength: 8
+
+    OneUser:
+        description: 'one user model'
+        oneOf:
+          - $ref: '#/definitions/SimpleOneUser'
+          - $ref: '#/definitions/ComplexOneUser'
+
+    SimpleOneUser:
+        type: string
+
+    ComplexOneUser:
+        type: object
+        x-taxi-strict-parsing: true
+        additionalProperties: false
+        properties:
+            name:
+                type: string
+            surname:
+                type: string
+            int_score:
+                type: integer
+            string_score:
+                type: string
+            int_weight:
+                type: integer
+            list_weight:
+                type: integer
+
+    WeightedScore:
+        type: object
+        additionalProperties: false
+        properties:
+            score:
+                $ref: '#/definitions/Score'
+            weight:
+                oneOf:
+                  - type: integer
+                    maximum: 100
+                  - type: array
+                    items:
+                        type: integer
+                        maximum: 100
+
+    Score:
+        oneOf:
+          - type: integer
+            minimum: 0
+          - type: string
+
+    ScoreWrapper:
+        type: object
+        additionalProperties: false
+        properties:
+            external:
+                oneOf:
+                  - type: integer
+                    maximum: -10
+                  - $ref: '#/definitions/Score'
+
+    Test1831:
+        type: object
+        additionalProperties: false
+        properties:
+            first:
+                $ref: '#/definitions/Test1831Item'
+            second:
+                $ref: '#/definitions/Test1831Item'
+
+    Test1831Item:
+        oneOf:
+          - type: object
+            x-taxi-strict-parsing: true
+            additionalProperties: false
+            properties:
+                count:
+                    type: integer
+          - type: array
+            items:
+                type: string
+
+    ShortDiscriminator:
+        type: object
+        additionalProperties: false
+        properties:
+            one-of:
+                oneOf:
+                  - $ref: '../definitions/one_of_test.yaml#/definitions/OneDiscriminator'
+                  - $ref: '#/definitions/TwoDiscriminator'
+                discriminator:
+                    propertyName: object_type
+                    mapping:
+                        premier: OneDiscriminator
+                        deuxieme: TwoDiscriminator

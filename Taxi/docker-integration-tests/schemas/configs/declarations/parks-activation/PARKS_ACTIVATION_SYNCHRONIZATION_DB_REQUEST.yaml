@@ -1,0 +1,67 @@
+default:
+    get_last_revision:
+        network_timeout: 300
+        statement_timeout: 100
+    set_last_revision:
+        network_timeout: 300
+        statement_timeout: 100
+    save_accounts_chunk:
+        db_requests_settings:
+            network_timeout: 1000
+            statement_timeout: 500
+        chunk_size: 100
+        sleep_interval: 50
+description: Конфиги запросов к БД при синхронизации парков
+tags: []
+schema:
+    type: object
+    properties:
+        get_last_revision:
+            $ref: '#/definitions/db_requests_settings'
+        set_last_revision:
+            $ref: '#/definitions/db_requests_settings'
+        save_accounts_chunk:
+            $ref: '#/definitions/save_accounts_chunk'
+    required:
+      - get_last_revision
+      - set_last_revision
+      - save_accounts_chunk
+    additionalProperties: false
+    definitions:
+        db_requests_settings:
+            type: object
+            properties:
+                network_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout
+              - statement_timeout
+        save_accounts_chunk:
+            type: object
+            properties:
+                db_requests_settings:
+                    $ref: '#/definitions/db_requests_settings'
+                chunk_size:
+                    type: integer
+                    minimum: 1
+                    description: размер чанка аккаунтов в запросе к базе
+                sleep_interval:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: Интервал между запросами к базе
+            additionalProperties: false
+            required:
+              - db_requests_settings
+              - chunk_size
+              - sleep_interval
+            description: настройки сохранения обновлений аккаунтов

@@ -1,0 +1,27 @@
+INSERT INTO order_flow
+(
+    idempotency_key,
+    is_locked,
+    order_nr,
+    status
+)
+values
+(
+    'processed_order_1',
+    true,
+    'order_1',
+    'SENT_TO_PARTNER'
+),
+(
+    'processed_order_2',
+    true,
+    'order_2',
+    'SENT_TO_SUPPORT'
+),
+(
+    'processed_order_3',
+    true,
+    'order_3',
+    'SENT_TO_CORE'
+)
+;

@@ -1,0 +1,114 @@
+default: {}
+
+description: |
+    Конфиг для переноса перехода процессинга (синка) корп заказов из py2 в procaas
+    Логика:
+      В конфиге можно настраивать евенты по отдельности.
+
+      Евенты в procaas запускаются по параметру procaas.enabled.
+      Если true, то procaas начнет запускать соотвествующие stq-шки в corp-order.
+
+      Уже в самой stq-шке будут проверяться конкретные настройки соотвествующего евента.
+
+      Можно настраивать отдельно для py3(в сервисе corp-orders) и py2.
+
+      enabled_in_py3:
+        Если параметры конкретного заказа подпадают под настройки (см. ниже),
+        то stq-шка будет менять заказ в монге.
+        Иначе она будет делать все действия, но не будет изменять заказ в монге.
+
+      disabled_in_py2:
+        Если параметры конкретного заказа подпадают под настройки (см. ниже),
+        то код в py2 для этого заказа не будет запускаться.
+        Кроме того, т.к. синк в py2 устроен так, что каждый раз синкаются все
+        параметры заказа, то если заказ подпадает под параметры, то в этом
+        синке будут отключены те или иные поля в зависимости от евента,
+        например, при включении create-handling
+        в py2 перестанут обновляться поля client_id/user_id/department_id и
+        множество полей в order.request)
+
+      Разделение на py3 и py2 сделано для того чтобы избежать гонок, при которых
+      некоторый заказ перестанет синкаться и там и там. Т.е. надо делать как-то так:
+      - сначала например добавляем клиента (или персентили) в настройки для py3,
+        stq-шка в corp-orders начинает синкать данные
+      - потом спустя какое-то время добавляем такие-же настройки в секцию для py2
+
+      Как проверяется конкретный заказ:
+        1. если параметр clients не пустой, то ещем клиента в нем
+        2. смотрим на percentile (как остаток от деления order_id на 100)
+
+      Если определены и clients и persentile одновременно - то будут работать оба.
+      Это можно трактовать как "включи на 10 процентов в конкретном клиенте".
+
+      Если надо включить на всех - то не определяем список клиентов
+      а percentile выставляем в 100
+
+      Если что-то пошло не так: чтобы быстро откатить некий евент на флоу в py2,
+      в параметре disabled_in_py2 выставляем {} (евент начнет работать в py2 по старому),
+      ждем немного, и стираем все из enabled_in_py3.
+
+tags: [notfallback]
+maintainers: [pvpolyakov]
+
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/event_settings'
+
+    definitions:
+        event_settings:
+            type: object
+            additionalProperties: false
+            properties:
+                procaas:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        enabled:
+                            type: boolean
+                disabled_in_py2:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        clients:
+                            type: array
+                            items:
+                                type: string
+                        percentile:
+                            type: integer
+                            minimum: 0
+                            maximum: 100
+                enabled_in_py3:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        clients:
+                            type: array
+                            items:
+                                type: string
+                        percentile:
+                            type: integer
+                            minimum: 0
+                            maximum: 100
+
+samples:
+  - create-handling:
+        procaas:
+            enabled: true
+        disabled_in_py2:
+            percentile: 100
+        enabled_in_py3:
+            percentile: 100
+    waiting-handling:
+        procaas:
+            enabled: true
+        disabled_in_py2:
+            clients: ["client_id_1"]
+            percentile: 10
+        enabled_in_py3:
+            clients: ["client_id_1"]
+            percentile: 10
+    new-driver-found-handling:
+        procaas:
+            enabled: true
+        disabled_in_py2: {}

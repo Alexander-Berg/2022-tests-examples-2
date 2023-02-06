@@ -1,0 +1,28 @@
+with last_row_each_stage as (
+  select
+    hitlogid,
+    stage,
+    num,
+    _date,
+    row_number() OVER (PARTITION BY hitlogid ORDER BY num DESC) as row_number,
+    groupUniqArray(orderid) as orders,
+    groupUniqArray(bannerid) as banners,
+    groupUniqArray(object) as objects,
+    groupUniqArray(is_matching_side_effect) as is_matching_side_effect,
+    arrayStringConcat(arraySort(arrayFilter(x -> x != 'N_D', groupUniqArray(reasonid))), ',') as reasons,
+    count(*) as cnt
+  from `path/to/tmp/folder/SUPBS-18584/155148326/1.1_match`
+  group by
+    hitlogid,
+    stage, num, _date
+  order by
+    hitlogid
+)
+select
+  reasons, _date, sum(cnt) as summ
+from
+  last_row_each_stage
+where
+  row_number = 1
+group by reasons, _date
+order by summ desc;

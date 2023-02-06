@@ -1,0 +1,58 @@
+id: test_active_session
+title: тест /sessions/current-ручки с активной сессией
+
+parameters:
+  - case:
+      - has_cable_lock: 1
+        cable_lock_availability: true
+      - has_cable_lock: 0
+        cable_lock_availability: false
+
+source:
+    request:
+        method: get
+        headers:
+            HeaderFromClient: HEADER_FROM_CLIENT
+            X-YaTaxi-User: personal_phone_id=PERSONAL_PHONE_ID
+    expectations:
+        response:
+            status-code: 200
+            body:
+                currency_rules: {"sign": "₽", "template": "$VALUE$ $SIGN$$CURRENCY$",
+                    "text": "руб.", "code": "RUB"}
+                user:
+                    is_registered: true
+                    driver_license:
+                        required: false
+                sessions:
+                  - session_id: "1234"
+                cars:
+                  - number: 1
+                    telematics:
+                        has_cable_lock#xget: /test-params/case/has_cable_lock
+                    features:
+                        cable_lock:
+                            available#xget: /test-params/case/cable_lock_availability
+
+mocks:
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            user:
+                is_registered: true
+            sessions:
+              - session_id: "1234"
+            cars:
+              - number: 1
+                telematics:
+                    has_cable_lock#xget: /test-params/case/has_cable_lock
+    expectations:
+        call-count: 1
+
+  - resource: talaria-sessions-current
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

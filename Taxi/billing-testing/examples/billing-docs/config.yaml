@@ -1,0 +1,19 @@
+test:
+    name: "Тестирование billing-accounts"
+    description: "Тестирует корректность запуска billing-docs и обработки stq"
+    prerequests:
+        configs:
+            BILLING_OLD_JOURNAL_LIMIT_DAYS: 4096
+        stq3:
+            billing_rollup_balances:
+                queue: "billing_rollup_balances"
+                task_id: "1"
+                eta: 0
+        services:
+          - url: http://billing-docs.taxi.yandex.net/ping
+          - url: http://billing-accounts.taxi.yandex.net/ping
+          - url: http://stq-agent.taxi.yandex.net/ping
+        mongo:
+            dbstq_config:
+                conn: stq_config
+                restore: true

@@ -1,0 +1,68 @@
+{% load i18n tests_extras %}
+<div class="card">
+    <div class="card-body">
+        <div class="card-header px-0">
+            {% if not test.is_archived %}
+                <div class="card-header-btn"></div>
+            {% endif %}
+            {% if data_every_page.user_lang == 'en' %}
+                {% if test.title_en %}{{ test.title_en }}{% else %}{{ test.title }}{% endif %}
+            {% else %}
+                {{ test.title }}
+            {% endif %}
+        </div>
+        <div class="row border-top border-bottom pt-2 mb-2">
+            <div class="col-12">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Статус</th>
+                        <td class="text-right">{{ test.text_status }}</td>
+                    </tr>
+                    <tr>
+                        <th>Публикация</th>
+                        <td class="text-right">{{ test.published_at|date:'d.m.y' }}
+                            – {{ test.published_until|date:'d.m.y' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Назначено</th>
+                        <td class="text-right">{% get_total_assigned_answered test cabinet_agents %}/{% get_total_assigned test cabinet_agents %}</td>
+                    </tr>
+                    <tr>
+                        <th>Прошли</th>
+                        <td class="text-right">{% get_answered_percent test cabinet_agents %}%</td>
+                    </tr>
+                    <tr>
+                        <th>Вопросов</th>
+                        {% if test.get_random_num %}
+                            <td class="text-right">{{ test.get_random_num }} из {{ test.questions_total }}</td>
+                        {% else %}
+                            <td class="text-right">{{ test.questions_total }}</td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <th>Минут на тест</th>
+                        <td class="text-right">{{ test.time }}</td>
+                    </tr>
+                    <tr>
+                        <th>Успешность</th>
+                        <td class="text-right">{% get_avg_answered test cabinet_agents %}%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="text-center">
+                            <button class="btn" onclick="document.location.href='{% url 'tests:cabinet-statistics' test.pk %}?{% if request.GET.type %}type={{ request.GET.type }}{% endif %}&id={{ request.GET.id }}'">
+                                <i class="fas fa-file-excel green"></i> {% trans 'Results' %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,44 @@
+description: pg tables cleaning settings
+default:
+    tables:
+      - name: hidden_orders
+        ttl: 86400
+        chunk_size: 20000
+      - name: user_index
+        ttl: 259200
+        chunk_size: 20000
+    period: 60
+maintainers: [kokokosttn, mstepa]
+tags: [notfallback]
+schema:
+    type: object
+    properties:
+        tables:
+            type: array
+            items:
+                type: object
+                properties:
+                    name:
+                        type: string
+                    ttl:
+                        description: ttl == 0 states for no cleaning for this table
+                        minimum: 0
+                        type: integer
+                        x-taxi-cpp-type: std::chrono::seconds
+                    chunk_size:
+                        description: row limit for one delete query
+                        minimum: 100
+                        type: integer
+                additionalProperties: false
+                required:
+                  - name
+                  - ttl
+                  - chunk_size
+        period:
+            minimum: 30
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+    additionalProperties: false
+    required:
+      - tables
+      - period

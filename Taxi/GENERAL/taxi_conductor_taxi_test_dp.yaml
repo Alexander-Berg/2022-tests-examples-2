@@ -1,0 +1,35 @@
+conductor_group: taxi_test_dp
+http_hosts:
+  - driver-protocol.taxi.tst.yandex.net
+
+layout:
+  - system
+  - lxc_container
+  - rps_share:
+      http_hosts:
+        - driver-protocol.taxi.tst.yandex.net
+  - http_basic
+  - fastcgi_pools:
+      service_name: taxi-driver-protocol
+      pools:
+        - work_pool
+        - driver_check_pool
+        - geo_pool
+        - polling_pool
+        - statistics_pool
+        - yt_pool
+  - include:
+      path: taxi_billing_subventions_metrics.json
+      title: subventions cache
+      variables:
+          cgroups: taxi_test_dp
+          billing_cg: taxi_test_billing_subventions
+          billing_handle: billing-subventions_taxi_tst_yandex_net_v1_rules_select
+  - include:
+      collapsed: true
+      path: taxi_subvention_view_compare_metrics.json
+      title: subvention-view compare
+      variables:
+          cgroups: taxi_test_dp
+  - http:
+      collapsed: true

@@ -1,0 +1,23 @@
+name: basic_source_postgres_raw_replicate_by
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: id
+    type_of_replicate_by: int
+    data_chunk_size: 3
+    iteration_type: sequence
+    connection:
+        secret: sequence
+    primary_key:
+      - id
+    raw_select:
+        min_replicate_by: SELECT id FROM sequence.table {extra_condition} ORDER BY
+            id ASC LIMIT 1
+        max_replicate_by: SELECT id FROM sequence.table {extra_condition} ORDER BY
+            id DESC LIMIT 1
+        replicate_by_has_conditions: false
+    table: sequence.table
+
+destinations:
+  - basic_source_postgres_raw_replicate_by:
+        $update: include/dummy_yt_destination.yaml#

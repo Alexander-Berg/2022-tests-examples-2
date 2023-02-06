@@ -1,0 +1,66 @@
+default:
+    payment_history_path: 'features/oebs/payment_history/'
+    payment_batches_path: 'features/oebs/payment_batches/'
+    yt_clusters: ['hahn']
+    payments_load_chunk_size: 10000
+    update_cursor_chunk_size: 2500
+    save_payment_docs_chunk_size: 100
+    cursor_max_updates: 500
+description: |
+    payment_history_path - путь до папки с историями платежей
+    payment_batches_path - путь до папки с батчами
+    yt_clusters - кластеры YT, на которых запускается map_reduce. Выбирается случайным образом.
+    payments_load_chunk_size - сколько платежек загружать из YT за 1 раз
+    update_cursor_chunk_size - как часто обновлять курсор (каждые update_cursor_chunk_size платежек)
+    save_payment_docs_chunk_size - сколько платежек сохранять в billing-docs (и запрашивать в billing-replication) за раз
+    cursor_max_updates - максимальное кол-во обновлений в одном документе курсора
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        payment_history_path:
+            type: string
+        payment_batches_path:
+            type: string
+        yt_clusters:
+            type: array
+            items:
+                type: string
+            minItems: 1
+        payments_load_chunk_size:
+            type: integer
+            minimum: 1
+        update_cursor_chunk_size:
+            type: integer
+            minimum: 1
+        save_payment_docs_chunk_size:
+            type: integer
+            minimum: 1
+        cursor_max_updates:
+            type: integer
+            minimum: 1
+    required:
+      - payment_history_path
+      - payment_batches_path
+      - yt_clusters
+      - payments_load_chunk_size
+      - update_cursor_chunk_size
+      - save_payment_docs_chunk_size
+      - cursor_max_updates
+samples:
+  - payment_history_path: '/features/oebs/pmt_hst'
+    payment_batches_path: '/features/oebs/pmt_btc'
+    yt_clusters: ['hahn']
+    payments_load_chunk_size: 100
+    update_cursor_chunk_size: 1000
+    save_payment_docs_chunk_size: 150
+    cursor_max_updates: 1000
+invalid-samples:
+  - payment_history_path: 4
+    payment_batches_path: true
+    yt_clusters: []
+    payments_load_chunk_size: 0
+    update_cursor_chunk_size: -1
+    save_payment_docs_chunk_size: false
+    cursor_max_updates: -1

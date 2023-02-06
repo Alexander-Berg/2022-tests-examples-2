@@ -1,0 +1,1293 @@
+version: "2.3"
+
+services:
+    taxi-bootstrap:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-backend-py2:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - TAXI_SETTINGS_MODULE=taxi_settings_docker
+          - PATH=/usr/lib/yandex/taxi-py2/bin:/usr/lib/yandex/taxi-py3-2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-import/
+          - program_name=taxi-bootstrap
+        volumes:
+          - ./volumes/bootstrap_db:/taxi/bootstrap_db:ro
+          - ./schemas/mongo:/taxi/schemas/mongo:ro
+          - ./schemas/configs:/taxi/schemas/configs:ro
+          - ./volumes/cache_dumps:/taxi/cache_dumps:rw
+        command: /taxi/tools/init_db.sh
+        networks:
+            taxi_internal:
+    eats-core:
+        image: registry.yandex.net/eda/core/production:${IMAGE_VERSION:-test}
+        entrypoint: /taxi/run/eats-core.sh
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+            eats-mysql:
+                condition: service_healthy
+            eats-rabbitmq:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            eats-cart:
+                condition: service_healthy
+        environment:
+          - SYMFONY_ENV=prod
+          - BASE_HOST=eda.yandex
+          - DATABASE_HOST=mysql.yandex.net
+          - DATABASE_USER=root
+          - DATABASE_PASSWORD=password
+          - DATABASE_NAME=bigfood
+          - MYSQL_USER=bigfood
+          - MYSQL_DATABASE=bigfood
+          - REDIS_DSN=redis://redis.taxi.yandex:6379
+          - REDIS_SESSION_DSN=redis://redis.taxi.yandex:6379
+          - YANDEX_AUTH_REDIS_DSN=redis://redis.taxi.yandex:6379
+          - REDIS_INTEGRATIONS_DSN=redis://redis.taxi.yandex:6379
+          - REDIS_CORE_LOCKS_DSN=redis://redis.taxi.yandex:6379
+          - CLOWNDUCTOR_GROUP=eda_core_stable
+          - PHP_WORKERS=15
+          - MIGRATION_DATABASE_USER=bigfood
+          - MIGRATION_DATABASE_PASSWORD=password
+          - APC_HOST=http://eda.yandex/
+          - PROXYSQL_ADMIN_USER=admin
+          - PROXYSQL_MONITOR_USER=proxysql_monitor
+          - PROXYSQL_ADMIN_PASSWORD=admin
+          - PROXYSQL_MONITOR_PASSWORD=proxysql_monitor
+          - PROXYSQL_GALERA_PASSWORD=password
+          - TVM_URL=http://tvm-api.yandex.net
+          - RABBIT_HOST=rabbitmq.yandex.net
+          - ELASTICSEARCH_HOST=elastic:changeme@elasticsearch.yandex.net:80
+          - PAYMENT_SYSTEM_DATABASE_HOST=pgaas.mail.yandex.net
+          - PAYMENT_SYSTEM_DATABASE_USER=user
+          - PAYMENT_SYSTEM_DATABASE_PASSWORD=password
+          - MIGRATION_PAYMENT_SYSTEM_DATABASE_USER=user
+          - MIGRATION_PAYMENT_SYSTEM_DATABASE_PASSWORD=password
+        volumes:
+          - ./volumes/tools:/taxi/tools:rw
+          - ./volumes/taxi-secdist:/etc/yandex/taxi-secdist:ro
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/bootstrap_db/mysql/initdb:/initdb:ro
+          - ./eats/volumes/eats-core/sites-enabled:/etc/nginx/sites-enabled:ro
+          - ./eats/volumes/eats-core/syslog-ng/conf-enabled:/etc/syslog-ng/conf-enabled:rw
+          - ./eats/volumes/eats-core/supervisor/conf.d:/supervisor/conf.d:rw
+          - ./eats/volumes/eats-core/cron.d:/cron/cron.d:rw
+          - ./eats/volumes/eats-core/stq-runner:/stq-runner:rw
+          - ./_logs/eats-core:/var/log/backend:rw
+        hostname: eda.yandex
+        healthcheck:
+            test: curl -f https://eda.yandex/ping
+            timeout: 30s
+            interval: 5s
+            retries: 200
+        networks:
+            taxi_internal:
+                aliases:
+                  - eda.yandex
+                  - core.eda.yandex.net
+                  - admin.eda.yandex-team.ru
+                  - eda.yandex-team.ru
+    eats-mysql:
+        image: registry.yandex.net/eda/percona/percona-xtradb-cluster:latest
+        ports:
+          - 3306:3306
+        entrypoint: /entrypoint.sh
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+          - CLUSTER_NAME=eda_dev
+          - MYSQL_DATABASE=bigfood
+          - MYSQL_ROOT_PASSWORD=password
+          - MYSQL_USER=bigfood
+          - MYSQL_PASSWORD=password
+          - TZ=Europe/Moscow
+          - MYSQL_ALLOW_EMPTY_PASSWORD=1
+        volumes:
+          - ./volumes/bootstrap_db/mysql/conf.d:/etc/mysql/conf.d
+        healthcheck:
+            test: ["CMD-SHELL", "mysql -uroot -ppassword -e \"select 1;\""]
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - mysql.yandex.net
+    eats-rabbitmq:
+        image: registry.yandex.net/eda/rabbitmq:latest
+        environment:
+          - RABBITMQ_VM_MEMORY_HIGH_WATERMARK=0.90
+        user: rabbitmq
+        ports:
+          - 5672:5672
+          - 15672:15672
+        hostname: rabbitmq.yandex.net
+        healthcheck:
+            test: rabbitmq-diagnostics -q ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - rabbitmq.yandex.net
+    eats-picker-dispatch:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-picker-dispatch/production:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-eats-picker-dispatch
+                packages: yandex-taxi-eats-picker-dispatch
+                platform: ${PLATFORM:-xenial}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            eats-picker-orders:
+                condition: service_healthy
+            eats-picker-supply:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-picker-dispatch
+        hostname: eats-picker-dispatch.eda.yandex.net
+        command: /taxi/run/eats-picker-dispatch.sh
+        healthcheck:
+            test: curl -f http://eats-picker-dispatch.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-picker-dispatch.eda.yandex.net
+    eats-picker-orders:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-picker-orders/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+            eats-picker-payments:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-picker-orders
+        hostname: eats-picker-orders.eda.yandex.net
+        command: /taxi/run/eats-picker-orders.sh
+        healthcheck:
+            test: curl -f http://eats-picker-orders.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-picker-orders.eda.yandex.net
+    eats-picker-supply:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-picker-supply/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            eats-picker-orders:
+                condition: service_healthy
+            eats-core:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-picker-supply
+        hostname: eats-picker-supply.eda.yandex.net
+        command: /taxi/run/eats-picker-supply.sh
+        healthcheck:
+            test: curl -f http://eats-picker-supply.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-picker-supply.eda.yandex.net
+    eats-picking-time-estimator:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-picking-time-estimator/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-picking-time-estimator
+        hostname: eats-picking-time-estimator.eda.yandex.net
+        command: /taxi/run/eats-picking-time-estimator.sh
+        healthcheck:
+            test: curl -f http://eats-picking-time-estimator.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-picking-time-estimator.eda.yandex.net
+    eats-picker-payments:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-picker-payments/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-picker-payments
+        hostname: eats-picker-payments.eda.yandex.net
+        command: /taxi/run/eats-picker-payments.sh
+        healthcheck:
+            test: curl -f http://eats-picker-payments.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-picker-payments.eda.yandex.net
+    eats-launch:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-launch/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-launch
+        hostname: eats-launch.eda.yandex.net
+        command: /taxi/run/eats-launch.sh
+        healthcheck:
+            test: curl -f http://eats-launch.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-launch.eda.yandex.net
+    eats-offers:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-offers/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-offers
+        hostname: eats-offers.eda.yandex.net
+        command: /taxi/run/eats-offers.sh
+        healthcheck:
+            test: curl -f http://eats-offers.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-offers.eda.yandex.net
+    eats-payments:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-payments/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-payments
+        hostname: eats-payments.eda.yandex.net
+        command: /taxi/run/eats-payments.sh
+        healthcheck:
+            test: curl -f http://eats-payments.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-payments.eda.yandex.net
+    taxi-cardstorage:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/cardstorage/production:${IMAGE_VERSION:-test}
+        depends_on:
+            mock-server:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-cardstorage
+        hostname: cardstorage.taxi.yandex.net
+        command: /taxi/run/cardstorage.sh
+        healthcheck:
+            test: curl -f http://cardstorage.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - cardstorage.taxi.yandex.net
+    eats-orders-tracking:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-orders-tracking/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-orders-tracking
+        hostname: eats-orders-tracking.eda.yandex.net
+        command: /taxi/run/eats-orders-tracking.sh
+        healthcheck:
+            test: curl -f http://eats-orders-tracking.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-orders-tracking.eda.yandex.net
+    eats-catalog-storage:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-catalog-storage/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-catalog-storage
+        hostname: eats-catalog-storage.eda.yandex.net
+        command: /taxi/run/eats-catalog-storage.sh
+        volumes:
+          - ./scripts/update_service_config_by_key.py:/taxi/update_service_config_by_key.py
+        healthcheck:
+            test: curl -f http://eats-catalog-storage.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-catalog-storage.eda.yandex.net
+    eats-catalog:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-catalog/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            eats-catalog-storage:
+                condition: service_healthy
+            eats-core:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-catalog
+        hostname: eats-catalog.eda.yandex.net
+        command: /taxi/run/eats-catalog.sh
+        volumes:
+          - ./scripts/update_service_config_by_key.py:/taxi/update_service_config_by_key.py
+        healthcheck:
+            test: curl -f http://eats-catalog.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-catalog.eda.yandex.net
+    eats-picker-item-categories:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-picker-item-categories/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-picker-item-categories
+        hostname: eats-picker-item-categories.taxi.yandex.net
+        command: /taxi/run/eats-picker-item-categories.sh
+        healthcheck:
+            test: curl -f http://eats-picker-item-categories.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-picker-item-categories.eda.yandex.net
+    eats-cart:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/eats-cart/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-eats-cart
+        volumes:
+          - ./eats/volumes/eats-cart/03-increase-read-timeout.conf:/etc/nginx/conf.d/03-increase-read-timeout.conf
+        hostname: eats-cart.eda.yandex.net
+        command: /taxi/run/eats-cart.sh
+        healthcheck:
+            test: curl -f http://eats-cart.eda.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - eats-cart.eda.yandex.net
+    taxi-tests:
+        extends:
+            service: taxi-integration-xenial-base
+        depends_on:
+            taximeter-emulator:
+                condition: service_healthy
+            eats-cart:
+                condition: service_healthy
+            eats-picker-item-categories:
+                condition: service_healthy
+            eats-catalog:
+                condition: service_healthy
+            eats-catalog-storage:
+                condition: service_healthy
+            eats-orders-tracking:
+                condition: service_healthy
+            eats-payments:
+                condition: service_healthy
+            eats-launch:
+                condition: service_healthy
+            eats-core:
+                condition: service_healthy
+            eats-offers:
+                condition: service_healthy
+            eats-picker-payments:
+                condition: service_healthy
+            eats-picking-time-estimator:
+                condition: service_healthy
+            eats-picker-supply:
+                condition: service_healthy
+            eats-picker-orders:
+                condition: service_healthy
+            eats-picker-dispatch:
+                condition: service_healthy
+            taxi-api-proxy:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+            taxi-cardstorage:
+                condition: service_healthy
+            taxi-config-schemas:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - PYTEST_ARGS_INTEGRATION=${PYTEST_ARGS_INTEGRATION:--vv}
+          - program_name=taxi-tests
+          - IS_TEAMCITY
+        volumes:
+          - ./eats/eats-tests:/taxi/taxi-tests:rw
+          - ./taxi-tests/taxi_xdist:/taxi/taxi-tests/taxi_xdist:rw
+          - ./eats/volumes/eats-catalog-storage/data:/taxi/integration_tests
+        working_dir: /taxi
+        command: /taxi/run/tests.sh
+        networks:
+            taxi_internal:
+    taximeter-emulator:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taximeter-emulator:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taximeter-emulator
+                packages: yandex-taximeter-emulator
+        depends_on:
+            eats-core:
+                condition: service_healthy
+            eats-picker-orders:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taximeter-emulator
+          - PYTHONPATH=/usr/lib/yandex/taximeter-emulator:/taxi/taximeter-emulator-conf
+        working_dir: /taxi/taximeter-emulator
+        hostname: taximeter-emulator.taxi.yandex
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z taximeter-emulator.taxi.yandex
+                80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/eats-picker-emulator.sh
+        volumes:
+          - ./taximeter-emulator:/taxi/taximeter-emulator:ro
+          - ./volumes/taximeter-emulator:/taxi/taximeter-emulator-conf:ro
+        networks:
+            taxi_internal:
+                aliases:
+                  - taximeter-emulator.taxi.yandex
+    taxi-exp:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-exp/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./volumes/bootstrap_db/pgmigrate/taxi_exp:/taxi/pg_migrations/taxi_exp:ro
+          - ./volumes/bootstrap_db/integration-tests:/taxi/pg_migrations/integration-tests
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-exp
+        working_dir: /usr/lib/yandex/taxi-exp
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f exp.taxi.yandex.net/ping
+            timeout: 60s
+            interval: 5s
+            retries: 100
+        command: /taxi/run/exp.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - exp.taxi.yandex.net
+    taxi-backend-py3:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./arcadia:/arcadia:rw
+          - ./backend-py3:/taxi/backend-py3:ro
+    taxi-config-schemas:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-config-schemas:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-config-schemas
+                packages: yandex-taxi-config-schemas
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-config-schemas
+        working_dir: /usr/lib/yandex/taxi-config-schemas
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f config-schemas.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/config-schemas.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - config-schemas.taxi.yandex.net
+        volumes:
+          - ./schemas:/taxi/schemas/schemas:ro
+    taxi-experiments3-proxy:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/experiments3-proxy/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-exp:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-experiments3-proxy
+        hostname: experiments3-proxy.taxi.yandex.net
+        command: /taxi/run/experiments3-proxy.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f experiments3-proxy.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - experiments3-proxy.taxi.yandex.net
+    taxi-integration-xenial-base:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-base:${VERSION:-latest}
+    taxi-integration-bionic-base:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-bionic-base:${VERSION:-latest}
+    taxi-integration-xenial-testing:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-testing:${VERSION:-latest}
+    taxi-integration-xenial-unstable:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-unstable:${VERSION:-latest}
+    taxi-common:
+        image: registry.yandex.net/ubuntu:xenial
+        privileged: true
+        environment:
+          - REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/rootCA.crt
+          - SSL_CERT_FILE=/usr/local/share/ca-certificates/rootCA.crt
+#         - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/configs:/taxi/configs:ro
+          - ./volumes/taxi-secdist:/etc/yandex/taxi-secdist:ro
+          - ./volumes/taximeter-secdist:/etc/yandex/taximeter-secdist
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/syslog-ng:/etc/syslog-ng:ro
+          - ./volumes/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+          - ./volumes/nginx/listen:/etc/nginx/listen:ro
+          - ./volumes/nginx/listen_https:/etc/nginx/listen_https:ro
+          - ./_logs:/taxi/logs:rw
+        cap_add:
+          - SYS_PTRACE
+    taxi-backend-cpp:
+        extends:
+            service: taxi-common
+        volumes:
+          - ./backend-cpp:/taxi/backend-cpp:ro
+          - ../..:/arcadia:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+    taxi-uservices:
+        extends:
+            service: taxi-common
+        volumes:
+          - ../..:/arcadia:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/uservices-build/}:${DOCKER_BUILD_VOLUME:-/tmp/uservices-build/}
+    taxi-stq-agent:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/stq-agent/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-stq-agent
+        hostname: stq-agent.taxi.yandex.net
+        command: /taxi/run/stq-agent.sh
+        healthcheck:
+            test: curl -f http://stq-agent.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - stq-agent.taxi.yandex.net
+    taxi-api-proxy:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/api-proxy/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-api-proxy-manager:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-api-proxy
+        hostname: api-proxy.taxi.yandex.net
+        command: /taxi/run/api-proxy.sh
+        healthcheck:
+            test: curl -f http://api-proxy-superapp-critical.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - api-proxy.taxi.yandex.net
+                  - api-proxy-superapp-critical.taxi.yandex.net
+    taxi-api-proxy-manager:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/api-proxy-manager/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./volumes/bootstrap_db/pgmigrate/api-proxy:/taxi/pgmigrate/api-proxy:ro
+        depends_on:
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-api-proxy-manager
+        hostname: api-proxy-manager.taxi.yandex.net
+        command: /taxi/run/api-proxy-manager.sh
+        healthcheck:
+            test: curl -f http://api-proxy-manager.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - api-proxy-manager.taxi.yandex.net
+    taxi-uconfigs:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/uconfigs/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-uconfigs
+        volumes:
+          - ./volumes/bootstrap_db/db_data/:/taxi/bootstrap_db/db_data:ro
+          - ./volumes/cache_dumps/:/taxi/cache_dumps:ro
+        hostname: configs.taxi.yandex.net
+        command: /taxi/run/uconfigs.sh
+        healthcheck:
+            test: curl -f http://configs.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 120
+        networks:
+            taxi_internal:
+                aliases:
+                  - uconfigs.taxi.yandex.net
+                  - configs.taxi.yandex.net
+    taxi-mongo:
+        extends:
+            service: taxi-integration-xenial-base
+        ports:
+          - "27017:27017"
+        command: /taxi/run/mongo.sh
+        environment:
+          - MONGO_RAMDISK
+        volumes:
+          - ./volumes/mongo:/data/db:rw
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/run:/taxi/run:ro
+          - ./_logs:/taxi/logs:rw
+          - type: tmpfs
+            target: /mnt/ram
+            tmpfs:
+                size: 4294967296 # 4 GB
+        working_dir: /data/db
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh mongo < /dev/null
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - mongo.taxi.yandex
+    taxi-redis:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - program_name=taxi-redis
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh redis-cli -h ::1 ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        volumes:
+          - ./volumes/redis:/taxi/redis:ro
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+        networks:
+            taxi_internal:
+                ipv4_address: 172.16.239.222
+                ipv6_address: 2001:3984:398a::222
+                aliases:
+                  - redis.taxi.yandex
+        command: /taxi/run/redis.sh
+    taxi-redis-sentinel:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - program_name=taxi-redis-sentinel
+        volumes:
+          - ./volumes/redis:/taxi/redis:ro
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+        networks:
+            taxi_internal:
+                aliases:
+                  - redis-sentinel.taxi.yandex
+        command: /taxi/run/redis-sentinel.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh redis-cli -h ::1 -p 26379 ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+    taxi-postgres:
+        image: registry.yandex.net/taxi/externalimages/postgres:11
+        environment:
+          - POSTGRES_USER=user
+          - POSTGRES_PASSWORD=password
+        volumes:
+          - ../..:/arcadia:rw
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/bootstrap_db/postgres:/docker-entrypoint-initdb.d:ro
+          - type: tmpfs
+            target: /var/lib/postgresql/data
+            tmpfs:
+                size: 4294967296 # 4 GB
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh env PGPASSWORD=password pg_isready -U
+                user -h pgaas.mail.yandex.net -p 5432 -d dborders -q
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - pgaas.mail.yandex.net
+    taxi-memcached:
+        image: registry.yandex.net/taxi/externalimages/memcached
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh grep :2BCB /proc/net/tcp
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - memcached.taxi.yandex
+    taxi-loghandler:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./taxi-loghandler:/taxi/loghandler:ro
+        command: /taxi/run/loghandler.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh pgrep -f /taxi/loghandler/loghandler.py
+            timeout: 30s
+            interval: 5s
+            retries: 20
+    taxi-localizations-replica:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/localizations-replica/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-localizations-replica
+        hostname: localizations-replica.taxi.yandex.net
+        command: /taxi/run/localizations-replica.sh
+        healthcheck:
+            test: curl -f http://localizations-replica.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - localizations-replica.taxi.yandex.net
+    mock-server:
+        extends:
+            service: taxi-integration-xenial-base
+        command: /taxi/run/mock-server.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z mock-server.yandex.net 80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        environment:
+          - program_name=taxi-mock-server
+        volumes:
+          - ./mock-server:/taxi/mock:ro
+        networks:
+            taxi_internal:
+                aliases:
+                  - accelerometer-metrics.taxi.yandex.net
+                  - achievements.taxi.dev.yandex.net
+                  - achievements.taxi.tst.yandex.net
+                  - achievements.taxi.yandex.net
+                  - addrs.yandex.net
+                  - antifraud.taxi.yandex.net
+                  - api-python.taxi.dev.yandex.net
+                  - api-python.taxi.tst.yandex.net
+                  - api-python.taxi.yandex.net
+                  - api.routing.yandex.net
+                  - api.social.yandex.ru
+                  - archive-api.taxi.yandex.net
+                  - avatars.mds.yandex.net
+                  - avatars.mdst.yandex.net
+                  - balance-simple.yandex.net
+                  - billing-replication.taxi.yandex.net
+                  - billing-subventions.taxi.yandex.net
+                  - billing-subventions-x.taxi.yandex.net
+                  - blackbox.yandex-team.ru
+                  - blackbox.yandex.net
+                  - bunker-api.yandex.net
+                  - busy-drivers.taxi.yandex.net
+                  - b2b.taxi.yandex.net
+                  - c.yandex-team.ru
+                  - card-antifraud.taxi.yandex.net
+                  - cashbox-integration.taxi.tst.yandex.net
+                  - cashbox-integration.taxi.yandex.net
+                  - chat.taxi.tst.yandex.net
+                  - checkprovider.edadeal.yandex.net
+                  - code-dispatch.taxi.yandex.net
+                  - communications.taxi.yandex.net
+                  - contractor-orders-multioffer.taxi.yandex.net
+                  - classifier.taxi.dev.yandex.net
+                  - classifier.taxi.tst.yandex.net
+                  - classifier.taxi.yandex.net
+                  - clownductor.taxi.yandex.net
+                  - contractor-transport.taxi.dev.yandex.net
+                  - contractor-transport.taxi.tst.yandex.net
+                  - contractor-transport.taxi.yandex.net
+                  - core-driving-router.maps.yandex.net
+                  - core-jams-rdr.maps.yandex.net
+                  - core-renderer-cache.maps.yandex.net
+                  - corp-billing.taxi.yandex.net
+                  - corp-integration-api.taxi.yandex.net
+                  - crons.taxi.dev.yandex.net
+                  - crons.taxi.tst.yandex.net
+                  - crons.taxi.yandex.net
+                  - deptrans-driver-status.taxi.dev.yandex.net
+                  - deptrans-driver-status.taxi.tst.yandex.net
+                  - deptrans-driver-status.taxi.yandex.net
+                  - discounts.taxi.dev.yandex.net
+                  - discounts.taxi.tst.yandex.net
+                  - discounts.taxi.yandex.net
+                  - distlocks.taxi.yandex.net
+                  - driver-cctv-map.taxi.yandex.net
+                  - driver-fix.taxi.dev.yandex.net
+                  - driver-fix.taxi.tst.yandex.net
+                  - driver-fix.taxi.yandex.net
+                  - driver-login.taxi.yandex.net
+                  - driver-map.taxi.dev.yandex.net
+                  - driver-map.taxi.tst.yandex.net
+                  - driver-map.taxi.yandex.net
+                  - driver-mode-subscription.taxi.dev.yandex.net
+                  - driver-mode-subscription.taxi.tst.yandex.net
+                  - driver-mode-subscription.taxi.yandex.net
+                  - driver-money.taxi.yandex.net
+                  - driver-order-messages.taxi.yandex.net
+                  - driver-order-misc.taxi.yandex.net
+                  - driver-payment-types.taxi.yandex.net
+                  - driver-priority-view.taxi.yandex.net
+                  - driver-priority.taxi.yandex.net
+                  - driver-profile-view.taxi.yandex.net
+                  - driver-profiles.taxi.yandex.net
+                  - driver-referrals.taxi.yandex.net
+                  - driver-regulatory-export.taxi.yandex.net
+                  - driver-regulatory-export.taxi.tst.yandex.net
+                  - driver-support.taxi.yandex.net
+                  - driver-tags.taxi.yandex.net
+                  - driver-tutorials.taxi.yandex.net
+                  - driver-wall.taxi.yandex.net
+                  - driver-weariness.taxi.yandex.net
+                  - eater-authorizer.eda.yandex.net
+                  - eats-eta.eda.yandex.net
+                  - eats-order-send.eda.yandex.net
+                  - eats-order-stats.eda.yandex.net
+                  - eats-payment-methods-availability.eda.yandex.net
+                  - eats-picker-payment.eda.yandex.net
+                  - eats-plus.eda.yandex.net
+                  - eats-products.eda.yandex.net
+                  - eats-smart-prices.eda.yandex.net
+                  - eats-tags.eda.yandex.net
+                  - eda-candidates.taxi.yandex.net
+                  - eda-delivery-price.eda.yandex.net
+                  - elasticsearch.yandex.net
+                  - experiments3.taxi.yandex.net
+                  - gas-stations.taxi.yandex.net
+                  - geoareas.taxi.yandex.net
+                  - special-zones.taxi.yandex.net
+                  - pickuppoints.taxi.yandex.net
+                  - georeceiver-l7.taxi.yandex.net
+                  - geotracks.taxi.yandex.net
+                  - graph.taxi.yandex.net
+                  - hahn.yt.yandex.net
+                  - heatmap-renderer.taxi.yandex.net
+                  - heatmap-surge-api.taxi.yandex.net
+                  - ivr-dispatcher.taxi.yandex.net
+                  - lbs-cloud-proxy.taxi.tst.yandex.net
+                  - lbs-cloud-proxy.taxi.yandex.net
+                  - login.uber.com
+                  - logistic-dispatcher.taxi.yandex.net
+                  - lookup-ordering.taxi.dev.yandex.net
+                  - lookup-ordering.taxi.tst.yandex.net
+                  - lookup-ordering.taxi.yandex.net
+                  - loyalty.taxi.yandex.net
+                  - mapsuggest-internal.yandex.net
+                  - metadata-storage.taxi.yandex.net
+                  - misc-spell.yandex.net
+                  - mock-server.yandex.net
+                  - music-auth.taxi.yandex.net
+                  - music.taxi.yandex.net
+                  - parks-certifications.taxi.dev.yandex.net
+                  - parks-certifications.taxi.tst.yandex.net
+                  - parks-certifications.taxi.yandex.net
+                  - partner-offers.taxi.dev.yandex.net
+                  - partner-offers.taxi.tst.yandex.net
+                  - partner-offers.taxi.yandex.net
+                  - passenger-profile.taxi.yandex.net
+                  - passport-internal.yandex.ru
+                  - payments-eda.taxi.yandex.net
+                  - pci-tf.fin.yandex.net
+                  - personal.taxi.yandex.net
+                  - personal-wallet.taxi.yandex.net
+                  - pricing-data-preparer.taxi.yandex.net
+                  - processing.taxi.yandex.net
+                  - processing-antifraud.taxi.yandex.net
+                  - promotions.taxi.yandex.net
+                  - proxy-ml.taxi.yandex.net
+                  - pyml.taxi.dev.yandex.net
+                  - pyml.taxi.tst.yandex.net
+                  - pyml.taxi.yandex.net
+                  - quality-control-cpp.taxi.yandex.net
+                  - quality-control-cpp.taxi.tst.yandex.net
+                  - quality-control.taxi.yandex.net
+                  - blocklist.taxi.yandex.net
+                  - blocklist.taxi.tst.yandex.net
+                  - rescue.taxi.yandex.net
+                  - s3.mds.yandex.net
+                  - s3.mdst.yandex.net
+                  - secured-openapi.business.tinkoff.ru
+                  - saturn.mlp.yandex.net
+                  - saas-searchproxy-maps-prestable.yandex.net
+                  - saas-searchproxy-maps.yandex.net
+                  - selfemployed.taxi.yandex.net
+                  - selfemployed-fns-replica.taxi.dev.yandex.net
+                  - selfemployed-fns-replica.taxi.tst.yandex.net
+                  - selfemployed-fns-replica.taxi.yandex.net
+                  - selfreg.taxi.yandex.net
+                  - seneca-man.yt.yandex.net
+                  - seneca-sas.yt.yandex.net
+                  - seneca-vla.yt.yandex.net
+                  - shared-payments.taxi.yandex.net
+                  - static-maps.yandex.ru
+                  - static.rostaxi.org
+                  - statistics.taxi.yandex.net
+                  - storage-int.mds.yandex.net
+                  - storage-int.mdst.yandex.net
+                  - storage.mds.yandex.net
+                  - subvention-view.taxi.dev.yandex.net
+                  - subvention-view.taxi.tst.yandex.net
+                  - subvention-view.taxi.yandex.net
+                  - suggest-maps.yandex.net
+                  - superapp-misc.taxi.yandex.net
+                  - tariffs.taxi.dev.yandex.net
+                  - tariffs.taxi.tst.yandex.net
+                  - taxi-mvp.s3.yandex.net
+                  - taximeter-basis-minor.taxi.yandex.net
+                  - taximeter-chat.taxi.yandex.net
+                  - taximeter-xservice-utils.taxi.dev.yandex.net
+                  - taximeter-xservice-utils.taxi.tst.yandex.net
+                  - taximeter-xservice-utils.taxi.yandex.net
+                  - taximeter.yandex.rostaxi.org
+                  - tmongo1f.fin.yandex.ru
+                  - tmongo1f.yandex.ru
+                  - toll-roads.taxi.yandex.net
+                  - tolls.taxi.yandex.net
+                  - tracker-analytics.taxi.dev.yandex.net
+                  - tracker-analytics.taxi.tst.yandex.net
+                  - tracker-analytics.taxi.yandex.net
+                  - tracker-map.taxi.dev.yandex.net
+                  - tracker-map.taxi.tst.yandex.net
+                  - tracker-map.taxi.yandex.net
+                  - tracker-set.taxi.yandex.net
+                  - tracker-slb.taxi.tst.yandex.net
+                  - tracker-unstable.taxi.tst.yandex.net
+                  - tracker.taxi.dev.yandex.net
+                  - tracker.taxi.load.yandex.net
+                  - tracker.taxi.tst.yandex.net
+                  - tracker.taxi.yandex.net
+                  - tracks-graph.taxi.dev.yandex.net
+                  - tracks-graph.taxi.tst.yandex.net
+                  - tracks-graph.taxi.yandex.net
+                  - transactions-eda.taxi.yandex.net
+                  - trust-payments-xg.paysys.yandex.net
+                  - trust-paysys.paysys.yandex.net
+                  - trust-lpm.paysys.yandex.net
+                  - trust-test.yandex.ru
+                  - tst.extjams.maps.yandex.net
+                  - tvm-api.yandex.net
+                  - uatraits.qloud.yandex.ru
+                  - ucommunications.taxi.yandex.net
+                  - umlaas-eats.taxi.yandex.net
+                  - umlaas-geo.taxi.yandex.net
+                  - user-authconfirm.taxi.yandex.net
+                  - user-api.taxi.yandex.net
+                  - user-state.taxi.yandex.net
+                  - userplaces.taxi.yandex.net
+                  - vec.tiles.maps.yandex.net
+                  - vgw-api.taxi.yandex.net
+                  - virtual-tariffs.taxi.yandex.net
+                  - wallarm-monitor.qloud.yandex.net
+                  - wallarm.nonexistent
+                  - weathermaps.s3.yandex.net
+                  - yaga-adjust.taxi.yandex.net
+                  - yagr.taxi.yandex.net
+                  - yandex.ru
+networks:
+    taxi_internal:
+        driver: bridge
+        enable_ipv6: true
+        internal: true
+        ipam:
+            driver: default
+            config:
+              - subnet: 172.16.239.0/24
+              - subnet: 2001:3984:398a::/64
+
+volumes:
+    passenger-authorizer-socket:
+    driver-authproxy-socket:
+    driver-authproxy-nginx-conf-d:

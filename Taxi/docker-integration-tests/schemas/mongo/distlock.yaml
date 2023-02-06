@@ -1,0 +1,24 @@
+description: distributed locks
+settings:
+    collection: distlock
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - expireAfterSeconds: 60
+    key: t
+wiki_info: |
+    #### distlock
+    *Назначение:* Коллекция используется для создания блокировок при запуске задач из taxi_maintenance,
+    чтобы исключить возможность запуска исполнения задачи, если такая же задача находится в процессе исполнения.
+    На поле 't' установлен TTL-индекс с временем жизни 60 секунд.
+    *Структура документа:*
+    ```python
+    distlock={
+        #Идентификатор блокировки
+        '_id' : 'taxi_maintenance.report_scripts',
+        #Время действия блокировки
+        't' : ISODate('2017-01-25T13:25:19.124Z'),
+        #Владелец блокировки, состоит из идентфикатора, имени хоста и pid
+        'o' : '320c649f-74b5-4433-8087-c51a347b021c@taxi-import01g.taxi.yandex.net-907582'
+    }
+    ```

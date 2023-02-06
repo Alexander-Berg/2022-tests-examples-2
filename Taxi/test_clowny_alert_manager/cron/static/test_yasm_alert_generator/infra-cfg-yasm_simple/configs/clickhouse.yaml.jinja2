@@ -1,0 +1,136 @@
+{%- set shards = {
+ 'driver_metrics': {'cid': 'mdbuul6dvhfoq19m3ls2', 'ns': 'taxi.efficiency.prod'}
+}
+%}
+
+yasm_taxi_clickhouse:
+{%- for shard_name, attrs in shards|dictsort %}
+  {{ shard_name }}_cpu_usage:
+    signals: perc(portoinst-cpu_<usage|guarantee>_cores_txxv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: master
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_zk_cpu_usage:
+    signals: perc(portoinst-cpu_<usage|guarantee>_cores_txxv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: leader,follower
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_memory_usage:
+    signals: perc(portoinst-memory_<usage|guarantee>_gb_txxv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: master
+    settings:
+      type: thresh
+      warn: 85
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_zk_memory_usage:
+    signals: perc(portoinst-memory_<usage|guarantee>_gb_txxv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: leader,follower
+    settings:
+      type: thresh
+      warn: 75
+      crit: 90
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_space_usage:
+    signals: perc(push-disk-<used|total>_bytes_/var/lib/clickhouse_txxv)
+    tags:
+      itype: mdbclickhouse
+      ctype: {{ attrs['cid'] }}
+      tier: replica
+    settings:
+      type: thresh
+      warn: 75
+      crit: 90
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_zk_space_usage:
+    signals: perc(push-disk-<used|total>_bytes_/var/lib/zookeeper_txxv)
+    tags:
+      itype: mdbzk
+      ctype: {{ attrs['cid'] }}
+      tier: leader,follower
+    settings:
+      type: thresh
+      warn: 75
+      crit: 90
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_network_utilization:
+    signals: perc(portoinst-net_<mb|guarantee_mb>_summ)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: master
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_zk_network_utilization:
+    signals: perc(portoinst-net_<mb|guarantee_mb>_summ)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: leader,follower
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+{%- endfor %}

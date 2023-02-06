@@ -1,0 +1,80 @@
+type: apitest
+version: 0
+service: taxi_bank_forms
+mockserver:
+  - url: /bank-core-audit-log-http-collector/v1/message
+    request:
+        method: POST
+    response:
+        status: 204
+        body: {}
+
+tests:
+  - name: get_registration_form
+    request:
+        method: POST
+        headers:
+            X-Yandex-UID: '1221'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+        path: /forms-internal/v1/get_registration_form
+    response:
+        status: 200
+        body:
+            phone: '+79999999999'
+  - name: get_registration_form_2
+    request:
+        method: POST
+        headers:
+            X-Yandex-UID: '1220'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+        path: /forms-internal/v1/get_registration_form
+    response:
+        status: 200
+        body:
+            phone: '+79999999991'
+  - name: get_registration_form_empty_uid
+    request:
+        method: POST
+        headers:
+            X-Yandex-UID: ''
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+        path: /forms-internal/v1/get_registration_form
+    response:
+        status: 500
+  - name: get_registration_form_no_uid
+    request:
+        method: POST
+        headers:
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: '127.0.0.1'
+        path: /forms-internal/v1/get_registration_form
+    response:
+        status: 500
+  - name: get_registration_form_empty_ip
+    request:
+        method: POST
+        headers:
+            X-Yandex-UID: '1220'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+            X-Remote-IP: ''
+        path: /forms-internal/v1/get_registration_form
+    response:
+        status: 400
+  - name: get_registration_form_no_ip
+    request:
+        method: POST
+        headers:
+            X-Yandex-UID: '1220'
+            X-YaBank-SessionUUID: session_uuid1
+            X-YaBank-PhoneID: phone_id1
+        path: /forms-internal/v1/get_registration_form
+    response:
+        status: 400

@@ -1,0 +1,42 @@
+id: test_session_watcher_run_wind
+title: test offers/book not set stq task for wind requests
+
+source:
+    request:
+        method: post
+        headers:
+            X-Yandex-UID: YANDEX_UID
+            X-YaTaxi-UserId: USER_ID
+            X-YaTaxi-PhoneId: PHONE_ID
+            X-YaTaxi-Scooters-Tag: wind
+        body:
+            offer_id: OFFER_ID
+    expectations:
+        response:
+            status-code: 200
+            body: {}
+
+mocks:
+  - resource: talaria-offers-book
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+  - resource: scooters-offers-book
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0
+
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0
+configs:
+    values#object:
+      - scooters-session-watcher:
+            enabled: true

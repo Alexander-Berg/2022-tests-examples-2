@@ -1,0 +1,78 @@
+default:
+    too_many_need_approve:
+        elder_then_delay: 5
+        threshold: 10
+    too_many_approved:
+        elder_then_delay: 5
+        threshold: 10
+    too_many_running:
+        elder_then_delay: 5
+        threshold: 10
+    too_many_expired:
+        newer_then_delay: 2 # считается в днях из-за специфики проверки
+        threshold: 2
+    too_many_failed:
+        newer_then_delay: 2
+        threshold: 2
+
+description: Настройки монран задач для сервиса скриптов
+
+tags: []
+
+schema:
+    type: object
+    additionalProperties:
+        oneOf:
+          - $ref: '#/definitions/elder_then_props'
+          - $ref: '#/definitions/newer_then_props'
+    definitions:
+        elder_then_props:
+            type: object
+            additionalProperties: false
+            required:
+              - elder_then_delay
+              - threshold
+            properties:
+                elder_then_delay:
+                    description: Сдвиг временного диапазона от момента запуска задачи
+                        в минутах
+                    type: integer
+                    minimum: 0
+                threshold:
+                    $ref: '#/definitions/threshold_prop'
+        newer_then_props:
+            type: object
+            additionalProperties: false
+            properties:
+                newer_then_delay:
+                    description: Сдвиг временного диапазона от момента запуска задачи
+                        в минутах (если не указанно иное)
+                    type: integer
+                    minimum: 0
+                threshold:
+                    $ref: '#/definitions/threshold_prop'
+        threshold_prop:
+            description: Трешхолд срабатывания мониторинга
+            type: integer
+            minimum: 0
+    properties:
+        too_many_need_approve:
+            $ref: '#/definitions/elder_then_props'
+            description: Настройки монран проверки, собирающей кол-во скриптов в статусе
+                need_approve
+        too_many_approved:
+            $ref: '#/definitions/elder_then_props'
+            description: Настройки монран проверки, собирающей кол-во скриптов в статусе
+                approved
+        too_many_running:
+            $ref: '#/definitions/elder_then_props'
+            description: Настройки монран проверки, собирающей кол-во скриптов в статусе
+                running
+        too_many_expired:
+            $ref: '#/definitions/newer_then_props'
+            description: Настройки монран проверки, собирающей кол-во просроченных
+                скриптов
+        too_many_failed:
+            $ref: '#/definitions/newer_then_props'
+            description: Настройки монран проверки, собирающей кол-во скриптов, завершившихся
+                ошибкой

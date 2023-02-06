@@ -1,0 +1,57 @@
+id: test_new_service_get_response
+title: Проверка получения ответа из сервиса eats-restapp-promo
+
+source:
+    request:
+        method: get
+        headers:
+            X-YaEda-PartnerId#string: 100
+            content-type: application/json
+        query:
+            id: 123
+    expectations:
+        response:
+            status-code: 200
+            body: {'id': 228, 'status': 'disabled', 'name': 'promo_name', 'description': 'description',
+                'place_ids': [41, 42, 43], 'type': 'one_plus_one', 'starts_at': '2020-08-28T15:11:25+03:00',
+                'ends_at': '2020-08-28T15:11:25+03:00', 'schedule': [{'day': 2, 'from': 60,
+                        'to': 180}, {'day': 7, 'from': 1000, 'to': 1030}], 'requirements': [
+                    {'category_ids': [1, 2, 3], 'item_ids': ['100', '105']}, 'category_ids': [
+                            1, 2, 3], 'item_ids': ['100']], 'bonuses': ['discount': 20,
+                    'item_id': 'item_id_1']}
+
+mocks:
+  - resource: eats-restapp-marketing-get-promo-by-id
+    expectations:
+        call-count: 0
+
+  - resource: eats-restapp-promo-get-promo-by-id
+    response:
+        status-code: 200
+        body:
+            id: 228
+            status: disabled
+            name: promo_name
+            description: description
+            place_ids: [41, 42, 43]
+            type: one_plus_one
+            starts_at: 2020-08-28T15:11:25+03:00
+            ends_at: 2020-08-28T15:11:25+03:00
+            schedule: [{day: 2, from: 60, to: 180}, {day: 7, from: 1000, to: 1030}]
+            requirements: [{'category_ids': [1, 2, 3], 'item_ids': ['100', '105']},
+                'category_ids': [1, 2, 3], 'item_ids': ['100']]
+            bonuses: ['discount': 20, 'item_id': 'item_id_1']
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-new-promos-enabled
+        value:
+            enabled: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 100

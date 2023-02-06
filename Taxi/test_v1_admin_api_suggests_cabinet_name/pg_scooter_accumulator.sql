@@ -1,0 +1,32 @@
+INSERT INTO scooter_accumulator.cabinets (
+    cabinet_id,
+    depot_id,
+    created_at,
+    updated_at,
+    type,
+    cabinet_name
+) VALUES
+(
+    'cabinet_id1',
+    'depot_id1',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    'cabinet',
+    'cabinet_name1'
+),
+(
+    'cabinet_id2',
+    'depot_id1',
+    '2019-12-17T07:38:55',
+    '2019-12-17T07:38:55',
+    'charge_station',
+    'cabinet_name2'
+),
+(
+    'cabinet_id3',
+    'depot_id2',
+    '2019-12-17T07:38:56',
+    '2019-12-17T07:38:56',
+    'charge_station_without_id_receiver',
+    'cabinet_name3'
+);

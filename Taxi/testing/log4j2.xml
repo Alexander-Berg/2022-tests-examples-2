@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug">
+
+    <!-- Don't forget to set system property
+-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
+     to make all loggers asynchronous. -->
+
+    <Appenders>
+        <RollingFile name="MAIN_PILORAMA" fileName="${sys:log.dir}/${sys:app.name}.log"
+                     filePattern="${sys:log.dir}/${sys:app.name}.log.%d{yyyy-MM-dd}.gz">
+            <PiloramaLayout/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:log.dir}" maxDepth="1">
+                    <IfFileName glob="${sys:app.name}.log.*.gz"/>
+                    <IfLastModified age="3d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="MAIN_HUMAN" fileName="${sys:log.dir}/${sys:app.name}-human.log"
+                     filePattern="${sys:log.dir}/${sys:app.name}-human.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="%d [%t] %p %c - %m%n"/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:log.dir}" maxDepth="1">
+                    <IfFileName glob="${sys:app.name}-human.log.*.gz"/>
+                    <IfLastModified age="14d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="TRACE" fileName="${sys:log.dir}/${sys:app.name}-trace.log"
+                     filePattern="${sys:log.dir}/${sys:app.name}-trace.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="%m%n"/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:log.dir}" maxDepth="1">
+                    <IfFileName glob="${sys:app.name}-trace.log.*.gz"/>
+                    <IfLastModified age="14d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="SAAS_EVENTS" fileName="${sys:log.dir}/ququmber-saas-events.log"
+                     filePattern="${sys:log.dir}/ququmber-saas-events.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="%d - %m%n"/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:log.dir}" maxDepth="1">
+                    <IfFileName glob="ququmber-saas-events.log.*.gz"/>
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="TICKET_EVENTS" fileName="${sys:log.dir}/ququmber-ticket-events.log"
+                     filePattern="${sys:log.dir}/ququmber-ticket-events.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="%d - %m%n"/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:log.dir}" maxDepth="1">
+                    <IfFileName glob="ququmber-ticket-events.log.*.gz"/>
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="SENSITIVE_LOG" fileName="${sys:log.dir}/${sys:app.name}-failed-events.log"
+                     filePattern="${sys:log.dir}/${sys:app.name}-failed-events.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="%m%n"/>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:log.dir}" maxDepth="1">
+                    <IfFileName glob="${sys:app.name}-failed-events.log.*.gz"/>
+                    <IfLastModified age="2d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <UnifiedAgent name="ERROR_BOOSTER" host="localhost" port="18439">
+            <ErrorBoosterLayout/>
+            <SessionMetaItem name="channel_key" value="error-booster"/>
+            <AgentProperty name="MaxStackTraceDepth" value="999"/>
+        </UnifiedAgent>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="MAIN_PILORAMA"/>
+            <AppenderRef ref="MAIN_HUMAN"/>
+        </Root>
+        <Logger name="requestTrace" level="trace" additivity="false">
+            <AppenderRef ref="TRACE"/>
+        </Logger>
+        <Logger name="ru.yandex.taxi" level="debug" additivity="false">
+            <AppenderRef ref="MAIN_PILORAMA"/>
+            <AppenderRef ref="MAIN_HUMAN"/>
+            <AppenderRef ref="ERROR_BOOSTER" level="error"/>
+        </Logger>
+        <Logger name="saas_events" level="info" additivity="false">
+            <AppenderRef ref="SAAS_EVENTS"/>
+        </Logger>
+        <Logger name="ticket_events" level="info" additivity="false">
+            <AppenderRef ref="TICKET_EVENTS"/>
+        </Logger>
+        <Logger name="SENSITIVE_LOG" level="debug" additivity="false">
+            <AppenderRef ref="SENSITIVE_LOG"/>
+        </Logger>
+    </Loggers>
+</Configuration>

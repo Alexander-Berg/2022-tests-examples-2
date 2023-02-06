@@ -1,0 +1,84 @@
+id: dispatch_check_in_before_check_in_expired_status
+title: Проверяет ответ для чек-ин флоу при expired до чек-ина
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+            orderid: order_id
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                classes: ['econom']
+                status: expired
+                additional_buttons: {}
+                feedback: {}
+                notifications:
+                    order_status_alert:
+                        translations:
+                            some_field: some_value4
+                check_in_flow_status: before_check_in
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            status: expired
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: search
+            tariff:
+                class: econom
+            dispatch_check_in: {}
+            request:
+                route: [uris: ['test_pickup_point']]
+            private_data:
+                classes: ['econom']
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: order_id
+                userid: user_id
+
+  - resource: dispatch-check-in-before-check-in-info
+    response:
+        status-code: 200
+        body:
+            instruction:
+                some_field: some_value0
+            check_in_zones: [some_value1, some_value2]
+            check_in_action:
+                some_field2: some_value2
+            status_info: some_value3
+            order_status_alert:
+                some_field: some_value4
+            ui_config:
+                some_field: some_value5
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                order_id: order_id
+                tariff_class: econom
+                pickup_point_uri: test_pickup_point

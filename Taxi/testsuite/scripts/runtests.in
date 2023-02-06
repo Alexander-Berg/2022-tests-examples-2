@@ -1,0 +1,21 @@
+#!/bin/sh
+
+PYTHONPATH=@CMAKE_SOURCE_DIR@/submodules/pytest/src:@CMAKE_BINARY_DIR@/python:@CMAKE_CURRENT_SOURCE_DIR@:@TESTSUITE_ROOT_DIR@:$PYTHONPATH
+
+export PYTHONPATH
+
+PATH=@PYTHON_ENV_PATH@:$PATH
+
+export PATH
+
+if [ "x$*" = "x" ]; then
+    PYTEST_DEFAULT_ARGS="-vv @CMAKE_CURRENT_SOURCE_DIR@/tests"
+else
+    PYTEST_DEFAULT_ARGS=""
+fi
+
+exec @PYTHON@ \
+     @CMAKE_CURRENT_SOURCE_DIR@/scripts/pytest_gevent.py \
+     -p tests_plugins.settings \
+     --build-dir=@CMAKE_BINARY_DIR@ \
+     @PYTEST_FLAGS@ $PYTEST_ARGS $PYTEST_DEFAULT_ARGS "$@"

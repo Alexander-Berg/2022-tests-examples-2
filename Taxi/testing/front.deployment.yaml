@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supportai-t-front
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: supportai-t-front
+  template:
+    metadata:
+      labels:
+        app: supportai-t-front
+    spec:
+      containers:
+      - name: supportai-t-frontkubect
+        image: cr.yandex/crpri850lhmnh8hn3449/front:651
+        imagePullPolicy: Always
+        env:
+        - name: YANDEX_ENVIRONMENT
+          value: "testing"
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          failureThreshold: 60
+          periodSeconds: 5
+        volumeMounts:
+        - name: tvmtool
+          mountPath: "/etc/tvmtool"
+          readOnly: true
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+        - 172.18.0.2
+        - 172.17.0.2
+        - 172.16.0.2
+        searches:
+          - auto-internal
+      volumes:
+      - name: tvmtool
+        secret:
+          secretName: tvmtool.conf

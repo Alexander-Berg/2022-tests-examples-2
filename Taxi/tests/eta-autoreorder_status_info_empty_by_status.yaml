@@ -1,0 +1,65 @@
+id: eta-autoreorder_status_info_empty_by_status
+title: Проверяет что поле status_info пустое при срабатывании автореордера и неверном
+    статусе заказа
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+            orderid: order_id
+        headers:
+            content-type: 'application/json'
+            X-Request-Language#string: 'ru'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    ETA_AUTOREORDER_API_PROXY_CONFIG_STATUS_INFO_ENABLED: true
+
+experiments:
+    values#object:
+      - key: totw_eta_autoreorder_reason_translations
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: waiting
+            autoreorder_reason: eta-autoreorder
+        headers:
+            content-type: 'application/json'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: order_id
+                userid: user_id
+  - resource: eta-autoreorder-internal-translates-autoreorder
+    response:
+        status-code: 200
+        body:
+            status_info:
+                translations:
+                    card:
+                        title_template: Водитель задерживается, ищем новую машину
+                        subtitle_template:
+        headers:
+            content-type: 'application/json'
+    expectations:
+        call-count: 1
+        request:
+            method: get

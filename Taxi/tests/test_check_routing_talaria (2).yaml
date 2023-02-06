@@ -1,0 +1,32 @@
+id: test_check_routing_talaria
+title: Cehck talaria routing
+
+source:
+    request:
+        method: post
+        body: {"payment_id": "card_id"}
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-Scooters-Tag: wind
+    expectations:
+        response:
+            status-code: 200
+            body#any:
+
+mocks:
+  - resource: talaria-payment-debts
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+        request:
+            body: {"payment_id": "card_id"}
+            headers:
+                X-YaTaxi-Scooters-Tag: "wind"
+  - resource: scooters-payment-debts
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

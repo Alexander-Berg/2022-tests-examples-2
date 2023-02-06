@@ -1,0 +1,41 @@
+description: Список допустимых к загрузке agl-конфигураций
+maintainers:
+  - lol4t0
+  - bznk
+  - urandon
+tags:
+  - notfallback
+  - by-service
+
+default:
+    enabled: false
+    docker: []
+    sandbox: []
+    dynamic: []
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enabled
+    properties:
+        enabled:
+            description: Включатель allowlist-фильтра
+            type: boolean
+        docker:
+            description: Разрешённые scope в docker-контейнере сервиса
+            $ref: "#/definitions/ScopeSet"
+        sandbox:
+            description: Разрешённые scope в sandbox-ресурсах
+            $ref: "#/definitions/ScopeSet"
+        dynamic:
+            description: Разрешённые scope из /var/cache (rsync+ssh)
+            $ref: "#/definitions/ScopeSet"
+    definitions:
+        ScopeSet:
+            type: array
+            x-taxi-cpp-type: std::unordered_set
+            items:
+                type: string
+                description: Разрешённый к загрузке scope
+

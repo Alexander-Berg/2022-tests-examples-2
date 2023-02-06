@@ -1,0 +1,41 @@
+id: test_should_update_revision
+title: Testing revision update
+source:
+    request:
+        method: get
+        query:
+            block_id: some_block_id
+            revision: 'abc'
+        headers:
+            X-Remote-IP: 77.220.136.217
+    expectations:
+        response:
+            status-code: 200
+            body:
+                ok: true
+                should_update_revision: true
+
+configs:
+    values#object:
+      - key: proxy_url_groups
+        value: {"revision": "abcd"}
+
+mocks:
+  - resource: exp3-matcher-configs
+    response:
+        status-code: 200
+        body:
+            version: 1045729
+            items#array:
+              - value:
+                    name: api_proxy_protocol_startup
+                    value#object:
+                      - key: ok
+                        value: true
+              - value:
+                    name: proxy_url_groups
+                    value#object:
+                      - key: revision
+                        value: 'abcd'
+        headers:
+            content-type: 'application/json'

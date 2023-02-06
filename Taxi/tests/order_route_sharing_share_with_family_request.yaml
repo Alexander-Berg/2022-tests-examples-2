@@ -1,0 +1,111 @@
+id: order_route_sharing_share_with_family_request
+title: Проверяет, что при необходимом значении хидера 'X-Ya-Family-Role' есть поход
+    в order-route-sharing
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            media_size_info: {'screen_height': 1920, 'screen_width': 1080, 'scale': 2.5}
+            user_actions: {'share_ride_with_family': {'value': true}}
+        headers:
+            content-type: 'application/json'
+            X-Ya-Family-Role: 'user'
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+experiments:
+    values#object:
+      - key: api_proxy_totw_stories_use_inapp
+        value:
+            enabled: true
+        enabled: true
+      - key: sharing_with_family_enabled
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            higher_class_dialog:
+                image: class_comfortplus_car
+                title: some_title
+                text: some_text
+                class_after_upgrade: comfortplus
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                nz: 'moscow'
+                driver_id: 'driver_id_1'
+            request:
+                route: ['geopoint': [37.5, 57.5], 'geopoint': [37.8, 59.7]]
+            tariff:
+                class: comfortplus
+            status: 'transporting'
+            rsk: 'sharing_key_1'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+  - resource: order-route-sharing-v1-share-with-family
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Ya-Family-Role: 'user'
+            method: post
+            body:
+                share_ride_with_family: {'value': true}
+                tariff_class: 'comfortplus'
+                sharing_key: 'sharing_key_1'
+                order_id: 'order_id'
+  - resource: inapp-communications-v1-promos-on-the-way
+    response:
+        status-code: 200
+        body#object:
+          - key: legacy_stories
+            value#object:
+              - key: match
+                value:
+                    views: ['waiting', 'driving']
+              - key: type
+                value: 'stories'
+              - key: stories
+                value#array:
+                  - value#object:
+          - key: promotions
+            value#object:
+              - key: banners
+                value#object:
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1

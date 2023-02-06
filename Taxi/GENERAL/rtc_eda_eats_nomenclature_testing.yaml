@@ -1,0 +1,142 @@
+---
+- service: eats-nomenclature-testing-places_with_old_assortment_count
+  description: |-
+    Есть группы магазинов, которые слишком давно не обновляли ассортимент.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    { project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-nomenclature",
+      sensor="place-update-metrics.places_with_old_assortment_count",
+      group="eda_eats-nomenclature_testing",
+      host="eda-eats-nomenclature*" }
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+  period: 300
+
+- service: eats-nomenclature-testing-places_with_old_availabilities_count
+  description: |-
+    Есть магазины, для которых слишком давно не присылали данные о доступности.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    { project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-nomenclature",
+      sensor="place-update-metrics.places_with_old_availabilities_count",
+      group="eda_eats-nomenclature_testing",
+      host="eda-eats-nomenclature*" }
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+  period: 300
+
+- service: eats-nomenclature-testing-places_with_old_stocks_count
+  description: |-
+    Есть магазины, для которых слишком давно не присылали данные об остатках.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    { project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-nomenclature",
+      sensor="place-update-metrics.places_with_old_stocks_count",
+      group="eda_eats-nomenclature_testing",
+      host="eda-eats-nomenclature*" }
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+  period: 300
+
+- service: eats-nomenclature-testing-unsynced_place_count
+  description: |-
+    Есть магазины, по которым не загружалась номенклатура, но которые в core помечены как выгружаемые.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    { project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-nomenclature",
+      sensor="core-sync-periodic.unsynced_place_count",
+      group="eda_eats-nomenclature_testing",
+      host="eda-eats-nomenclature*" }
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+  period: 300
+
+- service: eats-nomenclature-testing-fails_in_processing_queue
+  description: |-
+    Обнаружены ошибки в очереди обработки номенклатуры (eats_nomenclature_processing).
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    { project="taxi",
+      cluster="testing_stq", 
+      service="stq",
+      application="stq-agent", 
+      host='taxi-stq-agent-py3*',
+      sensor="failed", 
+      group="taxi_stq-agent-py3_testing", 
+      section="eats_nomenclature_processing",
+      stat_type="by_hosts",
+      subsection!="total"}
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+  period: 300
+
+- service: eats-nomenclature-testing-dead-tuples
+  description: |-
+    Суммарное количество удаленных тюплов превысило максимальное значение, заданное в конфиге.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    { project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-nomenclature",
+      sensor="db-metrics.dead_tuples",
+      group="eda_eats-nomenclature_testing",
+      host="eda-eats-nomenclature*" }
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+  period: 300
+
+- service: eats-nomenclature-testing-pg-periodic-cleanup-fails
+  description: |-
+    Произошли ошибки во время работы периодика db-cleanup-periodic
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: expression
+  program: |
+    let series =  { 'project'='taxi',
+                    'service'='uservices',
+                    'cluster'='testing_uservices',
+                    'application'='eats-nomenclature',
+                    'sensor'='periodic-data.fails',
+                    'periodic_name'='db-cleanup-periodic',
+                    'host'='cluster'};
+    let fails_diff = drop_below(diff(series),0);
+    let fails = sum(series_sum(fails_diff));
+    warn_if(fails > 0);
+  checkExpression: 'false'
+  period: 7200

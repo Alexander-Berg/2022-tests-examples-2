@@ -1,0 +1,21 @@
+INSERT INTO hiring_candidates.target_events (
+    activity_window_seq,
+    order_number,
+    unique_driver_id,
+    rk_cargo,
+    rk_delivery,
+    rk_higher_class,
+    rk_ultima,
+    rk_econom
+)
+VALUES
+(
+    1,
+    15,
+    '61190c70ae03f059f3c99b2f',
+    0,
+    0,
+    0,
+    0,
+    15
+)

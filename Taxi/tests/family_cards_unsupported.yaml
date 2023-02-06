@@ -1,0 +1,150 @@
+id: family_cards_unsupported
+title: |
+    проверяем как ведут себя старые клиенты при получении новых карт
+    Семейные карты из Паспорта
+    1. Владельцы карты видят без family
+    2. Участники не видят семейные карты
+    3. Старый семейный виден
+    RFC https://github.yandex-team.ru/taxi/rfc/pull/970
+
+parameters:
+  - family_group_v2: [false, true]
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+            Accept-Language: ru-RU,en-US
+    expectations:
+        response:
+            status-code: 200
+            body:
+                corp:
+                    available_accounts: []
+                    payment_available: false
+                card:
+                    payment_available: true
+                    unverified_cards: []
+                    available_cards:
+                      - id: owner_card_id
+                        system: visa
+                        number: '****2222'
+                        busy: false
+                        currency: RUR
+                        expiration_time: '2020-10-31T00:00:00+0000'
+                        expiration_year: 2025
+                        expiration_month: 11
+                        usable: true
+                coop_account:
+                    payment_available: true
+                    payment_methods:
+                      - id: 'old_family_id'
+                        type: 'family'
+                        is_active: true
+                        member_role: 'owner'
+                        description: 'description'
+                        error_description: ''
+                        details:
+                            passport_account: true
+                    accounts:
+                      - id: 'old_family_id'
+                        type: 'family'
+                        is_active: true
+                        member_role: 'owner'
+                        description: 'description'
+                        error_description: ''
+                        details:
+                            passport_account: true
+
+
+mocks:
+  - resource: card-filter-v1-filteredcards-legacy
+    response:
+        status-code: 200
+        body:
+            available_cards:
+              - id: owner_card_id
+                system: visa
+                number: '****2222'
+                busy: false
+                currency: RUR
+                expiration_time: '2020-10-31T00:00:00+0000'
+                expiration_year: 2025
+                expiration_month: 11
+                usable: true
+                family:
+                    is_owner: true
+                    limit: 2500
+                    expenses: 1000
+                    currency: RUB
+                    frame: month
+              - id: member_card_id
+                system: visa
+                number: '****1111'
+                busy: false
+                currency: RUR
+                expiration_time: '2020-10-31T00:00:00+0000'
+                expiration_year: 2025
+                expiration_month: 11
+                usable: true
+                description: 'Семейная карта: доступно 1000 из 2500р.'
+                family:
+                    is_owner: false
+                    owner_uid: 12341234
+                    limit: 2500
+                    expenses: 1000
+                    currency: RUB
+                    frame: month
+        headers:
+            content-type: 'application/json; charset=utf-8'
+            Accept-Language: ru-RU,en-US
+    expectations:
+        call-count: 1
+  - resource: shared-internal-stats
+    response:
+        status-code: 200
+        body:
+            payment_methods:
+              - id: 'old_family_id'
+                type: 'family'
+                is_active: true
+                member_role: 'owner'
+                description: 'description'
+                error_description: ''
+                details:
+                    passport_account: true
+            accounts:
+              - id: 'old_family_id'
+                type: 'family'
+                is_active: true
+                member_role: 'owner'
+                description: 'description'
+                error_description: ''
+                details:
+                    passport_account: true
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: false
+    BILLING_COOP_ACCOUNT_ENABLED: true
+
+experiments:
+    values:
+        card_filter_legacy_enabled:
+            enabled: true
+        family_group_v2:
+            enabled#xget: /test-params/family_group_v2

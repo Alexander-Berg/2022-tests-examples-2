@@ -1,0 +1,28 @@
+id: test_delete_vendor_response
+title: Проверка получения ответа от бэкенда ресторанного приложения
+
+source:
+    request:
+        method: delete
+        url: /api/v1/server/users/1
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-user-delete
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+
+  - resource: eats-partners-internal-v1-block
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: false
+        enabled: true

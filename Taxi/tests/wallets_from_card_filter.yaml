@@ -1,0 +1,83 @@
+id: wallets_from_card_filter
+title: Берём кошельки из ответа card-filter
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 37.6
+              - 55.7
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+            X-Remote-IP: 77.220.136.217
+
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods:
+                  - availability:
+                        available: true
+                        disabled_reason: ''
+                    id: "w/1234"
+                    type: "personal_wallet"
+                    name: "Plus"
+                    description: "123"
+                merchant_id_list:
+                  - id1
+
+mocks:
+  - resource: card-filter-v1-filteredcards
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+            wallets:
+              - name: "Plus"
+                description: "123"
+                availability:
+                    disabled_reason: ''
+                    available: true
+                id: "w/1234"
+                type: "personal_wallet"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: personal-v1-available-accounts
+    response:
+        status-code: 500
+    expectations:
+        call-count: 0
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payments:
+                card:
+                    type: card
+                personal_wallet:
+                    type: personal_wallet
+            merchant_ids:
+              - id1
+taxi_config:
+    PERSONAL_WALLET_ENABLED: true
+
+experiments:
+    values:
+        card_filter_enabled:
+            enabled: true
+        card_filter_process_wallets:
+            enabled: true
+        superapp_personal_wallet:
+            enabled: true

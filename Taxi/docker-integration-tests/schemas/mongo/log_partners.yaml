@@ -1,0 +1,39 @@
+description: logs with information for parks about errors on imports
+settings:
+    collection: partners
+    connection: logs
+    database: dblogs
+indexes:
+  - key: park
+  - expireAfterSeconds: 21600
+    key:
+      - name: time
+        type: descending
+  - key: type
+wiki_info: |
+    #### log_partners
+    *Назначение:* В коллекции содержится информация об ошибках при импорте водителей.
+    Информация из коллекции отображается в партнерском кабинете. На поле time
+    установлен TTL-индекс c временем жизни 6 часов
+    *Структура документа:*
+    ```python
+    log_partners={
+      '_id': ObjectId('58898bb897655a0667073653'),
+      #Уровень сообщения
+      'level': 'warning',
+      #Сообщение о проблеме
+      'message': 'сообщение',
+      #Clid таксопарка, обработка которого вызвала проблему
+      'park': '1956790032',
+      #Время сообщения
+      'time': datetime.datetime(2017, 1, 26, 5, 40, 8, 287000),
+      #Тип обработчика, в котором возникла проблема
+      'type': 'drivers',
+      # Трейсбек исключения, если есть, иначе 'None'
+      'exc_info': 'None',
+      # Хост, который обрабатывает задачу
+      'host': 'celery01e8.mobile.yandex.net',
+      # Идентификатор записи, обработка которой вызвала проблему
+      'id': 'taxicelcar002511',
+    }
+    ```

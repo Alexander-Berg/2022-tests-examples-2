@@ -1,0 +1,37 @@
+python_service:
+    service_name: fleet-plugins-tests
+maintainers:
+  - Ruslan Samoletov <tarasalk@yandex-team.ru>
+teamcity:
+    conductor-disabled: true
+docker-deploy: {}
+debian:
+    source_package_name: yandex-taxi-fleet-plugins-tests
+    maintainer_name: Ruslan Samoletov
+    maintainer_login: tarasalk
+units:
+  - name: web
+    web:
+        description: Yandex.Taxi fleet-plugins-tests web package
+        hostname:
+            production:
+              - fleet-plugins-tests.taxi.yandex.net
+            testing:
+              - fleet-plugins-tests.taxi.tst.yandex.net
+            unstable:
+              - fleet-plugins-tests.taxi.dev.yandex.net
+        num_procs:
+            production: 2
+            testing: 2
+        propagate-client-errors:
+            ratelimit: true
+    debian:
+        binary_package_name: yandex-taxi-fleet-plugins-tests-web
+    fleet_common:
+    fleet_rate_limiter:
+    fleet_error_response:
+tvm:
+    service_name: fleet-plugins-tests
+clients:
+    services:
+      - fleet-transactions-api

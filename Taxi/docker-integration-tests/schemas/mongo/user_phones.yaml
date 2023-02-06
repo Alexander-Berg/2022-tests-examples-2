@@ -1,0 +1,186 @@
+description: user phones
+settings:
+    collection: user_phones
+    connection: users
+    database: dbusers
+indexes:
+  - key: blacklist
+  - key: mqc
+    sparse: true
+  - key: personal_phone_id
+  - key:
+      - name: phone
+        type: ascending
+      - name: type
+        type: ascending
+    unique: true
+  - key: taxi_staff
+    sparse: true
+  - key: updated
+  - key: yandex_staff
+    sparse: true
+jsonschema:
+    additionalProperties: false
+    properties:
+        _experiment_antifraud:
+            type: boolean
+        _id:
+            type: object_id
+        _spam_orders_processed:
+            items:
+                type: string
+            type: array
+        _tags:
+            items:
+                type: string
+            type: array
+        _use_forwarding:
+            description: True если для этого номера телефона включена переадресация
+                звонков через софтсвитч в некоторых городах
+            type: boolean
+        _use_forwarding_everywhere:
+            description: True если для этого номера телефона включена переадресация
+                звонков через софтсвитч везде
+            type: boolean
+        antifraud:
+            description: Параметры антифрода
+            properties:
+                group:
+                    description: Группа (1 - лоялы, 2 - нубы, 3 - хорошие)
+                    type: integer
+                paid_orders:
+                    description: Список идентификаторов последних успешно оплаченных
+                        заказов
+                    items:
+                        type: string
+                    type: array
+                version:
+                    description: Версия (данного объекта)
+                    type: integer
+            type: object
+        blacklist:
+            description: Список таксопарков, в которых номер +7XXXXXXXXXX занесён
+                в чёрные списки
+            items:
+                type: string
+            type: array
+        created:
+            description: Время создания (use '$setOnInsert' now, modifier on upsert)
+            type: datetime
+        last_order_city_id:
+            type: string
+        last_payment_method:
+            description: Последний выбранный способ оплаты пользователя
+            properties:
+                id:
+                    description: id оплаты
+                    type: string
+                type:
+                    description: Тип оплаты
+                    type: string
+            type: object
+        last_seen:
+            type: datetime
+        loyal:
+            description: True, если пользователь лоялен, False в противном случае
+            type: boolean
+        loyalty_processed:
+            items:
+                type: string
+            type: array
+        maybe_remove:
+            type: boolean
+        mqc:
+            description: deprecated, вынесено в конфиг ADMIN_MQC_USER_PHONES
+            type: boolean
+        new_year_message_was_sent:
+            type: boolean
+        personal_phone_id:
+            type: string
+        phone:
+            description: Номер телефона
+            oneOf:
+              - type: string
+              - type: 'null'
+        promotions:
+            items:
+                type: string
+            type: array
+        reason:
+            type: string
+        skip_intro_video:
+            type: boolean
+        sourceid:
+            type: string
+        stat:
+            description: Статистика по номеру +7XXXXXXXXXX
+            properties:
+                big_first_discounts:
+                    description: Число заказов с большой первой скидкой
+                    type: integer
+                complete:
+                    description: Число завершённых заказов
+                    type: integer
+                fake:
+                    description: Число ложных заказов
+                    type: integer
+                total:
+                    description: Общее число заказов
+                    type: integer
+            type: object
+        taxi_staff:
+            description: True, если пользователь работает в Яндекс.Такси (проверяем
+                с помощью api staff и обновляем раз в день по крону)
+            type: boolean
+        type:
+            type: string
+        unprocessed:
+            type: boolean
+        updated:
+            description: Время последнего обновления данных (do always include it
+                to $set)
+            type: datetime
+        yandex_staff:
+            description: True, если пользователь работает в Яндексе (проверяем с помощью
+                api staff и обновляем раз в день по крону)
+            type: boolean
+    required:
+      - _id
+    type: object
+wiki_info: |
+    ####dbusers.user_phones - Телефоны пользователей (является _antifraudable)
+
+    ```python
+    user_phone = {
+        # обязательные атрибуты
+        '_id': ObjectId(),
+        'phone': '+7XXXXXXXXXX',     # номер телефона
+        'personal_phone_id': 'id',   # идентификатор телефона в сервисе personal
+        'created': utcnow(),         # время создания (use {'$setOnInsert': now} modifier on upsert)
+        'updated': utcnow(),         # время последнего обновления данных (do always include it to $set)
+
+        # опциональные атрибуты
+        'blacklist': ['clid', ...],  # список таксопарков, в которых номер +7XXXXXXXXXX занесён в чёрные списки
+        'stat': {                    # статистика по номеру +7XXXXXXXXXX
+            'total': integer,        #   * общее число заказов
+            'complete': integer,     #   * число завершённых заказов
+            'fake': integer,         #   * число ложных заказов
+            'big_first_discounts': 0 #   * число заказов с большой первой скидкой
+        },
+        'loyal': boolean,            # True, если пользователь лоялен, False в противном случае
+        'mqc': boolean,              # deprecated, вынесено в конфиг ADMIN_MQC_USER_PHONES
+        '_use_forwarding': boolean,  # True если для этого номера телефона включена переадресация звонков через софтсвитч в некоторых городах
+        '_use_forwarding_everywhere': boolean,  # True если для этого номера телефона включена переадресация звонков через софтсвитч везде
+        'antifraud': {               # Параметры антифрода:
+            'version': 1,            #   - версия (данного объекта)
+            'group': 1,              #   - группа (1 - лоялы, 2 - нубы, 3 - хорошие)
+            'paid_orders': [...],    #   - список идентификаторов последних успешно оплаченных заказов
+        },
+        'yandex_staff' : boolean,    # True, если пользователь работает в Яндексе         (проверяем с помощью api staff и
+        'taxi_staff': True,          # True, если пользователь работает в Яндекс.Такси     обновляем раз в день по крону)
+        'last_payment_method': {     # Последний выбранный способ оплаты пользователя
+            'type': 'card',          # Тип оплаты
+            'id': 'card-x1234',      # id оплаты
+        },
+        'bound_uid'                  # uid пользователя в Паспорте, на который была произведена миграция данных пользователя
+    ```

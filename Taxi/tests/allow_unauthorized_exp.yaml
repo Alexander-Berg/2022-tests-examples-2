@@ -1,0 +1,50 @@
+id: allow_unauthorized_exp
+title: test turboapp_vezet_new_unauth_flow exp
+
+parameters:
+  - exp:
+      - value:
+            enabled: false
+            response_code: 401
+            response_body:
+      - value:
+            enabled: true
+            response_code: 200
+            response_body:
+                response: fields
+                values: here
+
+experiments:
+    values#object:
+      - key: turboapp_vezet_new_unauth_flow
+        value:
+            enabled#xget: /test-params/exp/value/enabled
+        enabled: true
+
+source:
+    request:
+        method: post
+        url: /integration/turboapp/v1/orders/estimate
+        headers: {}
+        body:
+            some: other
+            fields: values
+    expectations:
+        response:
+            status-code#xget: /test-params/exp/value/response_code
+            body#xget: /test-params/exp/value/response_body
+
+
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body:
+            response: fields
+            values: here
+    expectations:
+        request:
+            body:
+                some: other
+                fields: values

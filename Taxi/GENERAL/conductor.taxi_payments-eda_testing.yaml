@@ -1,0 +1,213 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: conductor
+    name: taxi_test_payments_eda
+graphs:
+    payments-eda.taxi.tst.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Conflict
+              - 410 # Gone
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/4.0/payments/v1/orders/retrieve_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Get order payment status
+              - Equals: {request_url: "/4.0/payments/v1/orders/retrieve"}
+              - Equals: {request_url: "/4.0/payments/v1/orders/retrieve/"}
+              - StartsWith: {request_url: "/4.0/payments/v1/orders/retrieve?"}
+              - StartsWith: {request_url: "/4.0/payments/v1/orders/retrieve/?"}
+        Options:
+            CustomHttp:
+              - 400 # bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # not found invoice for external ref
+              - 409 # validation error. This order doesn't belong to the user or service mismatch
+              - 410 # this order is pending too long (service=restaurants)
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/4.0/payments/v1/orders_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Create order
+              - Equals: {request_url: "/4.0/payments/v1/orders"}
+              - Equals: {request_url: "/4.0/payments/v1/orders/"}
+              - StartsWith: {request_url: "/4.0/payments/v1/orders?"}
+              - StartsWith: {request_url: "/4.0/payments/v1/orders/?"}
+        Options:
+            CustomHttp:
+              - 400 # data validation error
+              - 401 # Unauthorized
+              - 403 # eda validation failed
+              - 404 # external ref is not found in Eda db
+              - 409 # validation error. This order doesn't belong to the user, total costs don't match or service mismatch
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/4.0/payments/v1/preorder_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Get preorder object
+              - Equals: {request_url: "/4.0/payments/v1/preorder"}
+              - Equals: {request_url: "/4.0/payments/v1/preorder/"}
+              - StartsWith: {request_url: "/4.0/payments/v1/preorder?"}
+              - StartsWith: {request_url: "/4.0/payments/v1/preorder/?"}
+        Options:
+            CustomHttp:
+              - 400 # Invalid restaurants request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # external ref not found
+              - 409 # validation error. This order doesn't belong to the user, total costs don't match or service mismatch
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # ping
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/v1/available-payment-types_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # deprecated endpoint
+              - Equals: {request_url: "/v1/available-payment-types"}
+              - Equals: {request_url: "/v1/available-payment-types/"}
+              - StartsWith: {request_url: "/v1/available-payment-types?"}
+              - StartsWith: {request_url: "/v1/available-payment-types/?"}
+        Options:
+            CustomHttp:
+              - 400 # data validation error
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/v1/badge-availability_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # get badge availability
+              - Equals: {request_url: "/v1/badge-availability"}
+              - Equals: {request_url: "/v1/badge-availability/"}
+              - StartsWith: {request_url: "/v1/badge-availability?"}
+              - StartsWith: {request_url: "/v1/badge-availability/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/v1/cashback/calc_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/cashback/calc"}
+              - Equals: {request_url: "/v1/cashback/calc/"}
+              - StartsWith: {request_url: "/v1/cashback/calc?"}
+              - StartsWith: {request_url: "/v1/cashback/calc/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # заказ без кешбека
+              - 429 # сервис еще не готов посчитать кешбек
+
+    payments-eda.taxi.tst.yandex.net/v1/orders/cancel_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Cancel order
+              - Equals: {request_url: "/v1/orders/cancel"}
+              - Equals: {request_url: "/v1/orders/cancel/"}
+              - StartsWith: {request_url: "/v1/orders/cancel?"}
+              - StartsWith: {request_url: "/v1/orders/cancel/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Incorrect order status
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/v1/orders/close_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Close order
+              - Equals: {request_url: "/v1/orders/close"}
+              - Equals: {request_url: "/v1/orders/close/"}
+              - StartsWith: {request_url: "/v1/orders/close?"}
+              - StartsWith: {request_url: "/v1/orders/close/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Incorrect order status
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/v1/orders/items_PUT:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "PUT"}
+          - Or: # Изменение суммы заказа
+              - Equals: {request_url: "/v1/orders/items"}
+              - Equals: {request_url: "/v1/orders/items/"}
+              - StartsWith: {request_url: "/v1/orders/items?"}
+              - StartsWith: {request_url: "/v1/orders/items/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Incorrect order status
+              - 429 # Too many requests
+
+    payments-eda.taxi.tst.yandex.net/v1/orders/retrieve_POST:
+        And:
+          - Equals: {http_host: "payments-eda.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # retrieve order info
+              - Equals: {request_url: "/v1/orders/retrieve"}
+              - Equals: {request_url: "/v1/orders/retrieve/"}
+              - StartsWith: {request_url: "/v1/orders/retrieve?"}
+              - StartsWith: {request_url: "/v1/orders/retrieve/?"}
+        Options:
+            CustomHttp:
+              - 400 # validation error
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not Found
+              - 429 # Too many requests
+

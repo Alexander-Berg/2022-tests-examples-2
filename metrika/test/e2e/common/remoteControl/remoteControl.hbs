@@ -1,0 +1,41 @@
+{{#> base}}
+{{#*inline "title"}}
+    Main Page
+{{/inline}}
+{{#*inline "content"}}
+    Remote Control page
+    <br />
+    <iframe id="sameOriginIframe" src="./sameOriginPage.hbs"></iframe>
+    <script>
+        // helpers:
+        function hasIframeBeenInserted(ctx) {
+            var documentChildren = Array.prototype.slice.call(ctx.document.documentElement.children),
+                bodyChildren = Array.prototype.slice.call(ctx.document.body.children),
+                elementsToCheck = documentChildren.concat(bodyChildren),
+                elementsCount = elementsToCheck.length,
+                shadowRoot = null,
+                iframeExists,
+                i;
+
+            for (i = 0; i < elementsCount; i += 1) {
+                if (elementsToCheck[i].shadowRoot) {
+                    shadowRoot = elementsToCheck[i].shadowRoot;
+                    break;
+                }
+            }
+
+            if (shadowRoot) {
+                iframeExists = shadowRoot.children[0] === ctx._ym__remoteIframeEl;
+            } else {
+                for (i = 0; i < documentChildren.length; i += 1) {
+                    if (documentChildren[i] === ctx._ym__remoteIframeEl) {
+                        iframeExists = true;
+                    }
+                }
+            }
+
+            return Boolean(iframeExists);
+        }
+    </script>
+{{/inline}}
+{{/base}}

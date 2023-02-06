@@ -1,0 +1,96 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi cargo-dispatch test api
+    title: Yandex Taxi cargo-dispatch test api
+    version: '1.0'
+
+servers:
+  - url: cargo-dispatch.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: CARGO_DISPATCH_CLIENT_QOS
+
+paths:
+    /v1/test/segments/full:
+        get:
+            operationId: GetSegmentFromDenorm
+            description: Ручка для тестирования чтения из denorm
+            parameters:
+              - in: query
+                description: segment_id
+                name: segment_id
+                schema:
+                    type: string
+                required: true
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - segment
+                                  - waybills
+                                properties:
+                                    segment:
+                                        $ref: '../definitions/segment-denorm.yaml#/components/schemas/SegmentDenorm'
+                                    waybills:
+                                        type: array
+                                        items:
+                                            $ref: '../definitions/waybill-denorm.yaml#/components/schemas/WaybillDenorm'
+                404:
+                    description: Не найдена
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties: {}
+
+    /v1/test/waybills/full:
+        get:
+            operationId: GetWaybillFromDenorm
+            description: Ручка для тестирования чтения из denorm
+            parameters:
+              - in: query
+                description: external_ref
+                name: external_ref
+                schema:
+                    type: string
+              - in: query
+                description: waybill_order_id
+                name: waybill_order_id
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - segments
+                                  - waybill
+                                properties:
+                                    segments:
+                                        type: array
+                                        items:
+                                            $ref: '../definitions/segment-denorm.yaml#/components/schemas/SegmentDenorm'
+                                    waybill:
+                                        $ref: '../definitions/waybill-denorm.yaml#/components/schemas/WaybillDenorm'
+                404:
+                    description: Не найдена
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties: {}

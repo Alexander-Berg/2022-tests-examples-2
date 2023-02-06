@@ -1,0 +1,287 @@
+default:
+    enabled: false
+    polling:
+        times: 60
+        period: 30
+    labs: []
+    depot:
+        hard_window: false
+        penalty:
+            out_of_time:
+                fixed: 1000
+                minute: 1000
+    vehicle:
+        capacity:
+            units: 1000
+            weight_kg: 1000
+            volume:
+                width_m: 3
+                depth_m: 3
+                height_m: 3
+        return_to_depot: true
+        max_runs: 1
+        cost:
+            km: 30
+            hour: 30
+            fixed: 2000
+        shifts:
+            hard_window: false
+            penalty:
+                out_of_time:
+                    fixed: 1000
+                    minute: 1000
+    location:
+        time_window: 07:00:00-22:00:00
+        hard_window: false
+        shipment_size:
+            units: 1
+        penalty:
+            drop: 1000000
+            out_of_time:
+                fixed: 1000
+                minute: 1000
+        shared_service_duration_s: 900
+        service_duration_s: 1
+    options:
+        absolute_time: false
+        routing_mode: driving
+        minimize: cost
+        quality: normal
+description: Параметры b2b geo, подробности здесь https://st.yandex-team.ru/PERSEYCORE-17.
+    enabled -- выключатель
+maintainers: [kokokosttn, mstepa]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        enabled:
+            description: set this variable to false to turn b2b_geo off
+            type: boolean
+        polling:
+            type: object
+            additionalProperties: false
+            properties:
+                period:
+                    description: sleep seconds between trials
+                    type: integer
+                times:
+                    description: max number of tries
+                    type: integer
+            required:
+              - period
+              - times
+        labs:
+            type: array
+            items:
+                type: object
+                additionalProperties: false
+                properties:
+                    lab_id:
+                        type: string
+                    data:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            time_window:
+                                description: office hours HH:MM:SS-HH:MM:SS
+                                type: string
+                        required:
+                          - time_window
+                required:
+                  - lab_id
+                  - data
+        depot:
+            type: object
+            additionalProperties: false
+            properties:
+                hard_window:
+                    type: boolean
+                penalty:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        out_of_time:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                fixed:
+                                    type: integer
+                                minute:
+                                    type: integer
+                            required:
+                              - fixed
+                              - minute
+                    required:
+                      - out_of_time
+            required:
+              - hard_window
+              - penalty
+        vehicle:
+            type: object
+            additionalProperties: false
+            properties:
+                capacity:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        units:
+                            type: integer
+                        weight_kg:
+                            type: integer
+                        volume:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                width_m:
+                                    type: integer
+                                depth_m:
+                                    type: integer
+                                height_m:
+                                    type: integer
+                            required:
+                              - width_m
+                              - depth_m
+                              - height_m
+                    required:
+                      - units
+                      - weight_kg
+                      - volume
+                return_to_depot:
+                    type: boolean
+                max_runs:
+                    type: integer
+                cost:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        km:
+                            type: integer
+                        hour:
+                            type: integer
+                        fixed:
+                            type: integer
+                    required:
+                      - km
+                      - hour
+                      - fixed
+                shifts:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        hard_window:
+                            type: boolean
+                        penalty:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                out_of_time:
+                                    type: object
+                                    additionalProperties: false
+                                    properties:
+                                        fixed:
+                                            type: integer
+                                        minute:
+                                            type: integer
+                                    required:
+                                      - fixed
+                                      - minute
+                            required:
+                              - out_of_time
+                    required:
+                      - hard_window
+                      - penalty
+            required:
+              - capacity
+              - return_to_depot
+              - max_runs
+              - cost
+              - shifts
+
+        location:
+            type: object
+            additionalProperties: false
+            properties:
+                time_window:
+                    type: string
+                hard_window:
+                    type: boolean
+                shipment_size:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        units:
+                            type: integer
+                    required:
+                      - units
+                penalty:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        drop:
+                            type: integer
+                        out_of_time:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                fixed:
+                                    type: integer
+                                minute:
+                                    type: integer
+                            required:
+                              - fixed
+                              - minute
+                    required:
+                      - drop
+                      - out_of_time
+                shared_service_duration_s:
+                    type: integer
+                service_duration_s:
+                    type: integer
+            required:
+              - time_window
+              - hard_window
+              - shipment_size
+              - penalty
+              - shared_service_duration_s
+              - service_duration_s
+
+        options:
+            type: object
+            additionalProperties: false
+            properties:
+                absolute_time:
+                    type: boolean
+                routing_mode:
+                    type: string
+                    enum:
+                      - driving
+                      - truck
+                      - walking
+                      - transit
+                minimize:
+                    type: string
+                    enum:
+                      - time
+                      - cost
+                      - distance
+                      - combined
+                quality:
+                    type: string
+                    enum:
+                      - low
+                      - normal
+                      - high
+            required:
+              - absolute_time
+              - routing_mode
+              - minimize
+              - quality
+    required:
+      - enabled
+      - polling
+      - labs
+      - depot
+      - vehicle
+      - location
+      - options

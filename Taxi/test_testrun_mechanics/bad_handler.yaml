@@ -1,0 +1,54 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+aliases:
+    eats-available#map:
+        iterator: eats_availability_it
+        input#xget: /sources/source/response/body/modes
+        filter#and:
+          - value#equal:
+              - value#xget: /iterators/eats_availability_it/mode
+              - value#string: 'eats'
+          - value#xget: '/iterators/eats_availability_it/parameters/available'
+        element#xget: /iterators/eats_availability_it/mode
+
+    grocery-available#map:
+        iterator: grocery_availability_it
+        filter#and:
+          - value#equal:
+              - value#xget: /iterators/grocery_availability_it/mode
+              - value#string: grocery
+          - value#xget: /iterators/grocery_availability_it/parameters/available
+        input#xget: /sources/source/response/body/modes
+        element#xget: /iterators/grocery_availability_it/mode
+
+    header-fallback#switch:
+        cases:
+          - value#xget: /experiments/superapp_bricks_fallback_exp/value/grocery_and_taxi
+            case#string: grocery
+          - value#xget: /experiments/superapp_bricks_fallback_exp/value/eats_and_taxi
+            case#string: eats
+          - value#xget: /experiments/superapp_bricks_fallback_exp/value/grocery_and_eats_and_taxi
+            case#string: groceryeats
+        default-value#xget: /experiments/superapp_bricks_fallback_exp/value/taxi
+        input#concat-strings:
+          - value#concat-arrays:
+              - value#xget: /aliases/grocery-available
+              - value#xget: /aliases/eats-available
+
+sources:
+  - id: source
+    content-type: application/json
+    resource: test-resource
+    body#request-body: {}
+    headers#request-headers: {}
+    query#request-args: {}
+    fail-policy:
+      - selector: any
+        action: propagate
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#object:
+      - key: data
+        value#xget: /aliases/header-fallback

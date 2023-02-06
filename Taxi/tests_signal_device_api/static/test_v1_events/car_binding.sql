@@ -1,0 +1,85 @@
+-- devices are added at runtime by add_device_return_private_key
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    2,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    3,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p2',
+    1,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p2',
+    2,
+    now(),
+    now(),
+    FALSE
+);
+
+INSERT INTO signal_device_api.car_device_bindings
+(
+    id,
+    park_id,
+    car_id,
+    device_id,
+    created_at,
+    detached_at,
+    updated_at
+)
+VALUES
+(
+    '1',
+    'p1',
+    'car1',
+    1,
+    '2019-12-17T10:38:54',
+    now(),
+    now()
+),
+(
+    '2',
+    'p1',
+    'car1',
+    1,
+    now(),
+    NULL,
+    now()
+),
+(
+    '3',
+    'p1',
+    'car3',
+    3,
+    now(),
+    NULL,
+    now()
+);

@@ -1,0 +1,8 @@
+BEGIN;
+
+CREATE TABLE storage.s3_backup_timestamp(
+    id TEXT PRIMARY KEY,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMIT;

@@ -1,0 +1,164 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:stq-agent:testing
+
+http_hosts:
+  - stq-agent.taxi.tst.yandex.net
+
+awacs_namespace: stq-agent-lb.taxi.tst.yandex.net
+
+solomon_transfer_uservice_metrics:
+    new_service: stq_agent
+    new_cluster_template: '{env}_stq_agent'
+
+layout:
+  - system:
+        collapsed: true
+  - userver_common:
+        uservice_name: stq-agent
+        collapsed: true
+        hide:
+          - httpclient
+          - redis_client
+          - redis_subscribe_client
+          - tvm2
+  - rps_share:
+        collapsed: true
+  - http_basic
+  - http:
+        collapsed: true
+        methods:
+          - id: ping_GET
+            title: /ping
+          - id: queue
+            title: /queue
+          - id: queues_api_add
+            title: /queues/api/add
+          - id: queues_api_add_bulk
+            title: /queues/api/add/{queue}/bulk
+          - id: queues_api_take
+            title: /queues/api/take
+          - id: queues_api_prolong
+            title: /queues/api/prolong
+          - id: queues_api_mark_as_done
+            title: /queues/api/mark_as_done
+          - id: queues_api_mark_as_failed
+            title: /queues/api/mark_as_failed
+          - id: queues_api_free
+            title: /queues/api/free
+          - id: queues/api/reschedule_POST
+            title: /queues/api/reschedule
+          - id: queues_configs
+            title: /queues/configs
+          - id: queues/config_POST
+            title: /queues/config
+          - id: queues_list
+            title: /queues/list
+          - id: queues_api_cleanup
+            title: /queues/api/cleanup
+          - id: queues_stats
+            title: /queues/stats
+          - id: queues_retrieve_alive_hosts
+            title: /queues/retrieve_alive_hosts
+          - id: workers/stats_POST
+            title: /workers/stats
+  - stq:
+        total:
+            title: tasks
+        queues: []
+  - include:
+        title: add_task
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: add_task
+            unit: stq-agent
+  - include:
+        title: add_task_bulk_only
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: add_task_bulk_only
+            unit: stq-agent
+  - include:
+        title: take_tasks
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: take_tasks
+            unit: stq-agent
+  - include:
+        title: prolong_task
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: prolong_task
+            unit: stq-agent
+  - include:
+        title: mark_task_as_done
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: mark_task_as_done
+            unit: stq-agent
+  - include:
+        title: mark_task_as_failed
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: mark_task_as_failed
+            unit: stq-agent
+  - include:
+        title: mark_task_as_free
+        path: stq-agent/stq_agent_handler.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            handler: mark_task_as_free
+            unit: stq-agent
+  - include:
+        title: mongo_limits
+        path: stq-agent/stq_agent_mongo_limits.json
+        row_panels: [1, 1, 1]
+        collapsed: true
+        variables:
+            groups_match: taxi_stq-agent-py3_testing
+            unit: stq-agent
+  - include:
+        title: bulk_workers
+        path: stq-agent/stq_agent_bulk_workers.json
+        row_panels: [2, 2, 2]
+        collapsed: true
+        variables:
+            groups_match: taxi_stq-agent-py3_testing
+            unit: stq-agent
+  - statistics_rps_limiter:
+        service_name: "*"
+        limiter_name: stq-tasks-taken
+        collapsed: true
+  - statistics_rps_limiter:
+        service_name: rate-limiter-proxy
+        limiter_name: stq-agent-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        version: 2
+        collapsed: true
+  - userver_mongo:
+        uservice_name: stq-agent
+        collapsed: true
+        component: multi-mongo
+  - userver_mongo:
+        uservice_name: stq-agent
+        collapsed: true
+        component: multi-mongo-mdb
+  - userver_mongo:
+        uservice_name: stq-agent
+        collapsed: true
+        component: multi-mongo-for-stat
+  - userver_mongo:
+        uservice_name: stq-agent
+        collapsed: true

@@ -1,0 +1,79 @@
+group:
+  type: rtc
+  name: another_dorblu_name
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  another.test.hostname.net:
+    And:
+      - Equals: { http_host: "another.test.hostname.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  another.test.hostname.net/__ping_GET:
+    And:
+      - Equals: { http_host: "another.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/ping" }
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  another.test.hostname.net/api/testing_three/save_POST:
+    And:
+      - Equals: { http_host: "another.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/api/testing_three/save/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  another.test.hostname.net/api/testing_three/test_GET:
+    And:
+      - Equals: { http_host: "another.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - Regex: { request_url: "/api/testing_three/test/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  another.test.hostname.net/api/testing_three/wow_POST:
+    And:
+      - Equals: { http_host: "another.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/api/testing_three/wow/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 411 # Length required
+          - 429 # Too many requests
+          - 499 # Client closed request

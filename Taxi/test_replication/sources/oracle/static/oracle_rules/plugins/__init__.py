@@ -1,0 +1,3 @@
+from replication.custom_models import testsuite_plugins
+
+INPUT_TRANSFORM = testsuite_plugins.INPUT_TRANSFORM

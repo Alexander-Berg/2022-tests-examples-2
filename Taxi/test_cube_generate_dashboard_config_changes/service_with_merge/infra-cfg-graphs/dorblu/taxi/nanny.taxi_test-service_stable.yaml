@@ -1,0 +1,49 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: rtc
+    name: taxi_test-service_stable
+graphs:
+    test-service.taxi.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "test-service.taxi.yandex.net"}
+        Options:
+            Timings:
+              - {Type: Req, Percentile: 0.95, Warn: 80, Crit: 160}
+            CustomHttp:
+              - 304 # Custom code
+              - 400 # Bad request
+              - 429 # Too many requests
+
+    test-service.taxi.yandex.net/get_stuff_GET:
+        And:
+          - Equals: {http_host: "test-service.taxi.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # None
+              - Equals: {request_url: "/get_some_stuff"}
+              - Equals: {request_url: "/get_some_stuff/"}
+              - StartsWith: {request_url: "/get_some_stuff?"}
+              - StartsWith: {request_url: "/get_some_stuff/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    test-service.taxi.yandex.net/custom_handler_GET:
+        And:
+          - Equals: {http_host: "test-service.taxi.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # None
+              - Equals: {request_url: "/custom_handler"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 429 # Too many requests
+
+    Monitoring:
+        vhost-500:
+            DefaultLimits: {Warn: 5.0, Crit: 10.0}
+            Blacklist:
+              - Equals: {request_url: "/ping"}

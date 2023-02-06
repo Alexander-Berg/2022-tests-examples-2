@@ -1,0 +1,52 @@
+PRAGMA yson.DisableStrict;
+use hahn;
+
+$result_task_and_offers_table = "//home/robot-dev/alexanderplat/sample_task_and_offers";
+
+$src_tasks_and_offers_tables_prefix = "//home/bannerland/perf/tasks_and_offers/current";
+$tasks_and_offers_table = "merged_tasks_and_offers_2021-06-07_20:20:02";
+$tasks_and_offers_table_path = $src_tasks_and_offers_tables_prefix || "/" || $tasks_and_offers_table;
+$range_start = $tasks_and_offers_table || "_";
+
+
+-- просто набираем рандомных таскоофферов до количества ~5000
+INSERT INTO $result_task_and_offers_table with truncate
+SELECT * from $tasks_and_offers_table_path
+where TableRecordIndex() % 1000 == 0;
+
+-- добавляем таскоофферов, которые мы хотим видеть в семпле, но которые могли в него не попасть за счет рандома
+
+$is_datacamp_feedurl = ($feed_url) -> {
+    return $feed_url is not null and Url::GetDomain($feed_url, 2) == 'market.feed';
+};
+
+$datacamp_tao_with_feedurls =
+    SELECT
+        t.*,
+        Yson::LookupString(Yson::ParseJson(`task_inf`)['Resource'], 'FeedUrl') as _feed_url
+    FROM RANGE($src_tasks_and_offers_tables_prefix, $range_start) as t
+    where $is_datacamp_feedurl(Yson::LookupString(Yson::ParseJson(`task_inf`)['Resource'], 'FeedUrl'));
+
+INSERT INTO $result_task_and_offers_table
+SELECT *
+FROM $datacamp_tao_with_feedurls
+WHERE Url::GetCGIParam(_feed_url, 'site') is not null and `product_inf` like '%offerYabsId%'
+LIMIT 100;
+
+INSERT INTO $result_task_and_offers_table
+SELECT *
+FROM $datacamp_tao_with_feedurls
+WHERE Url::GetCGIParam(_feed_url, 'site') is not null and `product_inf` not like '%offerYabsId%'
+LIMIT 100;
+
+INSERT INTO $result_task_and_offers_table
+SELECT *
+FROM $datacamp_tao_with_feedurls
+WHERE Url::GetCGIParam(_feed_url, 'site') is null and `product_inf` like '%offerYabsId%'
+LIMIT 100;
+
+INSERT INTO $result_task_and_offers_table
+SELECT *
+FROM $datacamp_tao_with_feedurls
+WHERE Url::GetCGIParam(_feed_url, 'site') is null and `product_inf` not like '%offerYabsId%'
+LIMIT 100;

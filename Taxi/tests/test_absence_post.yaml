@@ -1,0 +1,43 @@
+id: test_absence_post
+title: Проверяем что не пошлем delivery_time и shipping_type при отсутвии их в запросе
+
+source:
+    request:
+        method: post
+        query:
+            longitude#string: 36.6423802
+            latitude#string: 55.73606549999999
+        body:
+            items#array:
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaTaxi-User: personal_phone_id=personal_123
+            X-Request-Application: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2
+    expectations:
+        response:
+            status-code: 200
+            body:
+                cart:
+                    place:
+                        slug: test_slug
+
+mocks:
+  - resource: eats-cart-api-v1-cart-post
+    response:
+        status-code: 200
+        body:
+            cart:
+                place:
+                    slug: test_slug
+    expectations:
+        call-count: 1
+        request:
+            query:
+                longitude#string: 36.6423802
+                latitude#string: 55.73606549999999
+            body:
+                items#array:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaTaxi-User: personal_phone_id=personal_123
+                X-Request-Application: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2

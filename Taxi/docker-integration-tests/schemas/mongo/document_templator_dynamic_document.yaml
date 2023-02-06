@@ -1,0 +1,80 @@
+settings:
+    collection: dynamic_document
+    connection: document_templator
+    database: document_templator
+indexes:
+  - key: name
+    partialFilterExpression:
+        removed: false
+    unique: true
+  - key: outdated_at
+    name: ascending
+  - key: persistent_id
+    partialFilterExpression:
+        removed: false
+    unique: true
+  - key:
+      - name: persistent_id
+        type: ascending
+      - name: version
+        type: descending
+    unique: true
+  - key: removed
+  - key: template_id
+wiki_info: |
+    #### document_templator.dynamic_document
+    *Назначение:* содержит динамические документы.
+
+    *Структура документа*:
+
+    ```python
+    dynamic_document = {
+        # uuid идентификатор динамического документа (меняется от версии к
+        # версии) (обязательное поле)
+        '_id': ObjectId(),
+        # неизменяемый uuid идентификатор динамического документа (новые версии
+        # динамического документа будут иметь id старой версии) (обязательное
+        # поле)
+        'persistent_id': ObjectId(),
+        # версия динамического документа (обязательное поле)
+        'version': 0,
+        # если у последней версии стоит True, динамический документ считается
+        # удалённым. Все старые версии документа имеют значение True
+        # (обязательное поле)
+        'removed': False,
+        # человекочитаемое название динамического документа (обязательное поле)
+        'name': 'динамический документ1',
+        # описание назначения динамического документа (обязательное поле)
+        'description': 'описание динамического документа1',
+        # текст, сгенерированный на базе конфигурации динамического документа
+        # (HTML) (обязательное поле)
+        'generated_text': 'сгенерированный текст',
+        # идентификатор шаблона, на базе которого был создан динамический
+        # документ (обязательное поле)
+        'template_id': ObjectId(),
+        # обязательные параметры динамического документа
+        'params': [
+            {
+                # название параметра (обязательное поле)
+                'name': 'параметр1',
+                # значение параметра (обязательное поле)
+                'value': 'значение',
+                # тип значения параметра array/object/string/number
+                # (обязательное поле)
+                'type': 'string'
+            }
+        ],
+        # идентификатор создателя динамического документа, yandex staff nickname
+        'created_by': 'venimaster',
+        # время создания динамического документа (обязательное поле)
+        'created_at': datetime.datetime,
+        # идентификатор пользователя, внесшего изменения, yandex staff nickname.
+        # null, если динамической документ изменился из-за изменения внутреннего
+        # шаблона
+        'modified_by': 'russhakirov',
+        # время изменения динамического документа (обязательное поле)
+        'modified_at': datetime.datetime,
+        # время, когда документ стал устаревшим (если null, значит документ не устаревший)
+        'outdated_at': datetime.datetime,
+    }
+    ```

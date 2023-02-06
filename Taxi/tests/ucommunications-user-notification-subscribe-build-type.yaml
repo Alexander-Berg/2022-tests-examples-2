@@ -1,0 +1,83 @@
+id: ucommunications-user-notification-subscribe-build-type
+title: Тест для проверки использования ucommunications-user-notification-subscribe
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            metrica_device_id: 'device_id'
+            push_tokens:
+                hms_token: 'TOKEN'
+                build_type: 'feature'
+            subscription:
+                endpoint: 'ulr'
+                keys:
+                    auth: 'auth_key'
+                    p256dh: 'Fg5t8'
+        headers:
+            content-type: 'application/json'
+            X-Yataxi-Userid: 'user_id'
+            X-Yandex-UID: 'uid'
+            X-Request-Application: 'app_brand=yataxi,app_name=mbro_android_beta,app_ver1=20,app_ver2=9,app_ver3=0,platform=turboapp'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                orders: []
+                authorization_status: 'authorized'
+                parameters:
+                    allow_late_login: true
+                products_authorization_status: {"eats": "succeeded"}
+experiments:
+    values:
+        user_push_subscribe: {}
+        startup_use_zalogin_auth: {}
+        superapp_startup_enabled: {}
+        superapp_startup_init_session: {}
+        startup_late_login: {}
+        superapp_parameters_startup_ru: {}
+
+mocks:
+  - resource: eats-init-session
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: false
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+                device_id: 'device_id'
+            method: post
+  - resource: ucommunications-user-notification-subscribe
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        request:
+            body:
+                user_id: 'user_id'
+                application: 'mbro_android_beta'
+                build_type: 'feature'
+                hms_token: 'TOKEN'
+                subscription:
+                    endpoint: 'ulr'
+                    keys:
+                        auth: 'auth_key'
+                        p256dh: 'Fg5t8'
+        call-count: 1
+        called-after:
+          - zalogin-v1-launch-auth
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 500

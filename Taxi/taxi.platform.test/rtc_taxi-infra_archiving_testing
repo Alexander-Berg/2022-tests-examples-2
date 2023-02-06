@@ -1,0 +1,25 @@
+---
+host: taxi_archiving_testing
+telegram: warn_default
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+
+services:
+- service: archiving-service-delays-check
+  # Сервис archiving: разница времени последней архивации и текущего момента
+  # Обращаться к группе хранения и обработки данных
+  flaps:
+    stable_time: 600
+    critical_time: 0
+  telegram: taxi-yt-testing-alerts
+  rtime: 600
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%

@@ -1,0 +1,459 @@
+  - mapper_settings:
+        description: Some raw YT target description
+        yt_columns_info:
+          - name: id1
+            type: uint64
+            sort_order: ascending
+          - name: id2
+            type: string
+            sort_order: ascending
+    source_type: postgres
+    is_mapper_invalid: false
+    expected_target:
+        attributes:
+            schema:
+              - name: id1
+                sort_order: ascending
+                type: uint64
+              - name: id2
+                sort_order: ascending
+                type: string
+              - name: etl_updated
+                type: string
+                description: Время загрузки записи
+              - name: doc
+                type: any
+                description: Raw document
+        description: Some raw YT target description
+    mapper_tests:
+      - expected:
+          - id1: id_1
+            id2: id_2
+            etl_updated: '2019-01-01T00:00:00'
+            doc:
+                $dict_to_yson:
+                    id1: id_1
+                    id2: id_2
+                    polygon_value:
+                        $v: [[0.1, 0.2], [0.1, 0.3]]
+                        $a:
+                            raw_type: pg_polygon
+                    point_value:
+                        $v: [0.1, 0.2]
+                        $a:
+                            raw_type: pg_point
+                    range_value:
+                        $v:
+                            lower:
+                            lower_inc: true
+                            upper:
+                                $v: '2021-01-20T00:01:11'
+                                $a:
+                                    raw_type: datetime
+                            upper_inc: true
+                        $a:
+                            raw_type: pg_range
+        input:
+            data:
+                $json:
+                    id1: id_1
+                    id2: id_2
+                    polygon_value:
+                        $v: [[0.1, 0.2], [0.1, 0.3]]
+                        $a:
+                            raw_type: pg_polygon
+                    point_value:
+                        $v: [0.1, 0.2]
+                        $a:
+                            raw_type: pg_point
+                    range_value:
+                        $v:
+                            lower:
+                            lower_inc: true
+                            upper:
+                                $v: '2021-01-20T00:01:11'
+                                $a:
+                                    raw_type: datetime
+                            upper_inc: true
+                        $a:
+                            raw_type: pg_range
+
+  - mapper_settings: {}
+    is_mapper_invalid: true
+    expected_target:
+    expected_mapper:
+    source_type: postgres
+    mapper_tests:
+
+  - mapper_settings:
+        yt_columns_info:
+          - name: id1
+            type: uint64
+            sort_order: ascending
+          - name: id2
+            type: string
+            sort_order: ascending
+          - name: transformed_field
+            type: any
+            input_transform: as_is
+        yt_attributes:
+            compression_codec: zstd_3
+    expected_target:
+        attributes:
+            compression_codec: zstd_3
+            schema:
+              - name: id1
+                sort_order: ascending
+                type: uint64
+              - name: id2
+                sort_order: ascending
+                type: string
+              - name: transformed_field
+                type: any
+              - name: etl_updated
+                type: string
+                description: Время загрузки записи
+              - name: doc
+                type: any
+                description: Raw document
+        description: Table with raw columns and primary keys
+    source_type: postgres
+    is_mapper_invalid: false
+    mapper_tests:
+      - expected:
+          - id1: id_1
+            id2: id_2
+            etl_updated: '2019-01-01T00:00:00'
+            transformed_field:
+                id1: id_1
+                id2: id_2
+                polygon_value: [[0.1, 0.2], [0.1, 0.3]]
+                range_value:
+                    lower:
+                    lower_inc: true
+                    upper:
+                        $datetime: '2021-01-20T00:01:11'
+                    upper_inc: true
+                __raw_json:
+                    $json:
+                        id1: id_1
+                        id2: id_2
+                        polygon_value:
+                            $v: [[0.1, 0.2], [0.1, 0.3]]
+                            $a:
+                                raw_type: pg_polygon
+                        range_value:
+                            $v:
+                                lower:
+                                lower_inc: true
+                                upper:
+                                    $v: '2021-01-20T00:01:11'
+                                    $a:
+                                        raw_type: datetime
+                                upper_inc: true
+                            $a:
+                                raw_type: pg_range
+            doc:
+                $dict_to_yson:
+                    id1: id_1
+                    id2: id_2
+                    polygon_value:
+                        $v: [[0.1, 0.2], [0.1, 0.3]]
+                        $a:
+                            raw_type: pg_polygon
+                    range_value:
+                        $v:
+                            lower:
+                            lower_inc: true
+                            upper:
+                                $v: '2021-01-20T00:01:11'
+                                $a:
+                                    raw_type: datetime
+                            upper_inc: true
+                        $a:
+                            raw_type: pg_range
+        input:
+            data:
+                $json:
+                    id1: id_1
+                    id2: id_2
+                    polygon_value:
+                        $v: [[0.1, 0.2], [0.1, 0.3]]
+                        $a:
+                            raw_type: pg_polygon
+                    range_value:
+                        $v:
+                            lower:
+                            lower_inc: true
+                            upper:
+                                $v: '2021-01-20T00:01:11'
+                                $a:
+                                    raw_type: datetime
+                            upper_inc: true
+                        $a:
+                            raw_type: pg_range
+
+  - mapper_settings:
+        yt_columns_info:
+          - name: id1
+            type: uint64
+            sort_order: ascending
+          - name: id2
+            type: string
+            sort_order: ascending
+        raw_column_name: custom_doc
+        yt_attributes:
+            compression_codec: zstd_3
+        partitioning:
+            rotate_policy: eternal
+            type: by_months
+            field_name: id1
+    source_type: postgres
+    flaky_config:
+        default_raw_layer_settings:
+            yt_attributes:
+                compression_codec: very_compressing
+                optimize_for: scan
+    is_mapper_invalid: false
+    expected_target:
+        partitioning:
+            rotate_policy: eternal
+            type: by_months
+            field_name: id1
+        attributes:
+            compression_codec: zstd_3
+            optimize_for: scan
+            schema:
+              - name: id1
+                sort_order: ascending
+                type: uint64
+              - name: id2
+                sort_order: ascending
+                type: string
+              - name: etl_updated
+                type: string
+                description: Время загрузки записи
+              - name: custom_doc
+                type: any
+                description: Raw document
+        description: Table with raw columns and primary keys
+    mapper_tests:
+      - expected:
+          - id1: id_1
+            id2: id_2
+            etl_updated: '2019-01-01T00:00:00'
+            custom_doc:
+                $dict_to_yson:
+                    id1: id_1
+                    id2: id_2
+                    polygon_value:
+                        $v: [[0.1, 0.2], [0.1, 0.3]]
+                        $a:
+                            raw_type: pg_polygon
+        input:
+            data:
+                $json:
+                    id1: id_1
+                    id2: id_2
+                    polygon_value:
+                        $v: [[0.1, 0.2], [0.1, 0.3]]
+                        $a:
+                            raw_type: pg_polygon
+
+  - mapper_settings:
+        yt_columns_info:
+          - name: id
+            input_column: _id
+            type: uint64
+            sort_order: ascending
+    source_type: mongo
+    expected_target:
+        attributes:
+            schema:
+              - name: id
+                sort_order: ascending
+                type: uint64
+              - name: etl_updated
+                type: string
+                description: Время загрузки записи
+              - name: doc
+                type: any
+                description: Raw document
+        description: Table with raw columns and primary keys
+    is_mapper_invalid: false
+    mapper_tests:
+      - expected:
+          - id: id_1
+            etl_updated: '2019-01-01T00:00:00'
+            doc:
+                $dict_to_yson:
+                    _id: id_1
+                    obj_id:
+                        $v: '5b2cae5cb2682a976914c2a5'
+                        $a:
+                            raw_type: bson_object_id
+        input:
+            data:
+                $bson:
+                    _id: id_1
+                    obj_id:
+                        $bson_object_id: '5b2cae5cb2682a976914c2a5'
+
+  - mapper_settings:
+        description: Some raw YT target description
+        yt_columns_info:
+          - name: id1
+            type: uint64
+            sort_order: ascending
+          - name: num
+            type: uint64
+            sort_order: ascending
+          - name: num_concatenated
+            type: string
+            sort_order: ascending
+        pre_map_funcs:
+          - testsuite_premap_raw
+          - testsuite_premap_raw2
+    source_type: postgres
+    is_mapper_invalid: false
+    expected_target:
+        attributes:
+            schema:
+              - name: id1
+                sort_order: ascending
+                type: uint64
+              - name: num
+                sort_order: ascending
+                type: uint64
+              - name: num_concatenated
+                sort_order: ascending
+                type: string
+              - name: etl_updated
+                type: string
+                description: Время загрузки записи
+              - name: doc
+                type: any
+                description: Raw document
+        description: Some raw YT target description
+    mapper_tests:
+      - expected:
+          - doc:
+                $dict_to_yson:
+                    id1: id_1
+                    num: 0
+                    num_concatenated: '0_0'
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+            num: 0
+            num_concatenated: '0_0'
+          - doc:
+                $dict_to_yson:
+                    id1: id_1
+                    num: 0
+                    num_concatenated: '0_1'
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+            num: 0
+            num_concatenated: '0_1'
+          - doc:
+                $dict_to_yson:
+                    id1: id_1
+                    num: 1
+                    num_concatenated: '1_0'
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+            num: 1
+            num_concatenated: '1_0'
+          - doc:
+                $dict_to_yson:
+                    id1: id_1
+                    num: 1
+                    num_concatenated: '1_1'
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+            num: 1
+            num_concatenated: '1_1'
+          - doc:
+                $dict_to_yson:
+                    id1: id_1
+                    num: 2
+                    num_concatenated: '2_0'
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+            num: 2
+            num_concatenated: '2_0'
+          - doc:
+                $dict_to_yson:
+                    id1: id_1
+                    num: 2
+                    num_concatenated: '2_1'
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+            num: 2
+            num_concatenated: '2_1'
+        input:
+            data:
+                $json:
+                    id1: id_1
+                    id2: id_2
+                    updated_ts:
+                        $v: '2021-01-20T00:01:11'
+                        $a:
+                            raw_type: datetime
+
+  - mapper_settings:
+        description: Some raw YT target description
+        yt_columns_info:
+          - name: id1
+            type: uint64
+            sort_order: ascending
+    source_type: api
+    is_mapper_invalid: false
+    expected_target:
+        attributes:
+            schema:
+              - name: id1
+                sort_order: ascending
+                type: uint64
+              - name: etl_updated
+                type: string
+                description: Время загрузки записи
+              - name: doc
+                type: any
+                description: Raw document
+        description: Some raw YT target description
+    mapper_tests:
+      - expected:
+          - doc:
+                id1: id_1
+                updated_ts: '2021-01-20T00:01:11'
+            etl_updated: '2019-01-01T00:00:00'
+            id1: id_1
+        input:
+            data:
+                id1: id_1
+                updated_ts: '2021-01-20T00:01:11'

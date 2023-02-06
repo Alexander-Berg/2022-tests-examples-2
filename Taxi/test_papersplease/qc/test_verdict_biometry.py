@@ -1,0 +1,558 @@
+from typing import List
+from unittest import mock
+
+import pytest
+
+from papersplease.qc import biometry
+from papersplease.qc import catboost
+from papersplease.qc import verdict_biometry
+
+
+DEFAULT_CONFIG: dict = {
+    'PPS_CRON_RESOLVE_BIOMETRY_QC_PASSES_ALL_CONFIGS': {
+        'low_similarity_fail_threshold': 0.25,
+        'high_similarity_success_threshold': 0.75,
+        'etalon_is_from_screen_threshold': 0.8,
+        'max_size_of_etalons': 10,
+        'min_similarity_between_etalons_threshold': 0.6,
+        'similarity_for_update_etalons_threshold': 0.7,
+        'duplicates_between_selfie_and_etalons_threshold': 0.986,
+    },
+}
+
+DEFAULT_SELFIE = biometry.Picture(id_='selfie_id', url='selfie_url')
+
+DEFAULT_ETALONS_SCORES: List[catboost.BiometryModelsResult] = [
+    catboost.BiometryModelsResult(selfie_from_screen_score=0.7),
+    catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+]
+
+DEFAULT_ETALONS: List[biometry.Picture] = [
+    biometry.Picture(id_='id_1', url='url_1'),
+    biometry.Picture(id_='id_2', url='url_2'),
+]
+
+DEFAULT_ETALONS_META: List[dict] = [{}, {}]
+
+
+@pytest.mark.now('2021-01-01T00:00:00Z')
+@pytest.mark.parametrize(
+    'comment,config,selfie,similarities,picture_similarities,'
+    'etalons_min_similarity,models,models_result,etalons_scores,'
+    'etalons,etalons_meta,expected_verdict_info',
+    [
+        (
+            'delete etalons from screen',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.3], [0.4]]],
+            [0.2, 0.3],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.5),
+            [
+                catboost.BiometryModelsResult(selfie_from_screen_score=0.95),
+                catboost.BiometryModelsResult(selfie_from_screen_score=0.99),
+            ],
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=['similarity between selfie and etalons is too low'],
+                etalons=[],
+                reason=None,
+            ),
+        ),
+        (
+            'selfie is from screen',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.5], [0.7]]],
+            [0.2, 0.3],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.96),
+            [
+                catboost.BiometryModelsResult(selfie_from_screen_score=0.7),
+                catboost.BiometryModelsResult(selfie_from_screen_score=0.99),
+            ],
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=[
+                    'catboost selfie_from_screen_score reached threshold',
+                    'similarity between selfie and etalons is too low',
+                ],
+                etalons=[biometry.Picture(id_='id_1', url='url_1')],
+                reason=None,
+            ),
+        ),
+        (
+            'no faces in selfie',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [],
+            None,
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.fail,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason='not_single_face',
+            ),
+        ),
+        (
+            'no etalons has a single face',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[None, None]],
+            [0.2, 0.3],
+            None,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                    biometry.Picture(id_='selfie_id', url='selfie_url'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'success high similarity',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.8], [0.97]]],
+            [0.2, 0.3],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                    biometry.Picture(id_='selfie_id', url='selfie_url'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'fail low similarity',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.2], [0.23]]],
+            [0.2, 0.3],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.fail,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason='low_similarity',
+            ),
+        ),
+        (
+            'unknown medium similarity',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.2], [0.98]]],
+            [0.2, 0.3],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=['similarity between selfie and etalons is too low'],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'limit of etalons',
+            {
+                'PPS_CRON_RESOLVE_BIOMETRY_QC_PASSES_ALL_CONFIGS': {
+                    **DEFAULT_CONFIG[
+                        'PPS_CRON_RESOLVE_BIOMETRY_QC_PASSES_ALL_CONFIGS'
+                    ],
+                    'max_size_of_etalons': 6,
+                },
+            },
+            DEFAULT_SELFIE,
+            [[[0.95], [0.95], [0.95], [0.95], [0.95], [0.95]]],
+            [0.2] * 6,
+            1,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            [catboost.BiometryModelsResult(selfie_from_screen_score=0.1)] * 6,
+            [biometry.Picture(id_='id_1', url='url_1')] * 6,
+            [{}] * 6,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='selfie_id', url='selfie_url'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'no etalons',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[]],
+            [],
+            None,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            [],
+            [],
+            [],
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[biometry.Picture(id_='selfie_id', url='selfie_url')],
+                reason=None,
+            ),
+        ),
+        (
+            'several faces on selfie',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.2]], [[0.9]]],
+            [0.8],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.fail,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason='not_single_face',
+            ),
+        ),
+        (
+            'several faces on selfie, no faces on etalons',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[None], [None]],
+            [],
+            None,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.fail,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason='not_single_face',
+            ),
+        ),
+        (
+            'several faces in selfie, no etalons',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[], []],
+            [],
+            None,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            [],
+            [],
+            [],
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.fail,
+                errors=[],
+                etalons=[],
+                reason='not_single_face',
+            ),
+        ),
+        (
+            'no faces on selfie, no etalons',
+            DEFAULT_CONFIG,
+            DEFAULT_ETALONS,
+            [],
+            None,
+            None,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            [],
+            [],
+            [],
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.fail,
+                errors=[],
+                etalons=[],
+                reason='not_single_face',
+            ),
+        ),
+        (
+            'cbir has not responded for etalons',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[None, None]],
+            None,
+            None,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                    biometry.Picture(id_='selfie_id', url='selfie_url'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'cbir has not responded for selfie',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            None,
+            [0.1, 0.1],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.1),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=['cbir has not responded'],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'duplicate inside account',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.99], [0.99]]],
+            [0.7, 0.99],
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=['there is a duplicate inside etalons'],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'different faces in etalons',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.9], [0.7]]],
+            [0.6, 0.5],
+            0.5,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=['two etalons have different faces'],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'test etalons meta',
+            DEFAULT_CONFIG,
+            DEFAULT_SELFIE,
+            [[[0.9], [0.9], [0.9]]],
+            [0.9, 0.9],
+            0.9,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            [catboost.BiometryModelsResult(selfie_from_screen_score=0.6)] * 3,
+            [
+                biometry.Picture(id_='id_1', url='url_1'),
+                biometry.Picture(id_='id_2', url='url_2'),
+                biometry.Picture(id_='id_3', url='url_3'),
+            ],
+            [{'exam': 'dkvu'}, {}, {'exam': 'identity'}],
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                    biometry.Picture(id_='id_3', url='url_3'),
+                    biometry.Picture(id_='selfie_id', url='selfie_url'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'test etalon meta, limit of etalons',
+            {
+                'PPS_CRON_RESOLVE_BIOMETRY_QC_PASSES_ALL_CONFIGS': {
+                    **DEFAULT_CONFIG[
+                        'PPS_CRON_RESOLVE_BIOMETRY_QC_PASSES_ALL_CONFIGS'
+                    ],
+                    'max_size_of_etalons': 6,
+                },
+            },
+            DEFAULT_SELFIE,
+            [[[0.95], [0.95], [0.95], [0.95], [0.95], [0.95]]],
+            [0.2] * 6,
+            1,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=0.6),
+            [catboost.BiometryModelsResult(selfie_from_screen_score=0.1)] * 6,
+            [
+                biometry.Picture(id_='id_1', url='url_1'),
+                biometry.Picture(id_='id_2', url='url_2'),
+                biometry.Picture(id_='id_3', url='url_3'),
+                biometry.Picture(id_='id_4', url='url_4'),
+                biometry.Picture(id_='id_5', url='url_5'),
+                biometry.Picture(id_='id_6', url='url_6'),
+            ],
+            [
+                {},
+                {'exam': 'biometry'},
+                {},
+                {},
+                {'exam': 'dkvu'},
+                {'exam': 'identity'},
+            ],
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.success,
+                errors=[],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                    biometry.Picture(id_='id_3', url='url_3'),
+                    biometry.Picture(id_='selfie_id', url='selfie_url'),
+                    biometry.Picture(id_='id_5', url='url_5'),
+                    biometry.Picture(id_='id_6', url='url_6'),
+                ],
+                reason=None,
+            ),
+        ),
+        (
+            'selfie is None',
+            DEFAULT_CONFIG,
+            None,
+            None,
+            None,
+            0.8,
+            {'selfie_from_screen_threshold': 0.9},
+            catboost.BiometryModelsResult(selfie_from_screen_score=None),
+            DEFAULT_ETALONS_SCORES,
+            DEFAULT_ETALONS,
+            DEFAULT_ETALONS_META,
+            verdict_biometry.VerdictInfo(
+                verdict=verdict_biometry.Verdict.unknown,
+                errors=[
+                    'catboost selfie_from_screen_score is None',
+                    'cbir has not responded',
+                ],
+                etalons=[
+                    biometry.Picture(id_='id_1', url='url_1'),
+                    biometry.Picture(id_='id_2', url='url_2'),
+                ],
+                reason=None,
+            ),
+        ),
+    ],
+)
+def test_calculate_biometry_verdict(
+        comment,
+        config,
+        selfie,
+        similarities,
+        picture_similarities,
+        etalons_min_similarity,
+        models,
+        models_result,
+        etalons_scores,
+        etalons,
+        etalons_meta,
+        expected_verdict_info,
+):
+    config = mock.Mock(**config)
+    models = mock.Mock(**models)
+
+    verdict_info = verdict_biometry.calculate_verdict(
+        selfie,
+        similarities,
+        picture_similarities,
+        etalons_min_similarity,
+        models,
+        models_result,
+        etalons_scores,
+        etalons,
+        etalons_meta,
+        config,
+    )
+
+    assert verdict_info == expected_verdict_info

@@ -1,0 +1,65 @@
+{
+    "TvmConfig": {
+        "CacheDir": "./tvm_cache/",
+        "DstServices": [
+            {
+                "Alias": "logbroker",
+                "Id": 2001059
+            }
+        ],
+        "SrcIdEnvName": "TVM_ID",
+        "SrcSecretEnvName": "TVM_SECRET"
+    },
+    "HttpServer": {
+        "Port": 30056
+    },
+    "Logs": {"Rules": [
+        {
+            "FilePath": "./import_images_processor.log",
+            "IncludeCategories": ["BigRT", "Main"],
+            "MinLevel": "Debug"
+        },
+        {
+            "FilePath": "./import_images_processor.log",
+            "ExcludeCategories": ["BigRT", "Main"],
+            "MinLevel": "Info"
+        }
+    ]},
+    "Suppliers": [
+        {
+            "Alias": "favicon-images-logbroker",
+            "LbSupplier": {
+                "ConfigManagerGrpcHost": "cm.logbroker.yandex.net:1111",
+                "LogbrokerClientId": "/favicon/prestable/favicon",
+                "LogbrokerTvmAlias": "logbroker",
+                "SrcServer": "logbroker.yandex.net",
+                "SrcTopic": "/images-rthub/prestable/favicon-images",
+                "Cluster": "arnold"
+            }
+        }
+    ],
+    "ConsumingSystem": {
+        "Cluster": "arnold",
+        "MainPath": "//home/robot-dev/takstaks/main",
+        "LaunchShardProcessorInFiber": true,
+        "MaxShards": 10,
+        "Shards": {
+            "AutoResolve": {
+                "ShardsCachePath": "//home/robot-dev/takstaks/master/shards_count_cache",
+                "UpdateLocalCachePeriodMs": 10000,
+                "UpdateYtCachePeriodMs": 10000
+            }
+        },
+        "WorkerMinorName": "w_soup_log",
+        "ThreadLabelPrefix": "t_soup_log"
+    },
+    "StatelessShardProcessorConfig": {
+        "CommitPeriodMs": 10,
+        "MaxEpochsInFlight": 3
+    },
+    "ImportImagesProcessorConfig": {
+        "OutputImagesTablePath": "//home/robot-dev/takstaks/images",
+        "OutputErrorsTablePath": "//home/robot-dev/takstaks/errors"
+    },
+    "MaxInflightBytes": 10000000
+}

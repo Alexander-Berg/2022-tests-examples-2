@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html charset="UTF-8">
+    <head>
+        <title>{{#> title }}
+            base page
+        {{/title}}</title>
+        {{#> beforeCounterScripts}}
+        <script type="text/javascript">
+            function setForceSessionCookie (
+                domain,
+                path,
+                cookieVal,
+                forceSameSite
+            ) {
+                if (domain === undefined) {
+                    domain = '.yandex.ru';
+                }
+                if (path === undefined) {
+                    path = '/';
+                }
+                if (cookieVal === undefined) {
+                    cookieVal = 'yandexCookie' + Math.random().toString().slice(2)
+                }
+
+                var cookie =  'forceIO=' + cookieVal;
+                if (domain) {
+                    cookie = cookie + '; domain=' + domain;
+                }
+
+                if (path) {
+                    cookie = cookie + '; path=' + path;
+                }
+
+                var canSetSameSiteCookie = !!forceSameSite;
+                if (!canSetSameSiteCookie) {
+                    try {
+                        document.cookie = 'testSameSite=1; SameSite=None; Secure';
+                        canSetSameSiteCookie = /testSameSite=1/i.test(document.cookie);
+                    } catch (e) {}
+                }
+
+                if (canSetSameSiteCookie) {
+                    cookie = cookie + '; SameSite=None; Secure';
+                }
+
+                document.cookie = cookie;
+            }
+        </script>
+        {{/beforeCounterScripts}}
+        {{#> defHeadCounterScripts}}
+            <script type="text/javascript" src="{{ buildPath }}/e2e/local.js"></script>
+        {{/defHeadCounterScripts}}
+        {{#> defHeadSocketScripts }}
+        <script
+            type="text/javascript"
+            src="/socket/socket.io.js"></script>
+        {{/defHeadSocketScripts}}
+        {{#> head }}
+        {{/head}}
+    </head>
+    <body>
+        {{#> defBodyScripts }}
+        <script type="text/javascript">
+            window._socket = io('{{ protocol }}://{{ host }}{{ portInfo }}');
+            window.dispatchEvent(new Event('socket'));
+            document.cookie = 'gdpr=0';
+            window.__internalTestErrors__ = {
+                usual: [],
+                unhandledrejection: []
+            };
+            window.onerror = function (message) {
+                window.__internalTestErrors__.usual.push(message);
+            };
+            window.onunhandledrejection = function (event) {
+                var reason = 'unknown reason';
+
+                try {
+                    reason = event.reason.toString();
+                } catch (_error) {}
+
+                window.__internalTestErrors__.unhandledrejection.push(reason);
+            };
+
+            function getPageErrors () {
+                return window.__internalTestErrors__;
+            }
+        </script>
+        {{/defBodyScripts}}
+        {{#> content }}
+        {{/content}}
+    </body>
+</html>

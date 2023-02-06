@@ -1,0 +1,33 @@
+INSERT INTO menu_statistic
+(
+    id,
+    place_id,
+    place_group_id,
+    operation_type,
+    process_uuid,
+    data,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    '7511b40f-c0b8-4deb-8982-2a80f85e0000',
+    '1',
+    '1',
+    '1',
+    '7511b40f-c0b8-4deb-8982-2a80f85e0047',
+    '{}'::jsonb,
+    '2020-04-20T15:00:00',
+    '2020-04-20T15:00:00'
+),
+(
+    '7511b40f-c0b8-4deb-8982-2a80f85e0001',
+    '1',
+    '1',
+    '1',
+    '7511b40f-c0b8-4deb-8982-2a80f85e0047',
+    '{}'::jsonb,
+    '2020-04-11T15:00:00',
+    '2020-04-11T15:00:00'
+)
+;

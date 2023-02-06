@@ -1,0 +1,33 @@
+id: test_tpp_fallback_exp
+title: Неавторизованный запрос, но все равно идем в Tracking++ из-за эксперимента
+
+source:
+    request:
+        method: get
+        headers:
+            X-Request-Application: 'app_info=ab3'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                source: 'tracking++'
+                iam: 'good_resp'
+
+mocks:
+  - resource: eats-orders-tracking
+    response:
+        status-code: 200
+        body:
+            iam: 'good_resp'
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Request-Application: 'app_info=ab3'
+
+experiments:
+    values:
+        core_not_use_unauth_fallback_proxy:
+        use_eats_orders_tracking_service:
+            source: 'eats-orders-tracking'
+            mirror: ''

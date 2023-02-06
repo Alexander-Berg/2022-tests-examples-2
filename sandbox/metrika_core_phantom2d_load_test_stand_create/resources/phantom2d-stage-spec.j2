@@ -1,0 +1,225 @@
+annotations:
+  project: {{ stage_project_name }}
+labels:
+  deploy_engine: env_controller
+meta:
+  id: {{ stage_id }}
+  project_id: {{ stage_project_name }}
+  account_id: abc:service:{{ stage_abc_service_id }}
+spec:
+  account_id: abc:service:{{ stage_abc_service_id }}
+  deploy_units:
+    phantom2d:
+      endpoint_sets:
+      - port: 80
+      multi_cluster_replica_set:
+        replica_set:
+          clusters:
+          - cluster: {{ stage_dc }}
+            spec:
+              constraints:
+                antiaffinity_constraints:
+                - key: rack
+                  max_pods: 1
+              replica_count: 1
+          deployment_strategy:
+            max_unavailable: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+              - id: {{ stage_id }}
+                labels:
+                  used_by_infra: true
+                quota_policy:
+                  bandwidth_guarantee: 31457280
+                  bandwidth_limit: 31457280
+                  capacity: {{ stage_disk_capacity }}
+                storage_class: ssd
+              host_infra:
+                monitoring: {}
+              ip6_address_requests:
+              - enable_dns: true
+                network_id: {{ stage_network_macro }}
+                vlan_id: backbone
+              - enable_dns: true
+                network_id: {{ stage_network_macro }}
+                vlan_id: fastbone
+              pod_agent_payload:
+                spec:
+                  boxes:
+                  - id: phantom2d
+                    rootfs:
+                      layer_refs:
+                      - base-layer-0
+                      - phantom2d
+                      - nginx
+                      - get-bishop-config
+                    static_resources:
+                    - mount_point: /unified_agent
+                      resource_ref: unified_agent
+                    - mount_point: /resources/geodata6.bin
+                      resource_ref: geodata
+                    - mount_point: /resources/informer.data
+                      resource_ref: informer
+                    - mount_point: /resources/keys.xml
+                      resource_ref: keys_xml
+                    - mount_point: /resources/uatraits
+                      resource_ref: uatraits
+                  mutable_workloads:
+                  - workload_ref: phantom2d
+                  - workload_ref: nginx
+                  - workload_ref: unified-agent
+                  resources:
+                    layers:
+                    - checksum: 'EMPTY:'
+                      id: base-layer-0
+                      url: {{ layer_base_url }}
+                    - checksum: 'EMPTY:'
+                      id: phantom2d
+                      url: {{ layer_phantom2d_url }}
+                    - checksum: 'EMPTY:'
+                      id: nginx
+                      url: {{ layer_nginx_url }}
+                    - checksum: 'EMPTY:'
+                      id: get-bishop-config
+                      url: {{ layer_get_bishop_config_url }}
+                    static_resources:
+                    - id: unified_agent
+                      url: {{ st_res_unifined_agent_url }}
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                    - id: geodata
+                      url: {{ st_res_geodata_url }}
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                    - id: informer
+                      url: {{ st_res_informer_url }}
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                    - id: keys_xml
+                      url: {{ st_res_keys_xml_url }}
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                    - id: uatraits
+                      url: {{ st_res_uatraits_url }}
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                  workloads:
+                  - box_ref: phantom2d
+                    id: phantom2d
+                    env:
+                    - name: BISHOP_OAUTH_TOKEN
+                      value:
+                        secret_env:
+                          alias: METRIKA_BISHOP_TOKEN
+                          id: token
+                    - name: METRIKA_VAULT_TOKEN
+                      value:
+                        secret_env:
+                          alias: METRIKA_VAULT_TOKEN
+                          id: token
+                    init:
+                    - command_line: mkdir -p /resources/storage/uatraits /resources/storage/geodata6.bin
+                        /resources/storage/informer.data /tvm_cache /resources/storage/keys.xml
+                        /output/tmp/clmap /output/result/clmap /output/tmp/pixel /output/result/pixel
+                        /output/tmp/watch /output/result/watch /output/tmp/webvisor
+                        /output/result/webvisor /output/tmp/webvisor_testing /output/result/webvisor_testing
+                        /output/tmp/publisher /output/result/publisher/test_cloud
+                        /output/result_publisher/production_cloud /output/tmp/cookie_erase
+                        /output/result/cookie_erase
+                    liveness_check: {}
+                    readiness_check:
+                      http_get:
+                        any: true
+                        path: /ping
+                        port: 8471
+                        time_limit:
+                            initial_delay_ms: 300000
+                    start:
+                      command_line: /phantom2d --remote-config="https://bishop.mtrs.yandex-team.ru/api/v2/config/{{ phantom2d_bishop_program }}/{{ phantom2d_bishop_environment }}"
+                    transmit_logs: true
+                  - box_ref: phantom2d
+                    id: nginx
+                    env:
+                    - name: ROBOT_METRIKA_ADMIN_OAUTH
+                      value:
+                        secret_env:
+                          alias: robot-metrika-admin-tokens
+                          id: admin_oauth_token
+                    init:
+                    - command_line: mkdir -p /var/lib/nginx /var/log/nginx
+                    - command_line: bash -c '/get-bishop-config -p {{ nginx_bishop_program }}
+                        -e {{ nginx_bishop_environment }} -f /nginx.conf -d
+                        -deploy-logger'
+                    - command_line: /usr/bin/nginx -c /nginx.conf -t
+                    liveness_check:
+                      tcp_check:
+                        port: 80
+                    readiness_check:
+                      http_get:
+                        any: true
+                        path: /ping
+                        port: 80
+                    start:
+                      command_line: /usr/bin/nginx -c /nginx.conf
+                    transmit_logs: true
+                  - box_ref: phantom2d
+                    id: unified-agent
+                    env:
+                    - name: ROBOT_METRIKA_ADMIN_OAUTH
+                      value:
+                        secret_env:
+                          alias: robot-metrika-core
+                          id: bishop_oauth_token
+                    - name: UNIFIED_AGENT_TVM_SECRET
+                      value:
+                        secret_env:
+                          alias: metrika.passwords.test
+                          id: phantom2d_tvm_secret
+                    init:
+                    - command_line: bash -c '/get-bishop-config -p {{ ua_bishop_program }}
+                        -e {{ ua_bishop_environment }} -f /unified_agent.yml
+                        -d -deploy-logger'
+                    liveness_check:
+                      tcp_check:
+                        port: 1337
+                    readiness_check:
+                      http_get:
+                        any: true
+                        path: /ready
+                        port: 10043
+                    start:
+                      command_line: /unified_agent/unified_agent -c /unified_agent.yml
+                    transmit_logs: true
+              resource_requests:
+                memory_guarantee: {{ stage_memory_limit }}
+                memory_limit: {{ stage_memory_limit }}
+                vcpu_guarantee: {{ stage_vcpu_limit }}
+                vcpu_limit: {{ stage_vcpu_limit }}
+              secret_refs:
+                robot-metrika-admin-tokens:
+                  secret_id: sec-01cq6h07rwpqmqzb15y08jbs5q
+                  secret_version: ver-01ebe0xxcdrp37c5fqgady015d
+                robot-metrika-core:
+                  secret_id: sec-01crwrn3030jvfm1w7syd4m8e0
+                  secret_version: ver-01dp382ksea7x2rfc0aa6atq2m
+                metrika.passwords.test:
+                  secret_id: sec-01cw6tk4ymzvcdavxyd6wxv0z9
+                  secret_version: ver-01egg9rtg0nnt23gxm7e6bgm8b
+                METRIKA_VAULT_TOKEN:
+                  secret_id: sec-01dvdgt2khkskws8rzkvmyvq2w
+                  secret_version: ver-01dvdgt2m1td8qwxxhtd4qy8s0
+                METRIKA_BISHOP_TOKEN:
+                  secret_id: sec-01ek30wxc4q2djjttn0pzatqw4
+                  secret_version: ver-01ek314gjer7k27nvzs5hzxktq
+      logbroker_config:
+        pod_additional_resources_request:
+          vcpu_guarantee: 0
+          vcpu_limit: 0
+      network_defaults:
+        network_id: {{ stage_network_macro }}

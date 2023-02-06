@@ -1,0 +1,120 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: conductor
+    name: taxi_test_sticker
+graphs:
+    sticker.taxi.tst.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Conflict
+              - 429 # Too many requests
+
+    sticker.taxi.tst.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # ping
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    sticker.taxi.tst.yandex.net/send-internal_POST:
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Submit a smailik-preparer xml template for sending only on Yandex internal mails 
+              - Equals: {request_url: "/send-internal"}
+              - Equals: {request_url: "/send-internal/"}
+              - StartsWith: {request_url: "/send-internal?"}
+              - StartsWith: {request_url: "/send-internal/?"}
+        Options:
+            CustomHttp:
+              - 400 # Возвращается в случае некорректных входных параметров: * в body передан невалидный XML * переданая почта не в разрешённом домене 
+              - 401 # Unauthorized
+              - 403 # Означает, что запросы с таким idempotence_token-ом и отличающимися остальными параметрами уже делались в течение последних часов. Может быть следствием ошибки в реализации клиента или очень маловероятного совпадения (uuid-ов, например). 
+              - 404 # Not found
+              - 429 # Too many requests
+
+    sticker.taxi.tst.yandex.net/send-raw_POST:
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Submit a smailik-preparer xml template for sending by raw mail, only for allowed servises 
+              - Equals: {request_url: "/send-raw"}
+              - Equals: {request_url: "/send-raw/"}
+              - StartsWith: {request_url: "/send-raw?"}
+              - StartsWith: {request_url: "/send-raw/?"}
+        Options:
+            CustomHttp:
+              - 400 # Возвращается в случае некорректных входных параметров: * в body передан невалидный XML * сервис-пользователь не находиться в разрешённых 
+              - 401 # Unauthorized
+              - 403 # Означает, что запросы с таким idempotence_token-ом и отличающимися остальными параметрами уже делались в течение последних часов. Может быть следствием ошибки в реализации клиента или очень маловероятного совпадения (uuid-ов, например). 
+              - 404 # Not found
+              - 429 # Too many requests
+
+    sticker.taxi.tst.yandex.net/send_POST:
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Submit a smailik-preparer xml template for sending
+              - Equals: {request_url: "/send"}
+              - Equals: {request_url: "/send/"}
+              - StartsWith: {request_url: "/send?"}
+              - StartsWith: {request_url: "/send/?"}
+        Options:
+            CustomHttp:
+              - 400 # Возвращается в случае некорректных входных параметров в частности, если в body передан невалидный XML. 
+              - 401 # Unauthorized
+              - 403 # Означает, что запросы с таким idempotence_token-ом и отличающимися остальными параметрами уже делались в течение последних часов. Может быть следствием ошибки в реализации клиента или очень маловероятного совпадения (uuid-ов, например). 
+              - 404 # Not found
+              - 429 # Too many requests
+
+    sticker.taxi.tst.yandex.net/status_GET:
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Check the status of a send mail request
+              - Equals: {request_url: "/status"}
+              - Equals: {request_url: "/status/"}
+              - StartsWith: {request_url: "/status?"}
+              - StartsWith: {request_url: "/status/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Возвращается, если запрос на отправку письма этому получателю с таки idempotence_token в очереди отсутствует. 
+              - 429 # Too many requests
+
+    sticker.taxi.tst.yandex.net/v2/send_POST:
+        And:
+          - Equals: {http_host: "sticker.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Отравка письма через Рассылятор 
+              - Equals: {request_url: "/v2/send"}
+              - Equals: {request_url: "/v2/send/"}
+              - StartsWith: {request_url: "/v2/send?"}
+              - StartsWith: {request_url: "/v2/send/?"}
+        Options:
+            CustomHttp:
+              - 400 # Возвращается в случае некорректных входных параметров. 
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Означает, что запросы с таким idempotence_token-ом и отличающимися остальными параметрами уже делались в течение последних часов. Может быть следствием ошибки в реализации клиента или очень маловероятного совпадения (uuid-ов, например). 
+              - 429 # Too many requests
+

@@ -1,0 +1,55 @@
+host: taxi_juggler_test_taxi_hejmdal_stable
+type: rtc
+responsible: dksfjlskdf
+telegram: some-option
+multichildren:
+- taxi_hejmdal_stable
+templates:
+- template: core-files
+- template: rtc-atop-warning
+- template: forced-logrotate-count
+- template: hejmdal-bad-rps
+  children:
+  - taxi_hejmdal_stable_host
+- template: hejmdal-rtc-net-usage
+- template: hejmdal-rtc-oom
+- template: hejmdal-rtc-resource-usage
+- template: hejmdal-timings
+  children:
+  - taxi_hejmdal_stable_host
+- template: iptruler
+- template: pilorama_basic
+- template: ping-handle-status
+- template: push-client
+- template: taxi_strongbox
+- template: unispace
+- template: virtual-meta
+- template: hejmdal-cutres-draft-notify
+  children:
+  - taxi_hejmdal_stable_host
+- template: hejmdal-rtc-timings-cpu-aggregation
+  children:
+  - taxi_hejmdal_stable_host
+- template: userver-distlock-task-failures
+  children:
+  - (host=hejmdal & service=userver-distlock-task-failures*)
+- template: hejmdal-test-alert
+- template: hejmdal-another-test-alert
+services:
+- service: hejmdal-transceiver_discrepancy_median
+  children:
+  - hejmdal-custom-alerts-service-139-Sas
+  - hejmdal-custom-alerts-service-139-Vla
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 0
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 1
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 101%

@@ -1,0 +1,42 @@
+
+    USE hahn;
+
+    -- check CPC
+
+    $runTime = 01012022;
+
+    $ab_current_run_tbl = 'tmp/ab_cpc_' || cast($runTime as string);
+
+    $date_format = DateTime::Format('%Y-%m-%d');
+    $date_format2 = DateTime::Format('%Y-%m-%dT%H-%M-%S');
+
+    $day = ($ts) -> {
+        return $date_format(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow'))
+    };
+
+    $week = ($ts) -> {
+        return $date_format(DateTime::StartOfWeek(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow')))
+    };
+
+    $fmt = ($ts) -> {
+        return $date_format2(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow'))
+    };
+
+    INSERT INTO $ab_current_run_tbl WITH TRUNCATE
+        select *
+        from `//home/yabs/autobudget/AuditCPC`
+        where RunTime = $runTime
+            and LimitAvgCPCCur < AvgCPCCur
+            and FirstEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+            and LastEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+            and FirstEvent < LastEvent
+            and (
+                (LimitType == 'daily' and $day(FirstEvent) == $day(LastEvent)) -- дневной FirstEvent, LastEvent в пределах одних суток
+                or
+                (LimitType == 'week' and $week(FirstEvent) == $week(LastEvent)) -- недельный FirstEvent, LastEvent в пределах одной календарной недели
+                or
+                (LimitType == 'period'
+                    and FirstEvent between PeriodStartTime and PeriodFinishTime
+                    and LastEvent between PeriodStartTime and PeriodFinishTime
+                ) -- период FirstEvent, LastEvent в пределах периода
+            )

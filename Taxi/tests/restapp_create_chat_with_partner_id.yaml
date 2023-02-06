@@ -1,0 +1,51 @@
+id: restapp_create_chat_with_partner_id
+title: Проверка создания чата с переданным partner_id only
+
+source:
+    request:
+        method: post
+        headers:
+            content-type: application/json
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: eats-restapp-support-chat-create-chat-from-data
+    response:
+        status-code: 200
+        body:
+            partner_id: 100
+            chat_query#object:
+              - key: service
+                value#string: "restapp"
+              - key: handler_type
+                value#string: "realtime"
+            chat_data#object:
+              - key: message
+                value#string: "DATA_FORM"
+              - key: message_id
+                value#string: "ab3b3717-5a50-41f7-a8fe-6f54c398fbf3"
+              - key: type
+                value#string: "text"
+              - key: message_metadata
+                value#object:
+                  - key: restapp_place_id
+                    value#string: "111"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: eats-restapp-support-chat-create-chat-proxy
+    response:
+        status-code: 200
+        body:
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            headers#object:
+              - key: X-YaEda-PartnerId
+                value#string: "100"

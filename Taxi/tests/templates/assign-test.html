@@ -1,0 +1,56 @@
+{% load utils %}{% load i18n %}<!DOCTYPE html>
+<html>
+<head>
+    <title>{% trans 'Assign test' %}</title>
+    {% include 'head.html' %}
+</head>
+<body>
+    {% include 'menu.html' %}
+    <div class="container-fluid">
+        {% include "sidebar.html" %}
+    <main class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+        <div class="row">
+            <div class="col-lg-8 col-12">
+            {% if data_every_page.user_land == 'en' %}
+            {% if test.title_en %}{{ test.title_en }}{% else %}{{ test.title }}{% endif %}
+            {% if test.description_en %}{{ test.description_en }}{% else %}{{ test.description }}{% endif %}
+            {% else %}
+            {{ test.title }}
+            {{ test.description }}
+            {% endif %}
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-lg-6 col-12">
+                <div class="card">
+                    <div class="card-header">Назначить через Excel</div>
+                    <div class="card-body">
+                        <form id="form-assign-test" action="{% url 'tests:assign-test' test.id %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+                            <div class="form-group">
+            {{ form }}
+                            </div>
+            <input class="btn btn-yellow float-right" id="submit_test_element" type="submit" value="{% trans 'Assign' %}">
+            </form>
+                    </div>
+                </div>
+
+        </div>
+        <div class="col-lg-6 col-12">
+            <div class="card">
+                    <div class="card-header">Назначить на кабинет</div>
+                    <div class="card-body">
+            <form id="form-assign-test-on-cabinet" action="{% url 'tests:assign-test-cabinet' test.id %}" method="post">
+            {% csrf_token %}
+                <div class="form-group">
+                    {{ assign_cabinet_form }}
+                </div>
+            <input class="btn btn-yellow float-right" id="submit_test_element" type="submit" value="{% trans 'Assign' %}">
+            </form>
+                    </div></div></div>
+    </div>
+    </main>
+    {% include "bottom.html" %}
+</body>
+</html>

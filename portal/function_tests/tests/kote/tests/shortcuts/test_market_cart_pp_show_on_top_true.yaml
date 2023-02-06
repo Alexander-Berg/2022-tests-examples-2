@@ -1,0 +1,29 @@
+meta:
+    task: 'HOME-77975: поднятие шортката корзины по флагу из Маркета'
+    desc: Проверка, что шорткат поднимается на первую позицию при flags.shortcutOnTop:true в ответе Маркета
+config:
+  client: api_search_android_oauth
+get_params:
+    cleanvars: 1
+    httpmock: market_cart_mars@market_cart_mars_with_show_on_top_on
+    ab_flags: get_market_cart_data_from_mars=1
+    madm_mocks: shortcuts_settings_market_cart=shortcuts_settings_market_cart_mock:shortcuts_settings_v2=shortcuts_settings_v2_market_cart_pullup_mock
+    madm_options: disable_market_cart_pullup_on_top_by_market_flag=0
+    bk: market_cart_bk:0
+    processAssist: 1
+result:
+    raw_data:
+        alerts:
+            alerts:
+                informers:
+                    cards:
+                      FILTER:
+                          data: 
+                              shortcuts: IS_ARRAY
+                      FILTERED_LENGTH: 1
+                      ITEM:
+                        data:
+                          shortcuts:
+                             LENGTH: 6
+                             1 :
+                                type: "market_cart"

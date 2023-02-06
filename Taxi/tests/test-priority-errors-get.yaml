@@ -1,0 +1,27 @@
+id: test-priority-errors-get
+title: Тест ошибок ручки driver-v1-partner-priority (GET)
+
+parameters:
+  - expect_code:
+      - 400
+      - 404
+      - 429
+
+source:
+    request:
+        method: get
+        headers:
+            X-Request-Application-Version#string: '10.10'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+    expectations:
+        response:
+            status-code#xget: /test-params/expect_code
+            headers: {}
+
+mocks:
+  - resource: driver-priority-v1-priority-value-get
+    expectations:
+        call-count: 1
+    response:
+        status-code#xget: /test-params/expect_code

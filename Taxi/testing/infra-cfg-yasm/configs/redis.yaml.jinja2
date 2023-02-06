@@ -1,0 +1,73 @@
+{%- set shards = {
+ 'eats_customer_slots': {'cid': 'mdb4ofkljc25jmr08gq0', 'ns': 'taxi.yasm.test'},
+ 'scooters_ops_dispatch_routing': {'cid': 'mdbm2g7enl7mft3vs13d', 'ns': 'taxi.yasm.test'}
+}
+%}
+
+taxi_yasm_test_taxi_redis:
+{%- for shard_name, attrs in shards|dictsort %}
+  {{ shard_name }}_cpu_usage:
+    signals: perc(portoinst-cpu_<usage|limit>_cores_tmmv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: master,replica,unknown
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_memory_usage:
+    signals: perc(portoinst-memory_usage_gb_tmmv,portoinst-memory_guarantee_gb_tmmv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: master,replica,unknown
+    settings:
+      type: thresh
+      warn: 75
+      crit: 80
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_space_usage:
+    signals: perc(push-disk-used_bytes_/var/lib/redis_vmmv,push-disk-total_bytes_/var/lib/redis_vmmv)
+    tags:
+      itype: mdbredis
+      ctype: {{ attrs['cid'] }}
+      tier: master,replica,unknown
+    settings:
+      type: thresh
+      warn: 77
+      crit: 87 # at 97% database will be switched to read-only mode
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_network_utilization:
+    signals: perc(conv(portoinst-net_mb_summ,0.125),conv(portoinst-net_limit_mb_summ,0.125))
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: master,replica,unknown
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+{%- endfor %}

@@ -1,0 +1,123 @@
+type: apitest
+version: 0
+service: taxi_protocol
+
+fixtures:
+  - dummy_service
+
+mockserver:
+  - url: /yamlmocks/simple
+    response:
+        body: {"value": "foo"}
+
+marks:
+  - name: foo
+    args:
+      - foo_mark
+
+tests:
+  - name: basic
+    request:
+        method: POST
+        path: /foo
+        body: {"id": "foo"}
+    response:
+        status: 200
+        body: {"name": "foo bar"}
+
+  - name: not-found
+    request:
+        method: POST
+        path: /foo
+        body: {"id": "bar"}
+    response:
+        status: 404
+        body: {"code": "not-found"}
+
+  - name: mockserver
+    request:
+        path: /bar
+    response:
+        body: {"value": "foo"}
+
+  - name: mockserver-override
+    mockserver:
+      - url: /yamlmocks/simple
+        response:
+            body: {"value": "bar"}
+    request:
+        path: /bar
+    response:
+        body: {"value": "bar"}
+
+  - name: marker
+    fixtures:
+      - mark_mock
+    request:
+        path: /mark
+    response:
+        body: {"args": ["foo_mark"], "kwargs": {}}
+
+  - name: marker-override
+    fixtures:
+      - mark_mock
+    marks:
+      - name: foo
+        args:
+          - bar_mark
+    request:
+        path: /mark
+    response:
+        body: {"args": ["bar_mark"], "kwargs": {}}
+
+  - name: header-request-set
+    fixtures:
+      - header_mock
+    request:
+        path: /header/return
+        headers:
+            X-Testsuite-Header: testsuite header
+    response:
+        status: 200
+        body: {"value": "testsuite header"}
+
+  - name: header-response-set
+    fixtures:
+      - header_mock
+    request:
+        path: /header/set
+        body: {"value": "new testsuite header"}
+    response:
+        status: 200
+        headers:
+            X-Testsuite-Header: new testsuite header
+
+  - name: mockserver-response-header
+    mockserver:
+      - url: /test_protocol/mockserver/header/set
+        response:
+            body: {}
+            headers:
+                X-Testsuite-Header: set by mockserver
+    request:
+        path: /mockserver/header/set
+    response:
+        status: 200
+        headers:
+            X-Testsuite-Header: set by mockserver
+
+  - name: mockserver-request-assertion
+    mockserver:
+      - url: /test_protocol/mockserver/header/set
+        response:
+            body: {}
+        request:
+            headers:
+                X-Testsuite-Header: foo
+            method: POST
+            body: {"foo": "bar"}
+    request:
+        path: /mockserver/header/set
+        headers:
+            X-Testsuite-Header: foo
+        body: {"foo": "bar"}

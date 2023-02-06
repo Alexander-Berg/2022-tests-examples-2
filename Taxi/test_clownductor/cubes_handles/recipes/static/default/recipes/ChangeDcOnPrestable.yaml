@@ -1,0 +1,138 @@
+data:
+    # престебйл: имеет одну локацию с одним инстансом.
+    # для корректной работы запускать джобу с change_doc_id = '{}_{}_ResolveServiceDiff'.format(service_id, branch_id)
+    # чтобы заблочить деплой и применение диффа
+    name: ChangeDcOnPrestable_for_test
+    provider_name: clownductor
+    job_vars:
+      - service_id
+      - pre_move_region # ДЦ, который необходимо заменить на пре
+      - use_active # True, только активные поды
+      - job_name # ResizeInstancesOneNannyService
+      # не используются, но нужно передать
+      - changes # {}
+      - project_id
+      - project_name
+      - pre_env
+      - stable_env
+
+    stages:
+      - name: InternalGetServiceInformation
+        provider_name: clownductor
+        input:
+            service_id: service_id
+        output:
+            service_name: name
+            abc_service: abc_service
+            yp_quota_abc: yp_quota_abc
+
+      # новый кубик
+      - name: PrepareInfoToChangeDc
+        # кубик опрделеяет новый регион для пре и подготавливает инфу для запуска изменения
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            pre_move_region: pre_move_region
+        output:
+            pre_nanny_name: pre_nanny_name
+            pre_branch_id: pre_branch_id
+            pre_new_active_regions: pre_new_active_regions # список новых ДЦ, список используется для обновления подсета
+            pre_instances_by_region: pre_instances_by_region
+            stable_nanny_name: stable_nanny_name
+            stable_branch_id: stable_branch_id
+            stable_new_active_regions: stable_new_active_regions
+            stable_instances_by_region: stable_instances_by_region
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: pre_nanny_name
+            use_active: use_active
+        output:
+            pre_pod_ids_by_region: pod_ids_by_region
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: stable_nanny_name
+            use_active: use_active
+        output:
+
+            stable_pod_ids_by_region: pod_ids_by_region
+
+      - name: MetaCubeStartJobChangeResourcesByName
+        provider_name: clownductor
+        input:
+            yp_quota_abc: yp_quota_abc
+            nanny_name: pre_nanny_name
+            branch_id: pre_branch_id
+            pod_ids_by_region: pre_pod_ids_by_region
+            instances_by_region: pre_instances_by_region
+            changes: changes
+            job_name: job_name
+            project_name: project_name
+            service_name: service_name
+            project_id: project_id
+            service_id: service_id
+            environment: pre_env
+
+        output:
+            pre_job_id: job_id
+            pre_comment: comment
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: pre_job_id
+
+      - name: MetaStartUpdateEntryPointSet
+        provider_name: clownductor
+        input:
+            clown_service_id: service_id
+            clown_branch_id: pre_branch_id
+            active_regions: pre_new_active_regions
+        output:
+            sync_slb_job_id: job_id
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: sync_slb_job_id
+
+      - name: MetaCubeStartJobChangeResourcesByName
+        provider_name: clownductor
+        input:
+            yp_quota_abc: yp_quota_abc
+            nanny_name: stable_nanny_name
+            branch_id: stable_branch_id
+            pod_ids_by_region: stable_pod_ids_by_region
+            instances_by_region: stable_instances_by_region
+            changes: changes
+            job_name: job_name
+            project_name: project_name
+            service_name: service_name
+            project_id: project_id
+            service_id: service_id
+            environment: stable_env
+        output:
+            job_id: job_id
+            comment: comment
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: job_id
+
+      - name: MetaStartUpdateEntryPointSet
+        provider_name: clownductor
+        input:
+            clown_service_id: service_id
+            clown_branch_id: stable_branch_id
+            active_regions: stable_new_active_regions
+        output:
+            sync_stable_slb_job_id: job_id
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: sync_stable_slb_job_id

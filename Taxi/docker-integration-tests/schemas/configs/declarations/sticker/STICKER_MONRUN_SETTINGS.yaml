@@ -1,0 +1,86 @@
+description: Настройки проверок monrun
+default:
+    too_long_in_status:
+      - status: PENDING
+        warn: 10
+        crit: 20
+
+      - status: PROCESSING
+        warn: 5
+        crit: 20
+
+    too_many_failed:
+        warn: 25
+        crit: 100
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - too_long_in_status
+
+    properties:
+        too_long_in_status:
+            type: array
+            items:
+                description: >
+                    Сколько минут запрос на отправку может висеть в соответствующем
+                    статусе без активации мониторинга
+                    соответстующего уровня
+
+                type: object
+                additionalProperties: false
+                required:
+                  - status
+                  - warn
+                  - crit
+
+                properties:
+                    status:
+                        type: string
+
+                    warn:
+                        type: integer
+                        minimum: 1
+
+                    crit:
+                        type: integer
+                        minimum: 1
+
+        too_many_failed:
+            description: >
+                Количество запросов на отсылку письма в сотоянии FAILED, при достижении
+                которого загорается мониторинг
+
+            type: object
+            additionalProperties: false
+            required:
+              - warn
+              - crit
+
+            properties:
+                warn:
+                    type: integer
+                    minimum: 1
+
+                crit:
+                    type: integer
+                    minimum: 1
+
+        too_far_send_after:
+            description: >
+                Разность send_after и текущего времени в минутах,
+                при превышении которой срабатывает мониторинг
+
+            required:
+              - warn
+              - crit
+
+            properties:
+                warn:
+                    type: integer
+                    minimum: 1
+
+                crit:
+                    type: integer
+                    minimum: 1

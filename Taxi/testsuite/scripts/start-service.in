@@ -1,0 +1,29 @@
+#!/bin/bash
+
+TESTSUITE_PATH=@CMAKE_CURRENT_SOURCE_DIR@
+BUILD_DIR=@CMAKE_BINARY_DIR@
+
+usage() {
+  echo >&2 "Usage: $0 SERVICE"
+  SERVICES=$(cd "$BUILD_DIR/testsuite/configs/" && \
+                 ls taxi-*.conf | sed 's/taxi-//;s/.conf//' | xargs)
+  echo >&2 "       SERVICE can be one of the following: $SERVICES"
+  exit 1
+}
+
+SERVICE=$1
+shift
+if [ -z "$SERVICE" ]; then
+  usage
+fi
+
+CONFIG=$BUILD_DIR/testsuite/configs/taxi-$SERVICE.conf
+if ! [ -e "$CONFIG" ]; then
+  echo >&2 "Error: no config file found: $CONFIG"
+  usage
+fi
+
+cd $BUILD_DIR
+
+set -x
+exec $BUILD_DIR/testsuite/taxi-env run -- "$@" fastcgi-daemon2 --config=$CONFIG

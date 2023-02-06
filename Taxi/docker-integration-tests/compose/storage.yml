@@ -1,0 +1,111 @@
+# Storage services (postgres, mongo, etc)
+# Depends on base-images.yml
+
+version: "2.3"
+
+services:
+    taxi-postgres:
+        image: registry.yandex.net/taxi/externalimages/postgres:latest
+        environment:
+          - POSTGRES_USER=user
+          - POSTGRES_PASSWORD=password
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/bootstrap_db/postgres:/docker-entrypoint-initdb.d:ro
+          - type: tmpfs
+            target: /var/lib/postgresql/data
+            tmpfs:
+                size: 4294967296 # 4 GB
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh env PGPASSWORD=password pg_isready -U
+                user -h pgaas.mail.yandex.net -p 5432 -d dborders -q
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - pgaas.mail.yandex.net
+    taxi-mongo:
+        extends:
+            service: taxi-integration-xenial-base
+        ports:
+          - "27017:27017"
+        command: /taxi/run/mongo.sh
+        environment:
+          - MONGO_RAMDISK
+        volumes:
+          - ./volumes/mongo:/data/db:rw
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/run:/taxi/run:ro
+          - ./_logs:/taxi/logs:rw
+          - type: tmpfs
+            target: /mnt/ram
+            tmpfs:
+                size: 4294967296 # 4 GB
+        working_dir: /data/db
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh mongo < /dev/null
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - mongo.taxi.yandex
+    taxi-redis:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - program_name=taxi-redis
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh redis-cli -h ::1 ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        volumes:
+          - ./volumes/redis:/taxi/redis:ro
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+        networks:
+            taxi_internal:
+                ipv4_address: 172.16.239.222
+                ipv6_address: 2001:3984:398a::222
+                aliases:
+                  - redis.taxi.yandex
+        command: /taxi/run/redis.sh
+    taxi-redis-sentinel:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - program_name=taxi-redis-sentinel
+        volumes:
+          - ./volumes/redis:/taxi/redis:ro
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+        networks:
+            taxi_internal:
+                aliases:
+                  - redis-sentinel.taxi.yandex
+        command: /taxi/run/redis-sentinel.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh redis-cli -h ::1 -p 26379 ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+    taxi-memcached:
+        image: registry.yandex.net/taxi/externalimages/memcached
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh grep :2BCB /proc/net/tcp
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - memcached.taxi.yandex
+

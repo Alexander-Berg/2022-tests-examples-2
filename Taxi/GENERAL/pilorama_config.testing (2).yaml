@@ -1,0 +1,38 @@
+  - file:
+        path: "/var/log/yandex/taxi-dispatch-settings-web/taxi.log"
+        sincedb_path: "/var/cache/taxi-pilorama/taxi-dispatch-settings-web.sincedb"
+        start_from_begin: false
+        ignore_older: 1d
+        discover_interval: 60s
+        read_interval: 500ms
+    filter:
+        removals:
+          - timestamp
+          - metadata
+          - host
+        put_message: false
+        renames:
+          - from: _type
+            to: type
+        max_read_size: 16777216
+        additions: '"tags":["_pilorama_parsed"]'
+        transform_date: true
+        timezone: 'Europe/Moscow'
+        drop_empty_fields: true
+        cgroups: false
+        add_from_env:
+          - from: NANNY_SERVICE_ID
+            to: ngroups
+    output:
+        elastic_version: 7
+        send_timeout: "60s"
+        max_retries: "1"
+        index: "yandex-taxi-rtc-%Y.%m.%d.%H"
+        error_index: "errors-yandex-taxi-%Y.%m.%d"
+        max_in_flight_requests: 5
+        balancing_group: main
+        hosts:
+          - http://elastic-logs-sas-04.taxi.tst.yandex.net:9200/_bulk
+          - http://elastic-logs-sas-05.taxi.tst.yandex.net:9200/_bulk
+          - http://elastic-logs-vla-04.taxi.tst.yandex.net:9200/_bulk
+          - http://elastic-logs-vla-05.taxi.tst.yandex.net:9200/_bulk

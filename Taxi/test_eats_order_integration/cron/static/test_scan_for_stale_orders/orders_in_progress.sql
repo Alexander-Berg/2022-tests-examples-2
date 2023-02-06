@@ -1,0 +1,27 @@
+INSERT INTO order_flow
+(
+    idempotency_key,
+    is_locked,
+    order_nr,
+    status,
+    created_at,
+    updated_at
+)
+values
+(
+    'order_in_progress_1',
+    true,
+    'order_1',
+    'NEW',
+    '2000-01-01T00:00:00+00:00',
+    '2000-01-01T00:00:00+00:00'
+),
+(
+    'order_in_progress_2',
+    false,
+    'order_2',
+    'NEW',
+    '2000-01-02T00:00:00+00:00',
+    '2000-01-01T00:00:00+00:00'
+)
+;

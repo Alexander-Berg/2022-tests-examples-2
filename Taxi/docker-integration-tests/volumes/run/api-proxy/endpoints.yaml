@@ -1,0 +1,1522 @@
+id: 3-0-paymentmethods
+path: /3.0/paymentmethods
+enabled: true
+summary: Handler for /3.0/paymentmethods
+maintainers:
+  - bznk
+  - lol4t0
+dev_team: ordercycle
+duty_group_id: ordercycle-duty-id
+handlers:
+    post:
+        default-response: resp-ok
+        enabled: true
+        experiments:
+            consumer: api_proxy_tc_3_0_paymentmethods
+        fallbacks:
+          - body#object:
+            id: empty-response
+            status-code: 200
+          - body#object:
+              - key: methods
+                value#array:
+            id: corps-empty-methods
+            status-code: 200
+          - body#object:
+              - key: cards_available
+                value#boolean: true
+            id: cards-available-true
+            status-code: 200
+        responses:
+          - body#object:
+              - key: card
+                value#object:
+                  - enabled#contains:
+                        key#string: available_cards
+                        object#source-response-body: cardstorage-payment-methods
+                    key: available_cards
+                    value#map:
+                        element#concat-objects:
+                          - value#iterator: available-card
+                          - value#object:
+                              - key: usable
+                                value#boolean: true
+                        input#get:
+                            key#string: available_cards
+                            object#source-response-body: cardstorage-payment-methods
+                        iterator: available-card
+                  - enabled#and:
+                      - value#contains:
+                            key#string: unverified_cards
+                            object#source-response-body: cardstorage-payment-methods
+                      - value#not:
+                            value#empty:
+                                value#get:
+                                    key#string: unverified_cards
+                                    object#source-response-body: cardstorage-payment-methods
+                    key: unverified_cards
+                    value#get:
+                        key#string: unverified_cards
+                        object#source-response-body: cardstorage-payment-methods
+                  - key: payment_available
+                    value#get:
+                        key#string: cards_available
+                        object#source-response-body: card-payment-availability
+              - enabled#source-enabled: coop-account-stats
+                key: coop_account
+                value#concat-objects:
+                  - value#source-response-body: coop-account-stats
+                  - value#object:
+                      - key: payment_available
+                        value#taxi-config: BILLING_COOP_ACCOUNT_ENABLED
+              - key: corp
+                value#object:
+                  - key: payment_available
+                    value#and:
+                      - value#source-enabled: corps-paymentmethods
+                      - value#not:
+                            value#empty:
+                                value#get:
+                                    key#string: methods
+                                    object#source-response-body: corps-paymentmethods
+                  - key: available_accounts
+                    value#map:
+                        element#object:
+                          - key: id
+                            value#get:
+                                key#string: id
+                                object#iterator: it
+                          - key: name
+                            value#get:
+                                key#string: label
+                                object#iterator: it
+                          - key: money_spent
+                            value#integer: 0
+                          - key: money_limit
+                            value#integer: 0
+                          - key: money_left
+                            value#integer: 0
+                          - key: currency
+                            value#get:
+                                key#string: currency
+                                object#iterator: it
+                          - key: description
+                            value#get:
+                                key#string: description
+                                object#iterator: it
+                          - key: cost_center
+                            value#get:
+                                key#string: cost_center
+                                object#iterator: it
+                          - key: cost_centers
+                            value#object:
+                              - key: required
+                                value#get:
+                                    key#string: required
+                                    object#get:
+                                        key#string: cost_centers
+                                        object#iterator: it
+                              - key: format
+                                value#get:
+                                    key#string: format
+                                    object#get:
+                                        key#string: cost_centers
+                                        object#iterator: it
+                              - key: items
+                                value#map:
+                                    element#object:
+                                      - key: name
+                                        value#iterator: value-it
+                                    input#get:
+                                        key#string: values
+                                        object#get:
+                                            key#string: cost_centers
+                                            object#iterator: it
+                                    iterator: value-it
+                        input#if:
+                            condition#source-enabled: corps-paymentmethods
+                            else#array:
+                            then#get:
+                                key#string: methods
+                                object#source-response-body: corps-paymentmethods
+                        iterator: it
+              - enabled#source-enabled: personal-wallet-balances
+                key: personal_wallet
+                value#source-response-body: personal-wallet-balances
+              - enabled#and:
+                  - value#source-enabled: user-api-phone-info
+                  - value#contains:
+                        key#string: last_payment_method
+                        object#source-response-body: user-api-phone-info
+                  - value#or:
+                      - value#and:
+                          - value#source-enabled: cardstorage-lpm-check
+                          - value#get:
+                                key#string: bound
+                                object#source-response-body: cardstorage-lpm-check
+                      - value#not:
+                            value#equal:
+                              - value#string: card
+                              - value#get:
+                                    key#string: type
+                                    object#get:
+                                        key#string: last_payment_method
+                                        object#source-response-body: user-api-phone-info
+                key: last_payment_method
+                value#object:
+                  - key: type
+                    value#get:
+                        key#string: type
+                        object#get:
+                            key#string: last_payment_method
+                            object#source-response-body: user-api-phone-info
+                  - enabled#or:
+                      - value#source-enabled: cardstorage-lpm-check
+                      - value#contains:
+                            key#string: id
+                            object#get:
+                                key#string: last_payment_method
+                                object#source-response-body: user-api-phone-info
+                    key: id
+                    value#if:
+                        condition#source-enabled: cardstorage-lpm-check
+                        else#get:
+                            key#string: id
+                            object#get:
+                                key#string: last_payment_method
+                                object#source-response-body: user-api-phone-info
+                        then#get:
+                            key#string: card_id
+                            object#source-response-body: cardstorage-lpm-check
+              - enabled#experiment-effective: payment_methods_merchants
+                key: merchant_id_list
+                value#taxi-config: PAYMENTMETHODS_IPHONE_MERCHANT_LIST
+              - enabled#experiment-effective: payment_methods_bin_info
+                key: bin_info
+                value#taxi-config: CARD_BINS_URL
+              - enabled#experiment-effective: payment_methods_google_pay_public_key
+                key: google_pay_public_key
+                value#experiment-value: payment_methods_google_pay_public_key
+            content-type: application/json
+            id: resp-ok
+        sources:
+          - body#object:
+              - key: yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: cache_preferred
+                value#boolean: false
+              - key: service_type
+                value#get:
+                    default-value#string: card
+                    key#request-application: brand
+                    object#object:
+                      - key: uber
+                        value#string: uber
+              - key: show_unverified
+                value#boolean: true
+              - key: show_unbound
+                value#boolean: false
+              - key: format
+                value#string: legacy
+            fail-policy:
+              - action: propagate
+                selector: any
+            id: cardstorage-payment-methods
+            resource: cardstorage-payment-methods
+          - body#object:
+              - key: yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: card_id
+                value#get:
+                    key#string: id
+                    object#get:
+                        key#string: last_payment_method
+                        object#source-response-body: user-api-phone-info
+              - key: service_type
+                value#get:
+                    default-value#string: card
+                    key#request-application: brand
+                    object#object:
+                      - key: uber
+                        value#string: uber
+            enabled#and:
+              - value#source-enabled: user-api-phone-info
+              - value#equal:
+                  - value#string: card
+                  - value#get:
+                        default-value#string: ''
+                        key#string: type
+                        object#get:
+                            default-value#object:
+                            key#string: last_payment_method
+                            object#source-response-body: user-api-phone-info
+            fail-policy:
+              - action: disable
+                selector: any
+            id: cardstorage-lpm-check
+            resource: cardstorage-v1-card
+          - fail-policy:
+              - action: fallback
+                fallback: cards-available-true
+                selector: any
+            id: card-payment-availability
+            query#object:
+              - key: phone_id
+                value#request-header: X-YaTaxi-PhoneId
+            resource: debts-internal-payment_availability
+          - body#object:
+              - key: source
+                value#object:
+                  - key: app
+                    value#get:
+                        key#request-application: type
+                        object#taxi-config: APPLICATION_TO_CORP_SOURCE_MAP
+              - key: identity
+                value#object:
+                  - key: uid
+                    value#request-header: X-Yandex-UID
+                  - key: phone_id
+                    value#request-header: X-YaTaxi-PhoneId
+            enabled#contains:
+                key#request-application: type
+                object#taxi-config: APPLICATION_TO_CORP_SOURCE_MAP
+            fail-policy:
+              - action: fallback
+                fallback: corps-empty-methods
+                selector: any
+            headers#object:
+              - enabled#request-header-exists: Accept-Language
+                key: Accept-Language
+                value#request-header: Accept-Language
+            id: corps-paymentmethods
+            resource: corp-v1-corp_paymentmethods
+          - enabled#get:
+                default-value#boolean: false
+                key#request-application: type
+                object#object:
+                  - key: iphone
+                    value#boolean: true
+                  - key: android
+                    value#boolean: true
+                  - key: yango_iphone
+                    value#boolean: true
+                  - key: yango_android
+                    value#boolean: true
+                  - key: test_value
+                    value#boolean: true
+            fail-policy:
+              - action: disable
+                selector: any
+            headers#object:
+              - key: YaTaxi-Api-Key
+                value#get:
+                    key#string: COOP_ACCOUNT_APIKEY
+                    object#taxi-secdist: settings_override
+              - enabled#request-header-exists: Accept-Language
+                key: Accept-Language
+                value#request-header: Accept-Language
+            id: coop-account-stats
+            query#object:
+              - key: owner_yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: phone_id
+                value#request-header: X-YaTaxi-PhoneId
+            resource: shared-internal-stats
+          - body#object:
+              - key: user_id
+                value#request-header: X-YaTaxi-UserId
+            enabled#and:
+              - value#boolean: false
+              - value#taxi-config: PERSONAL_WALLET_ENABLED
+              - value#experiment-effective: personal_wallet
+            fail-policy:
+              - action: disable
+                selector: any
+            headers#object:
+              - key: YaTaxi-Api-Key
+                value#get:
+                    key#string: PASSWALLET_APIKEY
+                    object#taxi-secdist: settings_override
+            id: personal-wallet-balances
+            resource: personal-v1-balances
+          - body#object:
+              - key: id
+                value#request-header: X-YaTaxi-PhoneId
+              - key: primary_replica
+                value#boolean: true
+            fail-policy:
+              - action: disable
+                selector: any
+            id: user-api-phone-info
+            resource: user-user_phones-get
+---
+id: 3-0-taxiontheway
+path: /3.0/taxiontheway
+enabled: true
+summary: Handler for /3.0/taxiontheway
+maintainers:
+  - bznk
+  - lol4t0
+dev_team: ordercycle
+duty_group_id: ordercycle-duty-id
+handlers:
+    post:
+        allow-unauthorized: true
+        default-response: resp-ok
+        enabled: true
+        responses:
+          - body#if:
+                condition#source-enabled: order-core-orderinfo
+                else#source-response-body: protocol-totw
+                then#source-response-body: order-core-orderinfo
+            content-type: application/json
+            id: resp-ok
+          - body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Bad Request
+            content-type: application/json
+            id: resp-bad-request
+            status-code: 400
+          - body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Unauthorized
+            content-type: application/json
+            id: resp-unauthorized
+            status-code: 401
+          - body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Not Found
+            content-type: application/json
+            id: resp-not-found
+            status-code: 404
+          - body#source-response-body: protocol-totw
+            content-type: application/json
+            id: resp-conflict
+            status-code: 409
+        sources:
+          - body#request-body: {}
+            fail-policy:
+              - action: return
+                response: resp-bad-request
+                selector: '400'
+              - action: return
+                response: resp-unauthorized
+                selector: '401'
+              - action: return
+                response: resp-not-found
+                selector: '404'
+              - action: return
+                response: resp-conflict
+                selector: '409'
+              - action: propagate
+                selector: any
+            headers#object:
+              - key: Accept-Language
+                value#request-header: Accept-Language
+              - key: X-Yandex-Uid
+                value#request-header: X-Yandex-Uid
+              - key: User-Agent
+                value#request-header: User-Agent
+              - key: X-Remote-Ip
+                value#request-header: X-Remote-Ip
+            id: protocol-totw
+            query#object:
+              - key: uuid
+                value#request-query: uuid
+              - enabled#equal:
+                  - value#request-query: cancel_only_unassigned
+                  - value#string: 'true'
+                key: cancel_only_unassigned
+                value#string: 'true'
+            resource: taxi-3.0-taxiontheway
+          - body#request-body: {}
+            enabled#experiment-effective: totw_use_order_core
+            fail-policy:
+              - action: return
+                response: resp-not-found
+                selector: '404'
+              - action: propagate
+                selector: any
+            headers#object:
+              - key: Accept-Language
+                value#request-header: Accept-Language
+              - key: X-Yandex-Uid
+                value#request-header: X-Yandex-Uid
+              - key: User-Agent
+                value#request-header: User-Agent
+              - key: X-Remote-Ip
+                value#request-header: X-Remote-Ip
+            id: order-core-orderinfo
+            query#object:
+              - key: orderid
+                value#get:
+                    key#string: orderid
+                    object#request-body: {}
+              - key: userid
+                value#get:
+                    key#string: id
+                    object#request-body: {}
+            resource: order-v1-tc-order-info
+---
+id: 3-0-launch
+path: /3.0/launch
+enabled: true
+summary: Handler for /3.0/launch
+maintainers:
+  - alexey-ivanov
+  - lol4t0
+dev_team: ordercycle
+duty_group_id: ordercycle-duty-id
+handlers:
+    post:
+        aliases:
+            resp-ok-body#concat-objects:
+              - value#concat-objects:
+                  - value:
+                        id#xget: /sources/zalogin-launch-auth/response/body/id
+                        authorized#xget: /sources/zalogin-launch-auth/response/body/authorized
+                  - value:
+                        phones#xget: /sources/zalogin-launch-auth/response/body/phones
+                    enabled#contains:
+                        key: phones
+                        object#source-response-body: zalogin-launch-auth
+                  - value:
+                        token_valid#xget: /sources/zalogin-launch-auth/response/body/token_valid
+                    enabled#contains:
+                        key: token_valid
+                        object#source-response-body: zalogin-launch-auth
+                  - value#source-response-body: protocol-launch
+                  - value:
+                        phone#xget: /sources/zalogin-launch-auth/response/body/phone
+                    enabled#contains:
+                        key: phone
+                        object#source-response-body: zalogin-launch-auth
+        default-response: resp-ok
+        allow-unauthorized: true
+        enabled: true
+        sources:
+          - id: zalogin-launch-auth
+            enabled: true
+            resource: zalogin-v1-launch-auth
+            validation:
+                content-type: application/json
+            fail-policy:
+              - action: propagate
+                selector: any
+            content-type: application/json
+            body#exclude:
+                object#request-body: {}
+                keys:
+                  - push_settings
+                  - typed_experiments
+            query#request-args: {}
+            headers#request-headers: {}
+          - enabled: true
+            id: protocol-launch
+            resource: taxi-3.0-launch
+            fail-policy:
+              - selector: "400"
+                action: return
+                response: resp-bad-request
+              - selector: "401"
+                action: return
+                response: resp-unauthorized
+              - selector: "404"
+                action: return
+                response: resp-not-found
+              - selector: "409"
+                action: return
+                response: resp-conflict
+              - selector: any
+                action: propagate
+            content-type: application/json
+            body#concat-objects:
+              - value:
+                    id#xget: /sources/zalogin-launch-auth/response/body/id
+              - value#exclude:
+                    object#request-body: {}
+                    keys:
+                      - typed_experiments
+            query#concat-objects:
+              - value:
+                    uuid#xget: /sources/zalogin-launch-auth/response/body/uuid
+                enabled#contains:
+                    key: uuid
+                    object#source-response-body: zalogin-launch-auth
+              - value#request-args: {}
+            headers#concat-objects:
+              - value#object:
+                  - X-Yandex-Auth-Confirmed: true
+              - value#exclude:
+                    keys:
+                      - X-YaTaxi-UserId
+                      - X-YaTaxi-Alleged-UserId
+                    object#request-headers: {}
+        responses:
+          - id: resp-ok
+            content-type: application/json
+            body#xget: /aliases/resp-ok-body
+          - id: resp-bad-request
+            status-code: 400
+            content-type: application/json
+            body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Bad Request
+          - id: resp-unauthorized
+            status-code: 401
+            content-type: application/json
+            body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Unauthorized
+          - id: resp-not-found
+            status-code: 404
+            content-type: application/json
+            body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Not Found
+          - id: resp-conflict
+            status-code: 409
+            content-type: application/json
+            body#source-response-body: protocol-launch
+---
+id: 4-0-finalsuggest
+path: /4.0/persuggest/v1/finalsuggest
+enabled: true
+summary: Handler for /4.0/persuggest/v1/finalsuggest
+maintainers:
+  - alexey-ivanov
+  - lol4t0
+dev_team: ordercycle
+duty_group_id: ordercycle-duty-id
+handlers:
+    post:
+        default-response: resp-ok
+        allow-unauthorized: true
+        enabled: true
+        sources:
+          - enabled: true
+            body#request-body: {}
+            query#request-args: {}
+            headers#request-headers: {}
+            id: persuggest
+            resource: persuggest
+            fail-policy:
+              - selector: "400"
+                action: return
+                response: resp-bad-request
+              - selector: "401"
+                action: return
+                response: resp-unauthorized
+              - selector: "404"
+                action: return
+                response: resp-not-found
+              - selector: "409"
+                action: return
+                response: resp-conflict
+              - selector: any
+                action: propagate
+        responses:
+          - id: resp-ok
+            content-type: application/json
+            body#source-response-body: persuggest
+          - id: resp-bad-request
+            status-code: 400
+            content-type: application/json
+            body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Bad Request
+          - id: resp-unauthorized
+            status-code: 401
+            content-type: application/json
+            body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Unauthorized
+          - id: resp-not-found
+            status-code: 404
+            content-type: application/json
+            body#object:
+              - key: error
+                value#object:
+                  - key: text
+                    value#string: Not Found
+          - id: resp-conflict
+            status-code: 409
+            content-type: application/json
+            body#source-response-body: persuggest
+---
+id: 3-0-routestats
+path: /3.0/routestats
+enabled: true
+summary: Handler for /3.0/routestats
+maintainers:
+  - e-usov
+  - e-ovcharenko
+dev_team: client_product_backend_3
+duty_group_id: client_product_backend_3-duty-id
+handlers:
+    post:
+        default-response: resp-ok
+        allow-unauthorized: true
+        enabled: true
+        sources:
+          - body#request-body: {}
+            query#request-args: {}
+            headers#request-headers: {}
+            id: protocol-routestats
+            resource: taxi-3.0-routestats
+            fail-policy:
+              - selector: 4*
+                action: return
+                response: resp-error-4xx
+              - selector: 5*
+                action: return
+                response: resp-error-5xx
+              - selector: any
+                action: propagate
+            content-type: application/json
+        responses:
+          - body#source-response-body: protocol-routestats
+            status-code#source-response-code: protocol-routestats
+            id: resp-ok
+            content-type: application/json
+          - body#source-response-body: protocol-routestats
+            status-code#source-response-code: protocol-routestats
+            id: resp-error-4xx
+            content-type: application/json
+          - status-code#source-response-code: protocol-routestats
+            id: resp-error-5xx
+---
+id: 3-0-feedback
+path: /3.0/feedback
+enabled: true
+summary: Handler for /3.0/feedback
+maintainers:
+  - iv-ivan
+  - toporkovm
+dev_team: client_product_backend_4
+duty_group_id: client_product_backend_4-duty-id
+handlers:
+    post:
+        enabled: true
+        allow-unauthorized: true
+        default-response: resp-ok
+        sources:
+          - id: protocol-feedback
+            resource: taxi-3.0-feedback
+            headers#request-headers: {}
+            query#request-args: {}
+            content-type: application/json
+            body#request-body: {}
+            fail-policy:
+              - selector: 4*
+                action: return
+                response: propagate-protocol-error
+              - selector: 5*
+                action: return
+                response: propagate-protocol-error
+              - selector: any
+                action: propagate
+        responses:
+          - id: resp-ok
+            status-code#source-response-code: protocol-feedback
+            content-type: application/json
+            body#source-response-body: protocol-feedback
+          - id: propagate-protocol-error
+            status-code#source-response-code: protocol-feedback
+            content-type: application/json
+            body#source-response-body: protocol-feedback
+---
+id: 3-0-zoneinfo
+path: /3.0/zoneinfo
+enabled: true
+summary: Handler for /3.0/zoneinfo
+maintainers:
+  - jolfzverb
+  - rgnlax
+dev_team: client_product_backend_1
+duty_group_id: client_product_backend_1-duty-id
+handlers:
+    post:
+        default-response: resp-ok
+        allow-unauthorized: true
+        enabled: true
+        sources:
+          - body#request-body: {}
+            query#request-args: {}
+            headers#request-headers: {}
+            id: protocol-zoneinfo
+            resource: taxi-3.0-zoneinfo
+            fail-policy:
+              - selector: 4*
+                action: return
+                response: resp-error-4xx
+              - selector: 5*
+                action: return
+                response: resp-error-5xx
+              - selector: any
+                action: propagate
+            content-type: application/json
+        responses:
+          - body#source-response-body: protocol-zoneinfo
+            status-code#source-response-code: protocol-zoneinfo
+            id: resp-ok
+            content-type: application/json
+          - body#source-response-body: protocol-zoneinfo
+            status-code#source-response-code: protocol-zoneinfo
+            id: resp-error-4xx
+            content-type: application/json
+          - status-code#source-response-code: protocol-zoneinfo
+            id: resp-error-5xx
+---
+id: 3-0-pricecat
+path: /3.0/pricecat
+enabled: true
+summary: Handler for /3.0/pricecat
+maintainers:
+  - alinaerokhina
+  - ihelos
+dev_team: client_product_backend_2
+duty_group_id: client_product_backend_2-duty-id
+handlers:
+    post:
+        default-response: resp-ok
+        allow-unauthorized: true
+        enabled: true
+        sources:
+          - id: protocol-pricecat
+            resource: taxi-3.0-pricecat
+            enabled: true
+            fail-policy:
+              - action: fallback
+                fallback: protocol-pricecat-fallback
+                selector: any
+            content-type: application/json
+            body#request-body: {}
+            query#request-args: {}
+            headers#request-headers: {}
+        fallbacks:
+          - id: protocol-pricecat-fallback
+            body#object:
+              - key: parks
+                value#array: []
+            status-code: 200
+        responses:
+          - id: resp-ok
+            body#object:
+              - key: next
+                enabled#contains:
+                    key: next
+                    object#xget: /sources/protocol-pricecat/response/body
+                value#xget: /sources/protocol-pricecat/response/body/next
+              - key: parks
+                value#map:
+                    iterator: park-it
+                    input#xget: /sources/protocol-pricecat/response/body/parks
+                    element#concat-objects:
+                      - value#exclude:
+                            object#iterator: park-it
+                            keys:
+                              - phone
+                      - value#object:
+                          - key: phone
+                            value: ""
+            content-type: application/json
+---
+id: 3-0-promotions
+path: /3.0/promotions
+enabled: true
+summary: Handler for /3.0/promotions
+maintainers:
+  - igelbox
+dev_team: client_product_backend_2
+duty_group_id: client_product_backend_2-duty-id
+handlers:
+    post:
+        default-response: resp-ok
+        enabled: true
+        responses:
+          - body: {}
+            id: resp-ok
+            content-type: application/json
+---
+id: 4-0-payments-v1-list-payment-methods
+path: /4.0/payments/v1/list-payment-methods
+enabled: true
+summary: Handler for /4.0/payments/v1/list-payment-methods
+dev_team: client_product_backend_2
+duty_group_id: client_product_backend_2-duty-id
+handlers:
+    post:
+        aliases:
+            cards-enabled#contains:
+                key#string: card
+                object#get:
+                    key#string: payment_types
+                    object#xget: /aliases/available-payment-types-response-body
+            card-filter-enabled#and:
+              - value#experiment-effective: card_filter_enabled
+              - value#get:
+                    key: enabled
+                    object#experiment-value: card_filter_enabled
+            last-payment-method-id#if:
+                else#get:
+                    key#string: id
+                    object#get:
+                        key#string: last_payment_method
+                        object#source-response-body: user-api-phone-info
+                then#xget: /sources/user-state-last-payment-methods/response/body/flows/0/payment_method/id
+                condition#xget: /aliases/is-user-state-last-payment-methods-available
+            personal-wallet-enabled#and:
+              - value#taxi-config: PERSONAL_WALLET_ENABLED
+              - value#experiment-effective: superapp_personal_wallet
+              - value#contains:
+                    key#string: personal_wallet
+                    object#get:
+                        key#string: payment_types
+                        object#xget: /aliases/available-payment-types-response-body
+            is-card-storage-avaiable#and:
+              - value#source-enabled: cardstorage-lpm-check
+              - value#get:
+                    key#string: bound
+                    object#source-response-body: cardstorage-lpm-check
+            has-card-user-api-payment-method#and:
+              - value#source-enabled: user-api-phone-info
+              - value#equal:
+                  - value#string: card
+                  - value#get:
+                        key#string: type
+                        object#get:
+                            key#string: last_payment_method
+                            default-value#object:
+                            object#source-response-body: user-api-phone-info
+                        default-value#string: ''
+            has-user-api-last-payment-method#and:
+              - value#source-enabled: user-api-phone-info
+              - value#contains:
+                    key#string: last_payment_method
+                    object#source-response-body: user-api-phone-info
+            personal-wallet-from-card-filter#and:
+              - value#source-enabled: card-filter-filteredcards
+              - value#xget: /aliases/personal-wallet-from-card-filter-exp
+            available-payment-types-response-body#if:
+                condition#source-enabled: payment-methods-v1-superapp-available-payment-types
+                then#source-response-body: payment-methods-v1-superapp-available-payment-types
+                else#source-response-body: available-payment-types-superapp-misc
+            has-user-api-last-payment-methods-id#and:
+              - value#xget: /aliases/has-user-api-last-payment-method
+              - value#contains:
+                    key#string: id
+                    object#xget: /sources/user-api-phone-info/response/body/last_payment_method
+            personal-wallet-from-card-filter-exp#and:
+              - value#experiment-effective: card_filter_process_wallets
+              - value#get:
+                    key: enabled
+                    object#experiment-value: card_filter_process_wallets
+            has-user-state-last-payment-methods-id#and:
+              - value#xget: /aliases/is-user-state-last-payment-methods-available
+              - value#contains:
+                    key#string: id
+                    object#xget: /sources/user-state-last-payment-methods/response/body/flows/0/payment_method
+            has-card-user-state-last-payment-methods#and:
+              - value#xget: /aliases/is-user-state-last-payment-methods-available
+              - value#equal:
+                  - value#string: card
+                  - value#xget: /sources/user-state-last-payment-methods/response/body/flows/0/payment_method/type
+            is-user-state-last-payment-methods-available#and:
+              - value#source-enabled: user-state-last-payment-methods
+              - value#not:
+                    value#empty:
+                        value#xget: /sources/user-state-last-payment-methods/response/body/flows
+            sender-point#coalesce:
+              - value#xget:
+                    path: /request/body/sender_point
+                    default-value#null: {}
+              - value#xget:
+                    path: /request/body/location
+            destination-point#coalesce:
+              - value#xget:
+                    path: /request/body/destination_point
+                    default-value#null: {}
+              - value#xget:
+                    path: /request/body/location
+        enabled: true
+        sources:
+          - id: payment-methods-v1-superapp-available-payment-types
+            resource: payment-methods-v1-superapp-available-payment-types
+            body#object:
+              - key: location
+                value#xget: /aliases/sender-point
+              - key: destination_point
+                value#xget: /aliases/destination-point
+            fail-policy:
+              - action: fallback
+                selector: any
+                fallback: payment-methods-v1-superapp-available-payment-types-fallback
+            content-type: application/json
+            query#object:
+              - key: service
+                value#request-query: service
+            headers#xget: /request/headers
+            enabled#experiment-effective: use_available_payment_types_payment_methods
+          - id: available-payment-types-superapp-misc
+            resource: payments-v1-available-payment-types-superapp-misc
+            body#object:
+              - key: location
+                value#xget: /aliases/sender-point
+              - key: destination_point
+                value#xget: /aliases/destination-point
+            fail-policy:
+              - action: propagate
+                selector: any
+            content-type: application/json
+            query#object:
+              - key: service
+                value#request-query: service
+            headers#xget: /request/headers
+            enabled#not:
+                value#source-enabled: payment-methods-v1-superapp-available-payment-types
+          - id: user-state-last-payment-methods
+            resource: user-state-last-payment-methods-get
+            fail-policy:
+              - action: fallback
+                fallback: user-state-last-payment-methods-fallback
+                selector: any
+            content-type: application/json
+            headers#xget: /request/headers
+            query#object:
+              - key: service
+                value#request-query: service
+              - key: flow
+                value#string: order
+          - id: user-api-phone-info
+            resource: user-user_phones-get
+            body#object:
+              - key: id
+                value#request-header: X-YaTaxi-PhoneId
+              - key: primary_replica
+                value#boolean: false
+            fail-policy:
+              - action: disable
+                selector: any
+            content-type: application/json
+          - id: corp-payment-methods
+            resource: corp-v1-payment-methods
+            fail-policy:
+              - action: disable
+                selector: any
+            content-type: application/json
+            headers#object:
+              - key: X-Yandex-Login
+                value#request-header: X-Yandex-Login
+              - key: X-Yandex-UID
+                value#request-header: X-Yandex-UID
+              - key: X-YaTaxi-Pass-Flags
+                value#request-header: X-YaTaxi-Pass-Flags
+              - key: X-YaTaxi-Bound-Uids
+                value#request-header: X-YaTaxi-Bound-Uids
+              - key: X-YaTaxi-User
+                value#request-header: X-YaTaxi-User
+              - key: X-YaTaxi-UserId
+                value#request-header: X-YaTaxi-UserId
+              - key: X-Request-Application
+                value#request-header: X-Request-Application
+              - key: X-Request-Language
+                value#request-header: X-Request-Language
+              - key: Accept-Language
+                value#request-header: Accept-Language
+            enabled#contains:
+                key#string: corp
+                object#get:
+                    key#string: payment_types
+                    object#xget: /aliases/available-payment-types-response-body
+          - id: badge-availability
+            body#object:
+              - key: location
+                value#xget: /aliases/destination-point
+            resource: payments-eda-v1-badge-availability
+            fail-policy:
+              - action: fallback
+                fallback: badge-availability-fallback
+                selector: any
+            content-type: application/json
+            headers#xget: /request/headers
+            enabled#contains:
+                key#string: badge
+                object#get:
+                    key#string: payment_types
+                    object#xget: /aliases/available-payment-types-response-body
+          - id: card-filter-filteredcards
+            resource: card-filter-v1-filteredcards
+            validation:
+                content-type: application/json
+            body#object:
+              - key: yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: user_id
+                value#request-header: X-YaTaxi-UserId
+              - key: yandex_login_id
+                value#request-header: X-Login-Id
+                enabled#request-header-exists: X-Login-Id
+              - key: cache_preferred
+                value#boolean: false
+              - key: service_type
+                value#string: card
+              - key: show_unverified
+                value#boolean: false
+              - key: show_unbound
+                value#boolean: false
+              - key: service
+                value#request-query: service
+            enabled#and:
+              - value#xget: /aliases/card-filter-enabled
+              - value#or:
+                  - value#xget: /aliases/cards-enabled
+                  - value#and:
+                      - value#xget: /aliases/personal-wallet-enabled
+                      - value#xget: /aliases/personal-wallet-from-card-filter-exp
+            fail-policy:
+              - action: disable
+                selector: fallbacking
+              - action: disable
+                selector: any
+            content-type: application/json
+            headers#xget: /request/headers
+          - id: cardstorage-payment-methods
+            resource: cardstorage-v1-payment_methods
+            body#object:
+              - key: yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: cache_preferred
+                value#boolean: false
+              - key: service_type
+                value#string: card
+              - key: show_unverified
+                value#boolean: false
+              - key: show_unbound
+                value#boolean: false
+            enabled#and:
+              - value#xget: /aliases/cards-enabled
+              - value#not:
+                    value#source-enabled: card-filter-filteredcards
+            fail-policy:
+              - action: propagate
+                selector: any
+            content-type: application/json
+          - id: cardstorage-lpm-check
+            resource: cardstorage-v1-card
+            enabled#if:
+                else#xget: /aliases/has-card-user-api-payment-method
+                then#xget: /aliases/has-card-user-state-last-payment-methods
+                condition#xget: /aliases/is-user-state-last-payment-methods-available
+            body#object:
+              - key: yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: card_id
+                value#xget: /aliases/last-payment-method-id
+              - key: service_type
+                value#string: card
+            fail-policy:
+              - action: disable
+                selector: any
+            content-type: application/json
+          - id: personal-wallet-available-accounts
+            resource: personal-v1-available-accounts
+            enabled#and:
+              - value#xget: /aliases/personal-wallet-enabled
+              - value#not:
+                    value#xget: /aliases/personal-wallet-from-card-filter
+            fail-policy:
+              - action: disable
+                selector: any
+            content-type: application/json
+            headers#xget: /request/headers
+            query#object:
+              - key: service
+                value#request-query: service
+          - id: card-antifraud-v1-payment-availability
+            resource: card_antifraud-v1-payment-availability
+            validation:
+                content-type: application/json
+            enabled#and:
+              - value#not:
+                    value#source-enabled: card-filter-filteredcards
+              - value#and:
+                  - value#experiment-effective: use_card_antifraud_api_proxy
+                  - value#get:
+                        key: enabled
+                        object#experiment-value: use_card_antifraud_api_proxy
+              - value#xget: /request/passenger-authorizer/pass-flags/portal
+            fail-policy:
+              - action: fallback
+                fallback: card-antifraud-allow
+                selector: any
+            content-type: application/json
+            query#object:
+              - key: yandex_uid
+                value#request-header: X-Yandex-UID
+              - key: user_id
+                value#request-header: X-YaTaxi-UserId
+            headers#object:
+              - key: Accept-Language
+                value#request-header: Accept-Language
+                enabled#request-header-exists: Accept-Language
+              - key: User-Agent
+                value#request-header: User-Agent
+                enabled#request-header-exists: User-Agent
+              - key: X-Taxi
+                value#request-header: X-Taxi
+                enabled#request-header-exists: X-Taxi
+        fallbacks:
+          - id: badge-availability-fallback
+            body#object:
+              - key: type
+                value#string: corp
+              - key: name
+                value#string: Yandex Badge
+              - key: id
+                value#string: badge:yandex_badge:RUB
+              - key: description
+                value#string: оплата бейджиком
+              - key: currency
+                value#string: RUB
+              - key: availability
+                value#object:
+                  - key: available
+                    value: true
+                  - key: disabled_reason
+                    value#string: ''
+            status-code: 200
+          - id: card-antifraud-allow
+            body#object:
+              - key: all_payments_available
+                value: true
+              - key: available_cards
+                value#array: []
+            status-code: 200
+          - id: user-state-last-payment-methods-fallback
+            body#object:
+              - key: flows
+                value#array: []
+            status-code: 200
+          - id: payment-methods-v1-superapp-available-payment-types-fallback
+            body#object:
+              - key: payment_types
+                value#array:
+                  - value#string: card
+              - key: merchant_ids
+                value#array: []
+            status-code: 200
+        responses:
+          - id: resp-ok
+            body#object:
+              - key: merchant_id_list
+                value#get:
+                    key#string: merchant_ids
+                    object#xget: /aliases/available-payment-types-response-body
+              - key: payment_methods
+                value#concat-arrays:
+                  - value#map:
+                        iterator: card-it
+                        input#get:
+                            key#string: available_cards
+                            object#source-response-body: cardstorage-payment-methods
+                        element#object:
+                          - key: type
+                            value#string: card
+                          - key: name
+                            value#get:
+                                key#string: system
+                                object#iterator: card-it
+                          - key: id
+                            value#get:
+                                key#string: card_id
+                                object#iterator: card-it
+                          - key: bin
+                            value#get:
+                                key#string: bin
+                                object#iterator: card-it
+                          - key: currency
+                            value#get:
+                                key#string: currency
+                                object#iterator: card-it
+                          - key: system
+                            value#get:
+                                key#string: system
+                                object#iterator: card-it
+                          - key: number
+                            value#get:
+                                key#string: number
+                                object#iterator: card-it
+                          - key: updated_at
+                            value#get:
+                                key#string: updated_at
+                                object#iterator: card-it
+                            enabled#not:
+                                value#equal:
+                                  - value#xget:
+                                        path: /iterators/card-it/updated_at
+                                        default-value: ''
+                                  - value: ''
+                          - key: available
+                            value#and:
+                              - value#get:
+                                    key: valid
+                                    object#iterator: card-it
+                              - value#or:
+                                  - value#not:
+                                        value#source-enabled: card-antifraud-v1-payment-availability
+                                  - value#get:
+                                        key: all_payments_available
+                                        object#source-response-body: card-antifraud-v1-payment-availability
+                                  - value#contains:
+                                        key#get:
+                                            key: card_id
+                                            object#iterator: card-it
+                                        object#map:
+                                            iterator: ca-card-it
+                                            input#get:
+                                                key: available_cards
+                                                object#source-response-body: card-antifraud-v1-payment-availability
+                                            element#get:
+                                                key: card_id
+                                                object#iterator: ca-card-it
+                          - key: availability
+                            value#object:
+                              - key: available
+                                value#and:
+                                  - value#get:
+                                        key: valid
+                                        object#iterator: card-it
+                                  - value#or:
+                                      - value#not:
+                                            value#source-enabled: card-antifraud-v1-payment-availability
+                                      - value#get:
+                                            key: all_payments_available
+                                            object#source-response-body: card-antifraud-v1-payment-availability
+                                      - value#contains:
+                                            key#get:
+                                                key: card_id
+                                                object#iterator: card-it
+                                            object#map:
+                                                iterator: ca-card-it
+                                                input#get:
+                                                    key: available_cards
+                                                    object#source-response-body: card-antifraud-v1-payment-availability
+                                                element#get:
+                                                    key: card_id
+                                                    object#iterator: ca-card-it
+                              - key: disabled_reason
+                                value#if:
+                                    else: ''
+                                    then#xget:
+                                        path: /sources/card-antifraud-v1-payment-availability/response/body/disabled_reason_localized
+                                        default-value: ''
+                                    condition#source-enabled: card-antifraud-v1-payment-availability
+                    enabled#source-enabled: cardstorage-payment-methods
+                  - value#get:
+                        key#string: available_cards
+                        object#source-response-body: card-filter-filteredcards
+                    enabled#and:
+                      - value#source-enabled: card-filter-filteredcards
+                      - value#xget: /aliases/cards-enabled
+                  - value#array:
+                      - value#object:
+                          - key: type
+                            value#string: applepay
+                        enabled#contains:
+                            key#string: applepay
+                            object#get:
+                                key#string: payment_types
+                                object#xget: /aliases/available-payment-types-response-body
+                      - value#object:
+                          - key: type
+                            value#string: googlepay
+                        enabled#contains:
+                            key#string: googlepay
+                            object#get:
+                                key#string: payment_types
+                                object#xget: /aliases/available-payment-types-response-body
+                      - value#object:
+                          - key: type
+                            value#string: cash
+                        enabled#contains:
+                            key#string: cash
+                            object#get:
+                                key#string: payment_types
+                                object#xget: /aliases/available-payment-types-response-body
+                      - enabled#contains:
+                            key#string: badge
+                            object#get:
+                                key#string: payment_types
+                                object#xget: /aliases/available-payment-types-response-body
+                        value#source-response-body: badge-availability
+                  - value#get:
+                        key#string: payment_methods
+                        object#source-response-body: corp-payment-methods
+                    enabled#source-enabled: corp-payment-methods
+                  - value#map:
+                        iterator: pw-it
+                        input#get:
+                            key#string: available_accounts
+                            object#source-response-body: personal-wallet-available-accounts
+                        element#object:
+                          - key: type
+                            value#string: personal_wallet
+                          - key: name
+                            value#get:
+                                key#string: name
+                                object#iterator: pw-it
+                          - key: id
+                            value#get:
+                                key#string: id
+                                object#iterator: pw-it
+                          - key: availability
+                            value#object:
+                              - key: available
+                                value#get:
+                                    key#string: payment_available
+                                    object#iterator: pw-it
+                              - key: disabled_reason
+                                value#xget:
+                                    path: /iterators/pw-it/availability/disabled_reason
+                                    default-value: ''
+                          - key: money_left
+                            value#get:
+                                key#string: money_left_as_decimal
+                                object#iterator: pw-it
+                          - key: description
+                            value#get:
+                                key#string: money_left_as_str
+                                object#iterator: pw-it
+                          - key: currency_rules
+                            value#get:
+                                key#string: currency_rules
+                                object#iterator: pw-it
+                          - key: is_complement
+                            value#get:
+                                key#string: is_complement
+                                object#iterator: pw-it
+                            enabled#contains:
+                                key#string: is_complement
+                                object#iterator: pw-it
+                          - key: complement_attributes
+                            value#get:
+                                key#string: complement_attributes
+                                object#iterator: pw-it
+                            enabled#contains:
+                                key#string: complement_attributes
+                                object#iterator: pw-it
+                    enabled#source-enabled: personal-wallet-available-accounts
+                  - value#get:
+                        key#string: wallets
+                        object#source-response-body: card-filter-filteredcards
+                    enabled#and:
+                      - value#xget: /aliases/personal-wallet-enabled
+                      - value#xget: /aliases/personal-wallet-from-card-filter
+              - key: last_used_payment_method
+                enabled#or:
+                  - value#and:
+                      - value#source-enabled: user-api-phone-info
+                      - value#contains:
+                            key#string: last_payment_method
+                            object#source-response-body: user-api-phone-info
+                      - value#or:
+                          - value#xget: /aliases/is-card-storage-avaiable
+                          - value#not:
+                                value#xget: /aliases/has-card-user-api-payment-method
+                  - value#and:
+                      - value#xget: /aliases/is-user-state-last-payment-methods-available
+                      - value#or:
+                          - value#xget: /aliases/is-card-storage-avaiable
+                          - value#not:
+                                value#xget: /aliases/has-card-user-state-last-payment-methods
+                value#object:
+                  - key: type
+                    value#if:
+                        else#get:
+                            key#string: type
+                            object#get:
+                                key#string: last_payment_method
+                                object#source-response-body: user-api-phone-info
+                        then#xget: /sources/user-state-last-payment-methods/response/body/flows/0/payment_method/type
+                        condition#xget: /aliases/is-user-state-last-payment-methods-available
+                  - key: id
+                    value#if:
+                        then#get:
+                            key#string: card_id
+                            object#source-response-body: cardstorage-lpm-check
+                        else#xget: /aliases/last-payment-method-id
+                        condition#source-enabled: cardstorage-lpm-check
+                    enabled#or:
+                      - value#source-enabled: cardstorage-lpm-check
+                      - value#if:
+                            else#xget: /aliases/has-user-api-last-payment-methods-id
+                            then#xget: /aliases/has-user-state-last-payment-methods-id
+                            condition#xget: /aliases/is-user-state-last-payment-methods-available
+              - key: service_token
+                value#xget: /experiments/superapp_service_token/value/token
+                enabled#and:
+                  - value#experiment-effective: superapp_service_token
+                  - value#contains:
+                        key: token
+                        object#xget:
+                            path: /experiments/superapp_service_token/value
+                            default-value: {}
+            content-type: application/json
+        experiments:
+            kwargs:
+              - key: service
+                type: string
+                whitelisted: true
+                value#request-query: service
+              - key: personal_phone_id
+                type: string
+                whitelisted: true
+                value#xget:
+                    path: /request/passenger-authorizer/user-personal/personal_phone_id
+                    default-value#string: ''
+              - key: source
+                type: string
+                whitelisted: true
+                value#xget: /request/query/source
+                enabled#not:
+                    value#equal:
+                      - value#xget:
+                            path: /request/query/source
+                            default-value: ''
+                      - value: ''
+            consumer: api_proxy_4_0_payments_v1_list_payment_methods
+        default-response: resp-ok
+---
+id: 3-0-startup
+path: /3.0/startup
+enabled: true
+summary: Замена протокольной ручки /startup
+dev_team: client_product_backend_4
+duty_group_id: client_product_backend_4-duty-id
+handlers:
+    get:
+        enabled: true
+        allow-unauthorized: true
+        default-response: always_true_response
+        responses:
+          - id: always_true_response
+            content-type: application/json
+            body:
+                ok: true

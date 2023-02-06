@@ -1,0 +1,29 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok: base.html
+  - wait:
+    - has: /html/body/h1
+
+  - set_window_ok: first
+  - _inner_test: [True, Single window is the first.]
+
+  - set_window_ok: last
+  - _inner_test: [True, Single window is the last.]
+
+  - set_window_ok: wrong
+  - _inner_test: [False, 'Wrong window id']
+
+  - exec_js: "window.open('/window.html', 'new window')"
+  - set_window_ok: last
+  - eq: [/html/body/h1, Windows H1]
+  - _inner_test: [True, Switched to thecreated window.]
+  - set_window_ok: first
+  - eq: [/html/body/h1, Some H1]
+  - _inner_test: [True, Switched back to the main window.]

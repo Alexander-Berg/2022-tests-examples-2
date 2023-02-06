@@ -1,0 +1,74 @@
+package yandex.maps.proto.common2.geometry;
+
+message Point
+{
+    required double lon = 1;
+    required double lat = 2;
+}
+
+// Each coordinate encoded into a sint32 number. First coordinate
+// transformed with \x -> |_ x * 10^6 + 0.5 _|, then the same transformation
+// applies to the consecutive deltas b/w the coordinates.
+message CoordSequence
+{
+    optional sint32 first = 1;
+    repeated sint32 deltas = 2 [packed = true];
+}
+
+message Polyline
+{
+    required CoordSequence lons = 1;
+    required CoordSequence lats = 2;
+}
+
+message PolylinePosition
+{
+    required uint32 segment_index = 1;
+    required double segment_position = 2;
+}
+
+message Subpolyline
+{
+    required PolylinePosition begin = 1;
+    required PolylinePosition end = 2;
+}
+
+message LinearRing
+{
+    // The first and the last points must be equal
+    required CoordSequence lons = 1;
+    required CoordSequence lats = 2;
+}
+
+
+message Polygon
+{
+    required LinearRing outer_ring = 1;
+    repeated LinearRing inner_rings = 2;
+}
+
+message Geometry
+{
+    // choice
+    optional Point point = 1;
+    optional Polyline polyline = 2;
+    optional Polygon polygon = 3;
+}
+
+message BoundingBox
+{
+    required Point lower_corner = 1;
+    required Point upper_corner = 2;
+}
+
+message Direction
+{
+    required double azimuth = 1;
+    required double tilt = 2;
+}
+
+message Span
+{
+    required double horizontalAngle = 1;
+    required double verticalAngle = 2;
+}

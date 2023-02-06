@@ -1,0 +1,178 @@
+default:
+    octonode_call_settings:
+        callee_phone: '+7xxxxxxxxx'
+        caller_phone: 'xxxxxxxxx'
+        caller_gateways: 'ivr_via_noc'
+    script_settings:
+        progress_timeout: 30
+        answer_timeout: 10
+        wait_timeout: 2
+    call_check_settings:
+        check_timeout: 45
+        logs_fetch_delay: 1.0
+    frequency_settings:
+        __default__:
+            __default__: 1
+    check_concurrency: 10
+
+tags: ['notfallback']
+description: Настройки прозвона провайдеров для их проверки
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - octonode_call_settings
+      - script_settings
+      - call_check_settings
+      - frequency_settings
+      - check_concurrency
+    properties:
+        octonode_call_settings:
+            $ref: '#/definitions/OctonodeCallSettings'
+        script_settings:
+            $ref: '#/definitions/ScriptSettings'
+        call_check_settings:
+            $ref: '#/definitions/CallCheckSettings'
+        frequency_settings:
+            $ref: '#/definitions/FrequencySettings'
+        check_concurrency:
+            type: integer
+            minimun: 1
+            description: Настройка паралельности проверок
+        checker_settings:
+            $ref: '#/definitions/CheckerSettings'
+        forwarding_settings:
+            $ref: '#/definitions/ForwardingSettings'
+
+    definitions:
+        OctonodeCallSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - callee_phone
+              - caller_phone
+              - caller_gateways
+            properties:
+                callee_phone:
+                    type: string
+                    description: Номер "абонента", кому будем звонить
+                callee_alias:
+                    type: string
+                    description: Алиас "абонента", используется для случая вызова
+                        can_process_call, куда передаётся алиас абонента
+                caller_phone:
+                    type: string
+                    description: Номер звонящего
+                caller_gateways:
+                    type: string
+                    description: Шлюз, через который робот будет производить звонок
+        ScriptSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - progress_timeout
+              - answer_timeout
+              - wait_timeout
+            properties:
+                progress_timeout:
+                    type: integer
+                    minimun: 1
+                    description: Полное ожидаемое время работы скрипта
+                answer_timeout:
+                    type: integer
+                    minimun: 1
+                    description: Таймаут на принятие звонка
+                wait_timeout:
+                    type: integer
+                    minimun: 1
+                    description: Время небольшой паузы между шагами скрипта
+                send_additional_wait_timeout:
+                    type: integer
+                    minimun: 1
+                    description: Время небольшой паузы после дозвона (отправки доп
+                        номера)
+                send_check_seq_wait_timeout:
+                    type: integer
+                    minimun: 1
+                    description: Время небольшой паузы после отправки проверочной
+                        последовательности (отправка dtmf)
+                check_dtmf_retries_count:
+                    type: integer
+                    minimum: 1
+                    description: Число попыток отправления проверочной dtmf последовательности
+        CallCheckSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - check_timeout
+              - logs_fetch_delay
+            properties:
+                check_timeout:
+                    type: integer
+                    minimun: 1
+                    description: Таймаут на длительность проверки звонка, нет смысла
+                        делать меньше progress_timeout
+                logs_fetch_delay:
+                    type: number
+                    minimun: 0.0
+                    description: Пауза, между запросами логов сессии звонка
+                retries_count:
+                    type: integer
+                    minimun: 1
+                    description: Число повторных попыток проверки переадресации
+                retries_delay:
+                    type: number
+                    minimun: 0.0
+                    description: Пауза между повторными проверками переадресации
+                check_sequence_length:
+                    type: integer
+                    minimun: 5
+                    description: Длина передаваемой проверочной dtmf последовательности
+                        (генерируется для каждого региона своя)
+                max_dtmf_checks_count:
+                    type: integer
+                    minimun: 1
+                    description: Максимальное число попыток проверки dtmf последовательности
+        FrequencySettings:
+            type: object
+            description: Настройки частоты выполнения проверки (ключ - gateway_id)
+            additionalProperties:
+                $ref: '#/definitions/FrequencyObj'
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/FrequencyObj'
+        FrequencyObj:
+            type: object
+            description: Настройки частоты выполнения проверки (ключ - en_name региона
+                из geobase)
+            additionalProperties:
+                type: integer
+            required:
+              - __default__
+            properties:
+                __default__:
+                    type: integer
+                    description: Частота выполнения проверки для региона (0 - проверка
+                        выключена)
+        CheckerSettings:
+            type: object
+            description: Базовые настройки запуска таски
+            additionalProperties: false
+            properties:
+                task_enabled:
+                    type: boolean
+                    description: Выключатель таски
+                results_save_enabled:
+                    type: boolean
+                    description: Выключатель записи результатов базу
+        ForwardingSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                lifetime:
+                    type: integer
+                    minimun: 0
+                    description: Время жизни переадресации, создаваемой во время проверки

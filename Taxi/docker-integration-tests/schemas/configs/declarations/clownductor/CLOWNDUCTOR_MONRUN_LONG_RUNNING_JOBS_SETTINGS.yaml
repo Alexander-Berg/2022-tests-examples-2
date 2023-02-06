@@ -1,0 +1,123 @@
+default:
+    ignored_jobs: []
+    common:
+        age_levels:
+            crit: 150
+            warn: 100
+    jobs: []
+
+tags: ['notfallback']
+maintainers: []
+description: Гибкая настройка мониторинга поиска долго работающих джоб, уровни - максимальное
+    время жизни джобы в минутах
+
+schema:
+    type: object
+    required:
+      - common
+      - ignored_jobs
+      - jobs
+    additionalProperties: false
+    properties:
+        common:
+            description: Общие настройки для всех джоб
+            type: object
+            required:
+              - age_levels
+            additionalProperties: false
+            properties:
+                age_levels:
+                    type: object
+                    required:
+                      - crit
+                      - warn
+                    additionalProperties: false
+                    properties:
+                        crit:
+                            type: integer
+                            minimum: 1
+                        warn:
+                            type: integer
+                            minimum: 1
+
+        ignored_jobs:
+            description: Список имён джоб, которые будут игнорироваться
+            type: array
+            items:
+                type: string
+        jobs:
+            description: Список настроек для конкретных джоб
+            type: array
+            items:
+                $ref: '#/definitions/JobSettings'
+
+    definitions:
+        JobSettings:
+            description: Специфичные настройки мониторинга для каждой джобы (отсутствующие
+                настройки подмерживаются из общих)
+            type: object
+            additionalProperties: false
+            required:
+              - name
+            properties:
+                name:
+                    description: Имя джобы (к примеру CreateNannyService)
+                    type: string
+                age_levels:
+                    description: 'Настройки уровня проверки: ключ - имя уровня, значение
+                        максимальное время жизни джобы в минутах'
+                    type: object
+                    additionalProperties: false
+                    minItems: 1
+                    properties:
+                        crit:
+                            type: integer
+                            minimum: 1
+                        warn:
+                            type: integer
+                            minimum: 1
+                excluded:
+                    type: array
+                    items:
+                        type: integer
+                    description: Список id`шников джоб, которые будут игнорироваться
+
+samples:
+  - common:
+        age_levels:
+            crit: 1
+            warn: 2
+    jobs: []
+    ignored_jobs: []
+  - common:
+        age_levels:
+            crit: 1
+            warn: 1
+    ignored_jobs: []
+    jobs:
+      - name: SomeJob
+        excluded: [1, 2]
+  - common:
+        age_levels:
+            crit: 1
+            warn: 1
+    ignored_jobs: []
+    jobs:
+      - name: SomeJob
+        age_levels:
+            crit: 10
+  - common:
+        age_levels:
+            crit: 1
+            warn: 1
+    ignored_jobs: ['SomeJob']
+    jobs: []
+  - common:
+        age_levels:
+            crit: 1
+            warn: 1
+    ignored_jobs: ['AnotherJob']
+    jobs:
+      - name: SomeJob
+        age_levels:
+            crit: 10

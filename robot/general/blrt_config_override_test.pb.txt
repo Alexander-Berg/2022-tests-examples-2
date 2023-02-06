@@ -1,0 +1,251 @@
+BlrtWorkerConfig {
+    PerlProcessPoolConfig {
+        PoolSize: 2
+    }
+
+    LookupAvatarConfig {
+        AvatarDynTablePath: "//home/blrt/external_data/avatars/avatars_cache"
+    }
+
+    LookupMainMirrorConfig {
+        Disable: false
+        Mock: true
+    }
+
+    FetchWatchLogOfferIdConfig {
+        WatchLogOfferIdTablePath: "//home/blrt/external_data/watchlog_offer_id/UrlToOfferExport"
+    }
+
+    BigRTConfig {
+        ConsumingSystemBasicConfig {
+            MaxShardsAutoResolveRatio: 1
+            PublicDataConfig {
+                UploadPeriodMs: 5000
+            }
+        }
+    }
+
+    TaskAndOffersSupplierBasicConfig {
+        ShardsCount: 2
+        MaxOutChunkSize: 100
+    }
+
+    TaskAndOffersQueueSupplierConfig {
+        MaxOutChunkSize: 100
+    }
+
+    DataCampOfferQueueSupplierConfig {
+        MaxOutChunkSize: 100
+    }
+
+    AntiDdosConfig {
+        Window: 60
+        DdoserTreshold: 1000000
+        LocalDeltaMaxAge: 30
+        GlobalDataUpdateInterval: 30
+        GlobalDataMergeInterval: 30
+        GlobalDataWorkerCooldown: 30
+        ReloadDdosersPeriod: 30
+    }
+
+    BuildTaskAndOfferConfig {
+        EnableMockRedirect: true
+    }
+
+    BlrtDataSinkConfig {
+        EnableWriteToBannersState: false
+        EnableWriteToBannersQueue: true
+        EnableWriteToDebugLog: true
+    }
+
+    BlrtCaesarGraphConfig {
+        EnableProfileMutation: true
+    }
+
+    LookupDomainIdConfig {
+        RequestUrl: "http://yabs-id-generator-test.in.yandex-team.ru/domain"
+        EnableRequestMockup: true
+    }
+
+    TvmGlobalConfig {
+        DstServices {
+            Alias: "yabs-id-generator"
+            Id: 2018542
+        }
+    }
+
+    CollectDataConfig {
+        IgnoreDebugLogFieldRequirement: true
+    }
+
+    ProcessingThreads: 1
+    UseQueueSupplierConfig: true
+}
+
+OfferWorkerConfig {
+    BigRTConfig {
+        ConsumingSystemBasicConfig {
+            MaxShardsAutoResolveRatio: 1
+            PublicDataConfig {
+                UploadPeriodMs: 5000
+            }
+        }
+    }
+    DataCampOfferQueueSupplierConfig {
+        MaxOutChunkSize: 100
+    }
+    ProcessingThreads: 1
+}
+
+BlrtResharderConfig {
+    TaskAndOfferResharderConfig {
+        SubResharderConfig {
+            BigRTConfig {
+                ConsumingSystemBasicConfig {
+                    PublicDataConfig {
+                        UploadPeriodMs: 5000
+                    }
+                }
+            }
+        }
+        TaskAndOffersSupplierBasicConfig {
+            ShardsCount: 2
+            MaxOutChunkSize: 100
+        }
+    }
+    DataCampOfferResharderConfig {
+        SubResharderConfig {
+            BigRTConfig {
+                ConsumingSystemBasicConfig {
+                    PublicDataConfig {
+                        UploadPeriodMs: 5000
+                    }
+                }
+            }
+        }
+        YtDirectorySupplierConfig {
+            Path: "//home/blrt/external_data/datacamp_offers"
+        }
+    }
+}
+
+BlrtTaskWorkerConfig {
+
+    BigRTConfig {
+        ConsumingSystemBasicConfig {
+            PublicDataConfig {
+                UploadPeriodMs: 5000
+            }
+            MasterBalancing {
+                RegisterPeriodMs: 3000
+                AttemptToBecomeActualMasterPeriodMs: 3000
+            }
+        }
+    }
+
+    DataSourceFetcherConfig {
+        CaesarOrderProfileTableConfig {
+            TablePath: "//home/blrt/external_data/caesar/Order"
+        }
+        CaesarAdGroupProfileTableConfig {
+            TablePath: "//home/blrt/external_data/caesar/AdGroups"
+        }
+        CaesarBannerProfileTableConfig {
+            TablePath: "//home/blrt/external_data/caesar/Banner"
+        }
+    }
+
+    OrderQueueSupplierConfig {
+        QueuePath: "//home/blrt/external_data/caesar/BannerLandTaskOrderLog"
+    }
+
+    BannerQueueSupplierConfig {
+        QueuePath: "//home/blrt/external_data/caesar/BannerLandTaskBannerLog"
+    }
+
+    ServiceLogOrderSupplierConfig {
+        ShardsCount: 1
+        ProcessPeriodSeconds: 10
+        MaxEpochsCount: 1
+    }
+
+    ServiceLogBannerSupplierConfig {
+        ShardsCount: 1
+        ProcessPeriodSeconds: 10
+        MaxEpochsCount: 1
+    }
+
+    BlrtTaskShardProcessorConfig {
+        MaxOrdersBatchSize: 500
+        MaxBannersBatchSize: 2500
+    }
+
+    BlrtTaskEventResharderConfig {
+        MaxOrdersPerMessage: 300
+        MaxBannersPerMessage: 1000
+    }
+
+}
+
+BlrtSelectionRankWorkerConfig {
+    BigRTConfig {
+        ConsumingSystemBasicConfig {
+            MaxShardsAutoResolveRatio: 1
+            PublicDataConfig {
+                UploadPeriodMs: 5000
+            }
+        }
+    }
+    SRBannerQueueSupplierConfig {
+        MaxOutChunkSize: 100
+    }
+
+    BlrtSelectionRankDataSinkConfig {
+        EnableWriteToBannersState: true
+        EnableWriteToLimitQueue: true
+    }
+
+    LimitConfig {
+        OrderLimit: 10
+        MinimumBannersToKeep: 1
+    }
+    SelectionRankSubshardsCount: 2
+    ProcessingThreads: 1
+}
+
+BlrtPreviewWorkerConfig {
+    SupplierConfig {
+        YtSupplier {
+            QueuePath: "//home/blrt/input_queue"
+            QueueConsumer: "worker"
+        }
+    }
+
+    WriteGeneratedBannersToYt: true
+    EnableWriteToDebugLog: true
+
+    LogBrokerDataSinkConfig {
+        Disable: true
+    }
+}
+
+SetupTablesConfig {
+    SampleAvatarProto {
+        TabletCount: 2
+    }
+    SampleWatchLogOfferId {
+        BasicTableConfig {
+            PrimaryMedium: "default"
+        }
+        TabletCount: 2
+    }
+    PocketStates {
+        BasicTableConfig {
+            PrimaryMedium: "default"
+        }
+    }
+}
+
+DumpCountersAtExit: true
+
+FixedTime: 1609448400  # 2021-01-01 00:00:00

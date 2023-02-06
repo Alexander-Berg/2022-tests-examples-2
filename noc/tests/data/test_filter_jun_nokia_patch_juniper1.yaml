@@ -1,0 +1,174 @@
+vendor: nokia
+
+output: |
+  delete chassis aggregated-devices ethernet device-count 20
+  set chassis aggregated-devices ethernet device-count 100
+  delete firewall family inet6 filter MEv6 term NTP from source-prefix-list LOOPBACK
+  set firewall family inet6 filter MEv6 term NTP from source-prefix-list LOOPBACKv6
+  set interfaces ae1 aggregated-ether-options link-speed 100g
+  set interfaces ae2 aggregated-ether-options link-speed 100g
+  set interfaces ae10 unit 0 family inet6
+  set interfaces ae10 aggregated-ether-options link-speed 40g
+  set interfaces ae11 unit 0 family inet6
+  set interfaces ae11 aggregated-ether-options link-speed 40g
+  delete system syslog host 77.88.1.117
+  delete system syslog file messages match "!(.*license.*|.*color: Minor class: 50 slot: 126.*|.*/usr/sbin/sshd.*|.*kernel time sync enabled.*|.*hw.chassis.startup_time update to.*|.*expr_nh_unilist_requires_inplace_update.*|.*summit_pic_update_number_of_ports.*)"
+  set system syslog file messages match "!(.*license.*|.*color: Minor class: 50 slot: 126.*|.*/usr/sbin/sshd.*|.*kernel time sync enabled.*|.*hw.chassis.startup_time update to.*|.*expr_nh_unilist_requires_inplace_update.*|.*summit_pic_update_number_of_ports.*|.*RPD_RV_.*)"
+
+diff_filtered: |2
+    system
+      syslog
+        file messages
+  -       match "!(.*license.*|.*color: Minor class: 50 slot: 126.*|.*/usr/sbin/sshd.*|.*kernel time sync enabled.*|.*hw.chassis.startup_time update to.*|.*expr_nh_unilist_requires_inplace_update.*|.*summit_pic_update_number_of_ports.*)"
+  +       match "!(.*license.*|.*color: Minor class: 50 slot: 126.*|.*/usr/sbin/sshd.*|.*kernel time sync enabled.*|.*hw.chassis.startup_time update to.*|.*expr_nh_unilist_requires_inplace_update.*|.*summit_pic_update_number_of_ports.*|.*RPD_RV_.*)"
+  -     host 77.88.1.117
+  -       any notice
+  -       authorization any
+  -       change-log any
+  -       facility-override local7
+  -       routing-instance mgmt_junos
+  -       source-address 172.24.88.84
+    interfaces
+      ae1
+        aggregated-ether-options
+  +       link-speed 100g
+      ae2
+        aggregated-ether-options
+  +       link-speed 100g
+      ae10
+        unit 0
+  +       family inet6
+        aggregated-ether-options
+  +       link-speed 40g
+      ae11
+        unit 0
+  +       family inet6
+        aggregated-ether-options
+  +       link-speed 40g
+    firewall
+      family inet6
+        filter MEv6
+          term NTP
+            from
+              source-prefix-list
+  -             LOOPBACK
+  +             LOOPBACKv6
+    chassis
+      aggregated-devices
+        ethernet
+  -       device-count 20
+  +       device-count 100
+
+input: |
+  delete chassis aggregated-devices ethernet device-count 20
+  set chassis aggregated-devices ethernet device-count 100
+  delete firewall family inet6 filter MEv6 term NTP from source-prefix-list LOOPBACK
+  set firewall family inet6 filter MEv6 term NTP from source-prefix-list LOOPBACKv6
+  set interfaces ae1 aggregated-ether-options link-speed 100g
+  set interfaces ae2 aggregated-ether-options link-speed 100g
+  set interfaces ae10 unit 0 family inet6
+  set interfaces ae10 aggregated-ether-options link-speed 40g
+  set interfaces ae11 unit 0 family inet6
+  set interfaces ae11 aggregated-ether-options link-speed 40g
+  delete policy-options prefix-list PFXS-YANDEX 178.154.192.0/19
+  set policy-options prefix-list PFXS-YANDEX 5.255.197.0/24
+  set policy-options prefix-list PFXS-YANDEX 37.9.95.0/24
+  set policy-options prefix-list PFXS-YANDEX 84.252.160.0/19
+  set policy-options prefix-list PFXS-YANDEX 213.180.199.0/24
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 5.45.211.113/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 5.255.230.49/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 37.9.68.103/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 37.9.68.107/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 37.9.68.109/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 77.88.50.161/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 87.250.232.35/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 87.250.232.36/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 87.250.243.133/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 93.158.158.81/32
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTS 93.158.169.6/32
+  delete policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c08:b224:0:4972:b64d:0/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:0:c012:216:3eff:fe5d:a573/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:0:c012:216:3eff:fe5e:5cc7/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c01:d28:0:675:74d2:dede/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c01:d28:0:675:a2c1:e423/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c01:d28:0:675:acb8:29eb/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c02:756:0:675:fced:4a8b/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c02:f86:0:675:5ec9:7486/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c02:f86:0:675:ce2a:3d39/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c02:f86:0:675:dfe8:19f/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c03:331:0:675:4384:a488/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c03:36d:0:675:823a:2526/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c04:10b:0:675:ba86:50e2/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c04:136:0:675:65c8:4078/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c04:1da:0:675:33ee:3a59/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c0e:9c9:0:675:313d:ef97/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c0e:9c9:0:675:b6bf:cd10/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:c0e:9c9:0:675:cbe0:4f84/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:31::81/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:88:216:3eff:fe1b:a914/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:88:216:3eff:fe36:6ad9/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:88:216:3eff:fec9:1640/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:7012:216:3eff:fef2:22dd/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:8009::19/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:8009::20/128
+  set policy-options prefix-list FW-PFXS-SSH-CLIENTSv6-CLOUD 2a02:6b8:b010:c04d:216:3eff:fe84:31d5/128
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 5.255.205.0/25
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 5.255.206.160/27
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 77.75.156.44/30
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 77.75.156.56/30
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 95.108.146.64/26
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 95.108.224.0/24
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 141.8.178.0/25
+  delete policy-options prefix-list PFXS-OSPF-BBNETS 213.180.194.0/24
+  set policy-options prefix-list PFXS-OSPF-BBNETS 37.9.110.0/28
+  set policy-options prefix-list LOOPBACKv6 apply-path "interfaces lo0 unit 0 family inet6 address <*>"
+  set policy-options prefix-list snmp-stdacl 141.8.128.176/28
+  set policy-options prefix-list snmp-stdacl 141.8.153.16/28
+  set policy-options prefix-list snmp-stdacl 5.255.219.112/28
+  set policy-options prefix-list snmp-stdacl 5.255.230.48/28
+  set policy-options prefix-list snmp-stdacl 5.45.211.112/28
+  set policy-options prefix-list snmp-stdacl 5.45.222.203/32
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:0:c012:216:3eff:fe5e:5cc7/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:b010:7012:216:3eff:fef2:22dd/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:b010:88:216:3eff:fe1b:a914/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c01:d28:0:675:74d2:dede/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c01:d28:0:675:a2c1:e423/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c01:d28:0:675:acb8:29eb/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c02:756:0:675:fced:4a8b/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c02:f86:0:675:5ec9:7486/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c02:f86:0:675:ce2a:3d39/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c02:f86:0:675:dfe8:19f/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c03:331:0:675:4384:a488/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c03:36d:0:675:823a:2526/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c04:10b:0:675:ba86:50e2/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c04:136:0:675:65c8:4078/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c04:1da:0:675:33ee:3a59/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c0e:9c9:0:675:313d:ef97/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c0e:9c9:0:675:b6bf:cd10/128
+  set policy-options prefix-list snmp-stdacl 2a02:6b8:c0e:9c9:0:675:cbe0:4f84/128
+  set protocols bgp group CLOUD_CA_LU bmp monitor disable
+  delete protocols bgp group CLOUD_CA_LU neighbor 169.254.0.2 description "sas2-92ca0.netinfra.cloud@ae0.0"
+  set protocols bgp group CLOUD_CA_LU neighbor 169.254.0.2 description "sas-0ca0.cloud@ae0.0"
+  set protocols bgp group CLOUD_CB_LU bmp monitor disable
+  delete protocols bgp group CLOUD_CB_LU neighbor 169.254.210.2 description "sas2-92cb0.netinfra.cloud@Eth-Trunk0"
+  set protocols bgp group CLOUD_CB_LU neighbor 169.254.210.2 description "sas-0cb0.cloud@eth-trunk0.0"
+  set protocols bgp group LURR bmp monitor disable
+  delete protocols bgp group LURR family inet labeled-unicast resolve-vpn
+  delete protocols lldp interface et-0/0/48
+  delete protocols lldp interface et-0/0/49
+  delete protocols lldp interface et-0/0/52
+  delete protocols lldp interface et-0/0/55
+  set protocols lldp neighbour-port-info-display port-id
+  set protocols lldp port-description-type interface-alias
+  set protocols lldp port-id-subtype interface-name
+  set protocols lldp interface all
+  delete system syslog host 93.158.158.93
+  delete system syslog host 77.88.1.117
+  set system syslog host 213.180.205.184 any notice
+  set system syslog host 213.180.205.184 authorization any
+  set system syslog host 213.180.205.184 change-log any
+  set system syslog host 213.180.205.184 facility-override local7
+  set system syslog host 213.180.205.184 routing-instance mgmt_junos
+  set system syslog host 213.180.205.184 source-address 172.24.88.84
+  delete system syslog file messages match "!(.*license.*|.*color: Minor class: 50 slot: 126.*|.*/usr/sbin/sshd.*|.*kernel time sync enabled.*|.*hw.chassis.startup_time update to.*|.*expr_nh_unilist_requires_inplace_update.*|.*summit_pic_update_number_of_ports.*)"
+  set system syslog file messages match "!(.*license.*|.*color: Minor class: 50 slot: 126.*|.*/usr/sbin/sshd.*|.*kernel time sync enabled.*|.*hw.chassis.startup_time update to.*|.*expr_nh_unilist_requires_inplace_update.*|.*summit_pic_update_number_of_ports.*|.*RPD_RV_.*)"

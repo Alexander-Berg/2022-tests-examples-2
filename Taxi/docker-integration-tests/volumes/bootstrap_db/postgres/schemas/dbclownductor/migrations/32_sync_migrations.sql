@@ -1,0 +1,1 @@
+drop index if exists clownductor.clownductor_project_id_service_name_type_idx;

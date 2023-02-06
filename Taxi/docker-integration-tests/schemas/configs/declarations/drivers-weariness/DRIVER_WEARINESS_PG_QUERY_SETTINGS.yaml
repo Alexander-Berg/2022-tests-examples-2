@@ -1,0 +1,93 @@
+default:
+    __default__:
+        select:
+            execute_timeout_ms: 100
+            statement_timeout_ms: 75
+        insert:
+            execute_timeout_ms: 100
+            statement_timeout_ms: 75
+        delete:
+            execute_timeout_ms: 100
+            statement_timeout_ms: 75
+        select_bulk:
+            limit: 1000
+            execute_timeout_ms: 1000
+            statement_timeout_ms: 1000
+        insert_bulk:
+            limit: 1000
+            execute_timeout_ms: 1000
+            statement_timeout_ms: 1000
+        delete_bulk:
+            limit: 1000
+            execute_timeout_ms: 1000
+            statement_timeout_ms: 1000
+
+description: Настройки LIMIT и timeouts в SELECT, INSERT(UPDATE), DELETE запросах
+    для таблиц, например, 'drivers_status_ranges.status_ranges'
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/QuerySettings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/QuerySettings'
+
+    definitions:
+        SingleQuerySettings:
+            type: object
+            required:
+              - execute_timeout_ms
+              - statement_timeout_ms
+            properties:
+                execute_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            additionalProperties: false
+
+        BulkQuerySettings:
+            type: object
+            required:
+              - limit
+              - execute_timeout_ms
+              - statement_timeout_ms
+            properties:
+                limit:
+                    type: integer
+                    minimum: 1
+                execute_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            additionalProperties: false
+
+        QuerySettings:
+            type: object
+            required:
+              - select
+              - insert
+              - delete
+              - select_bulk
+              - insert_bulk
+              - delete_bulk
+            properties:
+                select:
+                    $ref: '#/definitions/SingleQuerySettings'
+                insert:
+                    $ref: '#/definitions/SingleQuerySettings'
+                delete:
+                    $ref: '#/definitions/SingleQuerySettings'
+                select_bulk:
+                    $ref: '#/definitions/BulkQuerySettings'
+                insert_bulk:
+                    $ref: '#/definitions/BulkQuerySettings'
+                delete_bulk:
+                    $ref: '#/definitions/BulkQuerySettings'
+            additionalProperties: false

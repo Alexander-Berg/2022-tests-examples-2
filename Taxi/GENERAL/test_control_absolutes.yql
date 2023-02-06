@@ -1,0 +1,199 @@
+use hahn;
+
+$parse_dt = DateTime::Parse("%Y-%m-%d");
+$parse_dttm = DateTime::Parse("%Y-%m-%d %H:%M:%S");
+$format_short = DateTime::Format("%Y-%m-%d");
+$format_full = DateTime::Format("%Y-%m-%d %H:%M:%S");
+$format_call_order_log = DateTime::Format("%Y-%m");
+
+$get_day = ($date) -> {{
+    RETURN $format_short(DateTime::StartOfDay($parse_dttm($date)));
+}};
+
+$utc_converter = ($date) -> {{
+    RETURN $format_full(Datetime::MakeDatetime(DateTime::ParseIso8601($date)) - DateTime::IntervalFromHours(3));
+}};
+
+$msk_converter = ($date) -> {{
+    RETURN $format_full(Datetime::MakeDatetime(DateTime::ParseIso8601($date)) + DateTime::IntervalFromHours(3));
+}};
+
+$msk_dttm_to_utc_dt = ($date) -> {{
+    RETURN $format_short($parse_dttm($utc_converter($date)));
+}};
+
+$get_call_order_log_dt = ($date) -> {{
+    RETURN $format_call_order_log($parse_dttm($utc_converter($date)));
+}};
+
+$get_start_week = ($dt) -> {{
+    RETURN $format_short(DateTime::StartOfWeek($parse_dt($dt)));
+}};
+
+$get_start_month = ($dt) -> {{
+    RETURN $format_short(DateTime::StartOfMonth($parse_dt($dt)));
+}};
+
+
+$split_test_control_udf = @@
+import datetime
+import hashlib
+import sys
+
+def get_exp3_group(phone_pd_id, salt):
+    sha1 = hashlib.sha1()
+    sha1.update(salt)
+    sha1.update(phone_pd_id)
+    res = sha1.hexdigest()[:16]
+    mod = int(res, 16) % 100
+    if mod >= 0 and mod < 10:
+        return 'test'
+    if mod >= 40 and mod < 50:
+        return 'control'
+    return 'other'
+@@;
+
+$salt = 'cc_stats_phone_routing_robot_8';
+$get_exp3_group = Python2::get_exp3_group(Callable<(String?, String?)->String>, $split_test_control_udf);
+
+-- Даты
+$msk_start_dttm = "{start_dttm}";
+$msk_end_dttm = "{end_dttm}";
+
+$year_start = SUBSTRING($msk_start_dttm, 0, 4) || '-01-01';
+$year_end = SUBSTRING($msk_end_dttm, 0, 4) || '-01-01';
+
+
+-- Все заматчившиеся пользователи есть в call_order_log, потому что они
+-- либо говорят с оператором, либо попали на soft/medium ivr, либо говорят с роботом
+$new_users =
+    select
+        user_phone_pd_id,
+        some($get_exp3_group(user_phone_pd_id, $salt)) as segment_name
+    from range(`{yt_fct_call_order_log}`,
+        $get_call_order_log_dt($msk_start_dttm),
+        $get_call_order_log_dt($msk_end_dttm)) as calls
+    where (ivr_worker_name is null or ivr_worker_name != 'order_status_worker_2_0')
+        and not outgoing_call_flg
+        and user_phone_pd_id is not null
+        and $get_exp3_group(user_phone_pd_id, $salt) != 'other'
+    group by
+        user_phone_pd_id;
+
+commit;
+
+
+-- Собираем уникальных пользователей включая тех, кто матчился раньше
+$users =
+    select user_phone_pd_id, some(t1.group_name) as group_name
+    from (
+        select user_phone_pd_id, group_name
+        from `{robot_test_control_users}`
+
+        union all
+
+        select user_phone_pd_id, segment_name as group_name
+        from $new_users
+    ) as t1
+    group by user_phone_pd_id;
+
+INSERT INTO `{robot_test_control_users}`
+WITH TRUNCATE
+SELECT *
+FROM $users;
+
+commit;
+
+-- Считаем звонки
+$calls =
+    select
+        dt,
+        group_name,
+        count(distinct calls.call_id) as calls
+    from range(`{yt_fct_call_order_log}`,
+        $get_call_order_log_dt($msk_start_dttm),
+        $get_call_order_log_dt($msk_end_dttm)) as calls
+    join $users as users
+        using(user_phone_pd_id)
+    where (ivr_worker_name is null or ivr_worker_name != 'order_status_worker_2_0')
+        and not outgoing_call_flg
+    group by
+        users.group_name as group_name,
+        $get_day($msk_converter(calls.utc_call_start_dttm)) as dt;
+
+-- Считаем поездки
+$orders =
+    select
+        dt,
+        group_name,
+        count_if(app_platform_name = 'callcenter') as cc_trips,
+        count(*) as trips
+    from $users as users
+    join range(`{yt_fct_order}`,
+            $get_start_month($msk_dttm_to_utc_dt($msk_start_dttm)),
+            $get_start_month($msk_dttm_to_utc_dt($msk_end_dttm))) as orders
+        on orders.user_phone_pd_id = users.user_phone_pd_id
+    where success_order_flg
+    group by
+        orders.msk_order_created_dt as dt,
+        users.group_name as group_name;
+
+-- Агрегируем метрики по группам
+$metrics =
+    select
+        day_dt,
+        $get_start_week(day_dt) as week_dt,
+        $get_start_month(day_dt) as month_dt,
+        sum(case when calls.group_name = 'test' then calls else 0 end) as test_calls,
+        sum(case when calls.group_name = 'control' then calls else 0 end) as control_calls,
+        sum(case when calls.group_name = 'test' then trips else 0 end) as test_trips,
+        sum(case when calls.group_name = 'control' then trips else 0 end) as control_trips,
+        sum(case when calls.group_name = 'test' then cc_trips else 0 end) as test_cc_trips,
+        sum(case when calls.group_name = 'control' then cc_trips else 0 end) as control_cc_trips
+    from $calls as calls
+    join $orders as orders
+        using(dt, group_name)
+    where calls.group_name != 'other'
+    group by calls.dt as day_dt;
+
+$scales =
+    select 'day' as scale_name
+        union all
+    select 'week' as scale_name
+        union all
+    select 'month' as scale_name;
+
+
+INSERT INTO `{robot_test_control_absolutes}`
+WITH TRUNCATE
+
+    SELECT *
+    FROM `{robot_test_control_absolutes}`
+    WHERE
+      dt < $get_day($msk_start_dttm)
+      OR dt > $get_day($msk_end_dttm)
+
+    UNION ALL
+
+    select
+        dt,
+        scale_name,
+        sum(test_calls) as test_calls,
+        sum(control_calls) as control_calls,
+        sum(test_trips) as test_trips,
+        sum(control_trips) as control_trips,
+        sum(test_cc_trips) as test_cc_trips,
+        sum(control_cc_trips) as control_cc_trips,
+        sum(test_calls) * 100.0 / sum(control_calls) - 100 as calls_diff,
+        sum(test_trips) * 100.0 / sum(control_trips) - 100 as trips_diff,
+        sum(test_cc_trips) * 100.0 / sum(control_cc_trips) - 100 as cc_trips_diff
+    from $metrics as metrics
+    cross join $scales as scales
+    group by
+        case
+            when scale_name = 'day' then metrics.day_dt
+            when scale_name = 'week' then metrics.week_dt
+            when scale_name = 'month' then metrics.month_dt
+            else null
+        end as dt,
+        scales.scale_name as scale_name;

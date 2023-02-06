@@ -1,0 +1,105 @@
+id: test_no_new_fields
+title: Формат ответа eats-core-go-checkout без дополнительных полей
+source:
+    request:
+        method: post
+        headers:
+            user-agent: user_agent
+        query:
+            deliveryDate: 2021-03-24T12:00:00+03:00
+        body:
+            address:
+                identity: 33670951
+                provider: eats
+    expectations:
+        response:
+            status-code: 200
+            body:
+                userAddress:
+                    id: 1234
+                    city: Москва
+                    street: Пятницкая улица
+                    house: 22
+                    building: 2
+                    plot: 1
+                    flat: 23
+                    doorcode: 2332
+                    entrance: 1
+                    floor: 5
+                    comment:
+                    location:
+                        latitude: 55.703763
+                        longitude: 37.458993
+                offers: []
+                merchantIds: []
+                currencyRules:
+                    code: RUB
+                    sign: ₽
+                    template: $VALUE$ SIGN$$CURRENCY$
+                    text: руб
+                announcements: []
+                agreements: []
+                meta:
+                    yandex_plus:
+                        templates:
+                            use_partial_overall_subtitle: Пойдут на оплату стоимости
+                                блюд
+                            use_max_cart_delivery_subtitle: К оплате — 1 $SIGN$$CURRENCY$
+                                с каждого блюда и доставка
+                            use_max_cart_subtitle: К оплате — 1 $SIGN$$CURRENCY$ с
+                                каждого блюда
+                            save_up_subtitle: Копятся с каждого блюда в заказе
+
+mocks:
+  - resource: eats-core-go-checkout
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                user-agent: user_agent
+            query:
+                deliveryDate: 2021-03-24T12:00:00+03:00
+            body:
+                address:
+                    identity: 33670951
+                    provider: eats
+    response:
+        status-code: 200
+        body:
+            userAddress:
+                id: 1234
+                city: Москва
+                street: Пятницкая улица
+                house: 22
+                building: 2
+                plot: 1
+                flat: 23
+                doorcode: 2332
+                entrance: 1
+                floor: 5
+                comment:
+                location:
+                    latitude: 55.703763
+                    longitude: 37.458993
+            offers: []
+            merchantIds: []
+            currencyRules:
+                code: RUB
+                sign: ₽
+                template: $VALUE$ SIGN$$CURRENCY$
+                text: руб
+            announcements: []
+            agreements: []
+            meta:
+                yandex_plus:
+                    templates:
+                        use_partial_overall_subtitle: Пойдут на оплату стоимости блюд
+                        use_max_cart_delivery_subtitle: К оплате — 1 $SIGN$$CURRENCY$
+                            с каждого блюда и доставка
+                        use_max_cart_subtitle: К оплате — 1 $SIGN$$CURRENCY$ с каждого
+                            блюда
+                        save_up_subtitle: Копятся с каждого блюда в заказе
+
+  - resource: eats-customer-calculate-slots
+    expectations:
+        call-count: 0

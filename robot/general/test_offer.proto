@@ -1,0 +1,74 @@
+import "robot/hatter/proto/common.proto";
+
+import "market/idx/datacamp/proto/common/Consumer.proto";
+import "market/idx/datacamp/proto/external/Offer.proto";
+import "market/idx/datacamp/proto/offer/OfferMeta.proto";
+import "market/idx/datacamp/proto/offer/OfferPictures.proto";
+
+package NHatterPb;
+
+message TTestOffer {
+    optional uint64 KeyFirst = 1;
+    optional uint64 KeySecond = 2;
+
+    optional TMeta Meta = 3;
+    optional TNavigationTree NavigationTree = 4;
+    optional TPictures Pictures = 5;
+    optional TContents Contents = 6;
+
+    optional Market.DataCamp.External.OfferPrice Price = 7;
+}
+
+message TUrlKey {
+    optional uint64 Timestamp = 1;
+    optional string Url = 2;
+}
+
+message TMarketKey {
+    optional uint64 Timestamp = 1;
+    // Идентификатор парнера в едином кабинете маркета
+    optional uint32 BusinessId = 2;
+    // Идентификатор выбранного набора услуг яндекса в едином кабинете маркета
+    optional uint32 ShopId = 3;
+    // Собственный b2b идентификатор оффера, полученный от партнера
+    optional string OfferId = 4;
+}
+
+message TMeta {
+    optional uint64 LastAccess = 1;
+    optional uint64 CreateTime = 2;
+    optional uint64 UserTimestamp = 3;
+
+    repeated TUrlKey UrlKeys = 10;
+    repeated TMarketKey MarketKeys = 11;
+}
+
+message TNavigationTree {
+    // Произвольно выбранный текстовый путь в навигационном дереве
+    // Каждый элемент списка содержит имя одного узла, первый элемент является корневым
+    // Разделителей пути в именах нет
+    repeated string Breadcrumbs = 1;
+    // Набор навигационных категорий
+    repeated Market.DataCamp.External.NavigationPath NavigationPaths = 2;
+}
+
+message TPictures {
+    // Урлы картинок на сайте клиента
+    repeated Market.DataCamp.SourcePicture OriginalPictures = 1;
+    // Урлы скачанных картинок в аватарнице без привязки к namespace аватарницы
+    map<string, Market.DataCamp.MarketPicture> ActualPictures = 2;
+    // Урлы скачанных картинок с привязкой к namespace аватарницы
+    map<string, Market.DataCamp.NamespacePictures> MultiActualPictures = 3;
+}
+
+message TContents {
+    // Описание оффера, полученное от партнера
+    optional Market.DataCamp.External.PartnerOfferContent OriginalContent = 1;
+    // Провалидированный и обогащенный маркетом original_content
+    optional Market.DataCamp.External.PartnerOfferContent ActualContent = 2;
+    // Маркетные данные про карточку ску и т.п.
+    optional Market.DataCamp.External.MarketOfferContent MarketContent = 3;
+    // Для Товарной Вертикали: sku_id полученный через smartmatcher и связанные данные
+    optional Market.DataCamp.External.MarketOfferContent GoodsSmContent = 4;
+    optional Market.DataCamp.External.TypeSpecificContent TypeSpecificContent = 5;
+}

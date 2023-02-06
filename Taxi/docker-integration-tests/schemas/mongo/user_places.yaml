@@ -1,0 +1,55 @@
+description: user favorite places
+settings:
+    collection: user_places
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - expireAfterSeconds: 604800
+    key: drafted
+  - key: phone_id
+  - key: updated
+  - key: yandex_uid
+    sparse: true
+wiki_info: |
+    ####dbtaxi.user_places - Избранные адреса пользователей
+
+    Коллекция содержит привязки избранных адресов к телефонам пользователей.
+
+    ```python
+    user_places = {
+        '_id': '3f196d0e-3221-11e6-8f62-631b45161738',  # id объекта, uuid4
+        'created': datetime.datetime(...),              # дата создания объекта
+        'updated': datetime.datetime(...),              # дата обновления объекта
+        'drafted': datetime.datetime(...),              # дата создания черновика, по этому полю построен TTL индекс
+        'version': 123,                                 # версия объекта, используется для разрешения конфликтов при редактировании
+
+        'phone_id': ObjectId(),  # id телефона пользователя
+        'device_id': 'device_id' # id устройства пользователя
+        'device_stats': {        # статистика испоьзования адреса, собранная на устройстве
+            'direction': 0,
+            'source': 123
+        },
+        'name': 'HOME',          # название места
+        'comment': 'комментарий',
+        'porchnumber': 'номер подъезда',
+        'uri': 'yamaps uri',     # uri для геокодирования
+        'locales': {             # словарь локализованных адресов
+            "ru": {
+                    "city": "Moscow",
+                    "description": "Moscow, Russian Federation",
+                    "full_text": "Russian Federation, Moscow, Petrovsky Boulevard, 21",
+                    "point": [
+                        37.619046,
+                        55.767843
+                    ],
+                    "house": "21",
+                    "object_type": "другое",
+                    "exact": true,
+                    "street": "Petrovsky Boulevard",
+                    "country": "Russian Federation",
+                    "short_text": "Petrovsky Boulevard, 21",
+                    "type": "address"
+            }
+        }
+    }
+    ```

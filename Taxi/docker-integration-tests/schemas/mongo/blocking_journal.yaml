@@ -1,0 +1,53 @@
+description: driver's blocking history journal (driver-metrics service)
+settings:
+    collection: blocking_journal
+    connection: driver_metrics
+    database: dbdriver_metrics
+indexes:
+  - key: blocked
+  - key:
+      - name: ref_id
+        type: ascending
+      - name: rule_id
+        type: ascending
+    unique: true
+  - key:
+      - name: udid
+        type: ascending
+      - name: blocked
+        type: ascending
+      - name: until
+        type: descending
+  - key:
+      - name: until
+        type: descending
+  - expireAfterSeconds: 5184000
+    key: until
+  - key: updated
+wiki_info: |
+    ####dbdriver_metrics.blocking_journal записи о блокировках водителя
+
+    Информация о блокировках водителя (текущих и прошлых) сервисом driver-metrics (Активность и связанные вещи)
+    rule_id + event_id являются уникальным ключом, гарантирующим, что за одно
+    событие по одному правилу не может быть 2 и более блокировок.
+    На данный момент считаем, что событие отностится только к одному водителю.
+
+    ```python
+    dbtaxi.blocking_journal = [{
+      "udid": ObjectId,                                   # unique_driver_id
+      "rule_id": "actions_moscow_offer12",                # уникальный идентификатор правила блокировки
+      "blocked": false,                                   # текущее состояние блокировки для этой записи
+      "from": ISODate,                                    # с какого момента заблокирован
+      "updated":ISODate,                                  # время обновления записи для TTL и кэша
+      "until": ISODate,                                   # до какого момента заблокирован
+      "type": "actions",                                  # вид правила блокировки (actions, activity, ...)
+      "rule": "Activity rule: activity_threshold = 10",   # текстовое описание правила блокировки
+      "description": "low_activity",                      # ключ танкера для показа водителю
+      "licenses": ["lic1", "lic2"],                       # лицензии водителя из уникального профиля
+      "order_id": "3900923892034823ff092390920f90",       # если применимо, то заказ вследсвии которого заблокирован
+      "unblocking_reason": "expired",                     # причина разблокировки (прошло время или через админку)
+      "ref_id": "19292838d88d9d933d93",                 # документ(событие) в следствие которого заблокирован
+      "profile_id": "08980fa08f0a08f8f00f",               # идентификатор профиля водителя (когда применимо)
+      "zone": "moscow"                                    # тарифная зона события, повлекшего блокировку
+    }]
+    ```

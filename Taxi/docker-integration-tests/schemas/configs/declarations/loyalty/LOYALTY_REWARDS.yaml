@@ -1,0 +1,70 @@
+default: {}
+description: Описание наград лояльности по зонам и статусам
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Zone'
+    definitions:
+        Reward:
+            description: Награда
+            type: object
+            required:
+              - name
+              - type
+              - title_key
+              - description_key
+              - can_be_blocked
+            additionalProperties: false
+            properties:
+                name:
+                    description: Кодовое название награды
+                    type: string
+                type:
+                    description: Тип описания награды
+                    type: string
+                    enum:
+                      - navigate_loyalty_bank_cards
+                      - navigate_loyalty_info
+                title_key:
+                    description: Название награды (ключ в танкере)
+                    type: string
+                description_key:
+                    description: Описание награды (ключ в танкере)
+                    type: string
+                can_be_blocked:
+                    description: Может ли быть награда заблокирована
+                    type: boolean
+                blocking:
+                    description: Блокировки награды
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        tags:
+                            description: Блокировка по тегам
+                            type: array
+                            items:
+                                type: string
+                        activity:
+                            description: Блокировка по активности
+                            type: number
+                            minimum: 1
+                            maximum: 100
+        Status:
+            description: Статус лояльности
+            type: array
+            items:
+                $ref: '#/definitions/Reward'
+        Zone:
+            description: Тарифная зона
+            type: object
+            properties:
+                bronze:
+                    $ref: '#/definitions/Status'
+                silver:
+                    $ref: '#/definitions/Status'
+                gold:
+                    $ref: '#/definitions/Status'
+                platinum:
+                    $ref: '#/definitions/Status'
+            additionalProperties: false

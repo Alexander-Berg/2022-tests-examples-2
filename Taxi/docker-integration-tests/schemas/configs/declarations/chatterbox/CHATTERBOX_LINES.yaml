@@ -1,0 +1,369 @@
+default:
+    corp:
+        fields: {}
+        name: Корп
+        priority: 2
+        sort_order: 1
+        tags:
+          - Корпоративный_пользователь
+          - Корп_пользователь
+        target: zendesk
+        types:
+          - client
+    driver_first:
+        fields: {}
+        name: Первая водительская линия
+        priority: 5
+        sort_order: 1
+        tags: []
+        target: chatterbox
+        types:
+          - driver
+    first:
+        fields: {}
+        name: Первая линия
+        priority: 4
+        sort_order: 1
+        tags: []
+        target: chatterbox
+        types:
+          - client
+    urgent:
+        fields:
+            ticket_subject:
+              - Забыл вещи в машине
+              - Яндекс.Такси Я забыл в такси свои вещи
+        name: Ургент
+        priority: 1
+        sort_order: 1
+        tags:
+          - клиент_urgent
+          - подозрение_urgent
+        target: zendesk
+        types:
+          - client
+    vip:
+        fields:
+            user_type:
+              - vip-пользователь
+        name: ВИП
+        priority: 3
+        sort_order: 1
+        tags: []
+        target: zendesk
+        types:
+          - client
+description: Описание линий в Chatterbox
+tags:
+  - notfallback
+maintainers:
+  - orangevl
+schema:
+    type: object
+    additionalProperties:
+        type: object
+        properties:
+            name:
+                type: string
+            tags:
+                type: array
+                items:
+                    type: string
+            target:
+                type: string
+                enum:
+                  - chatterbox
+                  - zendesk
+            priority:
+                type: integer
+                minimum: 0
+            fields:
+                type: object
+                additionalProperties:
+                    type: array
+                    items:
+                        type: string
+            sort_order:
+                type: integer
+                enum:
+                  - -1
+                  - 1
+            autoreply:
+                type: boolean
+            autoreply_macro_id:
+                type: integer
+                minimum: 0
+            title_tanker:
+                type: string
+            themes_style:
+                type: string
+                enum:
+                  - list
+                  - tree
+            types:
+                type: array
+                items:
+                    $ref: "#/definitions/ChatterboxLineType"
+            mode:
+                type: string
+                enum:
+                  - offline
+                  - online
+            projects:
+                type: array
+                items:
+                    type: string
+                    enum:
+                      - eats
+                      - taxi
+            conditions:
+                $ref: "#/definitions/LineCondition"
+            permissions:
+                type: array
+                items:
+                    type: string
+            permitted_countries:
+                type: array
+                items:
+                    type: string
+
+        required:
+          - name
+          - tags
+          - target
+          - priority
+          - fields
+          - sort_order
+          - types
+
+        additionalProperties: false
+
+    definitions:
+        ChatterboxLineType:
+            type: string
+            enum:
+              - client
+              - driver
+              - sms
+              - startrack
+              - facebook_support
+              - client_eats
+              - corp_cabinet
+              - opteum
+              - safety_center
+              - google_play
+              - help_yandex
+
+        LineCondition:
+            type: object
+            properties:
+
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/LineCondition"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/LineCondition"
+
+                "#not":
+                    $ref: "#/definitions/LineCondition"
+
+                type:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                tags:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            patternProperties:
+                ^fields\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            minProperties: 1
+            additionalProperties: false
+
+
+samples:
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        title_tanker: some_title
+        types:
+          - client
+        sort_order: 1
+        conditions:
+            fields/some_field:
+                "#in":
+                  - 1
+                  - 2
+                  - 3
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        title_tanker: some_title
+        types:
+          - client
+        sort_order: 1
+        conditions:
+            "#or":
+              - fields/some_field: some_value
+              - fields/other_field:
+                    "#nin":
+                      - disallowed
+                      - values
+              - fields/numeric_field:
+                    "#gte": 0
+                    "#lte": 100
+              - fields/other_numeric_field:
+                    "#gt": 0
+                    "#lt": 100
+              - "#and":
+                  - fields/other_field: other_value
+                  - fields/more_fields:
+                        "#in":
+                          - more
+                          - values
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        title_tanker: some_title
+        types:
+          - client
+        sort_order: 1
+        conditions:
+            fields/some_field:
+                "#exists": false
+
+invalid-samples:
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some: field
+        sort_order: 1
+        title_tanker: some_title
+        types:
+          - client
+
+  - first:
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        sort_order: 1
+        title_tanker: some_title
+        types:
+          - client
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        sort_order: 1
+        conditions:
+            wrong_field: some_value
+        title_tanker: some_title
+        types:
+          - client
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        sort_order: 1
+        conditions:
+            fields/some_field:
+              - array
+              - instead
+              - of
+              - scalar
+        title_tanker: some_title
+        types:
+          - client
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        sort_order: 1
+        conditions:
+            "#bad":
+                fields/some_field: some_value
+        title_tanker: some_title
+        types:
+          - client
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        sort_order: 1
+        conditions: {}
+        title_tanker: some_title
+        types:
+          - client
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        sort_order: 1
+
+  - first:
+        name: DM RF
+        tags: []
+        target: chatterbox
+        priority: 1
+        fields:
+            some:
+              - field
+        title_tanker: some_title
+        types:
+          - client
+        sort_order: 1
+        conditions:
+            fields/some_field:
+                "#exists": 0

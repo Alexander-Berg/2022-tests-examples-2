@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:themes.exports.beans.morda.autotests.yandex.ru"
+            xmlns:ns="urn:themes.exports.beans.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="themes_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.ListDeserializer
+                    &lt;ru.yandex.autotests.morda.beans.exports.themes.ThemesEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="themes_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.annotations.exports.MordaExportDescription"
+                                    name="themes"
+                                    clazz="ru.yandex.autotests.morda.beans.exports.themes.ThemesExport"/>
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.AbstractMordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.beans.exports.themes.ThemesExport,
+                    ru.yandex.autotests.morda.beans.exports.themes.ThemesEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:themes_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.beans.exports.themes.ThemesDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="themes_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.beans.exports.AbstractEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithId</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithDomain</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="domain">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:property>
+                            <jaxb:baseType name="ru.yandex.autotests.morda.exports.filters.MordaDomainFilter"/>
+                        </jaxb:property>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.MordaDomainFilterDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="hidden" type="xsd:int"/>
+            <xsd:element name="preview" type="xsd:int"/>
+            <xsd:element name="touch" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

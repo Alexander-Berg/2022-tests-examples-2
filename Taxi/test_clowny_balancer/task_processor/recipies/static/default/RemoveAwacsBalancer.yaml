@@ -1,0 +1,120 @@
+data:
+    name: RemoveAwacsBalancer
+    provider_name: clowny-balancer
+    job_vars:
+      - namespace_id
+    stages:
+      - name: InternalFindModelsToRemove
+        input:
+            namespace_id: namespace_id
+            entry_point_id: 0
+        output:
+            entry_point_ids: entry_point_ids
+            upstream_ids: upstream_ids
+            awacs_namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: InternalDeleteEntryPoints
+        input:
+            entry_point_ids: entry_point_ids
+        provider_name: clowny-balancer
+      - name: InternalDeleteUpstreams
+        input:
+            upstream_ids: upstream_ids
+        provider_name: clowny-balancer
+
+      - name: AwacsRemoveL3Link
+        input:
+            fqdn: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: AwacsBalancerGetBalancerIds
+        input:
+            awacs_namespace_id: awacs_namespace_id
+        output:
+            balancer_sas: balancer_sas
+            balancer_vla: balancer_vla
+            balancer_man: balancer_man
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerDelete
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_sas
+        provider_name: clowny-balancer
+      - name: AwacsBalancerWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_sas
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerDelete
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_vla
+        provider_name: clowny-balancer
+      - name: AwacsBalancerWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_vla
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerDelete
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_man
+        provider_name: clowny-balancer
+      - name: AwacsBalancerWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_man
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsDomainsGetAll
+        input:
+            namespace_id: awacs_namespace_id
+        output:
+            awacs_domain_ids: domain_ids
+        provider_name: clowny-balancer
+      - name: AwacsDomainsDelete
+        input:
+            namespace_id: awacs_namespace_id
+            domain_ids: awacs_domain_ids
+        output:
+            deleting_awacs_domain_ids: domain_ids
+        provider_name: clowny-balancer
+      - name: AwacsDomainsWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            domain_ids: deleting_awacs_domain_ids
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsCertificatesGetMany
+        input:
+            namespace_id: awacs_namespace_id
+            domain_ids: awacs_domain_ids
+            with_dangling: true
+        output:
+            awacs_certificate_ids: certificate_ids
+        provider_name: clowny-balancer
+      - name: AwacsCertificatesManyDelete
+        input:
+            namespace_id: awacs_namespace_id
+            certificate_ids: awacs_certificate_ids
+        output:
+            deleting_certificate_ids: deleting_certificate_ids
+        provider_name: clowny-balancer
+      - name: AwacsCertificatesManyWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            certificate_ids: deleting_certificate_ids
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsNamespaceDelete
+        input:
+            namespace_id: awacs_namespace_id
+            delete_empty: true
+        provider_name: clowny-balancer

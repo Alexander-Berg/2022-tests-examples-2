@@ -1,0 +1,26 @@
+{{#> base}}
+    {{#*inline "defHeadCounterScripts"}}
+        <script type="text/javascript">
+            window.FID = null;
+            [
+                'click',
+                'mousedown',
+                'keydown',
+            ].forEach((eventName) => {
+                document.addEventListener(eventName, (evt) => {
+                    const isEpochTime = evt.timeStamp > 1e12;
+                    const now = isEpochTime ? new Date : performance.now();
+                    if (window.FID === null) {
+                        window.FID = now - evt.timeStamp;
+                    }
+                }, {passive: true, capture: true});
+            });
+        </script>
+        <script type="text/javascript" src="{{ buildPath }}/e2e/local.js"></script>
+    {{/inline}}
+    {{#*inline "content"}}
+        <div>
+            <button id="button">Click me</button>
+        </div>
+    {{/inline}}
+{{/base}}

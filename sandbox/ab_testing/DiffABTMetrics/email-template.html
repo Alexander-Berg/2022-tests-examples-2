@@ -1,0 +1,48 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+
+{% for key, value in updates_resources.items() %}
+
+    input#hide_{{key}}:checked ~ #diff_{{key}} {
+      display: none;
+    }
+    input#show_{{key}}:checked ~ #diff_{{key}} {
+      display: block;
+    }
+{% endfor %}
+
+</style>
+</head>
+<body>
+
+Metrics calculated by quality/ab_testing/stat_collector were changed after commit <a href="https://a.yandex-team.ru/commit/{{ commit_revision }}">{{ commit_revision }}</a> by {{ commit_author_formatted }}<br>
+If this metrics change is understandable by your change then is' ok and letter is JFYI<br>
+Otherwise reply this letter to discuss<br>
+
+{{ diff_formatted }}
+<hr>
+Updates resources:
+{% for key, value in updates_resources.items() %}
+    <div>
+        <div style="display: inline-block;">
+        <label for="show_{{key}}"><span>Show diff for <b>{{key}}</b></span></label>
+        <input type="radio" id="show_{{key}}" name="group_{{key}}" checked>
+        <label for="hide_{{key}}"><span>Hide diff for <b>{{key}}</b></span></label>
+        <input type="radio" id="hide_{{key}}" name="group_{{key}}">
+
+            <div id="diff_{{key}}" style="position: relative;word-wrap: break-word;background-color: #fafafa;background-clip: border-box;border: 0.5px solid lightgray;margin: 20px;padding: 20px;border-radius: 8px;">
+
+            <pre>
+                {{value|to_pretty_json|safe}}
+            </pre>
+        </div>
+        </div>
+
+    </div>
+{% endfor %}
+<hr>
+<a href="https://staff.yandex-team.ru/aptakhin">aptakhin@</a> is responsible for this email
+</body>
+</html>

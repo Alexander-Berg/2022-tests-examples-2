@@ -1,0 +1,3 @@
+ALTER TABLE ds.drivers
+  ALTER COLUMN park_id TYPE VARCHAR(48),
+  ALTER COLUMN driver_id TYPE VARCHAR(48);

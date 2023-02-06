@@ -1,0 +1,384 @@
+openapi: 3.0.0
+info:
+    title: Hejmdal circuit tester API
+    description: API for working with test cases
+    version: '1.0'
+x-taxi-middlewares:
+    tvm: true
+x-taxi-client-qos:
+    taxi-config: HEJMDAL_CLIENT_QOS
+paths:
+    /v1/test-case/run:
+        post:
+            summary: Протестировать схему
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RunTestsRequestBody'
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RunTestsResponse'
+                '404':
+                    description: Test case with specified test_id is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '400':
+                    description: Wrong test cases specified
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-case/create:
+        post:
+            summary: Создать тест кейс
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertTestCaseRequestBody'
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpsertTestCaseResponse'
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-case/read:
+        post:
+            summary: Полчить тест кейс по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тест кейса
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RetrieveTestCaseResponse'
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test case is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-case/update:
+        put:
+            summary: Обновить тест кейс по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тест кейса
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpsertTestCaseRequestBody'
+            responses:
+                '200':
+                    description: Ok
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test case is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-case/delete:
+        delete:
+            summary: Удалить тест кейс по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тест кейса
+            responses:
+                '200':
+                    description: Ok
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test case is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-case/activate:
+        post:
+            summary: Активировать тест кейс по идентификатору
+            parameters:
+              - in: query
+                name: id
+                required: true
+                schema:
+                    type: integer
+                    description: Идентификатор тест кейса
+              - in: query
+                name: do_activate
+                required: true
+                schema:
+                    type: boolean
+                    description: Надо ли запускать тест кейс автоматически при сохранении
+                        схемы
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ActivateTestCaseResponse'
+                '400':
+                    description: Invalid request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+                '404':
+                    description: Test case is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/definitions/ErrorResponse'
+    /v1/test-case/list:
+        post:
+            summary: Получить упорядоченный по id список id, schema_id и описаний
+                тест кейсов
+            parameters:
+              - in: query
+                name: schema_id
+                description: Идентификатор схемы, для которой необходимо получить
+                    список тест кейсов. Если не указан, получить список тест кейсов
+                    для всех схем.
+                schema:
+                    type: string
+            responses:
+                '200':
+                    description: Ok
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestCaseList'
+
+components:
+    schemas:
+        TestCaseResult:
+            type: object
+            additionalProperties: false
+            required:
+              - test_case_id
+              - check_type
+              - passed
+              - ignored
+              - description
+            properties:
+                test_case_id:
+                    type: integer
+                    description: Идентификатор тест кейса
+                check_type:
+                    type: string
+                    description: Тип проверки тест кейса
+                passed:
+                    type: boolean
+                    description: Результат выполнения теста
+                ignored:
+                    type: boolean
+                    description: Запускался ли тест
+                description:
+                    type: string
+                    description: Описание тест кейса
+                error_message:
+                    type: string
+                    description: Ошибка при выполнении тест кейса
+        TestCaseResultState:
+            type: string
+            enum: [Success, WithFailures, Error]
+        RunTestsResponse:
+            type: object
+            additionalProperties: false
+            properties:
+                state:
+                    $ref: '#/components/schemas/TestCaseResultState'
+                test_case_results:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TestCaseResult'
+                error_message:
+                    type: string
+                    description: Сообщение об ошибке, если она произошла
+            required:
+              - state
+              - test_case_results
+        RunTestsRequestBody:
+            type: object
+            additionalProperties: false
+            required:
+              - schema_id
+              - schema_json
+            properties:
+                break_on_failure:
+                    type: boolean
+                    description: Остановить выполнение, если в пачке тестов есть хотя
+                        бы один упавший
+                schema_id:
+                    type: string
+                    description: Идентификатор тестируемой схемы
+                schema_json:
+                    $ref: '../definitions.yaml#/definitions/CircuitSchemaJson'
+                test_case_ids:
+                    type: array
+                    description: Идентификаторы тестов, которые надо прогнать, даже
+                        если они отключены (enabled=false)
+                    items:
+                        type: integer
+                        description: Идентификатор тест кейса
+        UpsertTestCaseRequestBody:
+            type: object
+            additionalProperties: false
+            required:
+              - test_case_info
+              - schema_id
+              - test_data_id
+              - description
+              - is_enabled
+            properties:
+                test_case_info:
+                    $ref: '../definitions.yaml#/definitions/TestCaseInfo'
+                schema_id:
+                    type: string
+                    description: Идентификатор схемы
+                test_data_id:
+                    type: integer
+                    description: Идентификатор тестовых данных
+                description:
+                    type: string
+                    description: Описание данных
+                is_enabled:
+                    type: boolean
+                    description: Запускается ли тест кейс автоматически при сохранении
+                        схемы
+        UpsertTestCaseResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - test_case_id
+            properties:
+                test_case_id:
+                    type: integer
+                    description: Идентификатор созданного тест кейса
+        RetrieveTestCaseResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - test_case_info
+              - schema_id
+              - test_data_id
+              - description
+              - is_enabled
+            properties:
+                test_case_info:
+                    $ref: '../definitions.yaml#/definitions/TestCaseInfo'
+                schema_id:
+                    type: string
+                    description: Идентификатор схемы
+                test_data_id:
+                    type: integer
+                    description: Идентификатор тестовых данных
+                description:
+                    type: string
+                    description: Описание данных
+                is_enabled:
+                    type: boolean
+                    description: Запускается ли тест кейс автоматически при сохранении
+                        схемы
+        TestCaseListItem:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - description
+              - schema_id
+              - check_type
+              - is_enabled
+            properties:
+                id:
+                    type: integer
+                    description: Идентификатор тест кейса
+                description:
+                    type: string
+                    description: Описание тест кейса
+                schema_id:
+                    type: string
+                    description: Идентификатор схемы
+                check_type:
+                    type: string
+                    description: Тип проверки тест кейса
+                is_enabled:
+                    type: boolean
+                    description: Запускается ли тест кейс автоматически при сохранении
+                        схемы
+        TestCaseList:
+            type: object
+            additionalProperties: false
+            required:
+              - enabled
+              - disabled
+            properties:
+                enabled:
+                    type: array
+                    description: Информация о включенных тест кейсах
+                    items:
+                        $ref: '#/components/schemas/TestCaseListItem'
+                disabled:
+                    type: array
+                    description: Информация о выключенных тест кейсах
+                    items:
+                        $ref: '#/components/schemas/TestCaseListItem'
+        ActivateTestCaseResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - is_enabled
+            properties:
+                is_enabled:
+                    type: boolean
+                    description: Активирован ли тест кейс

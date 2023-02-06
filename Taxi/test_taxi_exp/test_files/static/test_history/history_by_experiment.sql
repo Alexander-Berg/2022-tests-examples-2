@@ -1,0 +1,16 @@
+/* experiment */
+INSERT INTO clients_schema.experiments (id, name, date_from, date_to, rev)
+    VALUES (1, 'n1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, nextval('clients_schema.clients_rev'));
+
+/* history */
+INSERT INTO
+  clients_schema.files_history (id, mds_id, name, action_type, updation_time, experiment_id)
+    VALUES (nextval('clients_schema.files_history_id_seq'), '11111', 'user_ids.txt', 'create', CURRENT_TIMESTAMP, 1);
+
+INSERT INTO
+  clients_schema.files_history (id, mds_id, name, action_type, updation_time, experiment_id)
+    VALUES (nextval('clients_schema.files_history_id_seq'), '11111', 'user_ids.txt', 'update', CURRENT_TIMESTAMP, 1);
+
+INSERT INTO
+  clients_schema.files_history (id, mds_id, name, action_type, updation_time, experiment_id)
+    VALUES (nextval('clients_schema.files_history_id_seq'), '22222', 'user_ids.txt', 'create', CURRENT_TIMESTAMP, 1);

@@ -1,0 +1,34 @@
+default:
+    __default__:
+        "execute_ms": 2000
+        "statement_ms": 2000
+description: |
+    Таймауты для компонент cargo-claims.
+    Хранится в формате <имя_компоненты>: {'execute_ms': 1000, 'statement_ms': 1000}.
+    execute_ms - общий таймаут на запрос,
+    statement_ms - таймаут на выполнение запроса в pg на стороне сервера (опционально).
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ComponentSettings'
+    properties:
+        __default__:
+            $ref: '#/definitions/ComponentSettings'
+    required:
+      - __default__
+    definitions:
+        timeout:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+        ComponentSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                execute_ms:
+                    $ref: '#/definitions/timeout'
+                statement_ms:
+                    $ref: '#/definitions/timeout'
+            required:
+              - execute_ms

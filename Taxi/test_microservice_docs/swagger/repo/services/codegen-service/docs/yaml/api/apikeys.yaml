@@ -1,0 +1,98 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'TaxiFleet.API'
+
+x-taxi-middlewares:
+    tvm:
+        user-scopes: []
+        adjust-prod-env: true
+
+paths:
+    /api/v1/apikeys/key:
+        post:
+            operationId: ApikeysKeyGet
+            parameters:
+              - in: header
+                name: 'X-Park-Id'
+                type: string
+                pattern: '^[a-f0-9]{32}$'
+                required: true
+              - in: query
+                name: id
+                type: integer
+                required: true
+                description: key id
+            responses:
+                '200':
+                    description: 'Key object'
+                    schema:
+                        $ref: '#/definitions/Key'
+                '400':
+                    description: 'Некорректные праметры'
+                    schema:
+                        $ref: 'codegen-service/definitions.yaml#/definitions/Response400'
+                '401':
+                    description: 'Не авторизован'
+                    schema:
+                        $ref: 'codegen-service/definitions.yaml#/definitions/Response401'
+
+definitions:
+    ClientId:
+        type: string
+        minLength: 3
+        maxLength: 64
+        description: client id (contains only latin letters, digits and hyphnes)
+    DbId:
+        type: integer
+        description: client or key db id
+        format: int32
+        minimum: 1
+    Comment:
+        type: string
+        minLength: 0
+        maxLength: 512
+        description: text comment
+    KeyState:
+        type: string
+        description: key state
+        enum:
+          - active
+          - inactive
+    KeyPermissions:
+        type: array
+        description: granted permissions for the key
+        items:
+            type: string
+            description: permissions id
+    Key:
+        type: object
+        additionalProperties: false
+        description: key object
+        required:
+          - id
+          - updated_at
+          - created_at
+          - client_id
+          - permissions
+          - state
+          - comment
+        properties:
+            id:
+                $ref: '#/definitions/DbId'
+            updated_at:
+                type: string
+                description: date in ISO 8601O format
+                format: date-time
+            created_at:
+                type: string
+                description: date in ISO 8601O format
+                format: date-time
+            client_id:
+                $ref: '#/definitions/ClientId'
+            permissions:
+                $ref: '#/definitions/KeyPermissions'
+            state:
+                $ref: '#/definitions/KeyState'
+            comment:
+                $ref: '#/definitions/Comment'

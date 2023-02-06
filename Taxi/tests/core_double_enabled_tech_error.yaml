@@ -1,0 +1,31 @@
+id: core_double_enabled_tech_error
+title: core_double_enabled_tech_error
+source:
+    request:
+        method: post
+        body:
+            zone_name: 'moscow'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 500
+            body: {}
+
+experiments:
+    values#object:
+      - key: use_zoneinfo_core_in_background
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-zoneinfo
+    exception: fallbacking
+  - resource: zoneinfo-core
+    exception: timeout
+    expectations:
+        call-count: 2
+  - resource: zoneinfo-compare
+    expectations:
+        call-count: 0

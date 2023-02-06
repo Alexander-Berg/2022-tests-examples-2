@@ -1,0 +1,172 @@
+description: cars from taximeter mongo
+settings:
+    collection: cars
+    connection: cars
+    database: dbcars
+indexes:
+  - key: car_id
+  - key: modified_date
+  - key:
+      - name: modified_date
+        type: ascending
+      - name: _id
+        type: ascending
+  - key: number
+  - key: number_normalized
+  - key:
+      - name: park_id
+        type: ascending
+      - name: car_id
+        type: ascending
+    unique: true
+  - key:
+      - name: park_id
+        type: ascending
+      - name: idempotency_token
+        type: ascending
+    partialFilterExpression:
+        idempotency_token:
+            $exists: true
+        park_id:
+            $exists: true
+    unique: true
+  - key: updated_ts
+    sparse: true
+    unique: true
+wiki_info: |
+    ####dbcars.cars - Профили транспортных средств в диспетчерской
+
+    Прямой доступ в эту коллекцию - deprecated! Инкапсулируем её за микросервисами. Для доступа к ней используй:
+    - taxi-fleet-vehicels (его пока нет) - для синхронизации кешей и retrieve по id
+    - [driver-categories-api](https://github.yandex-team.ru/taxi/uservices/blob/develop/services/driver-categories-api/docs/yaml/api/cars.yaml) - для работы с категориями
+    - [qc-cpp](https://github.yandex-team.ru/taxi/uservices/tree/develop/services/quality-control-cpp/docs/yaml/api) - для состояния фотоконтроля
+    - [parks](https://github.yandex-team.ru/taxi/backend-cpp/blob/develop/parks/docs/yaml/cars/list.yaml) - для поиска по сложным условиям
+    - сервис детских кресел (to be done)
+    - сервис парковых заказов (to be done)
+
+    Коллекция разбивается на раздельные API по следующим принципам:
+    - часть, критичная для цикла заказа, должна быть максимально обособленной от некритичных частей
+    - группы полей, относящихся к отдельной предметной области, которые скорее всего будут использоваться отдельно от других полей, уезжают в отдельные микросервисы.
+
+    ```python
+    car = {
+      # системные поля
+      "_id" : ObjectId("5da88dce749b3362087ffc00"), # не используется
+      "car_id" : "4e23c8c344f7190c347893861ba5192b", # id ТС
+      "park_id" : "7ad36bc7560449998acbe2c57a75c293", # id парка
+
+      # анкетные данные ТС. уезжает в taxi-fleet-vehicles
+      "idempotency_token" : "317f69c3-a4fe-4ae1-aad5-a559b0a25b17",  # Токен идемпотентности. используется при первичном создании машины, чтобы не задублировать документы в БД
+      "created_date" : ISODate("2019-10-17T15:50:38.147Z"),          # Дата заведения в диспетчерской
+      "modified_date" : ISODate("2019-10-18T07:04:10.212Z"),         # Дата обновления. Необходимо проставлять при каждом обновлении документа. Уникальность не гарантируется.
+      "updated_ts" : Timestamp(1571382250, 1), # Дата обновления. Необходимо проставлять при каждом обновлении документа. Гарантируется уникальность, можно использоватьс для инкрементальных выгрузок
+      "service_date": ISODate("2019-10-18T07:04:10.212Z"), # Дата технического обслуживания
+      "brand" : "Москвич",               # корректны  значения из [справочника Марок](https://github.yandex-team.ru/taxi/backend-cpp/blob/develop/parks/docs/yaml/cars/brands/list.yaml)
+      "model" : "400",                   # корректны  значения из [справочника моделей](https://github.yandex-team.ru/taxi/backend-cpp/blob/develop/parks/docs/yaml/cars/models/list.yaml)
+      "color" : "Розовый",               # цвет машины. корректны значения из [списка](https://github.yandex-team.ru/taxi/backend-cpp/blob/develop/parks/src/handlers/car_colors.cpp)
+      "year" : 2019,
+      "transmission" : "unknown",        # Коробка передач. Может отсутствовать. Значения: unknown|mechanical|automatic|robotic|variator
+      "status" : "working",              # Статус работы в парке. Обязателен. Значения: unknown|working|not_working|tech_inspection|repairing|highjacked|in_garage
+      "mileage" : 0,                     # Пробег
+      "callsign" : "STONKS777",          # Позывной. (почти deprecated, должен переехать к водителю)
+      "number" : "СТОНКС777",            # Гос-номер (deprecated)
+      "number_normalized" : "CT0HKC777", # Гос-номер, нормализованный
+      "registration_cert" : "123",        # Номер свидетельства о регистрации транспортного средства (СТС).
+      "carrier_permit_owner_id": "uuid",  # Идентификатор [собственника ТС](https://github.yandex-team.ru/taxi/backend-cpp/blob/develop/parks/docs/yaml/legal_entities/list.yaml)
+      "body_number": "12345678901234567", # Номер шасси/кузова в свидетельстве о регистрации транспортного средства (СТС).
+      "vin": "12345678901234567",
+      "euro_car_segment": "A",            # Европейская классификация ТС (A, B, C, ...)
+      "description": "неструктурированный комментарий про ТС от парка для собственных нужд",
+      # номер лицензии такси
+      "permit_num": "111",
+      "permit_series": "222",
+      "permit_doc": "1123",
+      # информация о страховке (почти deprecated, требует обобщения для международки)
+      "osago_date": ISODate("2019-10-18T07:04:10.212Z"),
+      "osago_number": "111222",
+      "kasko_date": ISODate("2019-10-18T07:04:10.212Z"),
+
+      # предоставляемые машиной сервисы. требуют полного пересмотра. Если его не происходит, выставляется as-is в taxi-fleet-vehicles
+      "cargo_loaders_amount" : 0,
+      "service" : {
+        "animals" : false,
+        "bicycle" : false,
+        "conditioner" : false,
+        "delivery" : false,
+        "extra_seats" : false,
+        "pos" : false,
+        "print_bill" : false,
+        "ski" : false,
+        "smoking" : false,
+        "vip_event" : false,
+        "wifi" : false,
+        "wagon" : false,
+        "woman_driver" : false,
+        "yandex_money" : false,
+        "booster" : false,
+        "child_seat" : false,
+        "charge" : false,
+        "franchise" : false,
+        "lightbox" : false,
+        "rug" : false,
+        "sticker" : false,
+        "cargo_clean" : false,
+        "cargo_packing" : false,
+        "rigging_equipment" : false
+      },
+      'cargo_hold_dimensions': { # габариты машины в см
+        'length': 220,
+        'width': 150,
+        'height': 150,
+      },
+      'carrying_capacity': 123, # грузоподъемность в кг
+
+      # детские кресла. Уезжают в сервис детских кресел (to be done)
+      "booster_count" : 0,
+      "chairs": [
+        {
+          "brand": "Яндекс",
+          "categories": [1, 2], # Список заявленных категорий (1, 2, 3, 4)
+          "isofix": true, # Признак наличия крепления Isofix
+        }
+      ]
+
+      # категории ТС. Почти переехали в driver-categories-api
+      "category" : {
+        "econom" : true,
+        "comfort" : true,
+        "comfort_plus" : false,
+        "business" : false,
+        "minivan" : false,
+        "vip" : false,
+        "wagon" : false,
+        "pool" : false,
+        "start" : true,
+        "standart" : true,
+        "ultimate" : false,
+        "maybach" : false,
+        "promo" : false,
+        "premium_van" : false,
+        "premium_suv" : false,
+        "suv" : false,
+        "personal_driver" : false,
+        "cargo" : false,
+        "express" : false
+      },
+
+      # состояния фотоконтроля. deprecated. Брать из qc-cpp
+      "qc_sync" : {
+        "sts" : ISODate("2019-10-17T15:51:08.732Z")
+      },
+      "sticker_confirmed": true,
+      "lightbox_confirmed": true,
+      "charge_confirmed": true,
+      "rug_confirmed": true,
+      "confirmed_boosters": 1,
+      "confirmed_chairs": {},
+      "cert_verification": true,
+
+      # параметры парковых заказов - уезжает в сервис парковых заказов (to be done, возможно deprecated)
+      "tariffs" : ["Эконом", "Комфорт"]
+    }
+    ```

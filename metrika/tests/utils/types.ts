@@ -1,0 +1,1 @@
+export type Ctx = Record<string, string | number | any>;

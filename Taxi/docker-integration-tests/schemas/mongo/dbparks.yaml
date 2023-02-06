@@ -1,0 +1,194 @@
+description: parks, countries and cities from taximeter mongo
+settings:
+    collection: parks
+    connection: parks
+    database: dbparks
+indexes:
+  - key: city
+  - key: driver_partner_source
+    sparse: true
+  - key: is_active
+  - key: login
+    unique: true
+  - key: modified_date
+  - key: provider_config.yandex.clid
+  - key: providers
+  - key: updated_ts
+    sparse: true
+    unique: true
+wiki_info: |
+    ####dbparks.parks- Профили таксопарков в диспетчерской
+
+    Прямой доступ в эту коллекцию - deprecated! Инкапсулируем её за микросервисами. Для доступа к ней используй API:
+    - [fleet-parks](https://github.yandex-team.ru/taxi/uservices/blob/develop/services/fleet-parks/docs/yaml/api/api.yaml) -
+      для работы с базовыми данными парка
+    - сервис парковых заказов (to be done)
+    - сервис платного найма (to be done)
+    - qc (сервис есть, ручки - to be done)
+
+    Коллекция разбивается на раздельные API по следующим принципам:
+    - часть, критичная для цикла заказа, должна быть максимально обособленной от некритичных частей
+    - группы полей, относящихся к отдельной предметной области, которые скорее всего будут использоваться отдельно от других полей, уезжают в отдельные микросервисы.
+
+    Например, поля для формирования путевых листов нужны только в одном сценарии - собственно при формировании путевого листа.
+    Процесс формирования путевых листов, если его развивать, превращается в обширную и при этом обособленную задачу:
+    нужно поддерживать разные форматы документов, законодательные различия стран и регионов, разные условия выписки листов и т. д.
+    В то же время неаккуратные изменения в путевых листах не должны ломать работу с ключевыми данными парка (клид, таймзона и т. д.) и, как следствие, цикл заказа.
+    Поэтому эти поля разумно переселить в отдельный микросервис.
+
+
+    ```python
+    parks = {
+      # системные поля
+      "_id" : "7ad36bc7560449998acbe2c57a75c293",   # суррогатный id
+      "modified_date" : ISODate("2019-10-16T12:10:51.895Z"),  # дата обновления всего документа. обязательно проставлять при модифицирующих операциях
+      "updated_ts" : Timestamp(1571227851, 1),  # дата обновления всего документа с гарантией уникальности. обязательно проставлять при модифицирующих операциях.
+
+      # ключевые данные диспетчерской. доступ через сервис fleet-parks
+      "created_date" : ISODate("2017-08-03T09:16:15.517Z"),   # дата создания парка
+      "fleet_type": "taximeter",    # тип приложения, с которым работает диспетчерская. Может отсутствовать, в таком случае дефолтное значение - taximeter. Возможные значения: taximeter|vezet
+      "login" : "лещ1",
+      "is_active" : true,
+      "name" : "Лещ",
+      "park_contacts": {  # общие контакты таксопарка для решения вопросов и проблем водителей и пассажиров
+        "drivers": {
+          "email": "email-for-driver-support@yandex.ru",
+          "phone": "+79601017670",  # телефон для решения проблем водителей
+          "address": "address for resolving driver's issues",
+          "schedule": "working time", # расписание работы
+          "money_withdrawal": {   # вывод средств
+            "description": "more information about money withdrawal for drivers"
+          }
+        },
+        "passengers": {
+          "phone": "+79102933008"   # телефон для решения проблем пассажиров
+        }
+      },
+      "org_name" : "ИП Прудников",
+      "owner" : "antipovav",
+      "city" : "Москва",
+      "locale" : "ru",
+      "tz" : 3,
+      "providers" : ["park", "yandex"],
+      "provider_config" : { # настройки интеграции с Такси. пока нужно много где. в новых внутренних API использоваться не должно.
+        "yandex" : {
+          "clid" : "100500",
+          "apikey" : "ba4a40f6e11f46f6b20ee7fa6000565d",
+          "version" : "07dd0dd7e8c040678114f0d4312fedbb"
+        }
+      },
+
+      "ui_mode" : 0, # режим интерфейса диспетчерской. 0 - режим по умолчанию, 1 - сокращённый режим для небольших парков
+      "driver_partner_source": null,
+      "car_edit_disabled" : false,
+      "franchising" : false,
+      "contract_number" : "123/4567",
+      "contract_date" : ISODate("2015-12-31T21:00:00Z"),
+
+      # deprecated поля, которые пока можно получить через fleet-parks для поддержки старого функционала
+      "integration_drivers_url" : null,
+      "integration_server_url" : null,
+      "integration_events" : ["carstatus", "orderstatus", "card_payments", "requestcar", "carstatus_from_int", "setcar_on_requestconfirm"],
+      "billing_off" : false,
+
+      # контактные данные парков. доступ через отдельную ручку fleet-parks. Вероятно, в будущем должны уехать в отдельный сервис и отдельную БД (to be done)
+      "contacts" : { # контакты парка
+        "bce27b52e49d4336834aea28372b015b" : {
+          "_id" : "bce27b52e49d4336834aea28372b015b",
+          "name" : "Антипов Алексей",
+          "group" : "Директор",
+          "email" : "antipovav2@yandex.ru",
+          "phones" : "+7 (000) 000-00-00",
+          "owner" : "antipovav"
+        }
+      },
+      "support_email" : null, # email техподдержки парка. в API должен быть частью структуры contacts
+      "support_phone" : null, # телефон техподдержки парка. в API должен быть частью структуры contacts
+      "description" : "При сдаче автомобиля водитель должен уведомить арендодателя за 3 дня.", # неструктурированная информация про парк для водителей парка
+
+
+      # платный найм. доступ через сервис driver-hiring (to be done)
+      "driver_hiring" : {
+        "self_reg" : true,
+        "participated" : true,
+        "types" : ["lease", "private"],
+        "responsible" : "qweqwe@ya.ru",
+        "begin_date" : ISODate("2017-11-11T00:00:00Z"),
+        "program" : "motivation",
+        "sum" : [{
+            "from" : 121,
+            "to" : 1212,
+            "value" : 12222.0
+          }, {
+            "from" : 1212,
+            "to" : 2000,
+            "value" : 15000.0
+          }, {
+            "from" : 2000,
+            "to" : 3000,
+            "value" : 20000.0
+          }],
+        "park_phone" : "+7 (000) 999-99-99",
+        "park_email" : "test@mail.ri, t123123est@mail.ri",
+        "park_documents" : "Паспорт, Водительское удостоверение",
+        "cities" : ["Москва"],
+        "commercial_hiring" : true,
+        "commercial_hiring_with_car" : true,
+        "permit_required" : false,
+        "deaf_driver" : false
+      },
+
+      # фотоконтроль. доступ через семейство сервисов QC (to be done)
+      "dkk_enabled" : true,
+      "dkk_period" : 10,
+      "dkk_required" : true,
+      "dkb_period" : 10,
+      "ml_qc_enabled" : false,
+      "sync_dkk" : true,
+      "sync_dkvu" : true,
+
+      # настройки парковых заказов. Уезжают в сервис парковых заказов (to be done. вероятно, эта функциональность вообще будет закопана)
+      "park_setcar_alg" : "none",
+      "park_setcar_timeout" : 30,
+      "park_blacklist_noreserve" : false,
+      "robot_time" : 15,
+      "robot_distance" : 10,
+      "robot_providers" : ["park", "yandex"],
+      "inbox_timeout" : 15,
+      "robot_settings" : ["common", "robot", "disable_business", "disable_minivan", "disable_comfortplus", "disable_wagon", "disable_express"],
+
+      # водительские смены - должны уехать в сервис водительских смен (to be done)
+      "work_shifts_enabled" : true,
+
+      # настройки водительского чата - должны уехать в сервис чатов (to be done)
+      "chat_disabled" : false,
+
+      # настройки СМС - должны уехать в сервис интегарции с СМС (to be done)
+      "sms" : {
+        "enabled" : true,
+        "provider" : "sm-s.ru",
+        "login" : "123123",
+        "password" : "123123"
+      },
+
+      # настройки ip-телефонии - должны уехать в сервис IP-телефонии парка (to be done, скорее всего deprecated)
+      "voip" : {
+        "enable" : true,
+        "show_number" : false,
+        "provider" : "sipml5",
+        "server" : "http://4chcjd73va0m8v42dxtfiklc43atyi.burpcollaborator.net",
+        "wss" : "wss://4chcjd73va0m8v42dxtfiklc43atyi.burpcollaborator.net/CLIENT"
+      },
+
+      # настройки путевых листов - должны уехать в сервис путевых листов (to be done)
+      "waybill_company" : "Winter Consulting",
+      "waybill_contacts" : "555-555-0199@example.com",
+      "waybill_template" : "1",
+
+      # deprecated. работы с этими полями вообще быть не должно
+      "clid" : null,
+      "status" : "demo",
+      "demo_mode" : false,
+      "bill_template" : "<DATE_FINISH><PASSENGER><DATE_START>",
+    }
+    ```

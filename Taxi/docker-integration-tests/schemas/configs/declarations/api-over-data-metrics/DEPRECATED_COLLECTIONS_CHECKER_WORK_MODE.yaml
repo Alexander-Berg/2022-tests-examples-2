@@ -1,0 +1,61 @@
+default:
+    dbtaxi-cars:
+        job-iterations-delay-ms: 60000
+        chunk-size: 1000
+        chunk-processing-delay-ms: 100
+        mode: disabled
+    dbtaxi-drivers:
+        job-iterations-delay-ms: 60000
+        chunk-size: 1000
+        chunk-processing-delay-ms: 100
+        mode: disabled
+description: |
+    Нельзя менять значение этого конфига без согласования с @fmobster или @s-pankratov! Подробности см. в TAXIACCESSDATA-100.
+    Параметры работы процедуры удаления новых полей в dbtaxi.cars и dbtaxi.drivers;
+    job-iterations-delay-ms - период между запусками процедуры;
+    chunk-size - максимальное число обработанных документов в рамках одного интервала;
+    chunk-processing-delay-ms - задержка между блоками
+    mode - режим работы процедуры:
+      - disabled - процедура выключена;
+      - dryrun - процедура выполняет только запись логов;
+      - enabled - процедура включена.
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        dbtaxi-cars:
+            $ref: '#/definitions/work_mode'
+        dbtaxi-drivers:
+            $ref: '#/definitions/work_mode'
+    required:
+      - dbtaxi-cars
+      - dbtaxi-drivers
+    definitions:
+        work_mode:
+            type: object
+            additionalProperties: false
+            properties:
+                job-iterations-delay-ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                chunk-processing-delay-ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                chunk-size:
+                    type: integer
+                    x-taxi-cpp-type: unsigned
+                    minimum: 1
+                mode:
+                    type: string
+                    enum:
+                      - disabled
+                      - dryrun
+                      - enabled
+            required:
+              - job-iterations-delay-ms
+              - chunk-processing-delay-ms
+              - chunk-size
+              - mode

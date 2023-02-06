@@ -1,0 +1,134 @@
+{
+  "dst": {
+    "features": [
+      {
+        "can_be_found_without_question": true,
+        "is_array": false,
+        "key": "sure_topic",
+        "type": "str"
+      }
+    ]
+  },
+  "flags": {
+    "continue_on_action_fail": true,
+    "graph_policy": true
+  },
+  "nlg": {},
+  "nlu": {
+    "entities": [],
+    "model": {
+      "model_slug": "test_model",
+      "model_title": "Модель",
+      "model_topics": [
+        {
+          "slug": "order_status",
+          "threshold_based_on_precision": 0.5
+        }
+      ],
+      "model_version": "1"
+    },
+    "topics": [
+      {
+        "parent_slug": null,
+        "rule_value": "model_sure_topic is \"order_status\"",
+        "slug": "order_status"
+      }
+    ]
+  },
+  "policy": {},
+  "policy_graph": {
+    "main": {
+      "graph": {
+        "XXX": {
+          "": {
+            "next": "XXXX1"
+          },
+          "XXXX1": {
+            "next": "XXXX2"
+          },
+          "XXXX2": {
+            "next": "XXXX4"
+          },
+          "XXXX2_0": {
+            "next": "XXXX3"
+          },
+          "XXXX3": {
+            "next": null
+          },
+          "XXXX4": {
+            "next": null
+          }
+        }
+      },
+      "nodes": {
+        "XXXX1": {
+          "action": {
+            "parameters": {
+              "integration_id": 3,
+              "node_id": "XXXX1",
+              "parameters": {
+                "mode": "critical",
+                "promocode_size": 1000
+              },
+              "version": "1"
+            },
+            "type": "integration_action"
+          },
+          "type": "action"
+        },
+        "XXXX2": {
+          "action": {
+            "parameters": {
+              "cases": [
+                {
+                  "next": "XXXX2_0",
+                  "predicate": {
+                    "predicates": [
+                      {
+                        "code_predicate": "promocode_feature is not undefined",
+                        "is_active": true,
+                        "type": "code"
+                      }
+                    ]
+                  },
+                  "title": "true"
+                },
+                {
+                  "next": "XXXX2",
+                  "title": "false"
+                }
+              ],
+              "node_id": "XXXX2"
+            },
+            "type": "condition"
+          },
+          "type": "condition"
+        },
+        "XXXX3": {
+          "action": {
+            "parameters": {
+              "text": "Простите, ваш промокод: {promocode_feature}"
+            },
+            "type": "response"
+          },
+          "type": "response"
+        },
+        "XXXX4": {
+          "action": {
+            "parameters": {
+              "text": "Простите, произошел троллинг (экшны упали, хех). Вот ошибка: {action_error_description}"
+            },
+            "type": "response"
+          },
+          "type": "response"
+        }
+      }
+    },
+    "rules": [
+      {
+        "identifier": "XXX",
+        "rule": "sure_topic is \"order_status\""
+      }
+    ]
+  }
+}

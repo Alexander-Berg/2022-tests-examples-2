@@ -1,0 +1,21 @@
+{
+  "author": "artem-mazanov",
+  "autorestart": false,
+  "created": 1559299312,
+  "deprecation_timestamp": 1559299400,
+  "description": "test_test_test",
+  "details": null,
+  "id": "test",
+  "instance_id": null,
+  "last_end_run_ts": null,
+  "last_start_run_ts": null,
+  "last_ts_1_min": 1559299307,
+  "name": "test_4",
+  "query": "$QuadkeyPyLib = @@_LIB_quadkey_@@;\n$qk = Python::latlon2quadkey(\"(Double?, Double?, Int32?) -> String?\", $QuadkeyPyLib);\n\n$from = '2018-10-01';\n$to = '2018-11-30';\n\nINSERT INTO `_OUTPUT_PATH_`\nSELECT      day\n            , hour\n            , qk_from\n            , qk_to\n            , AVG(driving_distance_m) as avg_dist\n            , AVG(driving_duration_sec) as avg_time\n            , COUNT(*) as cnt\n\n            , \"\" as city\n            , \"2018-01-01\" as dt\n            , \"2018-01-01 00:00:00\" as dttm_utc_1_min\n            , 0 as ts_1_min\n\nFROM        RANGE([home/taxi-dwh/ods/tracker/candidates], $from, $to)\nWHERE       TRUE\nAND         driving_distance_m IS NOT NULL\nAND         driving_duration_sec IS NOT NULL\n\nAND         lat_from IS NOT NULL\nAND         lon_from IS NOT NULL\nAND         lat_to IS NOT NULL\nAND         lon_to IS NOT NULL\n\nAND         lat_middle IS NULL\nAND         lon_middle IS NULL\nGROUP BY    $qk(lat_from, lon_from, 16) as qk_from\n            , $qk(lat_to, lon_to, 16) as qk_to\n            , DateTime::GetDayOfWeek(DateTime::TimestampFromStringFormat(utc_start_dttm, '%Y-%m-%d %H:%M')) as day\n            , DateTime::GetHour(DateTime::TimestampFromStringFormat(utc_start_dttm, '%Y-%m-%d %H:%M')) as hour\n\n_LIMIT_",
+  "query_full": "",
+  "run_every": 120,
+  "state": "deprecated",
+  "uuid": "5c4120c7-9000-4c64-ba72-b935197e9aea",
+  "workflow_id": null,
+  "yt_proxy": "hahn"
+}

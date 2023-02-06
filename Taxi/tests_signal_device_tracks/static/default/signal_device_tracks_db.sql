@@ -1,0 +1,26 @@
+INSERT INTO signal_device_tracks.events(event_id, event_at, event_type, device_serial_number, device_id, park_id)
+VALUES 
+(
+    'xxx',
+    '2019-05-01T07:09:00+00:00',
+    'sleep',
+    '123',
+    'xxx',
+    'p1'
+),
+(
+    'yyy',
+    '2019-05-02T07:21:00+00:00',
+    'fart',
+    '228',
+    'yyy',
+    'p1'
+),
+(
+    'zzz',
+    '2019-05-02T07:21:00+00:00',
+    'seatbelt',
+    '123',
+    'zzz',
+    'p1'
+);

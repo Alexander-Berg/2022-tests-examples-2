@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="urn:topnews_stocks.exports.morda.autotests.yandex.ru"
+            xmlns:ns="urn:topnews_stocks.exports.morda.autotests.yandex.ru"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.1"
+            xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+            xmlns:annox="http://annox.dev.java.net"
+            jaxb:extensionBindingPrefixes="inheritance annox"
+            elementFormDefault="qualified">
+
+    <xsd:complexType name="topnews_stocks_deserializer">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.deserializers.AllEntriesDeserializer
+                    &lt;ru.yandex.autotests.morda.exports.topnews_stocks.TopnewsStocksEntry&gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="topnews_stocks_export">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <annox:annotate target="class">
+                    <annox:annotate annox:class="ru.yandex.autotests.morda.exports.annotations.MordaExportDescription"
+                                    name="topnews_stocks"
+                                    clazz="ru.yandex.autotests.morda.exports.topnews_stocks.TopnewsStocksExport"/>
+                </annox:annotate>
+                <inheritance:extends>
+                    ru.yandex.autotests.morda.exports.MordaExport
+                    &lt;
+                    ru.yandex.autotests.morda.exports.topnews_stocks.TopnewsStocksExport,
+                    ru.yandex.autotests.morda.exports.topnews_stocks.TopnewsStocksEntry
+                    &gt;
+                </inheritance:extends>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="data" type="ns:topnews_stocks_entry" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.topnews_stocks.TopnewsStocksDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="topnews_stocks_entry">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <inheritance:extends>ru.yandex.autotests.morda.exports.MordaExportEntry</inheritance:extends>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithGeo</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithDomain</inheritance:implements>
+                <inheritance:implements>ru.yandex.autotests.morda.exports.interfaces.EntryWithContent</inheritance:implements>
+            </xsd:appinfo>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="domain" type="xsd:string"/>
+            <xsd:element name="content" type="xsd:string"/>
+            <xsd:element name="geo" type="xsd:int"/>
+            <xsd:element name="no_stocks_bl" type="xsd:int"/>
+            <xsd:element name="stocks" type="xsd:int" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <annox:annotate target="field">
+                            <annox:annotate annox:class="com.fasterxml.jackson.databind.annotation.JsonDeserialize"
+                                            using="ru.yandex.autotests.morda.exports.deserializers.IntListDeserializer"/>
+                        </annox:annotate>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="title_tanker" type="xsd:string"/>
+            <xsd:element name="enabled" type="xsd:int"/>
+            <xsd:element name="exp" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

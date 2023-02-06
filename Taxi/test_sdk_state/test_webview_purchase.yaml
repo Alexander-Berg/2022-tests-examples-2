@@ -1,0 +1,430 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+# overrides need to be after defaults. pay attention to last_modified_at
+# field - it must be greater in overrides
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+
+  - name: experiments3
+    kwargs:
+        filename: "exp3-services_menu-minimal.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+tests:
+  - name: webview_purchase_ok
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "WEBVIEW"
+                webview_params:
+                    widget_service_name: "pp"
+                    widget_subservice_name: "plus_house"
+                    # additional arg, not in schema
+                    postMessageVersion: "2"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu", "state"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                    webview:
+                        url: "https://payment-widget.ott.yandex.ru/?postMessageVersion=2&lang=ru&widgetSubServiceName=plus_house&widgetServiceName=pp&productIds=ru.yandex.plus.30min.autorenewable.native.web.notrial.debug&target=landing-taxi"
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+            menu_type: "NATIVE"
+            menu:
+                action_button:
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                    action: "PLUS.BUY.WEBVIEW"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить"
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: exp_misconigured_purchase_disabled
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "WEBVIEW"
+                # NOTE: missing webview_params
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu", "state"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+            menu_type: "NATIVE"
+            menu:
+                # NOTE: no action button
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: exp_native_purchase_ok
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "NATIVE"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu", "state"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+            menu_type: "NATIVE"
+            menu:
+                action_button:
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                    # NOTE: default action
+                    action: "PLUS.BUY"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить"
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: exp_disabled_purchase_disabled
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+              # NOTE: exp disabled
+                enabled: false
+                purchase_type: "NATIVE"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu", "state"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+            menu_type: "NATIVE"
+            menu:
+                # NOTE: no action button
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: webview_purchase_experiment_matching_by_uid
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses:
+              - predicate:
+                    init:
+                        predicates:
+                          - init:
+                                value: taxi
+                                arg_name: plus_sdk_service_id
+                                arg_type: string
+                            type: eq
+                          - init:
+                                value: ru
+                                arg_name: country_code
+                                arg_type: string
+                            type: eq
+                          - init:
+                                value: "111111"
+                                arg_name: yandex_uid
+                                arg_type: string
+                            type: eq
+                    type: all_of
+                title: Такси (вебвью) - Россия
+                value:
+                    enabled: true
+                    purchase_type: WEBVIEW
+                    webview_params:
+                        postMessageVersion: "2"
+                        widget_service_name: taxi
+                        widget_subservice_name: plus_house
+            default_value:
+                enabled: false
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu", "state"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                    webview:
+                        url: "https://payment-widget.ott.yandex.ru/?postMessageVersion=2&lang=ru&widgetSubServiceName=plus_house&widgetServiceName=taxi&productIds=ru.yandex.plus.30min.autorenewable.native.web.notrial.debug&target=landing-taxi"
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+            menu_type: "NATIVE"
+            menu:
+                action_button:
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                    action: "PLUS.BUY.WEBVIEW"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить"
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []

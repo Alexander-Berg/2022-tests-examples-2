@@ -1,0 +1,38 @@
+id: test_get_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: post
+        headers:
+            X-Token: some_token
+            X-YaEda-PartnerId#string: 100
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true}
+
+mocks:
+  - resource: backend-service-vendor-v1-client-logout
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-v1-logout
+    response:
+        status-code: 200
+        body:
+            is_success: true
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_read: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 100

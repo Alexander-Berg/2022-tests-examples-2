@@ -1,0 +1,49 @@
+description: samples for taxi-partner-contracts
+settings:
+    collection: partner_flows
+    connection: misc
+    database: dbmisc
+indexes:
+  - key:
+      - name: country_code
+        type: ascending
+      - name: flow_name
+        type: ascending
+    unique: true
+wiki_info: |
+    #### partner_flows
+    *Назначение:* Коллекция содержит информацию о флоу для различных сценариев
+
+    *Структура документа:*
+    ```python
+      partner_flow = {
+        # обязательные атрибуты
+
+        # идентификатор документа
+        '_id': '9c82a2f81b044fe6bfbc21a2eccbfa0a',
+        # имя семпла
+        'flow_name': 'close_contract_refresh_oferta_corporate',
+        # код страны, в которой действует флоу. может быть значение __default__,
+        # что означает применимость во всех странах
+        'country_code': 'rus',
+        # этапы данного флоу
+        'stages': [
+          {
+            # id стейджа внутри флоу
+            'code': 'newreq',
+            # список финальных семплов (от которых не зависят другие сэмплы)
+            'sample_names': [
+               'clid_to_db_rus_selfemployed',
+               'rus_selfemploed_data_to_introvert',
+               'rus_data_to_selfemplyed'
+            ],
+            # имя фолбэк семпла, который будет выполнен, если на каком-то из
+            # этапов выполнения сэмплов произойдет ошибка
+            'fallback_sample': 'introvert_fallback_selfemployed_rus'
+          },
+          ...
+        ],
+        # автоматический запуск процесса регистрации после создания заявки
+        'is_automate_registration': true
+      }
+    ```

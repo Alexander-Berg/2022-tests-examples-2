@@ -1,0 +1,46 @@
+description: antifraud_proc
+settings:
+    collection: antifraud_proc
+    connection: processing_antifraud
+    database: dbprocessing_antifraud
+indexes:
+  - key:
+      - name: main_card_payment_id
+        type: ascending
+  - key: updated
+  - key:
+      - name: user_phone_id
+        type: ascending
+  - key:
+      - name: user_uid
+        type: ascending
+wiki_info: |
+    ```python
+    antifraud_proc = {
+        'antifraud_start_sum': 200000    #   - первоначально списанная сумма антифрода представленная во внутреннем формате суммы
+        'check_card_is_finished': True,  #   - флаг, показывающий, что проверка процедура проверки карты завершена
+        'antifraud_finished': True,      #   - флаг, показывающий, что процедура антифрода завершена
+        'antifraud_group': 2             #   - группа пользователя антифрода (NEWBIE - 2, OLDSCHOOL - 3)
+        'allowed_debt_by_config': True   #   - возможность пользователю ехать в долг (устанавливается до начала списывания денег антифродом)
+        'antifraud_stop_reason': 'payment_fail' # - Причина остановки антифрода
+        'need_cvn': True                 #   - еще один флаг причины остановки антифрода
+        'main_card_payment_id': 'card-x988b7513b1b4235fb392377a' # payment_id карты
+        'payment_type': 'card'           #   - тип способа оплаты
+        'debt': True                     #   - является ли заказ долговым
+        'taxi_status': 'waiting'         #   - текущий статус заказа
+        'status': 'pending'              #   - текущий статус заказа
+        'user_uid': '23434793'           #   - пользовательский uid
+
+    ```
+
+    ##### antifraud_stop_reason
+
+    ```python
+    ANTIFRAUD_STATUS_FINISHED = 'finished'
+    ANTIFRAUD_STATUS_DISABLED = 'disabled'
+    ANTIFRAUD_STATUS_WORKING = 'working'
+    ANTIFRAUD_STATUS_PAYMENT_FAIL = 'payment_fail'
+    ANTIFRAUD_STATUS_PAYMENT_FAIL_DEBT_ALLOWED = 'payment_fail_debt_allowed'
+    ANTIFRAUD_STATUS_BILLING_ERROR = 'billing_error'
+    ANTIFRAUD_STATUS_MOVED_TO_ACCEPT = 'moved_to_accept'
+    ```

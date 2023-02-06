@@ -1,0 +1,141 @@
+default:
+    enable: false
+    services:
+      - enable: false
+        name: taxi_fleet
+        rpm: 100
+        urls:
+          - url: /api/v1/work-rules_GET
+            rpm: 50
+    users:
+        enable: false
+        rpm: 100
+    parks:
+        enable: false
+description: Включить rate limiter. Все основано на X-Yandex-UID в рамках контейнера.
+maintainers: [tarasalk]
+tags: ['notfallback']
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enable
+      - services
+      - users
+      - parks
+    properties:
+        enable:
+            description: Глобальный выключатель
+            type: boolean
+        services:
+            $ref: '#/definitions/Services'
+        users:
+            $ref: '#/definitions/Users'
+        parks:
+            $ref: '#/definitions/Parks'
+
+    definitions:
+        Services:
+            description: Массив сервисов
+            type: array
+            items:
+                $ref: '#/definitions/ServiceItem'
+        ServiceItem:
+            type: object
+            additionalProperties: false
+            required:
+              - enable
+              - name
+            properties:
+                enable:
+                    description: Включить для сервиса
+                    type: boolean
+                name:
+                    description: Имя сервиса. Например taxi_fleet
+                    type: string
+                rpm:
+                    description: Кол-во запросов в минуту для сервиса
+                    type: integer
+                urls:
+                    $ref: '#/definitions/Urls'
+        Urls:
+            type: array
+            items:
+                $ref: '#/definitions/UrlItem'
+        UrlItem:
+            type: object
+            additionalProperties: false
+            required:
+              - url
+              - rpm
+            properties:
+                url:
+                    description: Какой конкретно URL ограничить
+                    type: string
+                rpm:
+                    description: Кол-во запросов в минуту для URL
+                    type: integer
+
+        Users:
+            type: object
+            additionalProperties: false
+            required:
+              - enable
+            properties:
+                enable:
+                    description: Включить глобально по юзерам
+                    type: boolean
+                rpm:
+                    description: Кол-во запросов в минуту для юзера
+                    type: integer
+                logins:
+                    $ref: '#/definitions/Logins'
+        Logins:
+            type: array
+            items:
+                $ref: '#/definitions/LoginItem'
+        LoginItem:
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - rpm
+            properties:
+                login:
+                    description: Какой конкретно логин ограничить
+                    type: string
+                rpm:
+                    description: Кол-во запросов в минуту для логина
+                    type: integer
+
+        Parks:
+            type: object
+            additionalProperties: false
+            required:
+              - enable
+            properties:
+                enable:
+                    description: Включить глобально по паркам
+                    type: boolean
+                rpm:
+                    description: Кол-во запросов в минуту для парка
+                    type: integer
+                park_ids:
+                    $ref: '#/definitions/ParkIds'
+        ParkIds:
+            type: array
+            items:
+                $ref: '#/definitions/ParkIdItem'
+        ParkIdItem:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - rpm
+            properties:
+                id:
+                    description: Какой конкретно парк ограничить
+                    type: string
+                rpm:
+                    description: Кол-во запросов в минуту для парка
+                    type: integer

@@ -1,0 +1,90 @@
+data:
+    name: GithubMergeDiffProposalWithoutPR
+    provider_name: clownductor
+    job_vars:
+      - diff_proposal
+      - st_ticket
+    stages:
+      - name: GithubGenerateBasicInfo
+        provider_name: clownductor
+        input:
+            diff_proposal: diff_proposal
+            st_ticket: st_ticket
+        output:
+            user: user
+            repo: repo
+            changes_title: changes_title
+            base_branch_name: base_branch_name
+            head_branch_name: head_branch_name
+            diff_proposal_sha: diff_proposal_sha
+      - name: GithubFetchLatestCommit
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            branch_name: base_branch_name
+        output:
+            base_commit_sha: commit_sha
+            base_tree_sha: tree_sha
+      - name: GithubCreateBranch
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            base_commit_sha: base_commit_sha
+            branch_name: head_branch_name
+        output:
+            head_commit_sha: commit_sha
+      - name: GithubCreateBlobs
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            diff_proposal: diff_proposal
+            diff_proposal_sha: diff_proposal_sha
+        output:
+            blobs_sha_by_filepaths: blobs_sha_by_filepaths
+      - name: GithubCreateTreeFromBlobs
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            diff_proposal: diff_proposal
+            base_tree_sha: base_tree_sha
+            blobs_sha_by_filepaths: blobs_sha_by_filepaths
+        output:
+            head_tree_sha: tree_sha
+      - name: GithubCreateCommit
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            tree_sha: head_tree_sha
+            message: changes_title
+            parent_commit_sha: base_commit_sha
+        output:
+            head_commit_sha: commit_sha
+      - name: GithubMoveBranchHead
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            branch_name: head_branch_name
+            commit_sha: head_commit_sha
+        output: {}
+      - name: GithubMergeBranch
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            base_branch_name: base_branch_name
+            head_branch_name: head_branch_name
+        output:
+            merge_sha: merge_sha
+      - name: GithubDeleteBranch
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            branch_name: head_branch_name
+        output: {}

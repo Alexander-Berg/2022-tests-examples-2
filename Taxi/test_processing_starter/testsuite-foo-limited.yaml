@@ -1,0 +1,20 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: foo
+        stq-queue: testsuite_foo
+        stq-starter: testsuite_starter
+        limits:
+            max-events-soft: 2
+        static-event-traits:
+            is-create#equal:
+              - value#xget: /event/payload/kind
+              - value#string: create
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages: []

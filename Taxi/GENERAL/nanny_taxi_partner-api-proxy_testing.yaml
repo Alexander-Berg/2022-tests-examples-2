@@ -1,0 +1,44 @@
+clownductor_config: taxi:partner-api-proxy:testing
+http_hosts:
+  - partner-api-proxy.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http:
+        collapsed: true
+  - fallbacks:
+        services:
+          - partner-api-proxy
+  - fallback_error_rates:
+        services:
+          - partner-api-proxy
+        fallback_names:
+          - 'resource.*.fallback'
+          - 'resource.*.fallback.retries'
+          - 'resource.*.fallback.throttle'
+  - statistics_rps_limiter:
+        service_name: rate-limiter-proxy
+        limiter_name: partner-api-proxy-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        version: 2
+        collapsed: true
+  - statistics_rps_limiter:
+        service_name: partner-api-proxy
+        limiter_name: api-proxy-resource-limiter
+        panel_name: Resources rps limiter
+        collapsed: true
+  - userver_httpclient:
+        uservice_name: partner-api-proxy
+  - userver_httpclient_destinations:
+        uservice_name: partner-api-proxy
+        collapsed: true
+  - userver_task_processors:
+        uservice_name: partner-api-proxy
+        collapsed: true
+  - userver_common:
+        uservice_name: partner-api-proxy
+        hide:
+          - httpclient
+          - httpclient_destinations
+          - task_processors
+        collapsed: true

@@ -1,0 +1,35 @@
+id: error
+title: errors in int-api
+
+parameters:
+  - error:
+      - code: 400
+        message: bad request
+      - code: 500
+        message: server error
+
+source:
+    request:
+        method: post
+        url: /fleet/integration/turboapp/v1/orders/search
+        headers:
+            X-Park-Id: park_id
+            X-Personal-Phone-Id: pd_id
+        body:
+            some: request
+            user:
+                user_id: some_user
+    expectations:
+        response:
+            status-code#xget: /test-params/error/code
+            body:
+                error#xget: /test-params/error/message
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code#xget: /test-params/error/code
+        body:
+            error#xget: /test-params/error/message
+    expectations:
+        call-count: 1

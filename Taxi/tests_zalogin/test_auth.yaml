@@ -1,0 +1,563 @@
+type: apitest
+version: 0
+service: taxi_zalogin
+
+marks:
+  - name: now
+    args:
+      - "2019-04-01T03:37:38+0000"
+
+mockserver:
+  - url: /blackbox
+    response:
+        body:
+            users:
+              - aliases: {"10": "phne-4pvm324n"}
+                dbfields: {"subscription.suid.669": ""}
+                have_hint: false
+                have_password: false
+                id: "4031979996"
+                karma: {"value": 0}
+                karma_status: {"value": 0}
+                login: ""
+                phones:
+                  - id: "1111"
+                    attributes:
+                        102: "+70001112233"
+                        107: "1"
+                        4: {"$param": {"name": "confirmation_time", "default": "1556681858"}}
+                uid: {"hosted": false, "lite": false, "value": "123"}
+
+  - url: /personal/v1/phones/retrieve
+    request:
+        body:
+            id: "personal_phone"
+            primary_replica: false
+    response:
+        body:
+            id: '557f191e810c19729de860ea'
+            value: '+70001112233'
+
+  - url: /antifraud/client/user/is_spammer/auth
+    response:
+        body:
+            is_spammer:
+                $param:
+                    name: is_spammer
+                    default: false
+            blocked_until: "2019-12-06T20:22:00+0000"
+
+  - url: /user-api/user_phones
+    request:
+        body:
+            phone: "+70001112233"
+            type: "yandex"
+            validate_phone: false
+    response:
+        body:
+            personal_phone_id: "personal_phone"
+            phone: "+70001112233"
+            id: "557f191e810c19729de860ea"
+            stat:
+                big_first_discounts: 0
+                complete: 0
+                complete_card: 0
+                complete_apple: 0
+                complete_google: 0
+                total: 0
+                fake: 0
+            is_loyal: false
+            is_yandex_staff: false
+            is_taxi_staff: false
+            phone_hash:
+                $param:
+                    name: hash
+                    default: "0069674ce10c834e2449eedd6df483cd3dd27714c29cd432a8f799d77dba441f"
+            phone_salt:
+                $param:
+                    name: salt
+                    default: "cHVibGljIHNhbHQ="
+            type: "yandex"
+
+  - url: /user-api/users/get_authinfo
+    response:
+        body:
+            confirmation_code: "6969"
+            phone_id: "557f191e810c19729de860ea"
+            confirmation_attempts:
+                $param:
+                    name: attempts_in_mongo
+                    default: 1
+            authorized:
+                $param:
+                    name: is_authorized_in_mongo
+                    default: false
+
+  - url: /user-api/users/set_confirmation_code
+    response:
+        body: {}
+
+  - url: /user-api/users/set_authorized
+    response:
+        body: {}
+
+  - url: /user-authconfirm/v0/auth
+    response:
+        body: {}
+
+  - url: /ucommunications/user/sms/send
+    response:
+        body: {}
+
+  - url: /user-api/users/get
+    response:
+        body:
+            id: "user_id"
+            yandex_uid: "123"
+            yandex_cookie: "YANDEX_COOKIE"
+            authorized:
+                $param:
+                    name: is_authorized_in_mongo
+                    default: false
+
+  - url: /social/api/special/who_shares_taxi_data_v2
+    response:
+        body:
+            status: "ok"
+            accounts:
+                ya:
+                  - phones: [{'number': '+70000040002', 'confirmed': 1556681858}]
+                    userid: '4000000001'
+                  - phones: [{'number': '+70000049999', 'confirmed': 1556681858}]
+                    userid: '4000009999'
+
+  - url: /user-api/user_phones/bulk
+    response:
+        body:
+            items:
+              - id: '557f191e810c19729de860ea'
+                phone: '+70001112233'
+                type: 'yandex'
+                phone_hash: '0069674ce10c834e2449eedd6df483cd3dd27714c29cd432a8f799d77dba441f'
+                phone_salt: 'cHVibGljIHNhbHQ='
+              - id: '539e99e1e7e5b1f5397adc5d'
+                phone: '+70000040002'
+                type: 'yandex'
+                phone_hash: '6cfe23ffb9fbae9f3de133a374c6fd302d3936385f10c1b2d62f97057d535df8'
+                phone_salt: 'cHVibGljIHNhbHQ='
+              - id: '5d2f33f391272f03f6c723ed'
+                phone: '+70000049999'
+                type: 'yandex'
+                phone_hash: '2174553ff48ae26835f03805347fa068baa9c50179878aa7c61fac66cbf34089'
+                phone_salt: 'cHVibGljIHNhbHQ='
+
+tests:
+  - name: auth_wrong_id
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "wrong_id", "phone": "+70001112233"}
+    mockserver:
+      - url: /user-api/users/get_authinfo
+        response:
+            status: 404
+            body: {"code": "404", "message": "No user with id wrong_id"}
+    response:
+        status: 401
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+
+  - name: auth_wrong_phone_format
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "wrong_id", "phone": "799999"}
+    response:
+        status: 400 # invalid phone format
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+
+  - name: auth_wrong_id
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "spammer_user_id", "phone": "+70001112233"}
+    params:
+        is_spammer: true
+    response:
+        status: 403
+        body: {"blocked": "2019-12-06T20:22:00+0000"}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+
+  - name: auth_success_user_authconfirm
+    marks:
+      #      always returns true, so check user-authconfirm part code
+      - name: experiments3
+        kwargs:
+            filename: "exp3_auth.json"
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            User-Agent: "yandex-taxi/3.113.0.85658 Android/9 (OnePlus; ONEPLUS A5010)"
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    response:
+        status: 200
+        body: {}
+    mockserver:
+      - url: /user-authconfirm/v0/auth
+        request:
+            headers:
+                User-Agent: "yandex-taxi/3.113.0.85658 Android/9 (OnePlus; ONEPLUS\
+                    \ A5010)"
+        response:
+            body: {}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+      - type: mockserver-called
+        url: /user-authconfirm/v0/auth
+        times: 1
+
+  - name: auth_alreary_authorized_in_mongo_user_authconfirm
+    marks:
+      #      always returns true, so check user-authconfirm part code
+      - name: experiments3
+        kwargs:
+            filename: "exp3_auth.json"
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    params:
+        is_authorized_in_mongo: true
+    response:
+        status: 200
+        body: {"authorized": true}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+      - type: mockserver-called
+        url: /user-api/users/get_authinfo
+        times: 1
+
+  - name: auth_failure_user_authconfirm
+    marks:
+      #      always returns true, so check user-authconfirm part code
+      - name: experiments3
+        kwargs:
+            filename: "exp3_auth.json"
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "", "phone": "+70001112233"}
+    mockserver:
+      - url: /user-api/users/set_authorized
+        response:
+            status: 404
+            body: {"code": "404", "message": "No user with such user_id"}
+    response:
+        status: 401
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 0
+
+  - name: auth_success_protocol
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    response:
+        status: 200
+        body: {}
+
+  - name: authorized_already_protocol
+    request:
+        method: POST
+        path: v1/auth
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    params:
+        is_authorized_in_mongo: true
+    response:
+        status: 200
+        body: {"authorized": true}
+
+  - name: auth_by_sid_info
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "123"
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "credentials=session"
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    response:
+        status: 200
+        body: {"authorized": true}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+
+  - name: auth_by_sid_info_no_ya_uid
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "credentials=session"
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    response:
+        status: 401
+        body: {"code": "401", "message": "yandex_uid not found in user doc"}
+
+  - name: auth_by_sid_info_no_match_for_ya_uid
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "321"
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "credentials=session"
+        body: {"id": "correct_user_id", "phone": "+70001112233"}
+    response:
+        status: 401
+        body: {"code": "401", "message": "yandex_uid does not match with db"}
+
+  - name: auth_by_token_phonish
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "123"
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "phonish,credentials=token-bearer"
+        body: {"id": "557f191e810c19729de860ea", "phone": "+70001112233"}
+    response:
+        status: 200
+        body: {"authorized": true}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+
+  - name: auth_by_token_portal_from_passport
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "123"
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+        body: {"id": "557f191e810c19729de860ea", "phone": "+70001112233"}
+    response:
+        status: 200
+        body: {"authorized": true}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+
+  - name: auth_by_token_portal_from_social
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "123"
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+        body: {"id": "539e99e1e7e5b1f5397adc5d", "phone": "+70000040002"}
+    mockserver:
+      - url: /user-api/user_phones
+        response:
+            body:
+                personal_phone_id: "personal_phone"
+                phone: "+70000040002"
+                id: "539e99e1e7e5b1f5397adc5d"
+                stat:
+                    big_first_discounts: 0
+                    complete: 0
+                    complete_card: 0
+                    complete_apple: 0
+                    complete_google: 0
+                    total: 0
+                    fake: 0
+                is_loyal: false
+                is_yandex_staff: false
+                is_taxi_staff: false
+                phone_hash: "6cfe23ffb9fbae9f3de133a374c6fd302d3936385f10c1b2d62f97057d535df8"
+                phone_salt: "cHVibGljIHNhbHQ="
+                type: "yandex"
+    response:
+        status: 200
+        body: {"authorized": true}
+    assertions:
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+        times: 1
+
+  - name: check_personal_retrieve_args
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "123"
+            X-Ya-User-Ticket: tvm-user-ticket
+            X-YaTaxi-Pass-Flags: "phonish,credentials=token-bearer"
+        body: {"id": "557f191e810c19729de860ea", "phone": "+70001112233"}
+    params:
+        salt:
+        hash:
+    response:
+        status: 200
+        body: {"authorized": true}
+
+  - name: change_portal_phone
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - aliases: {"10": "phne-4pvm324n"}
+                    dbfields: {"subscription.suid.669": ""}
+                    id: "4031979996"
+                    uid: {"value": "123"}
+                    phones:
+                      - id: "1111"
+                        attributes:
+                            102: "+70001112233"
+                            107: "1"
+                            4: {"$param": {"name": "confirmation_time", "default": "1556681858"}}
+                      - id: "2222"
+                        attributes:
+                            102: "+70001112244"
+                            4: "1556681850"
+
+      - url: /user-api/user_phones
+        request:
+            body:
+                phone: "+70001112244"
+                type: "yandex"
+                validate_phone: false
+        response:
+            body:
+                personal_phone_id: "personal_phone"
+                phone: "+70001112244"
+                id: "5bc05935030553e658000111"
+                stat:
+                    big_first_discounts: 0
+                    complete: 0
+                    complete_card: 0
+                    complete_apple: 0
+                    complete_google: 0
+                    total: 0
+                    fake: 0
+                is_loyal: false
+                is_yandex_staff: false
+                is_taxi_staff: false
+                phone_hash: "985e7d9e8dbd83b98fddf41fbd2fc704f2742b0164cdb8cdefab56c8006185b2"
+                phone_salt: "cHVibGljIHNhbHQ="
+                type: "yandex"
+
+      - url: /user-api/users/get_authinfo
+        request:
+            body:
+                id: "request-user-id"
+        response:
+            body:
+                confirmation_code: "6969"
+                phone_id: "5bc05935030553e658000000"
+                confirmation_attempts: 1
+                authorized: true
+
+      - url: /user-api/users/set_authorized
+        request:
+            body:
+                id: "request-user-id"
+                authorized: true
+                phone_id: "5bc05935030553e658000111"
+        response:
+            body: {}
+
+      - url: /social/api/special/who_shares_taxi_data_v2
+        response:
+            body:
+                status: "ok"
+                accounts:
+                    ya: []
+
+      - url: /user-api/user_phones/bulk
+        response:
+            body:
+                items:
+                  - id: '5bc05935030553e658000000'
+                    phone: '+70001112233'
+                    type: 'yandex'
+                    phone_hash: '0069674ce10c834e2449eedd6df483cd3dd27714c29cd432a8f799d77dba441f'
+                    phone_salt: 'cHVibGljIHNhbHQ='
+                  - id: '5bc05935030553e658000111'
+                    phone: '+70001112244'
+                    type: 'yandex'
+                    phone_hash: '985e7d9e8dbd83b98fddf41fbd2fc704f2742b0164cdb8cdefab56c8006185b2'
+                    phone_salt: 'cHVibGljIHNhbHQ='
+    request:
+        method: POST
+        path: v1/auth
+        headers:
+            X-Yandex-UID: "123"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=token-bearer"
+        body: {"id": "request-user-id", "phone": "+70001112244"}
+    response:
+        status: 200
+        body: {"authorized": true}
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /antifraud/client/user/is_spammer/auth
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/users/get_authinfo
+      - type: mockserver-called
+        url: /user-api/users/set_confirmation_code
+        times: 0
+      - type: mockserver-called
+        url: /user-api/users/set_authorized
+      - type: mockserver-called
+        url: /user-authconfirm/v0/auth
+        times: 0
+      - type: mockserver-called
+        url: /ucommunications/user/sms/send
+        times: 0
+      - type: mockserver-called
+        url: /user-api/users/get
+        times: 0
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+      - type: mockserver-called
+        url: /user-api/user_phones/bulk

@@ -1,0 +1,49 @@
+id: test_restaurant_menu_err
+title: Проверяем обработку ошибок если включен поход в retrieve
+
+source:
+    request:
+        method: get
+        query:
+            aaa: bbb
+        url: /4.0/eda-superapp/api/v2/menu/retrieve/ccc
+        headers:
+            X-aaa: x-bbb
+            X-Device-Id: deice_id
+            X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+    expectations:
+        response:
+            status-code: 500
+            body:
+                err: err_data
+
+mocks:
+  - resource: eats-restaurant-menu-retrieve
+    response:
+        status-code: 500
+        body:
+            err: err_data
+    expectations:
+        call-count: 1
+        request:
+            query:
+                aaa: bbb
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+experiments:
+    values#object:
+      - key: use_eats_restaurant_menu_reterive
+        value:
+            enabled: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: device_id
+            type: string
+            value: deice_id
+          - key: personal_phone_id
+            type: string
+            value: phone_id

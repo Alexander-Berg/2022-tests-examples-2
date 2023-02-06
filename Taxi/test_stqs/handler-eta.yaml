@@ -1,0 +1,37 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: default
+            stages:
+              - id: default-stage
+                handlers:
+                  - id: default-format-handler
+                    stqs:
+                      - queue: testsuite_example
+                        task_id: some-default-task
+                        eta:
+                            timestamp#xget: /event/payload/stqs_default_timestring
+                    result:
+                        default-handler-resp: ok
+                  - id: custom-format-handler
+                    stqs:
+                      - queue: testsuite_example
+                        task_id: some-custom-task
+                        eta:
+                            timestamp#xget: /event/payload/stqs_custom_timestring
+                            format: "%H:%M:%S %Y-%m-%d"
+                    result:
+                        custom-handler-resp: ok

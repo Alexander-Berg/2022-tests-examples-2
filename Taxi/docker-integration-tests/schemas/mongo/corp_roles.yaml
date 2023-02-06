@@ -1,0 +1,65 @@
+settings:
+    collection: roles
+    connection: corp
+    database: dbcorp
+indexes:
+  - key:
+      - name: client_id
+        type: ascending
+      - name: department_id
+        type: ascending
+      - name: name
+        type: ascending
+    unique: true
+  - key:
+      - name: client_id
+        type: ascending
+      - name: is_cabinet_only
+        type: ascending
+    partialFilterExpression:
+        is_cabinet_only:
+            $eq: true
+    unique: true
+  - key: updated
+    sparse: true
+wiki_info: |
+    #### corp_roles
+
+    *Назначение:* содержит информацию о ролях корпоративных пользователей.
+    Роли ограничивают лимит суммарной стоимости поездок пользователей в месяц и
+    категории машин (эконом, бизнес, etc.).
+
+    *Структура документа*:
+    ```python
+    {
+        # id роли
+        '_id': 'fe40e0327c6f4c32adad34cbc6329fa2',
+
+        # имя роли, обязательное поле
+        'name': 'some role',
+
+        # id корп клиента, обязательное поле
+        'client_id': '7ff7900803534212a3a66f4d0e114fc2',
+
+        # лимит суммарной стоимости поездок в месяц, обязательное поле
+        'limit': 6000,
+
+        # разрешенные для заказа категории машин, обязательное поле
+        'classes': [
+            'econom',
+            'comfort'
+        ],
+
+        # Флаг заказа только через кабинет, опциональное поле
+        'is_cabinet_only': False,
+
+        # id департамента, к которому привязана роль, опциональное поле
+        'department_id': 'e408b7e62a964cedb677952f600d5b08',
+
+        # время создания записи крон-задачи
+        'created': datetime.datetime(2016, 6, 2, 21, 58),
+
+        # время последнего обновления записи крон-задачи
+        'updated': datetime.datetime(2016, 6, 2, 21, 58)
+    }
+    ```

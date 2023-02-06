@@ -1,0 +1,24 @@
+pcidss_routes:
+  - input:
+        http-path-prefix: '/v1/card/pin/set'
+    output:
+        attempts: 1
+        timeout-ms: 6000
+        upstream: 'http://bank-card-pcidss.back.svc.cluster.local'
+    proxy:
+        only-passport-auth: false
+        proxy-401: false
+        server-hosts: ['*']
+  - input:
+        http-path-prefix: '/v1/card/details/get'
+    output:
+        attempts: 2
+        timeout-ms: 1500
+        upstream: 'http://bank-card-pcidss.back.svc.cluster.local'
+    proxy:
+        only-passport-auth: false
+        proxy-401: false
+        server-hosts: ['*']
+bank-userinfo-client-base-url: https://bank-userinfo.back.k8s-uat.npe.yandex-bank.net
+config_server_url: https://uconfigs.back.k8s-uat.npe.yandex-bank.net
+statistics-client-base-url: https://statistics.back.k8s-uat.npe.yandex-bank.net

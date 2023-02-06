@@ -1,0 +1,225 @@
+default: {}
+description: Конфигурации компаний для crm-hub
+maintainers:
+  - enedostupov
+tags: ['notfallback']
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Campaign'
+    properties:
+        __default__:
+            $ref: '#/definitions/Campaign'
+
+    definitions:
+        ExtraParams:
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: any extra payload
+
+        Policy:
+            type: object
+            additionalProperties: false
+            required:
+              - ttl_sec
+              - delay_sec
+              - antispam_local_sec
+              - antispam_total_sec
+              - start_time
+              - end_time
+            properties:
+                delay_sec:
+                    type: integer
+                ttl_sec:
+                    type: integer
+                antispam_local_sec:
+                    type: integer
+                antispam_total_sec:
+                    type: integer
+                start_time:
+                    type: string
+                    pattern: "^(([0-1][0-9])|([2][0-3])):([0-5][0-9])$"
+                end_time:
+                    type: string
+                    pattern: "^(([0-1][0-9])|([2][0-3])):([0-5][0-9])$"
+
+        TankerObject:
+            type: object
+            additionalProperties: false
+            required:
+              - keyset
+              - key
+            properties:
+                keyset:
+                    type: string
+                key:
+                    type: string
+                params:
+                    $ref: '#/definitions/ExtraParams'
+
+        UserPushInfo:
+            type: object
+            additionalProperties: false
+            properties:
+                channel_name:
+                    type: string
+                    enum:
+                      - user_push
+                text:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                title:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                deeplink:
+                    type: string
+                payload_extra:
+                    $ref: '#/definitions/ExtraParams'
+                intent:
+                    type: string
+                is_silent:
+                    type: boolean
+                is_survey:
+                    type: boolean
+
+        DriverPushInfo:
+            type: object
+            additionalProperties: false
+            properties:
+                channel_name:
+                    type: string
+                    enum:
+                      - driver_push
+                text:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                action_title:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                action_link:
+                    type: string
+                code:
+                    type: integer
+                    enum:
+                      - 100
+                      - 1300
+                action:
+                    type: string
+                    enum:
+                      - PersonalOffer
+                      - MessageNew
+                need_notification:
+                    type: boolean
+                title:
+                    type: string
+                flags:
+                    type: array
+                    items:
+                        type: string
+                format:
+                    type: integer
+
+        SmsInfo:
+            type: object
+            additionalProperties: false
+            properties:
+                channel_name:
+                    type: string
+                    enum:
+                      - user_sms
+                      - driver_sms
+                message:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                intent:
+                    type: string
+
+        DriverWallInfo:
+            type: object
+            additionalProperties: false
+            properties:
+                channel_name:
+                    type: string
+                    enum:
+                      - driver_wall
+                text:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                title:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                teaser:
+                    oneOf:
+                      - type: string
+                      - $ref: '#/definitions/TankerObject'
+                format:
+                    type: string
+                    enum:
+                      - Raw
+                      - Markdown
+                type:
+                    type: string
+                    enum:
+                      - newsletter
+                      - survey
+                      - dsat
+                url:
+                    type: string
+                image_id:
+                    type: string
+                dsat_action:
+                    type: string
+                important:
+                    type: boolean
+                alert:
+                    type: boolean
+                dom_storage:
+                    type: boolean
+                notification_mode:
+                    type: string
+                    enum:
+                      - normal
+                expires:
+                    type: string
+
+        Campaign:
+            type: object
+            additionalProperties: false
+            properties:
+                description:
+                    type: string
+                owner:
+                    type: string
+                entity_type:
+                    type: string
+                is_active:
+                    type: boolean
+                channel:
+                    type: string
+                channel_info:
+                    oneOf:
+                      - $ref: '#/definitions/UserPushInfo'
+                      - $ref: '#/definitions/DriverPushInfo'
+                      - $ref: '#/definitions/SmsInfo'
+                      - $ref: '#/definitions/DriverWallInfo'
+                    discriminator:
+                        propertyName: channel_name
+                        mapping:
+                            user_push: '#/definitions/UserPushInfo'
+                            driver_push: '#/definitions/DriverPushInfo'
+                            user_sms: '#/definitions/SmsInfo'
+                            driver_sms: '#/definitions/SmsInfo'
+                            driver_wall: '#/definitions/DriverWallInfo'
+                delay_sec:
+                    type: integer
+                policy:
+                    $ref: '#/definitions/Policy'
+                experiment:
+                    type: string

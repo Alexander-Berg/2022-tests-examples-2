@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi arcadia-userver-test Service
+    title: Yandex Taxi arcadia-userver-test Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: arcadia-userver-test.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: ARCADIA_USERVER_TEST_CLIENT_QOS
+
+# TODO: describe your handlers here
+#       you may split handlers to multiple docs/yaml/api/*.yaml files
+#       and store common types in docs/yaml/definitions.yaml
+#
+#       Codegen docs:
+#           https://wiki.yandex-team.ru/taxi/backend/userver/codegen/handlers/
+#           https://wiki.yandex-team.ru/taxi/backend/userver/codegen/types/
+#       API guide:
+#           https://wiki.yandex-team.ru/taxi/backend/Taxi-API-Guide/
+paths:
+    /experiments/try:
+        post:
+            summary: Maybe return experiment value for some inputs
+            requestBody:
+                description: input data
+                required: true
+                content:
+                    text/plain:
+                        schema:
+                            type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/StringValueSchema'
+
+components:
+    schemas:
+        StringValueSchema:
+            type: object
+            additionalProperties: false
+            required:
+              - value
+            properties:
+                value:
+                    type: string

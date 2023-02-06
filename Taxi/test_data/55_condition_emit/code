@@ -1,0 +1,25 @@
+if (fix.coupon as coupon) {
+  if (coupon.valid) {
+    let price = *ride.price;
+    let meta = ["price_before_coupon": round_to(price, fix.rounding_factor)];
+
+    if (price >= 0.0001) {
+      if (coupon.percent as percent) {
+        let percent_value = price * percent / 100;
+        if (coupon.limit as limit) {
+          let coupon_value = (limit < percent_value) ? limit : percent_value;
+          let result = price - coupon_value;
+          return concat(ride.price * (((result > 0) ? result : 0) / price), {metadata = meta });
+        }
+        let result = price - percent_value;
+        return concat(ride.price * (((result > 0) ? result : 0) / price), {metadata = meta });
+      }
+      let result = price - coupon.value;
+      return concat(ride.price * (((result > 0) ? result : 0) / price), {metadata = meta });
+    }
+
+    return {metadata = meta };
+  }
+}
+
+return ride.price;

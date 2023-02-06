@@ -1,0 +1,54 @@
+id: tolls
+title: Ответ tolls передается, если visible=true
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                toll_roads:
+                    visible: true
+                    has_toll_road: true
+                    can_switch_road: true
+                    auto_payment: false
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: use_toll_roads
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body: {}
+  - resource: tolls-v1-order-retrieve
+    response:
+        status-code: 200
+        body:
+            visible: true
+            has_toll_road: true
+            can_switch_road: true
+            auto_payment: false
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                order_id: 'order_id'
+            content-type: application/json

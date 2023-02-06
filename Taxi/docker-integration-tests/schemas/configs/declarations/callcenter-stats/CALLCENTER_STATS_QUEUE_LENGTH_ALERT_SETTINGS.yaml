@@ -1,0 +1,66 @@
+description: |
+    Настройки отправки оповещений о длине очереди:
+    enabled -- Включение периодической проверки состояния очередей и отправки нотификаций.
+    check_interval -- Период проверки состояния (в мс).
+    queued_state_delay -- Задержка (в мс), с которой звонок в состоянии "queued" учитывается.
+    Нужно, чтобы не моргать без причины, если звонок в состоянии queued провел, скажем, всего 20мс.
+    warn_threshold -- Минимальная длина очереди, чтобы зажечь WARN состояние.
+    crit_threshold -- Минимальная длина очереди, чтобы зажечь CRIT состояние.
+    notify_within_status -- Включить нотификацию об изменениях длины очереди внутри состояния (WARN/CRIT).
+    telegram_chat_id -- Идентификатор чата/группы/канала, в котороую отсылать нотификации.
+    telegram_msg_template -- Шаблон сообщения о состояния очереди. Сообщение о разных очередях склеивается в одно. Доступные параметры: status, queue, length.
+    telegram_msg_parse_mode -- Формат сообщения: plaintext/markdown/html, см. https://tlgrm.ru/docs/bots/api#formatting-options.
+default:
+    enabled: false
+    check_interval: 1000
+    queued_state_delay: 0
+    warn_threshold: 1
+    crit_threshold: 10
+    notify_within_status: false
+    telegram_chat_id: ''
+    telegram_msg_template: '{status} on {queue}: {length}'
+    telegram_msg_parse_mode: 'plaintext'
+tags: [notfallback]
+maintainers: [victormed]
+schema:
+    type: object
+    properties:
+        enabled:
+            type: boolean
+        check_interval:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 100
+        queued_state_delay:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 0
+        warn_threshold:
+            type: integer
+            minimum: 1
+        crit_threshold:
+            type: integer
+            minimum: 1
+        notify_within_status:
+            type: boolean
+        telegram_chat_id:
+            type: string
+        telegram_msg_template:
+            type: string
+        telegram_msg_parse_mode:
+            type: string
+            enum:
+              - plaintext
+              - markdown
+              - html
+    additionalProperties: false
+    required:
+      - enabled
+      - check_interval
+      - queued_state_delay
+      - warn_threshold
+      - crit_threshold
+      - notify_within_status
+      - telegram_chat_id
+      - telegram_msg_template
+      - telegram_msg_parse_mode

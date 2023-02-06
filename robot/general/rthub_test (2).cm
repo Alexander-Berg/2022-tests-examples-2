@@ -1,0 +1,11 @@
+_scenario () {
+    MAIN yandex_deploy.start:
+    MAIN yandex_deploy.init:                            yandex_deploy.start
+
+    RUN_WAIT yandex_deploy.run.shard_deploy:            yandex_deploy.init
+
+    RUN_WAIT yandex_deploy.run.quality_acceptance:      yandex_deploy.run.shard_deploy [0->0]
+    MAIN yandex_deploy.save_state:                      yandex_deploy.run.quality_acceptance
+
+    MAIN yandex_deploy.finish:                          yandex_deploy.save_state mailto=$MAILTO smsto=$SMSTO
+}

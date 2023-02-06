@@ -1,0 +1,5 @@
+({
+    shouldDeps: [
+        'i-attribution'
+    ]
+})

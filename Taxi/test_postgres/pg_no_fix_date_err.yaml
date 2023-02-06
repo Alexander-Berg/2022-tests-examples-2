@@ -1,0 +1,31 @@
+name: pg_no_fix_date_err
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: updated_at
+    connection:
+        secret: conditioned
+    primary_key:
+      - id
+    table: date_table_err
+
+
+destinations:
+  - pg_no_fix_date_err:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    sort_order: ascending
+                  - input_column: created_at
+                    name: utc_created_dttm
+                    cast: datetime_to_datetime_format
+                    type: string
+                    sort_order: ascending
+                    description: Дата создания в UTC
+            path: pg_no_fix_date_err_raw
+            cluster_groups:
+              - map_reduce

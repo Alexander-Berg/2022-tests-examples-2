@@ -1,0 +1,204 @@
+description: chatterbox tasks for support
+settings:
+    collection: support_chatterbox
+    connection: misc
+    database: dbmisc
+indexes:
+  - key:
+      - name: created
+        type: descending
+      - name: updated
+        type: descending
+  - key: external_id
+  - key:
+      - name: external_id
+        type: ascending
+      - name: type
+        type: ascending
+    partialFilterExpression:
+        ambiguous_external_id:
+    unique: true
+  - key: history.created
+  - key:
+      - name: line
+        type: ascending
+      - name: updated
+        type: descending
+  - key: meta_info.calls.created_at
+    partialFilterExpression:
+        meta_info.calls:
+            $exists: true
+  - key: meta_info.calls.stat_created
+    partialFilterExpression:
+        meta_info.calls.stat_created:
+            $exists: true
+  - key: meta_info.car_number
+    partialFilterExpression:
+        meta_info.car_number:
+            $exists: true
+  - key: meta_info.city
+    partialFilterExpression:
+        meta_info.city:
+            $exists: true
+  - key: meta_info.clid
+    partialFilterExpression:
+        meta_info.clid:
+            $exists: true
+  - key: meta_info.device_model
+    partialFilterExpression:
+        meta_info.device_model:
+            $exists: true
+  - key: meta_info.driver_license
+    partialFilterExpression:
+        meta_info.driver_license:
+            $exists: true
+  - key: meta_info.driver_name
+    partialFilterExpression:
+        meta_info.driver_name:
+            $exists: true
+  - key: meta_info.driver_uuid
+    partialFilterExpression:
+        meta_info.driver_uuid:
+            $exists: true
+  - key: meta_info.order_id
+    partialFilterExpression:
+        meta_info.order_id:
+            $exists: true
+  - key: meta_info.park_db_id
+    partialFilterExpression:
+        meta_info.park_db_id:
+            $exists: true
+  - key: meta_info.park_name
+    partialFilterExpression:
+        meta_info.park_name:
+            $exists: true
+  - key: meta_info.taximeter_version
+    partialFilterExpression:
+        meta_info.taximeter_version:
+            $exists: true
+  - key: meta_info.user_email
+    partialFilterExpression:
+        meta_info.user_email:
+            $exists: true
+  - key:
+      - name: meta_info.user_phone
+        type: ascending
+  - key:
+      - name: status
+        type: ascending
+      - name: updated
+        type: ascending
+  - key: updated
+  - key: user_chat_message_id
+wiki_info: |
+    #### support_chatterbox
+    *Назначение:* Коллекция c тикетами Крутилки
+
+    *Структура документа:*
+    ```python
+    support_chatterbox = {
+        # Идентификатор записи
+        '_id' : ObjectId,
+        # Тип чата - чат с пользователем (client) или водителем (driver)
+        'chat_type': 'client',
+        # Таймстамп создания документа
+        'created': datetime.datetime,
+        # Время в секундах от начала диалога до первого ответа саппорта
+        'first_answer': 9129.0,
+        # Суммарное время, которое пользователь ожидал ответа саппорта
+        'full_resolve': 309178.0,
+        # История изменения тикета
+        'history': [
+            {
+              # Название действия (predispatch|take|close|update_meta и т.д.)
+              'action': 'close',
+              # Таймстамп выполнения действия
+              'created': datetime.datetime,
+              # Линия, на которой был тикет, в момент действия
+              'line': 'first',
+              # Логин саппорта выполнившего действие (для системных - superuser)
+              'login': 'dunaeva',
+              # ID комментария во внешней системе (например в стартреке)
+              'external_id': '100500',
+              # Только в действиях с первым ответом пользователю. Время в
+              # секундах от начала диалога до первого ответа саппорта
+              'first_answer': 9129.0,
+              # Суммарное время, которое пользователь ожидал ответа саппорта
+              'full_resolve': 309178.0,
+              # Только для действий человека. Сколько времени заняло действие.
+              # Время в секундах с момента take
+              'latency': 125.406037,
+              # Только для  действия update_meta. Какие поля в meta_info на
+              # какие значения поменялись
+              'meta_changes': [
+                    {
+                      # Тип изменения поля set | delete
+                      'change_type': 'set',
+                      # Названия поля в meta_info
+                      'field_name': 'zendesk_profile',
+                      # Новое значение поля в мете. Для разных полей может
+                      содержать данные разных типов
+                      'value': 'yataxi'
+                  }
+              ]
+              # Как изменились теги. Есть только в случае, когда теги
+              # действительно менялись
+              'tags_changes': [
+                  {
+                     # Тип изменения тегов add | delete
+                    'change_type': 'add',
+                     # Тег
+                    'tag': 'самый_вежливый_водитель'
+                  }
+              ]
+              # Открытый комментарий, который уходит как ответ пользователю)
+               'comment': 'Здравствуйте! Примем меры',
+              # Внутренний комментарий
+              'hidden_comment': 'двойная оплата'
+            }
+        ],
+        # Внутренние комментарии
+        'inner_comments': [
+          { # текст
+            'comment': 'task reopened because chat open',
+            # Таймстамп создания комментария
+            'created': datetime.datetime,
+            # Логин автора комментария
+            'login': 'ivanov'
+          }
+        ],
+        # Мета таска. Все поля опциональны, могут добавляться новые свойства
+        'meta_info': {
+            'app_vesrion': '3.80.0',
+            ....
+            'zendesk_profile': 'yataxi'
+        },
+        # Проекты к которым относится таск, возможны два значения taxi и eats
+        'projects': ['taxi'],
+        # Статус таска new|reopened и т.д.
+        'status': 'ready_to_archive',
+        # id тикета в Трекере. Появляется после экспорта или архивации
+        'startrack_ticket': 'YANDEXTAXI-1260051',
+        # Статус тикета в Трекере, с каким он был заведен при экспорте или
+        # архивации
+        'startrack_ticket_status': 'open',
+        # Ник саппорта, которому сейчас назначен таск или последний из саппортов
+        'support_admin': 'dunaeva',
+        # Теги
+        'tags': [
+          'lang_en',
+          'chat'
+        ],
+        # Тип external объекта, с которым связан таск
+        'type': 'chat'
+        # Таймстамп обновления документа
+        'updated': datetime.datetime,
+        # id чата из таблицы user_chat_messages, с которым связан таск
+        'user_chat_message_id': '5beef31045ca32c06548a5a7',
+        # id связанного тикета в Zendesk. Появляется после экспорта или архивации
+        'zendesk_ticket': 32148458,
+        # Статус тикета в Zendesk, с каким он был заведен при экспорте или
+        # архивации
+        'zendesk_ticket_status': 'open'
+    }
+    ```

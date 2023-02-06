@@ -1,0 +1,141 @@
+project-name: yandex-taxi-tags
+short-name: tags
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/tags/
+maintainers:
+  - Dmitrii Raspopov <mordeth@yandex-team.ru>
+  - Aleksei Kokhanov <kokhanov@yandex-team.ru>
+libraries:
+  - yandex-taxi-userver-core
+  - yandex-taxi-library-psql-orm
+  - yandex-taxi-userver-postgresql
+  - yandex-taxi-library-pg-cron
+  - yandex-taxi-library-infraver-concurrent
+  - yandex-taxi-library-ytlib
+  - yandex-taxi-library-yt-logger
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy: {}
+
+debian:
+    source_package_name: yandex-taxi-userver-tags
+    maintainer_name: Dmitrii Raspopov
+    maintainer_login: mordeth
+    dependencies:
+      - python3-yandex-pgmigrate
+
+tvm2:
+    secdist-service-name: tags
+
+secdist:
+    testsuite:
+        values:
+            settings_override:
+                TVM_SERVICES:
+                    tags:
+                        secret: "secret"
+                        id: 20
+                    passenger-tags:
+                        secret: "secret"
+                        id: 64
+            TAGS_YQL_TOKEN: "tags-robot-token"
+            YT_CONFIG:
+                token: "yt_token"
+
+units:
+  - uservice_unit:
+        name: tags
+        description: Tags service instance, responsible for driver entities tagging
+        hostname:
+            production:
+              - tags.taxi.yandex.net
+            testing:
+              - tags.taxi.tst.yandex.net
+            unstable:
+              - tags.taxi.dev.yandex.net
+
+        grafana:
+            production: TODO
+
+    tvm2:
+        secdist-service-name: tags
+
+    debian:
+        binary_package_name: yandex-taxi-tags
+
+    push-client:
+        files:
+            production:
+              - name: /var/log/yandex/taxi-tags/server.log
+                log_type: taxi-rtc-tags-yandex-taxi-tags-log
+                logrotate: false
+
+
+  - uservice_unit:
+        name: passenger-tags
+        description: Tags service instance, responsible for passenger entities tagging
+
+        hostname:
+            production:
+              - passenger-tags.taxi.yandex.net
+            testing:
+              - passenger-tags.taxi.tst.yandex.net
+            unstable:
+              - passenger-tags.taxi.dev.yandex.net
+
+        grafana:
+            production: TODO
+
+    tvm2:
+        secdist-service-name: passenger-tags
+
+    debian:
+        binary_package_name: yandex-taxi-passenger-tags
+
+    push-client:
+        files:
+            production:
+              - name: /var/log/yandex/taxi-tags/server.log
+                log_type: taxi-passenger-tags-yandex-taxi-passenger-tags-log
+                logrotate: false
+
+handlers:
+    autogenerate: true
+
+flatbuffers:
+    schemas:
+      - v2_index/entities_index.fbs
+      - v2_index/entity_tags.fbs
+      - v2_index/response.fbs
+
+postgresql:
+    databases:
+      - tags
+#passenger-tags database has same secdist schema but it's own
+#connection string
+clients:
+  - tags-topics
+  - yql
+
+configs:
+    names:
+      - TAGS_ACL_TOPICS_ENABLED
+      - TAGS_CHECK_SOURCE_SERVICE_ENABLED
+      - TAGS_CHECK_PROVIDER_TYPE_ENABLED
+      - TAGS_DELETE_TIMER
+      - TAGS_CUSTOMS_CHUNKS
+      - TAGS_UPDATER_CHUNK_SIZE
+      - TAGS_YQL_QUERIES_HISTORY_TTL
+      - TAGS_YQL_QUERIES_TIMEOUTS
+      - TAGS_YQL_MINIMAL_EXECUTION_INTERVAL
+      - TAGS_YT_SKIP_MALFORMED_ROWS
+      - TAGS_YT_SNAPSHOT_MAX_COUNT
+      - TAGS_YT_DOWNLOADER_CHUNK_SIZE
+      - UTAGS_YQL_WORKER_ENABLED
+      - UTAGS_GARBAGE_CRON_SETTINGS
+      - PASSENGER_UTAGS_CRON_HOSTS
+      - UTAGS_CRON_HOSTS
+
+build_quirks:
+    template-depth: 256

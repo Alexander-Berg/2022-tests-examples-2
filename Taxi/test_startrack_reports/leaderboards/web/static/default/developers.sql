@@ -1,0 +1,48 @@
+insert into
+    leaderboards.developers
+(
+    login,
+    index,
+    rank_place,
+    additions,
+    deletions,
+    commits,
+    date_of_top
+)
+values
+(
+    'ydemidenko',
+    4.0,
+    1,
+    4,
+    0,
+    1,
+    '2019-01-01'
+),
+(
+    'karachevda',
+    0.0,
+    2,
+    0,
+    0,
+    1,
+    '2019-01-01'
+),
+(
+    'noname',
+    0.0,
+    3,
+    0,
+    0,
+    0,
+    '2019-01-01'
+),
+(
+    'ydemidenko',
+    5.0,
+    1,
+    5,
+    0,
+    1,
+    '2018-12-31'
+)

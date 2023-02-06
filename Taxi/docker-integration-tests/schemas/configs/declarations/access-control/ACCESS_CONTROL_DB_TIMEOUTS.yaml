@@ -1,0 +1,55 @@
+default:
+    default:
+        network_timeout: 1200
+        statement_timeout: 1000
+    admin_select:
+        network_timeout: 1200
+        statement_timeout: 1000
+    admin_modify:
+        network_timeout: 1200
+        statement_timeout: 1000
+    get_user_access_info:
+        network_timeout: 1200
+        statement_timeout: 1000
+description: Конфиги запросов к БД сервиса access-control
+tags:
+  - notfallback
+schema:
+    type: object
+    properties:
+        default:
+            description: настройки таймаутов по-умолчанию
+            $ref: '#/definitions/db_requests_settings'
+        admin_select:
+            description: настройки таймаутов получения данных в админке
+            $ref: '#/definitions/db_requests_settings'
+        admin_modify:
+            description: настройки таймаутов модификации данных в админке
+            $ref: '#/definitions/db_requests_settings'
+        get_user_access_info:
+            description: настройки таймаутов получения информации о доступах по юзеру
+            $ref: '#/definitions/db_requests_settings'
+    required:
+      - default
+      - admin_select
+      - admin_modify
+      - get_user_access_info
+    additionalProperties: false
+    definitions:
+        db_requests_settings:
+            type: object
+            properties:
+                network_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout
+              - statement_timeout

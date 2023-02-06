@@ -1,0 +1,107 @@
+log_format login '$remote_addr - $host $remote_user [$time_local] $server_name:$server_port '
+        '$upstream_response_time $request_time $request_length "$request" '
+        '"$status" $body_bytes_sent "$http_referer" '
+        '"$http_user_agent" "$http_x_forwarded_for" "$http_cookie" "$gzip_ratio" '
+        '"$global_request_id" "$ssl_server_serial" "$ssl_cipher" ';
+
+server {
+    # SLB IP
+    listen 93.158.134.114:80;
+    listen [2a02:6b8::1:114]:80;
+
+    # Server IP
+    listen [1::2:3:4]:80;
+
+    server_name login.yandex.ru;
+    root /srv;
+
+    set $global_request_id $request_id;
+    access_log /var/log/nginx/login.access.log login;
+    error_log /var/log/nginx/login.error.log warn;
+
+    location = /ping.html {
+        if (-f /usr/lib/yandex/oauth-api/oauth-api.down) {
+            return 521 "service.shut_down (nginx)";
+        }
+        proxy_pass http://127.0.0.1:8302/ping?check=blackbox;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location ~ ^/info/?$ {
+        rewrite ^(.*)$ /yandex_login$1 break;
+        proxy_pass http://127.0.0.1:8302;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Headers "Accept, Accept-Language, Content-Type, X-Requested-With" always;
+    }
+
+    location = / {
+        return 301 https://tech.yandex.ru/passport/;
+    }
+}
+
+
+server {
+    # SLB IP
+    listen 93.158.134.114:443;
+    listen [2a02:6b8::1:114]:443;
+
+    # Server IP
+    listen [1::2:3:4]:443;
+
+    server_name login.yandex.ru;
+    root /srv;
+
+    ssl on;
+    ssl_certificate certs/oauth.crt;
+    ssl_certificate_key certs/oauth.key;
+    ssl_ciphers kEECDH+AESGCM+AES128:kEECDH+AES128:kRSA+AESGCM+AES128:kRSA+AES128:DES-CBC3-SHA:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_session_cache shared:SSL:32m;
+    ssl_session_timeout 5m;
+
+    set $global_request_id $request_id;
+    access_log /var/log/nginx/login.access.log login;
+    error_log /var/log/nginx/login.error.log warn;
+
+    location = /ping.html {
+        if (-f /usr/lib/yandex/oauth-api/oauth-api.down) {
+            return 521 "service.shut_down (nginx)";
+        }
+        proxy_pass http://127.0.0.1:8302/ping?check=blackbox;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Protocol ssl;
+        proxy_set_header X-Forwarded-SSL on;
+    }
+
+    location ~ ^/info/?$ {
+        rewrite ^(.*)$ /yandex_login$1 break;
+        proxy_pass http://127.0.0.1:8302;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Protocol ssl;
+        proxy_set_header X-Forwarded-SSL on;
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Access-Control-Allow-Headers "Accept, Accept-Language, Content-Type, X-Requested-With" always;
+    }
+
+    location = / {
+        return 301 https://tech.yandex.ru/passport/;
+    }
+}

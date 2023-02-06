@@ -1,0 +1,6 @@
+BEGIN TRANSACTION;
+
+ALTER TABLE persey_core.draw_bookings
+ALTER test_kind DROP NOT NULL;
+
+COMMIT TRANSACTION;

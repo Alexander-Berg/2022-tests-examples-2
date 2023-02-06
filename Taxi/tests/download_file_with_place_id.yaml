@@ -1,0 +1,32 @@
+id: download_file_with_place_id
+title: Проверка скачивания аттача с переданным place_id
+
+source:
+    request:
+        url: /4.0/support_chat/v1/type/123/download_file/attach1
+        method: get
+        query:
+            restapp_place_id: place_id_value
+        headers:
+            X-YaEda-PartnerId: partner_id
+            content-type: application/json
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: taxi-protocol-support-chat-download-file
+    response:
+        status-code: 200
+        body:
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            headers#object:
+              - key: X-YaEda-PartnerId
+                value#string: "place_id_value"
+            path-params:
+                type: "type"
+                chat_id: "123"
+                attachment_id: "attach1"

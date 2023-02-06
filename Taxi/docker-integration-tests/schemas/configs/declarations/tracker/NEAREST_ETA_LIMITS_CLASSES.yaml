@@ -1,0 +1,71 @@
+default:
+    __default__:
+        __default__:
+            AIRPORT_FREE_PREFERRED: 10
+            AIRPORT_LIMIT: 20
+            FREE_PREFERRED: 5
+            LIMIT: 10
+description: 'Лимит числа водителей при выборе по расстоянию по прямой (LIMIT: число
+    водителей в выборке, FREE_PREFERRED: минимальное число свободных водителей в выборке,
+    если получится столько найти (чтобы не были только цепочечные), CLASSES_PREFERRED:
+    необязательное поле, состоит из preferred, has_classes и has_not_classes; дополняет
+    выборку (по возможности) водителями в количестве preferred, предоставляющими хотя
+    бы один из has_classes и при этом не предоставляющими ни один из has_not_classes,
+    на аэропорт не действует, AIRPORT_LIMIT: соответствующее значение для аэропорта,
+    AIRPORT_FREE_PREFERRED: соответствующее значение для аэропорта)'
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ClassInfo'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/ClassInfo'
+    definitions:
+        Settings:
+            type: object
+            additionalProperties: false
+            required:
+              - LIMIT
+              - AIRPORT_LIMIT
+              - FREE_PREFERRED
+              - AIRPORT_FREE_PREFERRED
+            properties:
+                LIMIT:
+                    type: integer
+                    minimum: 0
+                AIRPORT_LIMIT:
+                    type: integer
+                    minimum: 0
+                FREE_PREFERRED:
+                    type: integer
+                    minimum: 0
+                AIRPORT_FREE_PREFERRED:
+                    type: integer
+                    minimum: 0
+                CLASSES_PREFERRED:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        has_classes:
+                            type: array
+                            items:
+                                type: string
+                        has_not_classes:
+                            type: array
+                            items:
+                                type: string
+                        preferred:
+                            type: integer
+                            minimum: 0
+        ClassInfo:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Settings'
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/Settings'

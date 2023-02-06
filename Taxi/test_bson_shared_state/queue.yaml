@@ -1,0 +1,46 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: processing
+        stq-queue: testsuite_processing
+        static-event-traits:
+            is-create: true
+        dynamic-event-traits:
+            reason#xget: /event/payload/reason
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - reason: foo
+            shared-state-init: {}
+            stages:
+              - id: bson-request-stage
+                handlers:
+                  - id: requests
+                    requests:
+                      - id: request-bson-handler
+                        resource: bson-handler
+                    resources:
+                      - id: bson-handler
+                        url: $bson_handler_url
+                        method: post
+                        max-retries: 1
+                    result:
+                        bson-response#xget: /sources/request-bson-handler/response/body
+              - id: failed-stage
+                handlers:
+                  - id: failed-handler
+                    requests:
+                      - id: failed-request
+                        resource: broken-resource
+                        body#xget: /shared-state
+                    resources:
+                      - id: broken-resource
+                        url: $failed_hanler_url
+                        method: post
+                        max-retries: 1

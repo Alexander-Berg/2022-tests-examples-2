@@ -1,0 +1,126 @@
+default:
+    __default__: []
+description: Правила тегирования.
+tags: [notfallback]
+schema:
+    additionalProperties:
+        $ref: '#/definitions/tariff_zone'
+    properties:
+        __default__:
+            $ref: '#/definitions/tariff_zone'
+    required:
+      - __default__
+    type: object
+    definitions:
+
+        event:
+            type: object
+            additionalProperties: false
+            properties:
+                topic:
+                    type: string
+                name:
+                    type: string
+                tags:
+                    type: string
+            required:
+              - topic
+
+        tag:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    minLength: 1
+                ttl:
+                    type: integer
+                    minimum: 1
+            required:
+              - name
+
+        tagging:
+            type: object
+            additionalProperties: false
+            properties:
+                tags:
+                    type: string
+                    minLength: 1
+                action:
+                    type: array
+                    items:
+                        $res: '#/definitions/tagging_action'
+                    minItems: 1
+                expr:
+                    type: string
+                    minLength: 1
+            required:
+              - action
+
+        tagging_action:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/definitions/tag'
+                    minItems: 1
+                merge_policy:
+                    type: string
+                    enum:
+                      - append
+                      - remove
+                      - replace
+                entity_type:
+                    type: string
+                    enum:
+                      - udid
+                      - dbid_uuid
+                provider_id:
+                    type: string
+            required:
+              - type
+              - tags
+
+        rule_entry:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                events:
+                    type: array
+                    items:
+                        $ref: '#/definitions/event'
+                    minItems: 1
+                events_period_sec:
+                    type: integer
+                    minimum: 1
+                events_to_trigger_cnt:
+                    type: integer
+                    minimum: 1
+                disabled:
+                    type: boolean
+                tags:
+                    type: string
+                    minLength: 1
+                expr:
+                    type: string
+                    minLength: 1
+                actions:
+                    type: array
+                    items:
+                        $ref: '#/definitions/tagging'
+                    minItems: 1
+            required:
+              - name
+              - events
+              - actions
+
+        tariff_zone:
+            type: array
+            items:
+                $ref: '#/definitions/rule_entry'

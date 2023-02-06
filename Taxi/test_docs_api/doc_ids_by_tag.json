@@ -1,0 +1,131 @@
+{
+  "test_samples": [
+    {
+      "comment": " Searching by tag that does not exist",
+      "expected_response": {
+        "tags": [
+          {
+            "doc_ids": [],
+            "tag": "abcdef"
+          }
+        ]
+      },
+      "request": {
+        "event_at_begin": "2018-01-01T00:00:00.000000+00:00",
+        "event_at_end": "2020-01-01T00:00:00.000000+00:00",
+        "tags": [
+          "abcdef"
+        ]
+      }
+    },
+    {
+      "comment": " Searching in an unpopulated date range",
+      "expected_response": {
+        "tags": [
+          {
+            "doc_ids": [],
+            "tag": "taxi/unique_driver_id/5c615efb3fd6947b66fc2e79"
+          }
+        ]
+      },
+      "request": {
+        "event_at_begin": "2016-01-01T00:00:00.000000+00:00",
+        "event_at_end": "2017-01-01T00:00:00.000000+00:00",
+        "tags": [
+          "taxi/unique_driver_id/5c615efb3fd6947b66fc2e79"
+        ]
+      }
+    },
+    {
+      "comment": " Searching without limit, expecting the handle to use the default. limit of 100, thus retrieving all the docs.",
+      "expected_response": {
+        "tags": [
+          {
+            "doc_ids": [
+              20000,
+              50002,
+              60002,
+              60004,
+              70002,
+              70004,
+              80004,
+              9999999990004
+            ],
+            "tag": "taxi/unique_driver_id/5c615efb3fd6947b66fc2e79"
+          }
+        ]
+      },
+      "request": {
+        "event_at_begin": "2018-09-09T00:00:00.000000+00:00",
+        "event_at_end": "2019-01-01T00:00:00.000000+00:00",
+        "tags": [
+          "taxi/unique_driver_id/5c615efb3fd6947b66fc2e79"
+        ]
+      }
+    },
+    {
+      "comment": " We do not expect to skip over non-existent docs",
+      "expected_response": {
+        "tags": [
+          {
+            "doc_ids": [
+              10001,
+              20001,
+              30001,
+              40001,
+              50001,
+              60001
+            ],
+            "tag": "taxi/unique_driver_id/5c6527563fd6940450db7483"
+          }
+        ]
+      },
+      "request": {
+        "event_at_begin": "2018-01-01T00:00:00.000000+00:00",
+        "event_at_end": "2019-01-01T00:00:00.000000+00:00",
+        "tags": [
+          "taxi/unique_driver_id/5c6527563fd6940450db7483"
+        ]
+      }
+    },
+    {
+      "comment": " We expect the handle to perform query over 2 tags and 2 shards",
+      "expected_response": {
+        "tags": [
+          {
+            "doc_ids": [
+              10001,
+              20001,
+              30001,
+              40001,
+              50001,
+              60001
+            ],
+            "tag": "taxi/unique_driver_id/5c6527563fd6940450db7483"
+          },
+          {
+            "doc_ids": [
+              20000,
+              50002,
+              60002,
+              60004,
+              70002,
+              70004,
+              80004,
+              9999999990004
+            ],
+            "tag": "taxi/unique_driver_id/5c615efb3fd6947b66fc2e79"
+          }
+        ]
+      },
+      "request": {
+        "event_at_begin": "2018-01-01T00:00:00.000000+00:00",
+        "event_at_end": "2019-01-01T00:00:00.000000+00:00",
+        "tags": [
+          "taxi/unique_driver_id/5c6527563fd6940450db7483",
+          "taxi/unique_driver_id/5c615efb3fd6947b66fc2e79"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+id: test_happy_path
+title: Happy path
+
+source:
+    request:
+        method: post
+        headers:
+            Content-Type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+        body:
+            cargo_ref_id: "ref_id"
+            last_known_status: "delivering"
+            idempotency_token: "some_token"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                result: "confirmed"
+                state:
+                    status: "droppof_confirmation"
+                    route:
+                        items:
+                          - id: 123
+                            type: "source"
+                            label: "Пункт доставки 2"
+                            address:
+                                fullname: "Полное имя"
+                                shortname: "Короткое имя"
+                                coordinates:
+                                    items:
+                                      - 123
+                                      - 123
+                            phones:
+                                items:
+                                  - type: "source"
+                                    label: "Получатель"
+                                    view: "main"
+                    order_comment: "Коммент"
+                    order_comment_type: "plain"
+
+mocks:
+  - resource: eats-pro-orders-bdu-v1-exchange-confirm
+    response:
+        status-code: 200
+        body:
+            result: "confirmed"
+            state:
+                status: "droppof_confirmation"
+                route:
+                    items:
+                      - id: 123
+                        type: "source"
+                        label: "Пункт доставки 2"
+                        address:
+                            fullname: "Полное имя"
+                            shortname: "Короткое имя"
+                            coordinates:
+                                items:
+                                  - 123
+                                  - 123
+                        phones:
+                            items:
+                              - type: "source"
+                                label: "Получатель"
+                                view: "main"
+                order_comment: "Коммент"
+                order_comment_type: "plain"
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                cargo_ref_id: "ref_id"
+                last_known_status: "droppof_confirmation"
+                point_id:
+                setcar_state_version:
+                taximeter_state_version:
+                confirmation_code:
+
+
+  - resource: cargo-orders-taximeter-handlers-post
+    response:
+        status-code: 200
+        body:
+            new_status: "droppof_confirmation"
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                cargo_ref_id: "ref_id"
+                last_known_status: "delivering"
+                idempotency_token: "some_token"
+                location_data:
+                point_id:

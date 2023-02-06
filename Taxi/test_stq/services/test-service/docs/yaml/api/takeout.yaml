@@ -1,0 +1,97 @@
+# This file is generated automatically, do not edit it by hand!
+
+openapi: 3.0.0
+
+info:
+    description: Takeout handlers for test-service service
+    title: Yandex test-service Service
+    version: '1.0'
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: TEST_SERVICE_CLIENT_QOS
+
+paths:
+    /takeout/v1/status:
+        post:
+            description: Статус наличия данных пользователя в сервисе
+            requestBody:
+                description: тело запроса
+                required: true
+                content:
+                    'application/json':
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - yandex_uids
+                            properties:
+                                request_id:
+                                    type: string
+                                    description: id запроса из Паспорта
+                                yandex_uids:
+                                    description: uid пользователя и связанные фониши,
+                                        если есть
+                                    type: array
+                                    minItems: 1
+                                    items:
+                                        type: object
+                                        additionalProperties: false
+                                        description: uid пользователя
+                                        required:
+                                          - uid
+                                          - is_portal
+                                        properties:
+                                            is_portal:
+                                                type: boolean
+                                            uid:
+                                                type: string
+                                date_request_at:
+                                    description: дата до которой нужно получить статус
+                                        данных
+                                    type: string
+                                    format: date-time
+                                user_ids:
+                                    type: array
+                                    description: список user id, которые относятся
+                                        к пользователю
+                                    items:
+                                        type: string
+                                phone_ids:
+                                    type: array
+                                    description: список phone id, которые относятся
+                                        к пользователю
+                                    items:
+                                        type: string
+                                personal_phone_ids:
+                                    type: array
+                                    description: список personal phone id, которые
+                                        относятся к пользователю
+                                    items:
+                                        type: string
+                                personal_email_ids:
+                                    type: array
+                                    description: список personal email id, которые
+                                        относятся к пользователю
+                                    items:
+                                        type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - data_state
+                                properties:
+                                    data_state:
+                                        description: состояние удаления данных
+                                        type: string
+                                        enum:
+                                          - ready_to_delete
+                                          - empty
+                                          - delete_in_progress

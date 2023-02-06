@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load utils i18n %}
+{% block title %}Настройки теста{% endblock %}
+
+{% block h1 %}<h1>Настройки теста</h1>{% endblock %}
+
+
+{% block content %}
+<div class="row">
+        <div class="col-lg-12 col-12">
+            <div class="card">
+                <div class="card-header">
+                    {% trans 'Test settings' %}</div>
+                <div class="card-body">
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-lg-6 col-12">
+                                <div class="row">
+                                    <div class="col-lg-6 col-12">
+                                        <div class="form-group">
+                                            {{ form.title.label_tag }}
+                                            {{ form.title }}
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-12">
+                                        <div class="form-group">
+                                            {{ form.description.label_tag }}
+                                            {{ form.description }}
+                                        </div>
+                                    </div>
+                                    <div id="english_data"
+                                         class="hidden{% if form.is_english_version.value %} d-block col-12{% endif %}">
+                                        <div class="row">
+                                            <div class="col-lg-6 col-12">
+                                                <div class="form-group">
+                                                    {{ form.title_en.label_tag }}
+                                                    {{ form.title_en }}
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 col-12">
+                                                <div class="form-group">
+                                                    {{ form.description_en.label_tag }}
+                                                    {{ form.description_en }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{ form.published_at }}
+                                    {{ form.published_until }}
+
+                                    <div class="col-lg-6 col-12">
+                                        <div class="form-group">
+                                            {{ form.get_random_num.label_tag }}
+                                            {{ form.get_random_num }}
+                                            <small class="text-muted">{{ form.get_random_num.help_text }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-12">
+                                        <div class="form-group">
+                                            {{ form.time.label_tag }}
+                                            {{ form.time }}
+                                            <small class="text-muted">{{ form.time.help_text }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-12">
+                                <div class="col-lg-12 col-12">
+                                    <div class="form-group">
+                                        <label for="id_published" class="">{% trans 'Publication' %}</label>
+                                        <input type="text" name="published" value="" class="form-control"
+                                               required="" id="id_published">
+                                    </div>
+                                </div>
+                                <div class="col-lg-12 col-12">
+                                    <div class="custom-control mb-3">
+                                        {{ form.is_english_version }}
+                                        <label class="custom-control-label"
+                                               for="id_is_english_version">{% trans 'Add english version' %}</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="custom-control">
+                                        {% if form.reward.value or is_reward_available %}
+                                            {{ form.reward }}
+                                            <label class="custom-control-label"
+                                                   for="id_reward">{{ form.reward.label_tag }}</label>
+                                            {% if not is_reward_available %}
+                                                <div class="red mb-2 small">
+                                                    {% trans 'Awards were disabled globally. If you turn off the award for the test, you can not turn it on until the opportunity will not be enabled globally.' %}
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    {{ form.base_groups.label_tag }}
+                                    {{ form.base_groups }}
+                                    <small class="text-muted">{{ form.base_groups.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="submit" class="btn btn-yellow float-right" value="{% trans "Save" %}">
+                    </form>
+                    {% if form.errors %}
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <div class="alert alert-danger">
+                                    {{ error|escape }}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ error|escape }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#id_is_english_version').click(function () {
+            if ($(this).is(':checked')) {
+                document.getElementById('english_data').classList.add('d-block');
+            } else {
+                document.getElementById('english_data').classList.remove('d-block');
+            }
+        });
+    });
+
+    $(function () {
+        var autoUpdateInput = false;
+        var published_at = false;
+        var published_until = false;
+        var published_at_el = document.getElementById('id_published_at');
+        if (published_at_el) {
+            if (published_at_el.value) {
+                published_at = new Date(Date.parse(published_at_el.value));
+            }
+        }
+        var published_until_el = document.getElementById('id_published_until');
+        if (published_until_el) {
+            if (published_until_el.value) {
+                published_until = new Date(Date.parse(published_until_el.value));
+            }
+        }
+
+        if (published_at && published_until) {
+            autoUpdateInput = true;
+        }
+
+        $('#id_published').daterangepicker({
+            autoUpdateInput: autoUpdateInput,
+            startDate: published_at,
+            endDate: published_until,
+            "autoApply": true,
+            "locale": {
+                "format": "DD.MM.YYYY",
+                "separator": " – ",
+                "daysOfWeek": [
+                    "ВС",
+                    "ПН",
+                    "ВТ",
+                    "СР",
+                    "ЧТ",
+                    "ПТ",
+                    "СБ"
+                ],
+                "monthNames": [
+                    "Январь",
+                    "Февраль",
+                    "Март",
+                    "Апрель",
+                    "Май",
+                    "Июнь",
+                    "Июль",
+                    "Август",
+                    "Сентябрь",
+                    "Октябрь",
+                    "Ноябрь",
+                    "Декабрь"
+                ],
+                "firstDay": 1
+            },
+            "opens": "right"
+        }, function (start, end, label) {
+        });
+
+        $('input[name="published"]').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('DD.MM.YYYY') + ' - ' + picker.endDate.format('DD.MM.YYYY'));
+
+            document.getElementById('id_published_at').value = picker.startDate.format('MM/DD/YYYY');
+            document.getElementById('id_published_until').value = picker.endDate.format('MM/DD/YYYY');
+        });
+    });
+</script>
+{% endblock %}

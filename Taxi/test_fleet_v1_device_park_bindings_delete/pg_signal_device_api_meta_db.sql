@@ -1,0 +1,137 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'device1',
+    'pub_key',
+    'top_kek',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    '212021120001F',
+    '',
+    '',
+    '',
+    '',
+    NULL,
+    NULL,
+    1,
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z'
+), (
+    2,
+    NULL,
+    FALSE,
+    'device2',
+    '',
+    'another_kek',
+    '07:f2:74:af:9b:c4',
+    NULL,
+    NULL,
+    '313021120003B',
+    '',
+    '',
+    '',
+    '',
+    NULL,
+    NULL,
+    1,
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z'
+),
+(
+    3,
+    NULL,
+    FALSE,
+    'device3',
+    'pub_key',
+    NULL,
+    '09:f2:74:af:9b:c4',
+    NULL,
+    NULL,
+    '414021120003B',
+    '',
+    '',
+    '',
+    '',
+    NULL,
+    NULL,
+    1,
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z'
+);
+
+INSERT INTO signal_device_api.device_groups (
+    group_id,
+    park_id,
+    group_name,
+    parent_group_id,
+    idempotency_token
+) VALUES (
+    '29a168a6-2fe3-401d-9959-ba1b14fd4862',
+    'park_1',
+    'South1',
+    NULL,
+    'some_token'
+),
+(
+    '1db9bcc6-982c-46ff-a161-78fa1817be01',
+    'park_2',
+    'South2',
+    NULL,
+    'some_token2'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active,
+    group_id
+) VALUES (
+    'park_1',
+    1,
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE,
+    '29a168a6-2fe3-401d-9959-ba1b14fd4862'
+), (
+    'park_2',
+    2,
+    '2020-08-01T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    FALSE,
+    NULL
+), (
+    'park_2',
+    3,
+    '2020-08-01T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE,
+    '1db9bcc6-982c-46ff-a161-78fa1817be01' 
+);

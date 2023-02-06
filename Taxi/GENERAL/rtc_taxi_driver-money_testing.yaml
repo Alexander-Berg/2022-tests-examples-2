@@ -1,0 +1,17 @@
+- service: driver-money_payments_skipped_transactions
+  host: taxi_driver-money_testing_host
+  notificationChannels:
+  - juggler_service_and_host_from_annotations
+  alert_type: threshold
+  description: |-
+    Количество пропущенных транзакций в детализации платежек.
+  selectors: |
+    { project="taxi", cluster="testing_uservices", service="uservices",
+      application="driver-money", sensor="payment_details_metrics.skipped_counter",
+      host="cluster" }
+  period: 60
+  predicateRules:
+  - timeAggregation: Any
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN

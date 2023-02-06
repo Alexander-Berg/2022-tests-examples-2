@@ -1,0 +1,111 @@
+default:
+    get_old_accounts:
+        network_timeout: 1200
+        statement_timeout: 1000
+    get_parks_by_id:
+        network_timeout: 1200
+        statement_timeout: 1000
+    get_oldest_update:
+        network_timeout: 400
+        statement_timeout: 300
+    get_changes_history:
+        network_timeout: 1200
+        statement_timeout: 1000
+    update_activation_queue:
+        network_timeout: 700
+        statement_timeout: 600
+    update_accounts:
+        db_requests_settings:
+            network_timeout: 700
+            statement_timeout: 500
+        chunk_size: 50
+        sleep_interval: 50
+    save_updated_parks:
+        db_requests_settings:
+            network_timeout: 700
+            statement_timeout: 500
+        chunk_size: 50
+        sleep_interval: 50
+    save_changes_history:
+        db_requests_settings:
+            network_timeout: 700
+            statement_timeout: 500
+        chunk_size: 50
+        sleep_interval: 50
+description: Конфиги запросов к БД при синхронизации парков
+tags: []
+schema:
+    type: object
+    properties:
+        get_old_accounts:
+            description: настройки получения аккаунтов на активацию
+            $ref: '#/definitions/db_requests_settings'
+        get_parks_by_id:
+            description: настройки получения активаций парков по id
+            $ref: '#/definitions/db_requests_settings'
+        get_oldest_update:
+            description: настройки получения времени последнего обновления
+            $ref: '#/definitions/db_requests_settings'
+        get_changes_history:
+            description: настройки получения истории изменений активации парков
+            $ref: '#/definitions/db_requests_settings'
+        update_activation_queue:
+            description: настройки обновления очереди активации
+            $ref: '#/definitions/db_requests_settings'
+        update_accounts:
+            description: настройки обновления аккаунтов
+            $ref: '#/definitions/bulk_db_request'
+        save_updated_parks:
+            description: настройки обновления активации парков
+            $ref: '#/definitions/bulk_db_request'
+        save_changes_history:
+            description: настройки обновления истории изменений
+            $ref: '#/definitions/bulk_db_request'
+    required:
+      - get_old_accounts
+      - get_parks_by_id
+      - get_oldest_update
+      - get_changes_history
+      - update_activation_queue
+      - update_accounts
+      - save_updated_parks
+      - save_changes_history
+    additionalProperties: false
+    definitions:
+        db_requests_settings:
+            type: object
+            properties:
+                network_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout
+              - statement_timeout
+        bulk_db_request:
+            type: object
+            properties:
+                db_requests_settings:
+                    $ref: '#/definitions/db_requests_settings'
+                chunk_size:
+                    type: integer
+                    minimum: 1
+                    description: размер чанка аккаунтов в запросе к базе
+                sleep_interval:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: Интервал между запросами к базе
+            additionalProperties: false
+            required:
+              - db_requests_settings
+              - chunk_size
+              - sleep_interval
+            description: настройки сохранения обновлений аккаунтов

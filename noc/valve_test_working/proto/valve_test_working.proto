@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+import "ci/tasklet/common/proto/sandbox.proto";
+import "ci/tasklet/common/proto/service.proto";
+import "tasklet/api/tasklet.proto";
+import "tasklet/services/yav/proto/yav.proto";
+import "tasklet/services/ci/proto/ci.proto";
+
+package noc.ci.valve_test_working;
+
+message ValveTestWorking {
+  option (tasklet.tasklet_interface) = true;
+
+  Context ctx = 1;
+  Input input = 2 [(tasklet.input) = true];
+  Output output = 3 [(tasklet.output) = true];
+}
+
+message Context {
+  option (tasklet.context) = true;
+  option (tasklet.py_adapter) = "tasklet.domain.adapter:Context";
+
+  .ci.CiService ci = 1 [(tasklet.inject) = true];
+  yav_service.YavService yav = 2 [(tasklet.inject) = true];
+}
+
+message Config {
+  string conductor_url = 1;
+  int32 reals_number = 2;
+  string host = 3;
+  string info_url = 4;
+  int32 uptime_check_duration = 5;
+  int32 rev_change_timeout = 6;
+  string cert_url = 7;
+  int32 rule_break_check_duration = 8;
+  int32 rule_break_check_iterations = 9;
+  string samples_url = 10;
+  string hbf_url_tmpl = 11;
+  string valve_grpc_server = 12;
+  float min_ratio = 13;
+  reserved 14;
+}
+
+message Input {
+  .ci.TaskletContext context = 1;
+  Config config = 2;
+}
+
+message State {
+  bool success = 1;
+}
+
+message Output {
+  State state = 1;
+}

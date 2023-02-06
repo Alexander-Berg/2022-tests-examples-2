@@ -1,0 +1,105 @@
+{%- set shards = {
+ 'cctv_admin': {'cid': 'mdbgjds7kudf33nsq1g7', 'ns': 'taxi.yasm.test'},
+ 'promocodes': {'cid': 'mdb2qrt0h0uoqrdnpa5n', 'ns': 'taxi.yasm.test'}
+}
+%}
+
+taxi_yasm_test_taxi_mongo1:
+{%- for shard_name, attrs in shards|dictsort %}
+  {{ shard_name }}_cpu_usage:
+    signals: perc(portoinst-cpu_<usage|limit>_cores_tmmv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: primary,secondary,unknown
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_space_usage:
+    signals: perc(push-disk-used_bytes_/var/lib/mongodb_vmmv,push-disk-total_bytes_/var/lib/mongodb_vmmv)
+    tags:
+      itype: mdbmongodb
+      ctype: {{ attrs['cid'] }}
+      tier: primary
+    settings:
+      type: thresh
+      warn: 77
+      crit: 87 # at 97% database will be switched to read-only mode
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_disk_read:
+    signals: perc(portoinst-io_read_fs_bytes_tmmv,portoinst-io_limit_bytes_tmmv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: primary,secondary,unknown
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name}}_disk_write:
+    signals: perc(portoinst-io_write_fs_bytes_tmmv,portoinst-io_limit_bytes_tmmv)
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: primary,secondary,unknown
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_network_utilization:
+    signals: perc(conv(portoinst-net_mb_summ,0.125),conv(portoinst-net_limit_mb_summ,0.125))
+    tags:
+      itype: mdbdom0
+      ctype: {{ attrs['cid'] }}
+      tier: primary,secondary,unknown
+    settings:
+      type: thresh
+      warn: 80
+      crit: 95
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+  {{ shard_name }}_mongo_connections_usage:
+    signals: perc(push-server_status_admin_connections.current_vmmv,sum(push-server_status_admin_connections.current_vmmv,push-server_status_admin_connections.available_vmmv))
+    tags:
+      itype: mdbmongodb
+      ctype: {{ attrs['cid'] }}
+      tier: primary,secondary,unknown
+    settings:
+      type: thresh
+      warn: 85
+      crit: 90
+    juggler_check:
+      template: taxi_sleep
+      namespace: {{ attrs['ns'] }}
+      responsible: {{ attrs.get('responsible', null) }}
+      telegram_option: {{ attrs.get('telegram_option', null) }}
+
+{%- endfor %}

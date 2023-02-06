@@ -1,0 +1,5 @@
+DEFAULT_ALIAS_ID = 'default_alias_id'
+DEFAULT_DRIVER_ID = 'meters_integration_api_driver_id'
+DEFAULT_ORDER_ID = 'default_order_id'
+DEFAULT_PARK_ID = 'meters_integration_api_park_id'
+DEFAULT_RIDE_ID = 'default_ride_id'

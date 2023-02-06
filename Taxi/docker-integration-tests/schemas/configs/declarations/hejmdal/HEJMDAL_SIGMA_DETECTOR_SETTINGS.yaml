@@ -1,0 +1,101 @@
+default:
+    sensors: []
+
+description: Настройки детектора правила трех сигм.
+
+tags: []
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - sensors
+    properties:
+        sensors:
+            type: array
+            items:
+                $ref: '#/definitions/Sensor'
+
+    definitions:
+        Mapper:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+            properties:
+                name:
+                    type: string
+                    enum:
+                      - simple_antialiasing_mapper
+                weights:
+                    type: array
+                    items:
+                        type: number
+
+        Drop:
+            type: object
+            additionalProperties: false
+            required:
+              - threshold
+              - mean_window
+            properties:
+                threshold:
+                    description: Значение порога
+                    type: number
+                mean_window:
+                    description: Окно подсчета среднего значения для сравнения с порогом.
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::minutes
+                    minimum: 1
+
+        Sensor:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - window
+              - detection
+            properties:
+                name:
+                    description: Имя сенсора.
+                    type: string
+                window:
+                    description: Размер рассматриваемого окна в минутах.
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::minutes
+                    minimum: 10
+                detection:
+                    description: Тип проверки - можно проверять позитивные или негативные
+                        выбросы, или и то и другое.
+                    type: string
+                    enum:
+                      - negative_only
+                      - positive_only
+                      - negative_and_positive
+                sigma_multiplier:
+                    description: Коэффициент сигмы для вычисления порога.
+                    type: number
+                mappers:
+                    type: array
+                    items:
+                        $ref: '#/definitions/Mapper'
+                drop_below:
+                    description: Если среднее значение в окне ниже этого параметра,
+                        детоктор пропускает этот сенсор
+                    $ref: '#/definitions/Drop'
+                drop_above:
+                    description: Если среднее значение в окне выше этого параметра,
+                        детоктор пропускает этот сенсор
+                    $ref: '#/definitions/Drop'
+                warn_after:
+                    description: Длительность выброса, при привышении которой статус
+                        переходит в warning.
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::minutes
+                    minimum: 1
+                crit_after:
+                    description: Длительность выброса, при привышении которой статус
+                        переходит в critical.
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::minutes
+                    minimum: 1

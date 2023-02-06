@@ -1,0 +1,79 @@
+
+    -- Select Audit CPM
+    USE hahn;
+
+    $ToDatetime = ($ts) -> {
+        RETURN DateTime::MakeDatetime(DateTime::FromSeconds(CAST($ts AS Uint32)))
+    };
+
+    $LocalizeDatetime = ($dt) -> {
+        RETURN DateTime::MakeTzDatetime(AddTimezone($dt, 'Europe/Moscow'))
+    };
+
+    $ToLocalTzDatetime = ($ts) -> {
+        RETURN $LocalizeDatetime($ToDatetime($ts));
+    };
+
+    $GetAvailableExceedRate = ($shows, $periodFinishTime, $periodStartTme, $periodFinishTimeReal, $periodStartTmeReal) -> {
+        RETURN  IF(
+            $shows < 10000
+            OR (
+                $periodFinishTime - $periodStartTmeReal
+            ) < (
+                $periodFinishTimeReal - $periodStartTme
+            )
+          , 2.0
+          , 1.0
+        )
+    };
+
+    $rubCurID = 643;
+
+    $rubCompensationLimit = 300;
+
+    -- Arguments:
+    $runTimestamp = 01012022;
+
+    SELECT
+        RunTime,
+        LimitType,
+        OrderID,
+        $ToLocalTzDatetime(AutobudgetStartTime) AS AutobudgetStartTime,
+        $ToLocalTzDatetime(AutobudgetSoftRestartTime) AS AutobudgetSoftRestartTime,
+        $ToLocalTzDatetime(PeriodStartTime) AS PeriodStartTime,
+        $ToLocalTzDatetime(PeriodFinishTime) AS PeriodFinishTime,
+        $ToLocalTzDatetime(PeriodStartTimeReal) AS PeriodStartTimeReal,
+        $ToLocalTzDatetime(PeriodFinishTimeReal) AS PeriodFinishTimeReal,
+        LimitAvgCPM,
+        LimitAvgCPMCur,
+        AvgCPM,
+        AvgCPMCur,
+        LimitBudget,
+        LimitBudgetCur,
+        Budget,
+        BudgetCur,
+        Shows,
+        Exceed,
+        ExceedCur,
+        ExceedRate,
+        ExceedCurRate,
+        CurrencyCode,
+        1.0 * (
+            BudgetCur
+            - Shows * LimitAvgCPMCur * $GetAvailableExceedRate(Shows, PeriodFinishTime, PeriodStartTime, PeriodFinishTimeReal, PeriodStartTimeReal)
+        ) * C.Ratio / 1000 / 1000 AS Compensation,
+        IF(C.CurrencyID = $rubCurID, 1.0 * (
+            BudgetCur
+            - Shows * LimitAvgCPMCur * $GetAvailableExceedRate(Shows, PeriodFinishTime, PeriodStartTime, PeriodFinishTimeReal, PeriodStartTimeReal)
+        ) * C.Ratio / 1000 / 1000 > $rubCompensationLimit, NULL) AS IsCompensationNeeded,
+        $ToLocalTzDatetime(FirstEvent) AS FirstEvent,
+        $ToLocalTzDatetime(LastEvent) AS LastEvent,
+    FROM
+        `//home/yabs/autobudget/AuditCPMVersioned` AS A
+    INNER JOIN
+        `//home/yabs/dict/Currency` AS C
+    ON
+        C.CurrencyID = A.CurrencyID
+    WHERE
+        RunTime = $runTimestamp
+    ;

@@ -1,0 +1,45 @@
+{% if cookiecutter.use_prestable_host_for_testing == "y" -%}
+{% set lbc_host = "logbroker-prestable.yandex.net" -%}
+{% else -%}
+{% set lbc_host = "logbroker.yandex.net" -%}
+{% endif -%}
+emitter:
+  args:
+    client_id: passport/lbc-{{cookiecutter.project_slug_kebab}}
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    per_host_config:
+      .*?:
+        targets:
+          - host: man.{{lbc_host}}
+            ssl: true
+            topic: {{cookiecutter.logbroker_topic_path_testing}}
+          - host: myt.{{lbc_host}}
+            ssl: true
+            topic: {{cookiecutter.logbroker_topic_path_testing}}
+          - host: sas.{{lbc_host}}
+            ssl: true
+            topic: {{cookiecutter.logbroker_topic_path_testing}}
+          - host: vla.{{lbc_host}}
+            ssl: true
+            topic: {{cookiecutter.logbroker_topic_path_testing}}
+          - host: iva.{{lbc_host}}
+            ssl: true
+            topic: {{cookiecutter.logbroker_topic_path_testing}}
+    workers_count: 10
+  class: passport.backend.logbroker_client.core.consumers.simple.native_emitter.PartitionsCountNativeEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/{{cookiecutter.project_slug_kebab}}/
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+        message_class: !!MESSAGE CLASS!!
+      class: passport.backend.logbroker_client.{{cookiecutter.project_slug_snake}}.handler.{{cookiecutter.project_slug_upper_camel}}Handler
+    class: passport.backend.logbroker_client.core.consumers.simple.native_worker.NativeLogbrokerWorker
+  count: 10

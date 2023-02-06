@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean class="ru.yandex.metrika.dbclients.ydb.YdbTemplate" id="counterStatYdbTemplate">
+        <constructor-arg name="sessionManager" ref="ydbCdpApiSessionManager"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.PropertyUtilsYdb" id="propertyUtilsYdb">
+        <property name="ydbTemplate" ref="counterStatYdbTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.counter.stat.CounterStatDaoYDB" id="counterStatDaoYDB">
+        <constructor-arg name="ydbTemplate" ref="counterStatYdbTemplate"/>
+        <constructor-arg name="propertyUtilsYdb" ref="propertyUtilsYdb"/>
+        <constructor-arg name="ydbSchemeManager" ref="ydbSchemeManager"/>
+        <property name="tableNamePrefix" value="counter_stat_"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.dbclients.ydb.async.YdbSchemeManager" id="ydbSchemeManager">
+        <constructor-arg name="properties" ref="counterStatYdbClientProperties"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.dbclients.ydb.YdbClientProperties" id="counterStatYdbClientProperties">
+        <property name="sessionPoolMinSize" value="10"/>
+        <property name="sessionPoolMaxSize" value="50"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.ManagementCommonService" id="managementCommonService">
+        <property name="rbac" ref="countersRbac"/>
+        <property name="dicts" ref="miscTemplate"/>
+        <property name="authUtils" ref="authUtils"/>
+        <property name="markovRootPath" ref="directDictYtRootPath"/>
+    </bean>
+
+    <alias name="metrikaManagerRolesProvider" alias="mainManagerRolesProvider"/>
+</beans>

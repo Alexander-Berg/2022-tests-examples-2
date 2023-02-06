@@ -1,0 +1,52 @@
+INSERT INTO debt_collector.debts 
+  (debt_id, metadata, service, 
+   debtors, 
+   created_at, updated_at, 
+   version, idempotency_tokens,
+   payments,
+   currency, debt, 
+   total,
+   strategy_kind, strategy_installed_at, strategy_metadata,
+   transactions_params,
+   invoice_id, invoice_id_namespace, transactions_installation, originator,
+   history, reason_code, reason_metadata)
+VALUES ('collect_zero_debt_id', '{"zone": "moscow"}', 'eats', 
+        '{"yandex/uid/some_uid"}', 
+        '2021-03-08T00:00:00+00:00', '2021-03-09T00:00:00+00:00', 
+        3, array['initial_token']::text[],
+	array['{"type": "card", "method": "some_card_id"}']::jsonb[],
+        'RUB', array[]::jsonb[], 
+	array['{"payment_type": "card", "items": [{"item_id": "food", "amount": "100.5"}]}']::jsonb[],
+	'time_table', '2021-01-02T00:00:00+00:00'::timestamptz, '{"schedule": ["2021-01-01T00:00:00.0+00:00"]}'::jsonb,
+	'{}'::jsonb,
+	'collect_debt_invoice_id', 'eda_namespace', 'eda', 'eats_payments',
+        array['{"request": {"idempotency_token": "debt/collect/1/1"}}'::json]::jsonb[], 'some_code', '{"from": "admin"}'),
+	('collect_debt_id', '{"zone": "moscow"}', 'eats', 
+        '{"yandex/uid/some_uid"}', 
+        '2021-03-08T00:00:00+00:00', '2021-03-09T00:00:00+00:00', 
+        3, array['initial_token']::text[],
+	array['{"type": "card", "method": "some_card_id"}']::jsonb[],
+        'RUB', array['{"payment_type": "card", "items": [{"item_id": "food", "amount": "90.5"}]}']::jsonb[],
+	array['{"payment_type": "card", "items": [{"item_id": "food", "amount": "100.5"}]}']::jsonb[],
+	'time_table', '2021-01-02T00:00:00+00:00'::timestamptz, '{"schedule": ["2021-01-01T00:00:00.0+00:00"]}'::jsonb,
+	'{}'::jsonb,
+	'collect_debt_invoice_id', 'eda_namespace', 'eda', 'eats_payments',
+        array['{"request": {"idempotency_token": "debt/collect/1/1"}}'::json]::jsonb[], 'some_code', '{"from": "admin"}'),
+	('collect_interval_debt_id', '{"zone": "moscow"}', 'eats', 
+        '{"yandex/uid/some_uid"}', 
+        '2021-03-08T00:00:00+00:00', '2021-03-09T00:00:00+00:00', 
+        3, array['initial_token']::text[],
+	array['{"type": "card", "method": "some_card_id"}']::jsonb[],
+        'RUB', array[]::jsonb[], 
+	array['{"payment_type": "card", "items": [{"item_id": "food", "amount": "100.5"}]}']::jsonb[],
+	'interval', '2021-01-02T00:00:00+00:00'::timestamptz, '{"from": "2021-01-01T00:00:00.0+00:00", "to": "2022-01-01T00:00:00.0+00:00", "num_attempts": 1}'::jsonb,
+	'{}'::jsonb,
+	'collect_debt_invoice_id', 'eda_namespace', 'eda', 'eats_payments',
+        array['{"request": {"idempotency_token": "debt/collect/1/1"}}'::json]::jsonb[], 'some_code', '{"from": "admin"}');
+
+
+INSERT INTO debt_collector.debts_debtors (debtor, status, debt_id)
+VALUES ('yandex/uid/some_uid', 'unpaid', 'collect_zero_debt_id'),
+       ('yandex/uid/some_uid', 'unpaid', 'collect_debt_id');
+
+

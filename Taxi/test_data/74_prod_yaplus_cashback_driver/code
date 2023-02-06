@@ -1,0 +1,98 @@
+function getAvailableCashback() {
+  if (fix.category_data.yaplus_coeff as yaplus_coeff) {
+    return {enabled=true, rate=1-yaplus_coeff, price_decreasing_coeff=yaplus_coeff};
+  }
+
+  return {enabled=false, rate=0.0, price_decreasing_coeff=1.0};
+}
+
+function calcCashback(base: double, rate: double) {
+  using(UserMeta) {
+    if ("cashback_fixed_price" in ride.ride.user_meta) {
+      return {
+          value=ride.ride.user_meta["cashback_fixed_price"],
+          metadata=[
+            "used_meta": ride.ride.user_meta["cashback_fixed_price"]
+          ]
+      };
+    }
+    return {value=base*rate, metadata=["empty meta": 1]};
+  }
+  return {value=base*rate, metadata=["no meta": 1]};
+}
+
+// we need all this only for unite price case
+let unite_total_price_enabled = "cashback_unite_total_price" in fix.exps;
+if (!unite_total_price_enabled) {
+  return ride.price;
+}
+
+if(fix.payment_type as payment_type) {
+  let corp_type = payment_type == "corp";
+  let wallet_type = payment_type == "personal_wallet";
+  let corp_acc_type = payment_type == "coop_account";
+  let bad_type = corp_type || wallet_type || corp_acc_type;
+
+  if (!fix.user_data.has_yaplus) {
+    return ride.price;
+  }
+  if (bad_type) {
+    return ride.price;
+  }
+
+  let cashback_params = getAvailableCashback();
+  if (cashback_params.enabled) {
+    // user hasn't accepted the new offer
+    if (!fix.user_data.has_cashback_plus) {
+      return ride.price;
+    }
+
+    // no cashback for cash
+    if (payment_type == "cash") {
+      return ride.price;
+    }
+    // no cashback when spending cashback
+    if (fix.complements as complements) {
+      return ride.price;
+    }
+    // too hard to calc cashback for coupon case
+    //if (fix.coupon as coupon) {
+    //  if (coupon.valid) {
+      //  return ride.price;
+      //}
+    //}
+    // avoiding nan_test
+    if (cashback_params.price_decreasing_coeff < 0.01) {
+      return ride.price;
+    }
+
+    // если rate окажется 0
+    if (cashback_params.rate < 0.01) {
+      return ride.price;
+    }
+
+    let cashback_for_plus_available = "cashback_for_plus_availability" in fix.exps;
+    if (!cashback_for_plus_available) {
+      return ride.price;
+    }
+
+    let cashback_rate = cashback_params.rate;
+    let price_decreasing_coeff = cashback_params.price_decreasing_coeff;
+
+    let rounded_total_price = round_to(*ride.price, fix.rounding_factor);
+    let calc_res = calcCashback(base=rounded_total_price, rate=cashback_rate);
+    let cashback_price = calc_res.value;
+    let rounded_cashback_price = round_to(cashback_price, fix.rounding_factor);
+    let rounded_new_ride_price = rounded_total_price - rounded_cashback_price;
+
+    let new_price_decreasing_coeff = (*ride.price >= 1)
+      ? rounded_new_ride_price/(*ride.price)
+      : price_decreasing_coeff;
+
+    let meta = calc_res.metadata;
+
+    return concat(ride.price * new_price_decreasing_coeff, {metadata=meta});
+  }
+
+}
+return ride.price;

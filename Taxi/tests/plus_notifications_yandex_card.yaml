@@ -1,0 +1,128 @@
+id: plus_notifications_yandex_card
+title: Заполнение notifications на основе протокола и сервиса плюса
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid: 'uid=uid'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                notifications:
+                    payment_informer:
+                        type: "payment_informer"
+                        translations:
+                            title: "недостаточно средств"
+                            subtitle: "пополните карту"
+                        informer:
+                            title: "title"
+                            subtitle: "subtitle"
+                            icon_tag: "icon_tag"
+                            reqiured:
+                                card_balance: "300"
+                                currency: "RUB"
+                            action:
+                                type: "DEEPLINK"
+                                deeplink: "deeplink"
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: cashback_for_plus
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: plus-internal-v2-totw-info
+    response:
+        status-code: 200
+        body:
+            cost_message_details: {}
+            notifications:
+                yandex_card:
+                    type: "payment_informer"
+                    translations:
+                        title: "недостаточно средств"
+                        subtitle: "пополните карту"
+                    informer:
+                        title: "title"
+                        subtitle: "subtitle"
+                        icon_tag: "icon_tag"
+                        reqiured:
+                            card_balance: "300"
+                            currency: "RUB"
+                        action:
+                            type: "DEEPLINK"
+                            deeplink: "deeplink"
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                category: econom
+                complements:
+                    personal_wallet: true
+                currency: RUB
+                current_prices:
+                    user_total_price: 1000
+                    cashback_price: 100
+                    discount_cashback: 12
+                    possible_cashback: 10
+                    kind: fixed
+                    cost_breakdown:
+                      - type: "yandex_card"
+                        amount: "1000"
+                    current_cost_meta:
+                        user:
+                            waiting_price: 35
+                order_id: order_id
+                is_possible_cashback:
+                zone_name:
+                payment:
+                    type: "yandex_card"
+                    payment_method_id: "payment_method_id"
+                fixed_price: 1000
+                order_status: complete
+            content-type: application/json
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: complete
+            tariff:
+                class: econom
+            currency_rules:
+                code: RUB
+            private_data:
+                complements:
+                  - type: personal_wallet
+                current_prices:
+                    user_total_price: 1000
+                    cashback_price: 100
+                    discount_cashback: 12
+                    possible_cashback: 10
+                    kind: fixed
+                    cost_breakdown:
+                      - type: "yandex_card"
+                        amount: "1000"
+                    current_cost_meta:
+                        user:
+                            waiting_price: 35
+                fixed_price: 1000
+            payment:
+                type: "yandex_card"
+                payment_method_id: "payment_method_id"

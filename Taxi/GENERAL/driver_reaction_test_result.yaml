@@ -1,0 +1,138 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: Ручка для записи результата тестирования на усталость
+    description: Ручка для записи результата тестирования на усталость
+host: driver-protocol.taxi.yandex.net
+
+paths:
+    /driver/reaction_test_result:
+        post:
+            x-baseclass: AuthorizedDriverBaseSwaggerAdapter
+            operationId: ReactionTestResult
+            tags:
+              - driver_reaction_test_result
+            description: |
+                ### Описание
+
+                Запись результата тестирования на усталость, используется клиентом таксометра.
+
+                ### Пример запроса
+
+                curl -X POST "https://driver-protocol.taxi.yandex.net/driver/reaction_test_result?db=123&session=qwerty" -v --data '{
+                    "id": "test_id",
+                    "type": "gopher",
+                    "results": [
+                      {
+                        "total_time_ms": 60000,
+                        "status": "success",
+                        "clicks": [
+                          {
+                            "is_hit": True,
+                            "delay_ms": 918
+                          }
+                        ]
+                      }
+                    ]
+                  }'
+
+                ### Пример ответа
+
+                {
+                    "passed": True,
+                }
+
+            parameters:
+              - in: query
+                name: db
+                description: Идентификатор парка, в котором работает водитель.
+                type: string
+                required: true
+              - in: query
+                name: session
+                description: Сессия водителя для проверки авторизации
+                type: string
+                required: true
+              - in: body
+                name: test_results
+                description: Информация о пройденном тесте
+                required: true
+                schema:
+                    $ref: '#/definitions/ReactionTestRequest'
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/ReactionTestResponse'
+                400:
+                    description: Некорректные параметры запроса
+                401:
+                    description: Некорректная авторизация сервиса коммуникаций
+                500:
+                    description: Внутренняя ошибка или рестарт сервера
+definitions:
+    ReactionTestClick:
+        type: object
+        description: Данные одного клика
+        properties:
+            delay_ms:
+                description: Время на клик
+                type: integer
+            is_hit:
+                description: Попал ли клик в цель
+                type: boolean
+        required:
+          - delay_ms
+          - is_hit
+    ReactionTestResult:
+        type: object
+        description: Результат одного теста
+        properties:
+            total_time_ms:
+                description: Время прохождения теста
+                type: integer
+            status:
+                description: Статус завершения теста
+                type: string
+                enum:
+                  - timed_out
+                  - finished_on_errors
+                  - finished_on_restart
+                  - success
+            clicks:
+                description: Нажатия в процессе теста
+                type: array
+                items:
+                    $ref: '#/definitions/ReactionTestClick'
+        required:
+          - total_time_ms
+          - clicks
+          - status
+    ReactionTestRequest:
+        type: object
+        description: Тело запроса с информацией о пройденном тесте
+        properties:
+            id:
+                description: Айди тестовой сессии
+                type: string
+            type:
+                description: Тип пройденного теста
+                type: string
+            results:
+                description: Результаты теста
+                type: array
+                items:
+                    $ref: '#/definitions/ReactionTestResult'
+        required:
+          - id
+          - type
+          - results
+    ReactionTestResponse:
+        type: object
+        description: Ответ на запрос
+        properties:
+            passed:
+                description: Пройден ли тест успешно.
+                type: boolean
+        required:
+          - passed

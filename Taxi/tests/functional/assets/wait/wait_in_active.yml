@@ -1,0 +1,81 @@
+options:
+  width: 800
+  height: 600
+  browser: chrome
+  base_url: http://nginx
+  selenium_hub_url: http://127.0.0.1:4450/wd/hub
+  timeout: 2.0
+
+tests:
+  - get_ok:
+      url: base.html
+  - wait:  # Common case
+      - has: /html/body/div
+      - has: css:p.text
+      - clickable: //*[@id="show-yohoho"]
+  - _inner_test: [True, Passed common case.]
+
+  # tests for wait inside active test:
+  - click_ok:
+      xpath: //*[@id="show-yohoho"]
+      wait:
+        timeout: 0.5
+        tests:  # long notation
+          - has: /html/body/div
+          - is:
+              xpath: //*[@id="yohoho"]
+              value: YOHOHO
+          - has: css:p.text
+  - _inner_test:
+      success: False
+      elapsed:
+        min: 0.5
+        # don't check max since it flaps on slow systems
+        # max: 0.6
+      tap_description: Really waits and fails (long notation).
+
+  - get_ok:  # load page again
+      url: base.html
+  - wait:
+      - has: /html/body/div
+      - has: css:p.text
+      - clickable: //*[@id="show-yohoho"]
+  - _inner_test: [True, Passed common case.]
+
+  - click_ok:
+      xpath: //*[@id="show-yohoho"]
+      wait:  # short notation
+        - has: /html/body/div
+        - is:
+            xpath: //*[@id="yohoho"]
+            value: YOHOHO
+        - has: css:p.text
+  - _inner_test:
+      success: True
+      elapsed:
+        min: 1.0
+      tap_description: Really waits and succeeds (short notation).
+
+  - get_ok:  # load page again
+      url: base.html
+  - wait:
+      - has: /html/body/div
+      - has: css:p.text
+      - clickable: //*[@id="show-yohoho"]
+  - _inner_test: [True, Passed common case.]
+
+  - click_ok:
+      xpath: //*[@id="show-yohoho"]
+      wait:
+        timeout: 1.5
+        tests:  # long notation
+          - has: /html/body/div
+          - is:
+              xpath: //*[@id="yohoho"]
+              value: YOHOHO
+          - has: css:p.text
+  - _inner_test:
+      success: True
+      elapsed:
+        min: 1.0
+      tap_description: Really waits and succeeds. (long notation)

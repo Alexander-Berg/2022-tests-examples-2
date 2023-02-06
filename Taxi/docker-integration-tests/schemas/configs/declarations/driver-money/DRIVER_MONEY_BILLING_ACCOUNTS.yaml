@@ -1,0 +1,55 @@
+default: []
+description: Mapping of billing accounts to the values on screens.
+maintainers: [vdovkin, antontodua]
+tags: [notfallback]
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/AccountDefinition'
+
+    definitions:
+        SubAccounts:
+            type: array
+            items:
+                type: string
+
+        BillingAccount:
+            type: object
+            required:
+              - agreement_id
+              - sub_accounts
+            additionalProperties: false
+            properties:
+                agreement_id:
+                    type: string
+                sub_accounts:
+                    $ref: '#/definitions/SubAccounts'
+
+        AccountType:
+            type: string
+            enum:
+              - subvention_payoff
+              - yandex_commission
+              - park_commission
+              - driver_fix_completed_orders_count
+              - driver_fix_order_cost
+              - driver_fix_payoff
+              - driver_fix_minutes
+              - rebate
+              - work_shifts
+              - orders_cost
+
+        AccountDefinition:
+            type: object
+            required:
+              - billing_account
+              - account_type
+            additionalProperties: false
+            properties:
+                billing_account:
+                    $ref: '#/definitions/BillingAccount'
+                account_type:
+                    $ref: '#/definitions/AccountType'
+                experiment_name:
+                    description: Use only if experiment enabled
+                    type: string

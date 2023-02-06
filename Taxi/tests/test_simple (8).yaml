@@ -1,0 +1,41 @@
+id: test_simple
+title: простой тест sessions/current-ручки
+
+source:
+    request:
+        method: get
+        headers:
+            HeaderFromClient: HEADER_FROM_CLIENT
+            X-YaTaxi-User: personal_phone_id=PERSONAL_PHONE_ID
+    expectations:
+        response:
+            status-code: 200
+            body:
+                currency_rules: {"sign": "₽", "template": "$VALUE$ $SIGN$$CURRENCY$",
+                    "text": "руб.", "code": "RUB"}
+                user:
+                    driver_license:
+                        required: false
+                    is_registered: true
+                server_time: 1643624465
+
+mocks:
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            user: {"is_registered": true}
+            server_time: 1643624465
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                HeaderFromClient: HEADER_FROM_CLIENT
+                StandartInsuranceSupported#string: 1
+                X-YaTaxi-User: personal_phone_id=PERSONAL_PHONE_ID
+  - resource: talaria-sessions-current
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

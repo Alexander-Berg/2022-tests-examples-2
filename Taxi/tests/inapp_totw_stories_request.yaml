@@ -1,0 +1,135 @@
+id: inapp_totw_stories_request
+title: Проверяет, что ответ ручки inapp/4.0/totw-stories есть в общем response
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                higher_class_dialog:
+                    image: class_comfortplus_car
+                    text: some_text
+                    title: some_title
+                    class_after_upgrade: comfortplus
+                brandings#array:
+                  - value#object:
+                      - key: match
+                        value:
+                            views: ['waiting', 'driving']
+                      - key: type
+                        value: 'stories'
+                      - key: stories
+                        value#array:
+                          - value#object:
+                              - key: id
+                                value: 1
+                              - key: name
+                                value: 'story_name'
+                              - key: enabled
+                                value: true
+                              - key: media
+                                value: [{'type': 'image', 'content': 'url'}]
+                promotions#object:
+                  - key: banners
+                    value#object:
+                      - key: items
+                        value#array: []
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: update_selected_class_after_upgrade
+        value:
+            enabled: false
+        enabled: true
+      - key: api_proxy_totw_stories_use_inapp
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            higher_class_dialog:
+                image: class_comfortplus_car
+                title: some_title
+                text: some_text
+                class_after_upgrade: comfortplus
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                nz: 'moscow'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'
+  - resource: inapp-communications-v1-promos-on-the-way
+    response:
+        status-code: 200
+        body#object:
+          - key: legacy_stories
+            value#object:
+              - key: match
+                value:
+                    views: ['waiting', 'driving']
+              - key: type
+                value: 'stories'
+              - key: stories
+                value#array:
+                  - value#object:
+                      - key: id
+                        value: 1
+                      - key: name
+                        value: 'story_name'
+                      - key: enabled
+                        value: true
+                      - key: media
+                        value: [{'type': 'image', 'content': 'url'}]
+          - key: promotions
+            value#object:
+              - key: banners
+                value#object:
+                  - key: items
+                    value#array: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post

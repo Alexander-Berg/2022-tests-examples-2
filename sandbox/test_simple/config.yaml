@@ -1,0 +1,34 @@
+pandora:
+  enabled: true
+  package: yandextank.plugins.Pandora
+  config_content:
+    pools:
+      - id: HTTP
+        gun:
+          type: http
+          target: localhost:80
+        ammo:
+          type: uri
+          file: /data/test_simple/ammo.uri
+        result:
+          type: phout
+          destination: /data/test_simple/run/phout.log
+        rps:
+          - { duration: 3s, type: line,  from: 1, to: 10 }
+          - { duration: 2s, type: const,  ops: 10 }
+        startup:
+          - { type: once, times: 20 }
+    log:
+      level: error
+phantom:
+  enabled: false
+rcheck:
+  enabled: false
+uploader:
+  api_address: https://lunapark.yandex-team.ru/
+  enabled: true
+  job_name: '[pandora][integration_test]'
+  operator: lunapark
+  package: yandextank.plugins.DataUploader
+  task: YANDEXTANK-1
+  ignore_target_lock: true

@@ -1,0 +1,57 @@
+id: test_error_confirm
+title: Happy path
+
+source:
+    request:
+        method: post
+        headers:
+            Content-Type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+        body:
+            cargo_ref_id: "ref_id"
+            last_known_status: "delivering"
+            idempotency_token: "some_token"
+    expectations:
+        response:
+            status-code: 400
+            body:
+                code: "not_found"
+                message: "point not found"
+
+mocks:
+  - resource: eats-pro-orders-bdu-v1-exchange-confirm
+    response:
+        status-code: 400
+        body:
+            code: "not_found"
+            message: "point not found"
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                cargo_ref_id: "ref_id"
+                last_known_status: "droppof_confirmation"
+                point_id:
+                setcar_state_version:
+                taximeter_state_version:
+                confirmation_code:
+
+
+  - resource: cargo-orders-taximeter-handlers-post
+    response:
+        status-code: 200
+        body:
+            new_status: "droppof_confirmation"
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                cargo_ref_id: "ref_id"
+                last_known_status: "delivering"
+                idempotency_token: "some_token"
+                location_data:
+                point_id:

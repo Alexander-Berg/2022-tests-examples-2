@@ -1,0 +1,30 @@
+emitter:
+  args:
+    {% if cookiecutter.use_prestable_host_for_testing == "yes" %}
+    balancer_host: '%(dc)s.logbroker-prestable.yandex.net:8999'
+    {% else %}
+    balancer_host: '%(dc)s.logbroker.yandex.net:8999'
+    {% endif %}
+    client: passport@lbc-{{cookiecutter.project_slug_kebab}}
+    data_port: 8999
+    ident: {{cookiecutter.project_slug_kebab}}
+    per_host_config:
+      .*?:
+        dc: myt
+        topics:
+        - rt3.myt--{{cookiecutter.logbroker_topic_path_testing}}
+        - rt3.man--{{cookiecutter.logbroker_topic_path_testing}}
+    workers_count: 4
+  class: passport.backend.logbroker_client.core.consumers.simple.emitter.PartitionsCountEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/{{cookiecutter.project_slug_kebab}}/
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.{{cookiecutter.project_slug_snake}}.handler.{{cookiecutter.project_slug_upper_camel}}Handler
+  class: passport.backend.logbroker_client.core.consumers.simple.worker.AutoBalancedLogbrokerWorker
+  count: 4

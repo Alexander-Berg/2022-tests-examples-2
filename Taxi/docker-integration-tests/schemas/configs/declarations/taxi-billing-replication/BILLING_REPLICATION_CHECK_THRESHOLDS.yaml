@@ -1,0 +1,97 @@
+default:
+    no_fresh_updates:
+        warn: 5
+        crit: 15
+
+    cycle_too_long:
+      - table: parks.contracts_queue
+      # 4.5 hours
+        warn: 270
+      # 6 hours
+        crit: 360
+
+      - table: parks.persons_queue
+      # 3 hours
+        warn: 180
+      # 4 hours
+        crit: 240
+
+  # db rows counts
+    too_few_updates:
+      - table: parks.persons
+        warn: 2000
+        crit: 1500
+
+      - table: parks.contracts
+        warn: 2300
+        crit: 2000
+
+description: Настройки для проверок джагглера taxi-billing-replication
+tags: []
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - no_fresh_updates
+      - cycle_too_long
+      - too_few_updates
+
+    properties:
+        no_fresh_updates:
+            description: Сколько минут в очередях должны отсутствовать обновления,
+                чтобы джагглер среагировал
+            type: object
+            additionalProperties: false
+            required:
+              - warn
+              - crit
+
+            properties:
+                warn:
+                    type: integer
+                    minimum: 0
+                crit:
+                    type: integer
+                    minimum: 0
+                tables:
+                    description: К каким таблицам применять. Не сразу придумал, поэтому
+                        отсутствие <=> пустому списку.
+                    type: array
+                    items:
+                        type: string
+
+
+
+        cycle_too_long:
+            description: Сколько минут должен продолжаться последний цикл обновления
+                очереди, чтобы джагглер среагировал
+            type: array
+            items:
+                $ref: '#/definitions/TableThresholds'
+
+        too_few_updates:
+            description: Меньше скольких строк должно обновиться в таблице за 5 минут,
+                чтобы джагглер среагировал
+            type: array
+            items:
+                $ref: '#/definitions/TableThresholds'
+
+    definitions:
+        TableThresholds:
+            type: object
+            additionalProperties: false
+            required:
+              - warn
+              - crit
+              - table
+
+            properties:
+                table:
+                    type: string
+                warn:
+                    type: integer
+                    minimum: 0
+                crit:
+                    type: integer
+                    minimum: 0

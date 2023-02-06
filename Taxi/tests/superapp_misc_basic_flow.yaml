@@ -1,0 +1,170 @@
+id: superapp_misc_basic_flow
+title: базовая логика перекладывания полей из superapp-misc до потребителей
+source:
+    request:
+        method: post
+        body: {"state": {"appearance_mode": "default", "screen_type": "main"}, "shortcuts": {
+                "grids_support": [{"width": 6, "unit_width": 54.5}], "supported_features": [
+                    {"type": "taxi:route-input", "services": [], "prefetch_strategies": []},
+                    {"type": "media-stories", "services": [], "prefetch_strategies": []}],
+                "ndash_width": 9, "mdash_width": 14}, "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+            body: {"modes": [{"layout": {"grid_id": "some_grid_id", "width": 6, "type": "linear_grid"},
+                        "mode": "taxi", "offers": {"items": [], "header": []}, "parameters": {
+                            "available": true, "product_tag": "taxi"}}], "typed_experiments": {
+                    "items": []}, "products": [{"tag": "taxi", "service": "taxi",
+                        "title": "Taxi"}]}
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    response:
+        status-code: 200
+        body:
+            results: []
+    expectations:
+        call-count: 1
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+        request:
+            body:
+                zone_name: "moscow"
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+        request:
+            body:
+                services_availability:
+                  - mode: taxi
+                    parameters: {"product_tag": "taxi", "available": true}
+                user_context#any:
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: [{'scenario': 'maas', 'shortcuts': [{'scenario': 'maas',
+                            'scenario_params': {'maas_params': {'deeplink': deeplink}},
+                            'content': {'color': '#EAE8E2', 'image_tag': 'tag', 'text_color': '#FFAAFF',
+                                'title': 't', 'subtitle': 'st'}}]}]
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                point_a: [1, 2]
+                appearance_mode: 'default'
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                state:
+                    screen_type: "main"
+                zone_name: "moscow"
+                grid#array:
+                known_orders#array:
+                services_availability:
+                    products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+                    modes: [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}]
+                shortcuts#any:
+                position#any:
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                scenario_tops: [{'scenario': 'maas', 'shortcuts': [{'scenario': 'maas',
+                                'scenario_params': {'maas_params': {'deeplink': deeplink}},
+                                'content': {'color': '#EAE8E2', 'image_tag': 'tag',
+                                    'text_color': '#FFAAFF', 'title': 't', 'subtitle': 'st'}}]}]
+                user_context:
+                    pin_position#array: [1, 2]
+                    show_at: "2020-01-01T00:00:00+00:00"
+                scenario_predictions#array:
+                state:
+                    nz: "moscow"
+                    services_availability: [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}]
+                    screen_type: "main"
+                showcases#array:
+                grid_restriction:
+                    cell_widths#array: [2, 3, 4]
+                    grid_width: 6
+                    mdash_width: 14
+                    ndash_width: 9
+                    unit_width: 54.5
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body: {"scenario_tops": []}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                screen: "main"
+                user_context:
+                    state:
+                        screen_type: "main"
+                    show_at: "2020-01-01T00:00:00+00:00"
+                    pin_position#array: [1, 2]
+                    zone_name: "moscow"
+                services_availability:
+                    products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+                    modes: [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}]
+                    typed_experiments: {"items": []}
+                    zone_name: "moscow"
+
+experiments:
+    values#object:
+      - key: maas_shortcuts_enabled
+        value: {'enabled': true, 'lon': 10, 'lat': 10}
+        enabled: true
+      - key: enable_umlaas_geo_in_v1_products
+        value: {"enabled": true}
+        enabled: true
+      - key: proxy_screen_to_inapp_shortcuts
+        value: {"enabled": true}
+        enabled: true

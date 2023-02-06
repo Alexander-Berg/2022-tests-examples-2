@@ -1,0 +1,217 @@
+INSERT INTO scooter_accumulator.cabinets (
+    cabinet_id,
+    depot_id,
+    updated_at
+) VALUES
+(
+    'cabinet_id1',
+    'depot_id1',
+    NOW()
+);
+
+INSERT INTO scooter_accumulator.accumulators (
+    accumulator_id,
+    serial_number,
+    contractor_id,
+    cabinet_id,
+    scooter_id,
+    charge,
+    updated_at
+) VALUES
+(
+    'accum_id1',
+    'serial_number1',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    95,
+    NOW()
+),
+(
+    'accum_id2',
+    'serial_number2',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    100,
+    NOW()
+),
+(
+    'accum_id3',
+    'serial_number3',
+    'contractor_id1',
+    NULL,
+    NULL,
+    50,
+    NOW()
+),
+(
+    'accum_id4',
+    'serial_number4',
+    'contractor_id1',
+    NULL,
+    NULL,
+    90,
+    NOW()
+),
+(
+    'fake_id123',
+    'serial_number123',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    90,
+    NOW()
+),
+(
+    'accum_id_no_place',
+    'serial_number_no_place',
+    NULL,
+    NULL,
+    NULL,
+    25,
+    NOW()
+);
+
+INSERT INTO scooter_accumulator.cells (
+    cell_id,
+    cabinet_id,
+    accumulator_id,
+    is_open,
+    booked_by,
+    updated_at
+) VALUES
+(
+    'cell_id1',
+    'cabinet_id1',
+    'accum_id1',
+    False,
+    'booking_id1',
+    NOW()
+),
+(
+    'cell_id2',
+    'cabinet_id1',
+    'accum_id2',
+    True,
+    'booking_id2',
+    NOW()
+),
+(
+    'cell_id3',
+    'cabinet_id1',
+    NULL,
+    False,
+    'booking_id3',
+    NOW()
+),
+(
+    'cell_id4',
+    'cabinet_id1',
+    NULL,
+    False,
+    'booking_id4',
+    NOW()
+),
+(
+    'cell_id5',
+    'cabinet_id1',
+    NULL,
+    False,
+    'booking_id5',
+    NOW()
+),
+(
+    'cell_id6',
+    'cabinet_id1',
+    NULL,
+    False,
+    NULL,
+    NOW()
+),
+(
+    'cell_id7',
+    'cabinet_id1',
+    'fake_id123',
+    False,
+    'booking_id6',
+    NOW()
+);
+
+INSERT INTO scooter_accumulator.bookings (
+    booking_id,
+    contractor_id,
+    cabinet_id,
+    cells_count,
+    cell_id,
+    accumulator_id,
+    booking_status,
+    created_at,
+    updated_at
+) VALUES
+(
+    'booking_id1',
+    'contractor_id1',
+    'cabinet_id1',
+    '1',
+    'cell_id1',
+    'accum_id1',
+    'CREATED',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id2',
+    'contractor_id1',
+    'cabinet_id1',
+    '1',
+    'cell_id2',
+    'accum_id2',
+    'IN_PROCESS',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id3',
+    'contractor_id1',
+    'cabinet_id1',
+    '1',
+    'cell_id3',
+    'accum_id3',
+    'PROCESSED',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id4',
+    'contractor_id1',
+    'cabinet_id1',
+    '1',
+    'cell_id4',
+    'accum_id4',
+    'VALIDATED',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id5',
+    'contractor_id1',
+    'cabinet_id1',
+    '1',
+    'cell_id5',
+    NULL,
+    'CREATED',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id6',
+    'contractor_id1',
+    'cabinet_id1',
+    '1',
+    'cell_id7',
+    'fake_id123',
+    'CREATED',
+    NOW(),
+    NOW()
+);

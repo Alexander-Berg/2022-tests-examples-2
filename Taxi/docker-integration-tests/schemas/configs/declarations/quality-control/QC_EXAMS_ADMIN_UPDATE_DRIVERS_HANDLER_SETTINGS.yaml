@@ -1,0 +1,53 @@
+default:
+    limits:
+        max_request_items: 1000
+    throttlers:
+        bulk_retrieve:
+            size: 1000
+            sleep: 1000
+        post_qc_data:
+            size: 100
+            sleep: 1000
+        update:
+            size: 1000
+            sleep: 1000
+    timeouts:
+        bulk_retrieve: 2000
+        update: 5000
+description: Настройки разработчика
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: false
+        scheme:
+            limits:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: false
+                    scheme:
+                        max_request_items:
+                          - $integer
+                          - $gt: 0
+            throttlers:
+              - $dictionary_of:
+                    key_validators:
+                      - $string
+                    value_validators:
+                      - $dictionary:
+                            extra_ok: false
+                            missing_ok: false
+                            scheme:
+                                size:
+                                  - $integer
+                                  - $gt: 0
+                                sleep:
+                                  - $integer
+                                  - $gte: 0
+            timeouts:
+              - $dictionary_of:
+                    key_validators:
+                      - $string
+                    value_validators:
+                      - $integer
+                      - $gt: 0

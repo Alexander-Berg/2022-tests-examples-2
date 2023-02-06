@@ -1,0 +1,148 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3-services_menu-empty.json"
+  - name: experiments3
+    kwargs:
+        filename: "burn_experiments3.json"
+  - name: now
+    args:
+      - '2021-07-20T12:00:00+00:00'
+
+mockserver:
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120.0000"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+  - url: /cashback-annihilator/v1/annihilation/info
+    response:
+        status: 200
+        body:
+            annihilations:
+              - annihilation_date: "2021-07-26T09:01:50+00:00"
+                balance_to_annihilate: "100"
+                currency: RUB
+                wallet_id: "test_wallet_id"
+
+tests:
+  - name: test_burning_menu
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu:
+                action_button:
+                    action: PLUS.BUY
+                    states:
+                      - state: IDLE
+                        title: "Подключить"
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                balance_badge:
+                    show_glyph: true
+                    style:
+                        icon: https://tc.tst.mobile.yandex.net/static/test-images/743/9f61ba4476894fb4bbedabfb7bd25672
+                    subtitle: "ваши баллы на Плюсе"
+                    subtitle_action:
+                        deeplink: yandextaxi://plusburns
+                        type: DEEPLINK
+                    attributed_subtitle:
+                        items:
+                          - text: "Баллы сгорят через "
+                            type: text
+                          - text: '6'
+                            type: text
+                          - text: " дней"
+                            type: text
+                currency_rules:
+                    code: RUB
+                    sign: "₽"
+                    template: $VALUE$ $SIGN$$CURRENCY$
+                    text: "руб."
+                home_type: sweet-home:burn
+                sections: []
+            menu_type: NATIVE
+
+  - name: test_has_plus_in_request
+    mockserver:
+      - url: /cashback-annihilator/v1/annihilation/info
+        request:
+            method: GET
+            query_params:
+                yandex_uid: "111111"
+                has_plus: "false"
+        response:
+            status: 200
+            body: []
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                widgets: []
+                plaques: []
+
+  - name: test_has_plus_in_request_v2
+    mockserver:
+      - url: /cashback-annihilator/v1/annihilation/info
+        request:
+            method: GET
+            query_params:
+                yandex_uid: "111111"
+                has_plus: "true"
+        response:
+            status: 200
+            body: []
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque:
+                widgets: []
+                plaques: []

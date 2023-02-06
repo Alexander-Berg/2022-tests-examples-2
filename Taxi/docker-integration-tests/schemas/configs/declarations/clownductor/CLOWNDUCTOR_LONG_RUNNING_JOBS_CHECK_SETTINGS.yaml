@@ -1,0 +1,46 @@
+default:
+    warn:
+        max_age: 240
+    crit:
+        max_age: 260
+    exclude_jobs_from_check: []
+
+tags: []
+
+description: Настройки монран проверки долго работающих джобов
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - warn
+      - crit
+      - exclude_jobs_from_check
+    properties:
+        warn:
+            $ref: '#/definitions/LevelSettings'
+        crit:
+            $ref: '#/definitions/LevelSettings'
+        exclude_jobs_from_check:
+            description: Список имён джоб, для которых не применять проверку
+            type: array
+            items:
+                type: string
+                example: 'DeployNannyServiceWithApprove'
+        exclude_job_ids_from_check:
+            description: ID джоб, для которых не применять проверку
+            type: array
+            items:
+                type: integer
+
+    definitions:
+        LevelSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - max_age
+            properties:
+                max_age:
+                    type: integer
+                    min: 1
+                    description: Максимальное время работы джобы в минутах

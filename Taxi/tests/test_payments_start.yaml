@@ -1,0 +1,50 @@
+id: test_payments_start
+title: тест вызова scooters_payments_start
+
+source:
+    request:
+        method: post
+        headers:
+            X-Yandex-UID: YANDEX_UID
+            X-YaTaxi-UserId: USER_ID
+            X-YaTaxi-PhoneId: PHONE_ID
+            X-Remote-IP: REMOTE_IP
+            X-YaTaxi-User: personal_phone_id=PERSONAL_PHONE_ID,personal_email_id=PERSONAL_EMAIL_ID
+        body:
+            offer_id: OFFER_ID
+    expectations:
+        response:
+            status-code: 200
+            body: {}
+
+mocks:
+  - resource: scooters-offers-book
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                offer_id: OFFER_ID
+
+  - resource: scooters-payments-start
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+        request:
+            query:
+                session_id: OFFER_ID
+            headers:
+                X-Yandex-UID: YANDEX_UID
+                X-YaTaxi-UserId: USER_ID
+                X-YaTaxi-PhoneId: PHONE_ID
+                X-Remote-IP: REMOTE_IP
+                X-YaTaxi-User: personal_phone_id=PERSONAL_PHONE_ID,personal_email_id=PERSONAL_EMAIL_ID
+
+configs:
+    values#object:
+      - scooters_payments_config:
+            enabled: true

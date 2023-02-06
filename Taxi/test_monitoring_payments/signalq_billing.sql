@@ -1,0 +1,26 @@
+INSERT INTO signalq_billing.payments_info
+(
+    park_id,
+    payment_progress, 
+    payments_date,
+    payment_amount,
+    created_at,
+    updated_at 
+)
+VALUES
+(
+    'p1',
+    'in_progress',
+    '2021-10-01',
+    '23.2423',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+),
+(
+    'p2',
+    'created',
+    '2021-10-01',
+    '33.2423',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+);

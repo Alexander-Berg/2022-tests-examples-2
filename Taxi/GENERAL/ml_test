@@ -1,0 +1,146 @@
+$name_query = 'ml_test';
+$uuid_query = CAST(RandomUuid($name_query) as string);
+$pr = 
+    '{"annotations" = {"taxidmp_task" = "' 
+    || $name_query 
+    || '"; "taxidmp_run_id" = "' 
+    || $uuid_query 
+    || '"; "backend_type" = "yql"}}';
+pragma yt.OperationSpec = $pr;
+USE HAHN;
+PRAGMA AnsiInForEmptyOrNullableItemsCollections;
+PRAGMA yson.DisableStrict;
+PRAGMA yson.AutoConvert;
+
+$options = Yson::Options(true AS AutoConvert);
+$format_day = DateTime::Format('%Y-%m-%d'); 
+$day = $format_day(CurrentUtcDatetime() + DateTime::IntervalFromHours(3) - DateTime::IntervalFromDays(365));
+$format_start = DateTime::Format('%Y-%m-%d 00:00:00'); 
+$format_end = DateTime::Format('%Y-%m-%d 23:59:59'); 
+$start = $format_start(CurrentUtcDatetime() + DateTime::IntervalFromHours(3) - DateTime::IntervalFromDays(1));
+$end   = $format_end(CurrentUtcDatetime() + DateTime::IntervalFromHours(3) - DateTime::IntervalFromDays(1));
+$format = DateTime::Format('%Y-%m-%d %H:%M:%S');
+
+$countticket = 
+SELECT 
+    user_phone_id
+    , COUNT(id)                             as `Count tickets`
+    , AVG(CAST(csat_value as Double))       as `avg csat`
+FROM (SELECT 
+        id, 
+        chat_type, 
+        user_phone_id, 
+        CASE 
+        WHEN csat_value IN ('5', 'amazing') THEN '100'
+        WHEN csat_value IN ('4', 'good') THEN '80'
+        WHEN csat_value IN ('3', 'normal') THEN '60'
+        WHEN csat_value IN ('2', 'bad') THEN '40'
+        WHEN csat_value IN ('1', 'horrible') THEN'20'
+        ELSE 'Null' 
+        END as csat_value, 
+        created
+    FROM (SELECT created, 
+            Yson::ConvertToString(meta_info['user_phone_id']) as user_phone_id,
+            id, 
+            chat_type, 
+            Yson::ConvertToString(meta_info['csat_value']) as csat_value, 
+            FROM `//home/taxi/production/services/support-taxi/support_chatterbox`
+        )
+    ) 
+WHERE chat_type ilike '%client%'
+    AND $format_day(CAST(CAST(created as Int64) + 10800 as Datetime)) >= $day
+GROUP BY user_phone_id;
+
+$promo_gen = 
+SELECT
+    user_phone_id,
+    count(promocode_code) as `promo gen`
+FROM RANGE('//home/taxi-dwh/ods/dbtaxi/support_promocodes','2021-01-01') as promo
+WHERE utc_created_dttm >= $day
+GROUP BY user_phone_id;
+
+$counttrips =
+SELECT 
+    user_phone_id,
+    count(order_id) as trips
+FROM range (`//home/taxi-dwh/summary/dm_order`, `2012-03`) as orders
+WHERE success_order_flg
+GROUP BY user_phone_id;
+
+$ticket_info = 
+SELECT
+    'https://supchat.taxi.yandex-team.ru/chat/' || chat_id as chat_link, 
+    CASE 
+    WHEN csat_value in ('5', 'amazing') THEN 5
+    WHEN csat_value in ('4', 'good') THEN 4
+    WHEN csat_value in ('3', 'normal') THEN 3
+    WHEN csat_value in ('2', 'bad') THEN 2
+    WHEN csat_value in ('1', 'horrible') THEN 1
+    ELSE null 
+    END as CSAT,
+    created, 
+    line, 
+    login, 
+    tags, 
+    user_phone_id,
+    reopen_count,
+    meta["value"] as new_macro
+FROM (
+    SELECT 
+        chat_id, 
+        line, 
+        Yson::ConvertToStringList(tags) as tags, 
+        chat_type,
+        user_phone_id,
+        csat_value, reopen_count, 
+        Yson::ConvertToString(dicti["login"]) as login,
+        $format(cast(cast(Yson::ConvertToDouble(dicti["created"]) as Int64) + 10800 as Datetime)) as created,
+        Yson::ConvertToString(dicti["comment"]) as comment,
+        ListMap(Yson::ConvertToList(dicti["meta_changes"]), ($meta) ->  {RETURN Yson::ConvertToStringDict($meta, $options)}) as meta_changes
+    FROM (
+        SELECT 
+            id as chat_id, 
+            tags, 
+            line, 
+            chat_type, 
+            reopen_count,  
+            Yson::ConvertToString(meta_info['user_phone_id']) as user_phone_id, 
+            Yson::ConvertToString(meta_info['csat_value']) as csat_value,
+            ListMap(Yson::ConvertToList(history),($list) -> {RETURN Yson::ConvertToDict($list)}) AS order_list 
+        FROM `//home/taxi/production/services/support-taxi/support_chatterbox`
+        )
+    FLATTEN LIST BY order_list AS dicti
+    ) 
+FLATTEN LIST BY meta_changes as meta
+WHERE created between $start and $end
+    AND chat_type = 'client'
+    AND meta["field_name"] = "macro_id"
+    AND login = 'superuser'
+    AND comment is not null;
+
+SELECT
+    chat_link as `Ссылка`, 
+    CSAT as `КСАТ`,
+    100 - CSAT as anticsat,
+    created as `Дата создания`, 
+    line as `Линия`, 
+    reopen_count as `Количество реопенов`, 
+    login as `Логин`, 
+    new_macro as `id макроса`,
+    CASE
+    WHEN ListHas(tags, "ar_model2") THEN 'ar_model2'
+    WHEN ListHas(tags, "ar_model3") THEN 'ar_model3' 
+    ELSE null 
+    END as `Модель`, 
+    ticket_info.user_phone_id as `Телефон`,
+    `promo gen`  as `Кол-во промокодов`,
+    trips as `Кол-во успешных заказов`,
+    Math::Round((cast(`promo gen` as double)/cast(trips as double))*100, -2) as `Процент выданных промо`,
+    `Count tickets` as `Кол-во созданных тикетов`,
+    `avg csat` as `Средний ксат у пользователя`,
+FROM $ticket_info as ticket_info
+LEFT JOIN $promo_gen as promgen on ticket_info.user_phone_id == promgen.user_phone_id
+LEFT JOIN $counttrips as ctr on ticket_info.user_phone_id == ctr.user_phone_id
+LEFT JOIN $countticket as ctt on ticket_info.user_phone_id == ctt.user_phone_id
+WHERE login = 'superuser'
+ORDER BY anticsat, `id макроса`;

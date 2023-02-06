@@ -1,0 +1,41 @@
+id: courier_loyalty_powerbank_sharing_agreement_status_invalid_both
+title: Запрос с невалидными токеном и IP
+
+source:
+    request:
+        method: post
+        body:
+            phone#string: '+79999999999'
+        headers:
+            X-Authorization: invalid_token
+            X-Remote-IP: 127.0.0.1
+    expectations:
+        response:
+            status-code: 403
+            body: {}
+
+taxi_config:
+    EDA_CORE_COURIER_LOYALTY_POWERBANK_SHARING_API_AVAILABLE_IP:
+        available_ips:
+          - 127.0.0.2
+          - 127.0.0.3
+
+mocks:
+  - resource: eats-v1-courier-loyalty-power-bank-sharing-agreement-check
+    response:
+        status-code: 200
+    expectations:
+        call-count: 0
+        request:
+            method: post
+  - resource: eats-core-v1-general-information-couriers-catalog-search-get
+    response:
+        status-code: 200
+    expectations:
+        call-count: 0
+        request:
+            method: get
+
+secdist:
+    settings_override:
+        EATS_TOKEN_FOR_BERI_ZARYAD: expected_token

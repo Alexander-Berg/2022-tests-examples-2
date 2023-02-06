@@ -1,0 +1,63 @@
+id: last_used_payment_method_user_state
+title: Проверяем заполнение last_used_payment_method, используя user-state
+
+parameters:
+  - last_payment_method:
+      - type: card
+        id: card_id
+      - type: googlepay
+      - type: sbp
+        id: sbp_qr
+        meta: {}
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 1
+              - 1
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods: []
+                merchant_id_list: []
+                last_used_payment_method#xget: /test-params/last_payment_method
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 200
+        body:
+            flows:
+              - payment_method#xget: /test-params/last_payment_method
+  - resource: cardstorage-v1-card
+    response:
+        status-code: 200
+        body:
+            card_id#xget:
+                path: /test-params/last_payment_method/id
+                default-value#null:
+            bound: true
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 500
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false

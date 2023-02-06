@@ -1,0 +1,192 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %]
+[% ttppspace_in_html_tag=1 %]
+[% space_in_html_tag=1 %]
+
+<body>
+<H1><B>DISABLED HOME-48174</B></H1>
+</body>
+
+[% IF(0) %]
+<head>
+    <title>PerlTest</title>
+    <script type="text/javascript" src="//yandex.st/jquery/2.0.3/jquery.js"></script>
+    <script src="//yandex.st/bootstrap/3.0.2/js/bootstrap.js"></script>
+    <script src="//yandex.st/json2/2011-10-19/json2.js"></script>
+    <link rel="stylesheet" href="//yandex.st/bootstrap/3.0.2/css/bootstrap.css" />
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-3 lead">
+            Worker status:
+            <span id="status"> unknonwn </span>
+        </div>
+
+        <div class="col-md-3">
+            <button id="run" class="btn btn-success">run autotests</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="lead">History <button class="btn btn-default btn-sm" id="update_history"><span class="glyphicon glyphicon-refresh"></span></button></div>
+            <div ><ul id="history" class="list-unstyled"></ul></div>
+        </div>
+        <div id="report" class='col-md-9'>
+            <div class="lead">Report: <span class="id"></span></div>
+            <div class="status"></div>
+            <div><pre class="report" style="display:none"></pre></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // this is script?
+</script>
+<style>
+#history code {
+    font-family: monospace,serif;
+    font-size: 1em;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+</style>
+
+<script language="javascript">
+    var watch = null;
+    var instance = '[% Instance %]';
+    var reports = {};
+    var load_reports = [];
+    function monitor() {
+        update_status();
+        update_report();
+    };
+
+    function load_report(id, success) {
+        if( reports[id] && reports[id].done ){
+            if( success ){
+                success( reports[id] );
+            }
+        } else {
+            jQuery.ajax( {
+                url: 'report',
+                dataType: 'json',
+                method: 'GET',
+                data: {id : id },
+                success: function(data){
+
+                    console.log('report', data);
+                    reports[id] = data;
+                    if( success ){
+                        success( data );
+                    }
+                    update_history_color( id );
+                },
+            });
+        }
+    }
+    function update_history_color( id ){
+        $('#history li').each( function(i,el){
+
+            var report = reports[id];
+            if( !report ){
+                return;
+            }
+            if( $(el).data('command-id') == id ){
+                $( el ).find( 'code' ).attr('class' ,'').addClass('label').addClass(
+                    report.running ? 'label-danger' :
+                    (    report.ok  ? 'label-success': 'label-danger' )
+                )
+
+            }
+        })
+    }
+    function update_report(){
+        if( watch ){
+            load_report( watch, function( data ){
+                    $('#report').find('.id').html(watch);
+                    $('#report').find('.status').html( data.status );
+                    if( data.data && data.data.report ){
+                        $('#report').find('.status').attr('class', '').addClass('status label').addClass( data.data.ok ? 'label-success' : 'label-danger');
+                        $('#report').find('.report').html( data.data.report );
+                        $('#report').find('.report').show();
+                    } else {
+                        $('#report').find('.status').removeClass('btn-success btn-warning btn-danger').addClass(  'btn-warning');
+                        $('#report').find('.report').hide();
+                    }
+            });
+
+        }
+
+    }
+    function update_status(){
+        jQuery.ajax( {
+            url: 'status',
+            dataType: 'json',
+            success: function(data){
+                console.log('status', data);
+                $('#status').html( data['status'] );
+                //update_history();
+            },
+        });
+    }
+    function update_history(){
+        jQuery.ajax( {
+            url: 'history',
+            dataType: 'json',
+                success: function(data){
+                    $('#history').html('');
+                    $(data.commands).each( function( i, el){
+                        var cmd = el.split(' ');
+                        var id = cmd.shift();
+                        var command = cmd.join(' ');
+
+                        if( ! id in reports ){
+                            load_reports.push(id);
+                            reports[id] = null
+                            //обьявляем для загрузки
+                        }
+                        var item = $('<li />').data('command-id', id);
+                        item.append( $("<code/>").html( id ) );
+                        item.append( " ");
+                        item.append( $("<span />").html( command ) );
+
+                        $('#history').append( item );
+
+                        //$('#history').append("<li ><span class='command-id'><code>"+ id +"</code></span> <span class='command code'>" + command +"</span></li>")
+                    } );
+                console.log('history', data)
+
+            },
+        })
+    }
+    setInterval( monitor, 5000 );
+
+    $('#run').on('click', function(){
+        jQuery.ajax({
+            url: 'run',
+            method: 'GET',
+            dataType: 'json',
+            data: { command: 'test ' + instance },
+            success: function( data ){
+                console.log( data );
+                if( data.id ){
+                    watch = data.id;
+                }
+            },
+        });
+    } );
+    $('#history').on('click', 'li', function(){
+        watch = $(this).data('command-id');
+        update_report();
+    } )
+    $('#update_history').on('click', function(){
+        update_history();
+    });
+    update_history();
+</script>
+</body>
+[% END %]

@@ -1,0 +1,124 @@
+use hahn;
+
+$sampled_pocket = "//home/jupiter-test/blrt_users/alexanderplat/20210608-172210/perf/make_banners/20210608-202223/";
+$sample_output_dir = "//home/robot-dev/alexanderplat/sample_result/";
+
+-- tasks_and_offers
+
+$sampled_pocket_tasks_and_offers = $sampled_pocket || "tasks_and_offers.static";
+$tasks_and_offers_sample_export_1 = $sample_output_dir || "external_data/tasks_and_offers/merged_tasks_and_offers_2021-02-17_13:00:00";
+$tasks_and_offers_sample_export_2 = $sample_output_dir || "external_data/tasks_and_offers/merged_tasks_and_offers_2021-02-17_13:10:00";
+
+insert into $tasks_and_offers_sample_export_1 WITH TRUNCATE
+select
+    `export_offers_info`,
+    `host`,
+    `ppar`,
+    `product_class`,
+    `product_inf`,
+    `product_md5`,
+    `tao_table_time`,
+    `task_id`,
+    `task_inf`,
+    `timestamp`
+from $sampled_pocket_tasks_and_offers
+where TableRecordIndex() % 2 == 0;
+
+insert into $tasks_and_offers_sample_export_2 WITH TRUNCATE
+select
+    `export_offers_info`,
+    `host`,
+    `ppar`,
+    `product_class`,
+    `product_inf`,
+    `product_md5`,
+    `tao_table_time`,
+    `task_id`,
+    `task_inf`,
+    `timestamp`
+from $sampled_pocket_tasks_and_offers
+where TableRecordIndex() % 2 == 1;
+
+-- UrlToOfferExport
+
+$url_to_offer_lookup_result = $sampled_pocket || "fetch_watchlog_offer_id.static";
+$url_to_offer_sample_export = $sample_output_dir || "external_data/watchlog_offer_id/UrlToOfferExport";
+insert into $url_to_offer_sample_export WITH TRUNCATE
+select distinct
+    Url as NormalizeUrl,
+    CounterId as CounterID,
+    cast(Digest::MurMurHash(Url || "###" || cast(CounterId as string)) as string) as OfferID
+from $url_to_offer_lookup_result
+where Digest::MurMurHash(Url) % 10 != 0
+order by NormalizeUrl, CounterID;
+
+-- external
+
+$external_lookup_result = $sampled_pocket || "external_lookup.static";
+$dse_sample_export = $sample_output_dir || "external_data/external/dse/dse_banners";
+$wm_clusters_sample_export = $sample_output_dir || "external_data/external/wm_clusters/final";
+
+insert into $dse_sample_export WITH TRUNCATE
+select norm_url,
+    some(domain) as domain,
+    some(url) as url,
+    some(bl_title) as bl_title,
+    some(bl_title_perf) as bl_title_perf,
+    some(bl_long_title) as bl_long_title,
+    some(bl_phrases) as bl_phrases,
+    some(flags) as flags,
+    some(name) as name,
+from $external_lookup_result
+where Digest::MurMurHash(norm_url) % 10 != 0 and source_index == "0"
+group by norm_url
+order by domain;
+
+insert into $wm_clusters_sample_export WITH TRUNCATE
+select norm_url,
+    some(domain) as domain,
+    some(url) as url,
+    some(phrases) as phrases,
+from $external_lookup_result
+where Digest::MurMurHash(norm_url) % 10 != 0 and source_index == "1"
+group by norm_url
+order by domain;
+
+
+-- cdict
+
+$datoteka_namespaces = ["bnr_count", "bnr_count_ru", "bnr_count_tr", "categs", "categs_tr", "flags", "flags_tr", "harm", "harm_tr", "regions", "regions_tr", "syns", "syns_tr"];
+
+$cdict_lookup_result = $sampled_pocket || "cdict_lookup.static";
+$cdict_chronicle_sample_export = $sample_output_dir || "external_data/cdict/cdict_chronicle";
+$cdict_datoteka_sample_export = $sample_output_dir || "external_data/cdict/cdict_datoteka";
+
+INSERT INTO $cdict_chronicle_sample_export WITH TRUNCATE
+select cdict_namespace, cdict_key, some(cdict_value) as cdict_value
+from $cdict_lookup_result
+where Digest::MurMurHash(cdict_namespace || cdict_key) % 10 != 0 and coalesce(cdict_namespace, '') not in $datoteka_namespaces
+group by cdict_namespace, cdict_key
+order by cdict_namespace, cdict_key;
+
+INSERT INTO $cdict_datoteka_sample_export WITH TRUNCATE
+select cdict_namespace, cdict_key, some(cdict_value) as cdict_value
+from $cdict_lookup_result
+where Digest::MurMurHash(cdict_namespace || cdict_key) % 10 != 0 and coalesce(cdict_namespace, '') in $datoteka_namespaces
+group by cdict_namespace, cdict_key
+order by cdict_namespace, cdict_key;
+
+-- avatar
+
+$avatar_lookup_result = $sampled_pocket || "avatar_lookup.static";
+$avatar_sample_export = $sample_output_dir || "external_data/avatars/avatars_cache";
+
+INSERT INTO $avatar_sample_export WITH TRUNCATE
+select
+    url,
+    some(response_code) as response_code,
+    some(avatars) as avatars,
+    some(meta) as meta,
+    some(update_time) as update_time
+from $avatar_lookup_result
+where Digest::MurMurHash(url) % 10 != 0
+group by url
+order by url;

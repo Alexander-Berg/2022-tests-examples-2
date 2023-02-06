@@ -1,0 +1,71 @@
+default: []
+description: |
+    Правила обработки входящих событий.
+    Если в правиле не указан
+    Полигоны с местоположением лавок для сервиса order-events-producer
+    Любой полигон попадает в группу 'any' по умолчанию.
+
+tags: []
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/rule'
+    definitions:
+
+        rule_match:
+            type: object
+            additionalProperties: false
+            properties:
+                event:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        event_key:
+                            description: |
+                                Ключ события из сообщения логброкера.
+                            type: string
+                        nearest_zone:
+                            description: |
+                                Ближайшая геозона, используется для оптимизации проверки
+                                вхождения точки в регион.
+                            type: string
+                polygon_groups:
+                    description: |
+                        Список групп полигонов из ORDER_EVENTS_PRODUCER_POLYGONS, по
+                        которым производится проверка вхождения конечной точки маршрута в
+                        событии. Если свойство не указано, проверки вхождения
+                        в полигоны не будет. Чтобы проверить вхожение во все полигоны,
+                        необходимо указать группу "any".
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set
+                    items:
+                        type: string
+
+        rule_descriptor:
+            description: |
+                Данные для заполнения события при запросе rider-metrics-storage
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+            required:
+              - name
+
+        rule:
+            type: object
+            additionalProperties: false
+            properties:
+                disabled:
+                    type: boolean
+                    default: false
+                match:
+                    $ref: '#/definitions/rule_match'
+                set_descriptor:
+                    $ref: '#/definitions/rule_descriptor'
+            required:
+              - match

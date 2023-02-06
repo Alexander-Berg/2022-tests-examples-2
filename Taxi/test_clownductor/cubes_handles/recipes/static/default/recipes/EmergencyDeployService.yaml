@@ -1,0 +1,60 @@
+data:
+    name: EmergencyDeployService
+    provider_name: clownductor
+    job_vars:
+      - service_id
+      - branch_id
+      - prestable_name
+      - prestable_aliases
+      - name
+      - aliases
+      - image
+      - sandbox_resources
+      - lock_names
+      - comment
+      - link_to_changelog
+      - skip_pre
+    stages:
+      - name: InternalBatchGetLock
+        provider_name: clownductor
+        input:
+            lock_names: lock_names
+      - name: MetaStartEmergencyDeployOneNannyService
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            nanny_name: prestable_name
+            aliases: prestable_aliases
+            comment: comment
+            image: image
+            sandbox_resources: sandbox_resources
+            link_to_changelog: link_to_changelog
+            skip: skip_pre
+        output:
+            prestable_job_ids: job_ids
+      - name: MetaCubeWaitForJobsCommon
+        provider_name: clownductor
+        input:
+            job_ids: prestable_job_ids
+      - name: MetaStartEmergencyDeployOneNannyService
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            nanny_name: name
+            aliases: aliases
+            comment: comment
+            image: image
+            sandbox_resources: sandbox_resources
+            link_to_changelog: link_to_changelog
+        output:
+            stable_job_ids: job_ids
+      - name: MetaCubeWaitForJobsCommon
+        provider_name: clownductor
+        input:
+            job_ids: stable_job_ids
+      - name: InternalBatchReleaseLock
+        provider_name: clownductor
+        input:
+            lock_names: lock_names

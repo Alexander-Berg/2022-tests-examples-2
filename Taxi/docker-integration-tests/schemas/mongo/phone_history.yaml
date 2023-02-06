@@ -1,0 +1,109 @@
+settings:
+    collection: phone_history
+    connection: userhistory
+    database: dbuserhistory
+indexes:
+  - expireAfterSeconds: 5184000
+    key: created
+  - key:
+      - name: phone_id
+        type: ascending
+      - name: created
+        type: descending
+  - key:
+      - name: phone_id
+        type: ascending
+      - name: created
+        type: descending
+      - name: brand
+        type: ascending
+  - key:
+      - name: yandex_uid
+        type: ascending
+      - name: created
+        type: descending
+    sparse: true
+  - key:
+      - name: yandex_uid
+        type: ascending
+      - name: created
+        type: descending
+      - name: brand
+        type: ascending
+wiki_info: |
+    #### phone_history
+    *Назначение:* Коллекция содержит информация о начальных и конечных точках заказов за последние 60 дней.
+    В коллекции установлен TTL-индекс на поле created c временем жизни 60 дней
+
+    *Структура документа:*
+    ```python
+    phone_history={
+        #Идентификатор заказа
+        '_id' : '8bc1b8648a4d4b2a85d869156c5efb5f',
+        'route' : {
+                #Начальная точка
+                'source' : {
+                        'full_text' : 'Россия, Московская область, Одинцовский район, поселок Заречье, Каштановая улица, 12/1',
+                        'point' : [
+                                37.397521995500966,
+                                55.68459673903998
+                        ],
+                        'object_type': 'аэропорт',  # Описание объекта
+                        'type': 'address',  # Адрес или организация: address|orgranization
+                        'country': 'страна',
+                        'porchnumber': 'номер подъезда',
+                        'exact': True,  # Смогли ли карты точно определить адрес
+                        'metrica_action': 'manual', # метод выбора точки А
+                        'metrica_method': 'nearestposition', # метод выбора точки А
+                        'adjusted_source': [ # притянутая точка А
+                                37.397521995500966,
+                                55.68459673903998
+                        ]
+                },
+                #Промежуточные точки
+                'intermediate' : [ {... # аналогично 'source' }]
+                # ]
+                #Конечная точка
+                'destination' : {
+                        ... # аналогично 'source'
+                },
+                #
+                'time' : 5500., # время в пути
+                'distance' : 5500., # расстояние
+                'completion_point': [ # фактическая координата завершения заказа
+                          37.397521995500966,
+                          55.68459673903998
+                 ],
+        },
+        'request' : {
+                'classes' : [...], # список тарифов
+                'requirements' : { ... }, # требования к заказу
+                'payment_type' : 'cash', # способ оплаты
+                'sp' : 1.03, # коэффициент сурж-прайсинга
+                'sp_alpha' : 0.8, # коэффициент alpha суржа
+                'sp_beta' : 0.2, # коэффициент beta суржа
+                'sp_surcharge' : 120 # коэффициент surcharge суржа
+        },
+        'statistics' : {
+            'application' : 'iphone/android/web/win/mobileweb/sms', # приложение
+            'travel_distance' : 550.0, # расстояние (только для complete)
+            'travel_time' : 550.0, # разность между временем начала поездки и временем завершения заказа в секундах (только для complete)
+            'route_distance' : 550.0, # прогнозируемое расстояние от назначенного водителя до места подачи в метрах (только для срочных)
+            'route_time': 550.0 # прогнозируемое время прибытия назначенного водителя на место подачи в секундах (только для срочных)
+        },
+        #phone_id пользователя
+        'phone_id' : ObjectId('54faf9f496421984c36b27c6'),
+        #uid пользователя в Паспорте
+        'yandex_uid' : '40000000001',
+        #Дата создания документа
+        'created' : ISODate('2017-01-20T22:38:16.714Z'),
+        #Комментарий к заказу
+        'comment' : '',
+        'user_id' : 'user_id',
+        'nearest_zone' : 'nz',
+        #Стоимость заказа
+        'cost' : 'cost',
+        'status': 'состояние_заказа',        # draft|pending|assigned|timeout|cancelled|finished|reordered
+        'taxi_status': 'процесс_выполнения', # None|assigned|accept|driving|waiting|transporting|preexpired|complete|cancelled|failed|expired
+    }
+    ```

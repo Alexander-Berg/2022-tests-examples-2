@@ -1,0 +1,58 @@
+INSERT INTO contractor_mentorship.mentorships 
+(
+    id, 
+    newbie_unique_driver_id, 
+    country_id, 
+    created_at, 
+    mentor_full_name,
+    mentor_last_read_at,
+    mentor_park_driver_profile_id,
+    mentor_phone_pd_id,
+    mentor_unique_driver_id,
+    newbie_last_read_at,
+    newbie_park_driver_profile_id,
+    original_connected_dttm,
+    "status"
+)
+VALUES 
+(
+    '275477b7-96bc-5ac9-8af8-cd2fbcc1a142'::uuid,
+    '620b5440f03452205a848432',
+    'rus',
+    '2022-05-12T08:53:26.114836Z',
+    'ТестовыйТестТестович',
+    '2022-06-28T09:20:38.466026Z',
+    '068ed9d642424e1f80942b1d7f3e75de_74aa82d9d199436d8ac00ea108f30696',
+    '94393ac6c83b430296cf7a35444d0c59',
+    '5c4abc19e301b6012f9da829',
+    '2022-06-16T10:21:31.579806Z',
+    '0467cef7e27c42d1a62223984ef27753_187dbd532179956a7bbb4f73f5cf4dc4',
+    '2022-06-12T09:01:08.000000Z',
+    'failed'
+);
+
+
+INSERT INTO contractor_mentorship.results 
+(
+    mentorship_id, 
+    rate_avg_7d, 
+    rate_avg_14d, 
+    avg_dp_7d, 
+    avg_dp_14d,
+    sh_7d,
+    sh_14d,
+    correct_answers,
+    passed_test_flg
+)
+VALUES 
+(
+    '275477b7-96bc-5ac9-8af8-cd2fbcc1a142'::uuid,
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    0
+);

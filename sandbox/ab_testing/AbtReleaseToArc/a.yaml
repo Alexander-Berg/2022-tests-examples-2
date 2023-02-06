@@ -1,0 +1,74 @@
+service: experiments
+title: ABT_RELEASE_TO_ARC_TASK Sandbox task
+ci:
+  secret: sec-01fmf91sda35d90w0rnf4xwvt4
+  runtime:
+    sandbox-owner: EXPERIMENTS
+  releases:
+    release-binary-tasks:
+      title: ABT_RELEASE_TO_ARC_TASK Sandbox task release
+      flow: release-binary-tasks
+      auto: true  # Start release process after commit
+      stages:
+        build_binary_tasks:
+          title: Build
+        release:
+          title: Release
+
+  flows:
+    release-binary-tasks:
+      title: ABT_RELEASE_TO_ARC_TASK Sandbox task release
+      jobs:
+        build:
+          title: Build
+          stage: build_binary_tasks
+          task: common/sandbox/deploy_binary_task
+          input:  # DEPLOY_BINARY_TASK input parameteres
+            attrs:  # attributes of created resource with binary
+              task_type: ABT_RELEASE_TO_ARC_TASK  # set to use created binary in LastBinaryTaskRelease
+              sync_upload_to_mds: true  # upload resource to mds
+              taskbox_enabled: true
+            integrational_check: true
+            integrational_check_payload: [{"type": "ABT_RELEASE_TO_ARC_TASK"}]
+
+        release:
+          title: Release
+          stage: release
+          needs: build
+          task: dummy
+
+        release_testing:  # release binary to testing (optional)
+          title: Release to testing
+          stage: release
+          needs: release
+          manual: true  # Manual release task
+          task: common/releases/release_to_sandbox
+          input:
+            config:
+              sandbox_resource_type: SANDBOX_TASKS_BINARY
+              common_release_data:
+                release_stage: testing
+
+        release_prestable:  # release binary to prestable (optional)
+          title: Release to prestable
+          stage: release
+          needs: release
+          task: common/releases/release_to_sandbox
+          manual: true  # Manual release task
+          input:
+            config:
+              sandbox_resource_type: SANDBOX_TASKS_BINARY
+              common_release_data:
+                release_stage: prestable
+
+        release_stable:  # release binary to stable (optional)
+          title: Release to stable
+          stage: release
+          needs: release
+          task: common/releases/release_to_sandbox
+          manual: true  # Manual release task
+          input:
+            config:
+              sandbox_resource_type: SANDBOX_TASKS_BINARY
+              common_release_data:
+                release_stage: stable

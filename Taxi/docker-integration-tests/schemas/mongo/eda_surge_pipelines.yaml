@@ -1,0 +1,66 @@
+description: eda surge pipelines configuration
+settings:
+    collection: surge_pipelines
+    connection: eda_surge_settings
+    database: dbeda_surge_settings
+indexes:
+  - key:
+      - name: name
+        type: ascending
+    partialFilterExpression:
+        state: active
+    unique: true
+wiki_info: |
+    ####surge_pipelines
+    Пайплайны для расчета сурджа
+
+    ```python
+      {
+        'name': 'default',        # уникальное название пайплайна
+        'state': 'draft',         # draft - черновик: не применять проверки, не использовать, valid - прошло проверки, не использовать, approving - на согласовании, не использовать, active - использовать, removed - не использовать, не отображать
+        'stages': [               # ссылки на этапы расчета
+          {
+            'name': 'initialization',   # уникальное название этапа
+            'optional': False,          # опциональный этап? (необязательное, default: False)
+            'in_bindings': [            # входы
+              {
+                'domain': 'input',      # где искать значение: input output resource
+                'query': 'obj.field',   # выражение для поиска значения в указанном домене
+                'optional': False,      # отработает ли этап корректно если поля не будет? (необязательное, default: False)
+              },
+            ],
+            'conditions': [             # условия срабатывания
+              {
+                'type': 'stage_status',             # тип условия: пока только stage_status
+                'stage_name': 'not_initialization', # имя stage (условно необязательное - обязательно если тип stage_status)
+                'stage_statuses': [                 # разрешенные состояния stage (условно необязательное - обязательно если тип stage_status)
+                  'passed',
+                  'omitted',
+                  'failed',
+                ]
+              }
+            ],
+            'resources': [              # запрашиваемые ресурсы (обязательное для fetch stage)
+              {
+                'name': 'resource_name', # имя ресурса
+                'field': 'field_name',   # Имя поля в которое будет записан экземпляр ресурса (необязательное, default: name)
+              }
+            ],
+            'out_bindings': [           # выходы (обязательное для logic stage)
+              {
+                'query': 'out_field_obj.field', # выражение выхода
+                'optional': False,              # null is ok?
+                'alias': 'field_alias',         # имя для ссылки в коде
+              }
+            ],
+            'source_code': <JS code>    # код
+          },
+          {                             # группа этапов расчета
+            'conditions': [...],        # общие условия срабатывания группы
+            'stages': [                 # этапы расчета в группе
+              ...
+            ]
+          }
+        ],
+      }
+    ```

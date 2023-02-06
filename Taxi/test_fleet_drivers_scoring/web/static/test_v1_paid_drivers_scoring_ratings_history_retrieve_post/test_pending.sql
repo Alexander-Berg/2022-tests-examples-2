@@ -1,0 +1,24 @@
+INSERT INTO fleet_drivers_scoring.checks
+(
+    park_id,
+    check_id,
+    idempotency_token,
+    created_at,
+    updated_at,
+    license_pd_id,
+    status,
+    ratings_history_id,
+    is_ratings_history_calculated
+)
+VALUES
+(
+    'park1',
+    'req1',
+    '1',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    'license_pd_id',
+    'pending',
+    NULL,
+    TRUE
+);

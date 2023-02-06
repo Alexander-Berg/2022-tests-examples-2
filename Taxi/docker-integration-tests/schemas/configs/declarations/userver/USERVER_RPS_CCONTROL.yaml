@@ -1,0 +1,71 @@
+default:
+    min-limit: 10
+    up-rate-percent: 2
+    down-rate-percent: 2
+    overload-on-seconds: 3
+    overload-off-seconds: 3
+    up-level: 2
+    down-level: 1
+    no-limit-seconds: 1000
+description: |
+    Настройки congestion control для HTTP server.
+tags: [notfallback]
+maintainers:
+  - segoon
+  - antoshkka
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        min-limit:
+            type: integer
+            minimum: 1
+            description: |
+                Минимальный лимит RPS, который будет установлен контроллером.
+
+        up-rate-percent:
+            type: number
+            minimum: 0
+            exclusiveMinimum: true
+            description: |
+                На сколько процентов в секунду поднимать лимит при отсутствии перегрузки.
+
+        down-rate-percent:
+            type: number
+            minimum: 0
+            maximum: 100
+            exclusiveMinimum: true
+            description: |
+                На сколько процентов в секунду опускать лимит при перегрузке.
+
+        overload-on-seconds:
+            type: integer
+            minimum: 1
+            description: Сколько секунд подряд overload должен быть выше up-level,
+                чтобы контроллер перешел в состояние перегруза и начал срабатывать
+                лимит.
+
+        overload-off-seconds:
+            type: integer
+            minimum: 1
+            description: Сколько секунд подряд overload должен быть ниже down-level,
+                чтобы контроллер вышел из состояния перегруза и лимит начал увеличиваться.
+
+        up-level:
+            type: integer
+            minimum: 1
+            description: Уровень overload, который должен продержаться overload-on-seconds,
+                чтобы начал срабатывать лимит.
+
+        down-level:
+            type: integer
+            minimum: 1
+            description: Уровень overload, который должен продержаться overload-on-seconds,
+                чтобы лимит начал увеличиваться.
+
+        no-limit-seconds:
+            type: integer
+            minimum: 1
+            description: Число секунд, в которые не должно случиться overload, чтобы
+                лимит полностью исчез.
+

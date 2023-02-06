@@ -1,0 +1,65 @@
+data:
+    name: BalancerReallocateAllPods
+    provider_name: clowny-balancer
+    job_vars:
+      - awacs_namespace_id
+    stages:
+      - name: AwacsGetL7NannyServices
+        provider_name: clowny-balancer
+        input:
+            fqdn: awacs_namespace_id
+        output:
+            balancer_service_man: nanny_man
+            balancer_service_sas: nanny_sas
+            balancer_service_vla: nanny_vla
+
+      - name: NannyReallocatePods
+        provider_name: clowny-balancer
+        input:
+            nanny_name: balancer_service_sas
+        output:
+            sas_reallocation_id: reallocation_id
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 5
+            max_retries: 2
+      - name: NannyReallocateWaitFor
+        provider_name: clowny-balancer
+        input:
+            service_id: balancer_service_sas
+            reallocation_id: sas_reallocation_id
+
+      - name: NannyReallocatePods
+        provider_name: clowny-balancer
+        input:
+            nanny_name: balancer_service_vla
+        output:
+            vla_reallocation_id: reallocation_id
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 5
+            max_retries: 2
+      - name: NannyReallocateWaitFor
+        provider_name: clowny-balancer
+        input:
+            service_id: balancer_service_vla
+            reallocation_id: vla_reallocation_id
+
+      - name: NannyReallocatePods
+        provider_name: clowny-balancer
+        input:
+            nanny_name: balancer_service_man
+        output:
+            man_reallocation_id: reallocation_id
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 5
+            max_retries: 2
+      - name: NannyReallocateWaitFor
+        provider_name: clowny-balancer
+        input:
+            service_id: balancer_service_man
+            reallocation_id: man_reallocation_id

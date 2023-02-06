@@ -1,0 +1,70 @@
+default:
+    __default__:
+        acquire_nowait: false
+        use_default_acquire_timeout: false
+        default_acquire_timeout: 5
+        use_shield_on_acquire: false
+description: Конфиг для настройки работы модуля taxi.pg репозитория backend-py3
+tags: []
+schema:
+    type: object
+    required:
+      - __default__
+    additionalProperties:
+        $ref: '#/definitions/service_settings'
+    properties:
+        __default__:
+            $ref: '#/definitions/service_settings'
+    definitions:
+        service_settings:
+            type: object
+            required:
+              - acquire_nowait
+              - use_default_acquire_timeout
+              - default_acquire_timeout
+              - use_shield_on_acquire
+            additionalProperties: false
+            properties:
+                acquire_nowait:
+                    description: Бросать ли исключение при попытке взятие подключения
+                        из пула, в котором нет свободных подключений
+                    type: boolean
+                use_default_acquire_timeout:
+                    description: Использовать ли таймаут по умолчанию на взятие подключения
+                        из пула
+                    type: boolean
+                default_acquire_timeout:
+                    description: Таймаут на взятие подключения из пула в секундах
+                    type: number
+                    minimum: 0
+                use_shield_on_acquire:
+                    description: Использовать ли shield при взятии подключения из
+                        пула
+                    type: boolean
+                disable_pool_on_error:
+                    description: >
+                        Если true, то в случае ошибки, старый пул перестаёт использоваться
+                        и закрывается.
+                        Новый пул начинает использоваться только после того, как все
+                        подключения в нём будут созданы.
+                        Т.е. минимальный размер пула приравнивается к максимальному,
+                        независимо от параметра min_size.
+                    type: boolean
+                close_connection_after_pool_closing:
+                    description: >
+                        Если true, то подключения, созданные после закрытия пула,
+                        будут явно закрыты.
+                        Это нужно для устранения утечки подключения при гонке между
+                        созданием подключения и закрытием пула.
+                        По умолчанию - false. Однако если имя сервиса не передано
+                        в драйвер, то по умолчанию будет использоваться
+                        значение true.
+                    type: boolean
+                max_random_delay:
+                    description: >
+                        Максимальная случайная задержка при создании нового пула в
+                        секундах.
+                        Необходима для того, чтобы не создавать одновременно подключения
+                        с разных instance'ов приложения.
+                    type: number
+                    minimum: 0

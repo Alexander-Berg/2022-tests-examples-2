@@ -1,0 +1,254 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+);
+
+INSERT INTO signal_device_api.events
+(
+    id,
+    public_event_id,
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    event_at,
+    event_type,
+    gnss_latitude,
+    gnss_longitude,
+    gnss_speed_kmph,
+    gnss_accuracy_m,
+    gnss_direction_deg,
+    extra,
+    video_file_id,
+    photo_file_id,
+    park_id,
+    car_id,
+    driver_profile_id,
+    car_device_binding_id,
+    driver_name,
+    vehicle_plate_number
+)
+VALUES
+(
+    4,
+    '64b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-25T23:57:00+00',
+    '2020-02-25T23:57:00+00',
+    'd58841a1f4b7816b84ccf4fcb7d886f7',
+    '2020-02-25T23:57:00+00', -- event at
+    'driver_lost',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'video_id_1', -- video
+    NULL, -- photo
+    'p2',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    5,
+    '65b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-25T23:57:00+00',
+    '2020-02-25T23:57:00+00',
+    'd68841a1f4b7816b84ccf4fcb7d886f7',
+    '2020-02-25T23:57:00+00', -- event at
+    'lol',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'video_id_1', -- video
+    NULL, -- photo
+    'p2',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    6,
+    '74b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '1999-12-31T23:59:59+00',
+    '1999-12-31T23:59:59+00',
+    '0a252859f6e1e3942eed9b5f16bd9bf5',
+    '1999-12-31T23:59:59+00', -- event at
+    'distraction',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL, -- video
+    'photo_id_1', -- photo
+    'p2',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    7,
+    '84b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '0ef0466e6e1331b3a7d35c5859830666',
+    '2090-12-06T13:00:00+00', -- event at
+    'driver_lost',
+    54.94550000,
+    73.36822151,
+    89.437895,
+    NULL,
+    NULL,
+    '',
+    'video_id_not_uploaded_yet', -- video
+    'photo_id_42', -- photo
+    'p6',
+    'c6',
+    NULL,
+    '6',
+    NULL,
+    'K444AB55'
+),
+(
+    8,  
+    '94b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '0ef0466e6e1331b3a7d35c5859830777',
+    '2090-12-06T12:00:00+00', -- event at
+    'sleep',
+    54.94550000,
+    73.36822151,
+    89.437895,
+    NULL,
+    NULL,
+    '',
+    'video_id_42', -- video
+    'photo_id_not_uploaded_yet', -- photo
+    'p6',
+    'c6',
+    NULL,
+    '6',
+    NULL,
+    'K444AB55'
+);
+
+INSERT INTO signal_device_api.videos
+(
+    device_id,
+    file_id,
+    size_bytes,
+    started_at,
+    s3_path,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    'video_id_1',
+    300,
+    current_timestamp,
+    'some/s3/path1.mp4',
+    current_timestamp,
+    current_timestamp
+),
+(
+    1,
+    'video_id_42',
+    300,
+    current_timestamp,
+    'some/s3/path2.mp4',
+    current_timestamp,
+    current_timestamp
+);
+
+INSERT INTO signal_device_api.photos
+(
+    device_id,
+    file_id,
+    size_bytes,
+    is_uploaded,
+    taken_at,
+    s3_path,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    'photo_id_1',
+    300,
+    TRUE,
+    current_timestamp,
+    'some/s3/path3.jpg',
+    current_timestamp,
+    current_timestamp
+),
+(
+    1,
+    'photo_id_42',
+    300,
+    TRUE,
+    current_timestamp,
+    'some/s3/path4.jpg',
+    current_timestamp,
+    current_timestamp
+);

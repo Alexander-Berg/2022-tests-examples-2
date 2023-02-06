@@ -1,0 +1,162 @@
+default:
+    task_queue: 'persey_processing_winner'
+    gateway: 'persey'
+    inbound_number: '044072'
+    originate_retries: 1
+    originate_retries_delay: 60
+    get_dtmf_retries: 1
+    default_menu:
+        confirm_key: '1'
+        reject_key: '2'
+        repeat_key: '0'
+        preamble_text: 'Здравствуйте! Вас приветствует компания Яндекс. Ранее вы оставляли
+            заявку на взятие анализов на Короновирус.  Сообщаем вам, что заявка согласована.'
+        agreement_text: 'Медицинский персонал приедет к вам завтра, в течении дня
+            по адресу, указанному в заявке. Однако, нам требуется ваше подтверждение.
+            Нажмите {confirm_key}, если вы согласны. Нажмите {reject_key} - если данная
+            заявка неактуальна. Нажмите {repeat_key} - для повтора'
+        confirm_text: 'Заявка подтверждена! Ожидайте медицинского сотрудника. Всего
+            доброго'
+        reject_text: 'Заявка отклонена. Спасибо за обращение. Всего доброго'
+    mrcp_config:
+        voice: 'oksana'
+        language: 'ru-RU'
+        emotion: 'neutral'
+        confidence: 70
+        speed: 1.0
+    originate_params:
+        answer_timeout: 30
+        early_answer: 1
+        progress_timeout: 35
+        start_recording: false
+description: Конфиг робота подтверждения заказа проекта Персей.
+tags: [notfallback]
+maintainers: [sanvean, mstepa]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        task_queue:
+            type: string
+            description: Название очереди для пуша результатов работы робота
+        gateway:
+            type: string
+            description: Шлюз для звонков
+        inbound_number:
+            type: string
+            description: Номер, которым робот прикрывается при исходящем звонке
+        originate_retries:
+            type: integer
+            minimum: 0
+            description: Количество попыток перезвонить, если получили ответа
+        originate_retries_delay:
+            type: integer
+            minimum: 0
+            description: Время между попытками перезвонить в секундах
+        get_dtmf_retries:
+            type: integer
+            minimum: 0
+            description: Количество попыток перезапросить ввод пользователя при некорректном
+                вводе
+        default_menu:
+            $:ref: '#/definitions/MenuConfig'
+        mrcp_config:
+            $:ref: '#/definitions/MrcpConfig'
+        originate_params:
+            $:ref: '#/definitions/OriginateParams'
+    definitions:
+        MenuConfig:
+            type: object
+            additionalProperties: false
+            description: Настройки голосового меню робота
+            properties:
+                confirm_key:
+                    type: string
+                    description: Кнопка для подтверждения заказа
+                reject_key:
+                    type: string
+                    description: Кнопка для отмены заказа
+                repeat_key:
+                    type: string
+                    description: Кнопка для повтора текста согласия
+                preamble_text:
+                    type: string
+                    description: Текст основного приветствия, не повторяется при нажатии
+                        repeat_key
+                agreement_text:
+                    type: string
+                    description: Текст соглашения, повторяется при нажатии repeat_key
+                confirm_text:
+                    type: string
+                    description: Текст при подтверждении
+                reject_text:
+                    type: string
+                    description: Текст при отказе
+        MrcpConfig:
+            type: object
+            additionalProperties: false
+            description: Настройки синтеза и распознавания речи
+            properties:
+                voice:
+                    type: string
+                    description: Голос, которым будет озвучен текст
+                language:
+                    type: string
+                    description: Язык, которым будет озвучен текст
+                emotion:
+                    type: string
+                    description: Эмоция, с которой будет озвучен текст
+                speed:
+                    type: number
+                    format: float
+                    description: Скорость произнесения
+                    minimum: 0.1
+                    maximum: 3.0
+                confidence:
+                    type: integer
+                    description: Минимальная достоверность распознавания, проценты
+                    minimum: 0
+                    maximum: 100
+            required:
+              - voice
+              - language
+              - emotion
+              - speed
+              - confidence
+        OriginateParams:
+            type: object
+            additionalProperties: false
+            description: Настройки дозвона
+            properties:
+                answer_timeout:
+                    type: integer
+                    description: Время ожидания кода 200 при дозвоне
+                    minimum: 1
+                early_answer:
+                    type: integer
+                    description: >
+                        Промежуток после набора, в течение которого ответ считается
+                        ранним и звонок сбрасывается
+                    minimum: 0
+                progress_timeout:
+                    type: integer
+                    description: Время ожидания кода 180 или 183 при дозвоне
+                    minimum: 1
+                start_recording:
+                    type: boolean
+                    description: Включает запись при получении кода 200
+            required:
+              - answer_timeout
+              - early_answer
+              - progress_timeout
+              - start_recording
+    required:
+      - task_queue
+      - gateway
+      - inbound_number
+      - originate_retries
+      - originate_retries_delay
+      - get_dtmf_retries
+      - default_menu
+      - mrcp_config
+      - originate_params

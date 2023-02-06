@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi eats-api-coverage-test Service
+    title: Yandex Taxi eats-api-coverage-test Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: eats-api-coverage-test.eda.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: EATS_API_COVERAGE_TEST_CLIENT_QOS
+
+
+paths:
+    /sample/v1/action:
+        put:
+            description: |
+                Ручка-пример для наглядной демонстрации, как создавать
+                новые ручки.
+
+                Данная ручка говорит объекту, какое действие нужно выполнять и
+                возвращает предыдущее действие объекта.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - id
+                              - action
+                            properties:
+                                id:
+                                    description: Идентификатор объекта
+                                    type: string
+                                action:
+                                    description: Новое состояние для объекта
+                                    $ref: '#/components/schemas/ActionsEnum'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    result:
+                                        description: Результат
+                                        type: string
+                                additionalProperties: false
+    /v1/pay/{trucks_entity}:
+        post:
+            description: desc
+            parameters:
+              - $ref: '#/components/parameters/TrucksEntity'
+            responses:
+                '200':
+                    description: OK
+    /v1/pay/some:
+        post:
+            description: desc
+            responses:
+                '200':
+                    description: OK
+
+components:
+    parameters:
+        TrucksEntity:
+            in: path
+            name: trucks_entity
+            required: true
+            schema:
+                type: string
+                enum:
+                  - shipper
+                  - carrier
+    schemas:
+        ActionsEnum:
+            type: string
+            enum:
+              - standing
+              - walking
+              - running
+            default: standing
+        GenericErrorResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+                code:
+                    type: string
+                    enum:
+                      - INTERNAL_ERROR
+                      - INVALID_OPERATION
+                message:
+                    type: string
+                    description: |
+                        Человеко-читаемое сообщение об ошибке.

@@ -1,0 +1,94 @@
+# Services for authorization
+#
+# Depends on:
+#   - base-images.yml
+#   - storage.yml
+#   - taxi-infra.yml
+
+version: "2.3"
+
+services:
+    taxi-passenger-authorizer:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-passenger-authorizer:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-passenger-authorizer
+                packages: yandex-taxi-passenger-authorizer
+                platform: ${PLATFORM:-xenial}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-authproxy-manager:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-protocol:
+                condition: service_healthy
+            taxi-api-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-persuggest:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-passenger-authorizer
+        hostname: passenger-authorizer.taxi.yandex-team.ru
+        volumes:
+          - passenger-authorizer-socket:/var/lib/yandex/taxi-passenger-authorizer/private/:rw
+        command: /taxi/run/passenger-authorizer.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl --unix-socket /var/lib/yandex/taxi-passenger-authorizer/private/socket.sock
+                -f http:/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+          - taxi_internal
+    taxi-zalogin:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-zalogin:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-zalogin
+                packages: yandex-taxi-zalogin
+                platform: ${PLATFORM:-xenial}
+        depends_on:
+            taxi-user-api:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-zalogin
+        hostname: zalogin.taxi.yandex.net
+        command: /taxi/run/zalogin.sh
+        healthcheck:
+            test: curl -f http://zalogin.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - zalogin.taxi.yandex.net
+                  - zalogin.taxi.dev.yandex.net
+                  - zalogin.taxi.tst.yandex.net
+

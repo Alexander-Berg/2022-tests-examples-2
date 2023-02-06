@@ -1,0 +1,47 @@
+<!DOCTYPE HTML><html lang='ru'>
+<meta charset="utf-8" />
+<head>
+<script type="text/javascript" src="/view/js/jquery-latest.js"></script>
+<script type="text/javascript" src="/view/js/jquery-ui.js"></script>
+<title>Add.sh</title>
+
+<script type="text/javascript">
+
+function add_sh_done(data, textStatus, xhr) {
+    var response_data = xhr.status == 200 ? data : data.responseJSON;
+    jQuery('#result').html('');
+    var response = jQuery('<pre/>').text(JSON.stringify(response_data, null, 2));
+    response.appendTo('#result');
+}
+
+jQuery(document).ready(function() {
+    jQuery('#send').click(function() {
+        jQuery('#result').html('Sending...');
+        jQuery.ajax({
+            type : "POST",
+            url  : "[% url %]",
+            dataType: 'json',
+            data : jQuery('#event_json').val(),
+        }).done(add_sh_done).fail(add_sh_done);
+    });
+});
+</script>
+
+</head>
+<body>
+
+<h3>Send new event to smoothie</h3>
+
+
+<textarea id="event_json" rows="[% rows %]" cols="[% cols %]">
+[% example %]
+</textarea>
+<BR>
+<button id="send">Send!</button>
+<br>
+<h3>Result:</h3>
+<div id="result">
+</div>
+
+</body>
+</html>

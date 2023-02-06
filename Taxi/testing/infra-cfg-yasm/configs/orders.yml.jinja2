@@ -1,0 +1,58 @@
+{%- set intervals = [60, 90, 300] %}
+{%- set cities = ['kazan', 'yerevan', 'almaty', 'spb', 'moscow'] %}
+{%- set order_stats = ['total', 'found' ] %}
+{%- set classes = ['business', 'econom', 'start'] %}
+
+taxi_yasm_test_taxi_orders:
+{%- for status in order_stats %}
+  {%-  for interval in intervals %}
+    {%- for city in cities %}
+  taxi_orders_{{ city }}_{{ status }}_down_{{ interval }}:
+    signals: aver(push-taxi_orders_by_city_{{ city }}_{{ status }}_avvv)
+    tags:
+      itype: taxi
+      ctype: production
+      geo: region
+      prj: taxi
+    settings:
+      type: trend_down
+      interval: {{ interval }}
+      interval_modify:
+          type: quant
+          quant: 99
+      value_modify:
+          type: aver
+          window: 600
+      warn_perc: 30
+      crit_perc: 40
+    juggler_check:
+      template: taxi_doesnt_care
+      namespace: taxi.yasm.test
+
+    {%- endfor %}
+  {%- for class in classes %}
+  taxi_orders_{{ class }}_{{ status }}_down_{{ interval }}:
+    signals: aver(push-taxi_orders_by_class_{{ class }}_{{ status }}_avvv)
+    tags:
+      itype: taxi
+      ctype: production
+      geo: region
+      prj: taxi
+    settings:
+      type: trend_down
+      interval: {{ interval }}
+      interval_modify:
+          type: quant
+          quant: 99
+      value_modify:
+          type: aver
+          window: 600
+      warn_perc: 30
+      crit_perc: 40
+    juggler_check:
+      template: taxi_doesnt_care
+      namespace: taxi.yasm.test
+
+    {%- endfor %}
+  {%- endfor %}
+{%- endfor %}

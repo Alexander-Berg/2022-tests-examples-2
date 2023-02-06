@@ -1,0 +1,187 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.yandex.autotests</groupId>
+    <artifactId>morda-links</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Autotests Home Links Checker</name>
+
+    <properties>
+        <aspectj.version>1.7.4</aspectj.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jvnet.ws.wadl</groupId>
+                <artifactId>wadl-client-plugin</artifactId>
+                <version>1.1.6</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-commons-lang</artifactId>
+                        <version>2.3</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jvnet.hyperjaxb3</groupId>
+                        <artifactId>maven-hyperjaxb3-plugin</artifactId>
+                        <version>0.5.6</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-fluent-api</artifactId>
+                        <version>3.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>ru.yandex.autotests</groupId>
+                        <artifactId>recursive-tostring-style</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-basics</artifactId>
+                        <version>0.6.5</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <xjcArguments>
+                        <xjcArgument>-extension</xjcArgument>
+                        <argument>-Xfluent-api</argument>
+                        <argument>-Xcommons-lang</argument>
+                        <argument>-Xcommons-lang:ToStringStyle=ru.yandex.autotests.RecursiveToStringStyle</argument>
+                        <argument>-Xinheritance</argument>
+                    </xjcArguments>
+                    <includes>*.wadl</includes>
+                    <generationStyle>jaxrs20</generationStyle>
+                    <sourceDirectory>${basedir}/src/main/resources/wadl</sourceDirectory>
+                    <packageName>ru.yandex.autotests.mordalinks.http</packageName>
+                    <autoPackaging>true</autoPackaging>
+                    <failOnError>true</failOnError>
+                    <customizations>
+                        <customization>${basedir}/src/main/resources/xjb/bindings.xjb</customization>
+                    </customizations>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ru.yandex.autotests.morda</groupId>
+                <artifactId>morda-dependencies</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.autotests</groupId>
+            <artifactId>morda-backend-client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.qatools.properties</groupId>
+            <artifactId>properties-loader</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.autotests</groupId>
+            <artifactId>morda-common</artifactId>
+            <version>3.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.qatools.elliptics</groupId>
+            <artifactId>elliptics-client</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.yandex.autotests</groupId>
+            <artifactId>recursive-tostring-style</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>yandex_qa_releases</id>
+            <name>Releases</name>
+            <url>${releases-repo}</url>
+        </repository>
+        <snapshotRepository>
+            <id>yandex_qa_snapshots</id>
+            <name>Snapshots</name>
+            <url>${snapshots-repo}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+</project>

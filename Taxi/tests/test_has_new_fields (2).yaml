@@ -1,0 +1,138 @@
+id: test_has_new_fields
+title: Формат ответа eda-superapp-go-checkout с дополнительными полями
+source:
+    request:
+        method: post
+        headers:
+            user-agent: user_agent
+        query:
+            deliveryDate: 2021-03-24T12:00:00+03:00
+        body:
+            address:
+                identity: 33670951
+                provider: eats
+    expectations:
+        response:
+            status-code: 200
+            body:
+                userAddress:
+                    id: 1234
+                    city: Москва
+                    street: Пятницкая улица
+                    house: 22
+                    building: 2
+                    plot: 1
+                    flat: 23
+                    doorcode: 2332
+                    entrance: 1
+                    floor: 5
+                    comment:
+                    location:
+                        latitude: 55.703763
+                        longitude: 37.458993
+                offers: []
+                merchantIds: []
+                currencyRules:
+                    code: RUB
+                    sign: ₽
+                    template: $VALUE$ SIGN$$CURRENCY$
+                    text: руб
+                announcements: []
+                agreements: []
+                meta:
+                    yandex_plus:
+                        templates:
+                            use_partial_overall_subtitle: Пойдут на оплату стоимости
+                                блюд
+                            use_max_cart_delivery_subtitle: К оплате — 1 $SIGN$$CURRENCY$
+                                с каждого блюда и доставка
+                            use_max_cart_subtitle: К оплате — 1 $SIGN$$CURRENCY$ с
+                                каждого блюда
+                            save_up_subtitle: Копятся с каждого блюда в заказе
+                place_id: 305737
+                available_asap: true
+                available_slots: []
+
+mocks:
+  - resource: eda-superapp-go-checkout
+    expectations:
+        call-count: 1
+        called-before: [eats-customer-calculate-slots]
+        request:
+            headers:
+                user-agent: user_agent
+            query:
+                deliveryDate: 2021-03-24T12:00:00+03:00
+            body:
+                address:
+                    identity: 33670951
+                    provider: eats
+    response:
+        status-code: 200
+        body:
+            userAddress:
+                id: 1234
+                city: Москва
+                street: Пятницкая улица
+                house: 22
+                building: 2
+                plot: 1
+                flat: 23
+                doorcode: 2332
+                entrance: 1
+                floor: 5
+                comment:
+                location:
+                    latitude: 55.703763
+                    longitude: 37.458993
+            offers: []
+            merchantIds: []
+            currencyRules:
+                code: RUB
+                sign: ₽
+                template: $VALUE$ SIGN$$CURRENCY$
+                text: руб
+            announcements: []
+            agreements: []
+            meta:
+                yandex_plus:
+                    templates:
+                        use_partial_overall_subtitle: Пойдут на оплату стоимости блюд
+                        use_max_cart_delivery_subtitle: К оплате — 1 $SIGN$$CURRENCY$
+                            с каждого блюда и доставка
+                        use_max_cart_subtitle: К оплате — 1 $SIGN$$CURRENCY$ с каждого
+                            блюда
+                        save_up_subtitle: Копятся с каждого блюда в заказе
+            calculate_slot_aware_info:
+                place_id: 123456
+                brand_id#string: 654321
+                flow_type: picking_handing
+                items:
+                  - category:
+                        id: some-category
+                    quantity#real: 2
+                    is_catch_weight: true
+                time_to_customer: 3600
+
+  - resource: eats-customer-calculate-slots
+    expectations:
+        call-count: 1
+        request:
+            body:
+                place_id: 123456
+                brand_id#string: 654321
+                flow_type: picking_handing
+                items:
+                  - category:
+                        id: some-category
+                    quantity#real: 2
+                    is_catch_weight: true
+                time_to_customer: 3600
+                delivery_time: 2021-03-24T12:00:00+03:00
+
+    response:
+        status-code: 200
+        body:
+            place_id: 305737
+            available_asap: true
+            available_slots: []

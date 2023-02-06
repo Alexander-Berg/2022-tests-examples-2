@@ -1,0 +1,39 @@
+id: experiment_off
+title: Эксперимент выключен - получаем ответ протокола
+source:
+    request:
+        method: post
+        body:
+            id: 'c75eb659f0e9461bb067c19dc5a7bde7'
+            route:
+              - value:
+                  - 37.61696672067046
+                  - 55.75629341416061
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                source: 'protocol'
+mocks:
+  - resource: taxi-3.0-personalstate
+    response:
+        status-code: 200
+        body:
+            source: 'protocol'
+    expectations:
+        call-count: 1
+  - resource: personalstate-post
+    response:
+        status-code: 200
+        body:
+            source: 'userstate'
+    expectations:
+        call-count: 0
+  - resource: user-state-personalstate-compare-responses
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

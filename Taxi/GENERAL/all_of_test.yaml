@@ -1,0 +1,433 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'API for testing all of realisation'
+
+basePath: /all_of_test
+
+paths:
+    /inline_inline:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    allOf:
+                      - type: object
+                        required:
+                          - name
+                        properties:
+                            name:
+                                type: string
+                        additionalProperties: true
+                        x-taxi-additional-properties-true-reason: allOf!
+                      - type: object
+                        required:
+                          - age
+                        properties:
+                            age:
+                                type: integer
+                        additionalProperties: true
+                        x-taxi-additional-properties-true-reason: allOf!
+
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /ref_to_ref:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/NameAgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /mixed:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    allOf:
+                      - type: object
+                        required:
+                          - name
+                        properties:
+                            name:
+                                type: string
+                        additionalProperties: true
+                        x-taxi-additional-properties-true-reason: allOf!
+                      - $ref: '#/definitions/AgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /ref_to_inline:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/InlineNameAgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /ref_to_mixed:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/MixedNameAgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /with_common_ref:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    allOf:
+                      - $ref: '../definitions.yaml#/definitions/CommonNameObject'
+                      - $ref: '#/definitions/AgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /with_plugin_ref:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    allOf:
+                      - $ref: '../definitions.yaml#/definitions/CommonNameObject'
+                      - $ref: 'dummy/definitions.yaml#/definitions/AgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /all_of_all_of:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    allOf:
+                      - $ref: '#/definitions/NameAgeObject'
+                      - type: object
+                        required:
+                          - suffix
+                        properties:
+                            suffix:
+                                type: string
+                        additionalProperties: true
+                        x-taxi-additional-properties-true-reason: allOf!
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /complex_inline:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - inline
+                    properties:
+                        inline:
+                            allOf:
+                              - type: object
+                                additionalProperties: true
+                                x-taxi-additional-properties-true-reason: allOf!
+                                required:
+                                  - name
+                                  - day
+                                properties:
+                                    name:
+                                        type: string
+                                    day:
+                                        allOf:
+                                          - type: object
+                                            additionalProperties: true
+                                            x-taxi-additional-properties-true-reason: allOf!
+                                            required:
+                                              - number
+                                            properties:
+                                                number:
+                                                    type: integer
+                                          - type: object
+                                            additionalProperties: true
+                                            x-taxi-additional-properties-true-reason: allOf!
+                                            required:
+                                              - week
+                                            properties:
+                                                week:
+                                                    type: string
+                              - $ref: '#/definitions/AgeObject'
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string
+
+    /complex_inline_response:
+        post:
+            consumes:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    type: string
+
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: object
+                        additionalProperties: false
+                        required:
+                          - inline
+                        properties:
+                            inline:
+                                allOf:
+                                  - $ref: '#/definitions/AgeObject'
+                                  - type: object
+                                    additionalProperties: true
+                                    x-taxi-additional-properties-true-reason: allOf!
+                                    required:
+                                      - name
+                                      - day
+                                    properties:
+                                        name:
+                                            type: string
+                                        day:
+                                            allOf:
+                                              - type: object
+                                                additionalProperties: true
+                                                x-taxi-additional-properties-true-reason: allOf!
+                                                required:
+                                                  - number
+                                                properties:
+                                                    number:
+                                                        type: integer
+                                              - type: object
+                                                additionalProperties: true
+                                                x-taxi-additional-properties-true-reason: allOf!
+                                                required:
+                                                  - week
+                                                properties:
+                                                    week:
+                                                        type: string
+
+    /object-properties:
+        post:
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/Wrapper'
+            responses:
+                '200':
+                    description: OK
+
+    /link-to-external-definitions:
+        post:
+            produces:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '../definitions/all_of_test.yaml#/definitions/ExternalAllOf'
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: string
+
+    /additional-properties-leak:
+        post:
+            produces:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    allOf:
+                      - type: object
+                        additionalProperties: true
+                        x-taxi-additional-properties-true-reason: allOf!
+                        required:
+                          - inner
+                        properties:
+                            inner:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    name:
+                                        type: string
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        type: string
+
+
+definitions:
+    NameObject:
+        type: object
+        required:
+          - name
+        properties:
+            name:
+                type: string
+        additionalProperties: true
+        x-taxi-additional-properties-true-reason: allOf!
+
+    AgeObject:
+        type: object
+        required:
+          - age
+        properties:
+            age:
+                type: integer
+        additionalProperties: true
+        x-taxi-additional-properties-true-reason: allOf!
+
+    NameAgeObject:
+        allOf:
+          - $ref: '#/definitions/NameObject'
+          - $ref: '#/definitions/AgeObject'
+
+    InlineNameAgeObject:
+        allOf:
+          - type: object
+            required:
+              - name
+            properties:
+                name:
+                    type: string
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: allOf!
+          - type: object
+            required:
+              - age
+            properties:
+                age:
+                    type: integer
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: allOf!
+
+
+    MixedNameAgeObject:
+        allOf:
+          - $ref: '#/definitions/NameObject'
+          - type: object
+            required:
+              - age
+            properties:
+                age:
+                    type: integer
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: allOf!
+
+    Wrapper:
+        type: object
+        additionalProperties: false
+        properties:
+            mix:
+                $ref: '#/definitions/MixedNameAgeObject'
+    WithDict:
+        allOf:
+          - $ref: '#/definitions/NameObject'
+          - type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: allOf
+            properties: {}
+
+    WithInlineModel:
+        type: object
+        additionalProperties: true
+        x-taxi-additional-properties-true-reason: allOf
+        properties:
+            name:
+                type: string
+            stats:
+                type: object
+                additionalProperties: false
+                properties:
+                    views:
+                        type: integer
+                        minimum: 0
+
+    Test1997:
+        type: object
+        additionalProperties: false
+        properties:
+            property:
+                allOf:
+                  - $ref: '#/definitions/WithInlineModel'
+                  - type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: allOf
+                    properties:
+                        property:
+                            type: string

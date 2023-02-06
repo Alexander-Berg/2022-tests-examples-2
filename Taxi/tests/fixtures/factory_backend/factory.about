@@ -1,0 +1,37 @@
+woody/addons/lavka/tests/fixtures/factory_backend/factory.about
+
+как использовать
+_________________
+на примере acceptance
+
+для самого теста создаются верхнеуровневые методы, создать_список_аксептансов
+в этом методе в самой фабрике вызывается метод создания документа
+
+template = self.create_doc_template('acceptance')[0]
+и формируются и/или добавляются недостающие поля/атрибуты, например:
+
+template.update(
+ {
+     'store_id': order.picking_type_id.warehouse_id.wms_id,
+     'type': 'acceptance',
+     'source': 'integration',
+     'attr': attr,
+     'required': required,
+     'external_id': curr_external_id,
+     'order_id': random.choice(warehouses).wms_id
+ }
+)
+
+order.wms_id = template.get('order_id')
+with patch('common.client.wms.WMSConnector.get_wms_data') as get_wms_data_mock:
+                get_wms_data_mock.return_value = {}, None
+                with freeze_time('2021-03-15 12:00:00'):
+                    self.env['wms_integration.order'].create_wms_order([template],
+                     self.wms_connector, 'cursor_1')
+
+именно добавлению и последующему корректному формированию полей необходимо уделить
+ основное внимание, т к каждый документ возьмёт из джейсона только минимум полей,
+ и, желательно, этот список сократить в будущем, формируя документ в фабрике
+ на основании одного тимплейта. приемущество одного тимплейта в том, что при
+ изменении api, нужно будет поменять/дополнить джейсон документа в одном месте
+ для всех тестов.

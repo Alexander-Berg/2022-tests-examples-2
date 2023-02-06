@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="[% htmlClass %]">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link rel="shortcut icon" href="//yastatic.net/iconostasis/_/8lFaTHLDzmsEZz-5XaQg9iTWZGE.png">
+    <title>Hermione Unit</title>
+    <link type="text/css" rel="stylesheet" href="/tmpl/common/libs/node_modules/yandex-font/build/browser.css">
+    [% css %]
+    <style>
+        body {
+            overflow: hidden;
+        }
+        .scroller {
+            overflow: hidden;
+        }
+        *, *:before, *:after {
+            transition-duration: 0s !important;
+            transition-delay: 0s !important;
+            animation-duration: 0s !important;
+            animation-delay: 0s !important;
+        }
+    </style>
+    <script src="/tmpl/common/detector.inline.js"></script>
+    <script src="/tmpl/common/blocks/home/__load-manager/home__load-manager-inline.js"></script>
+    <script>[% rum %]</script>
+</head>
+<body class="[% bodyClass %]">
+[% exports %]
+<script src="https://yastatic.net/jquery/2.1.4/jquery.min.js"></script>
+<script src="/node_modules/sinon/pkg/sinon.js"></script>
+<script>
+    (function () {
+        var origRespond = sinon.fakeServer.respondWith;
+        sinon.fakeServer.respondWith = function (req, res) {
+            var body = res;
+            if (Array.isArray(res)) {
+                body = res[2];
+            }
+
+            // Здесь специальный слеш в конце, чтобы первый аргумент не матчился регуляркой
+            // Здесь специально двойные кавычки, так как в замене используются одинарные
+            body = body.replace(/\[% mockSvg %\]/g, "[% mockSvg %]");
+
+            if (Array.isArray(res)) {
+                res[2] = body;
+            } else {
+                res = body;
+            }
+
+            return origRespond.call(this, req, res);
+        };
+    })();
+    [% mockJs %]
+</script>
+<script src="[% js %]"></script>
+[% html %]
+<script>
+    (function() {
+        if (window.$ && window.$.fn) {
+            $.fx.off = true;
+
+            $('.i-delayed-bem').addClass('i-bem');
+            $('.i-bundle-bem').addClass('i-bem');
+
+            $(function() {
+                if (window.BEM) {
+                    BEM.DOM.init();
+                }
+            });
+        }
+
+        if (window.MBEM && MBEM.ready) {
+            MBEM.ready(function() {
+                var root = document.body;
+                if (MBEM.cls.contains(root, 'i-bem')) {
+                    MBEM.initNode(root);
+                }
+                MBEM.arrayFrom(root.querySelectorAll('.i-bem')).forEach(function (elem) {
+                    var params = MBEM.getNodeParams(elem);
+
+                    for (var blockName in params) {
+                        if (MBEM.blocks[blockName]) {
+                            MBEM.initBlockFromNode(elem, blockName, params[blockName]);
+                        }
+                    }
+                });
+            });
+        }
+    })();
+</script>
+<div style="display: none" id="loaded-mark"></div>
+</body>
+</html>

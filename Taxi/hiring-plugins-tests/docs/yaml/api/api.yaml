@@ -1,0 +1,115 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'API for writing plugins tests'
+
+paths:
+    /ping:
+        get:
+            summary: ping
+            operationId: Ping
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/EmptyObject'
+                '500':
+                    description: Service unable to process requests
+                    schema:
+                        $ref: '#/definitions/PingResponse500'
+
+    /v1/validate-form:
+        post:
+            summary: Validate Form
+            operationId: ValidateForm
+            parameters:
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/ValidateFormRequest'
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/EmptyObject'
+                '400':
+                    description: '400'
+                    schema:
+                        $ref: 'hiring-forms-lib/definitions.yaml#/definitions/HiringFormsValidationError'
+
+    /v1/pg/query:
+        get:
+            summary: pg plugin tests - fetch
+            operationId: PgPluginQuery
+            parameters:
+              - in: query
+                name: key
+                required: true
+                type: string
+              - in: query
+                name: value
+                required: true
+                type: string
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        $ref: '#/definitions/PgPluginQueryResponse'
+
+    /v1/pg/query-txn:
+        get:
+            summary: pg plugin tests - transaction
+            operationId: PgPluginQueryTxn
+            parameters:
+              - in: query
+                name: key
+                required: true
+                type: string
+              - in: query
+                name: value
+                required: true
+                type: string
+            responses:
+                200:
+                    description: Ok
+                    schema:
+                        $ref: '#/definitions/PgPluginQueryResponse'
+
+definitions:
+    EmptyObject:
+        type: object
+        properties: {}
+        additionalProperties: false
+
+    PingResponse500:
+        type: object
+        additionalProperties: false
+        required:
+          - code
+          - message
+        properties:
+            code:
+                type: string
+                enum:
+                  - FORM_NOT_LOADED
+            message:
+                type: string
+
+    ValidateFormRequest:
+        type: object
+        additionalProperties: false
+        required:
+          - fields
+        properties:
+            fields:
+                $ref: 'hiring-forms-lib/definitions.yaml#/definitions/HiringFormsFieldsList'
+
+    PgPluginQueryResponse:
+        type: object
+        additionalProperties: false
+        properties:
+            key:
+                type: string
+            value:
+                type: string

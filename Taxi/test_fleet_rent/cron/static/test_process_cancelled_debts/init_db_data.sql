@@ -1,0 +1,21 @@
+INSERT INTO rent.records
+(record_id, idempotency_token,
+ owner_park_id, owner_serial_id, asset_type, asset_params,
+ driver_id,
+ begins_at_tz, ends_at_tz,
+ charging_type, charging_starts_at_tz,
+ creator_uid, created_at_tz,
+ accepted_at_tz, acceptance_reason,
+ rejected_at_tz, rejection_reason,
+ terminated_at_tz, termination_reason,
+ transfer_order_number)
+VALUES ('record_id1', 'idempotency_token1',
+        'park_id', 1, 'car', '{"car_id": "car_id1", "car_copy_id": null}',
+        'driver_id1',
+        '2020-01-01+00', '2020-01-10+00',
+        'free', '2020-01-01+00',
+        'creator_uid', '2020-01-01+00',
+        NULL, NULL,
+        NULL, NULL,
+        NULL, NULL,
+        'park_id_1');

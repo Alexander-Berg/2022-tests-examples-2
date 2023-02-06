@@ -1,0 +1,35 @@
+- service: errors_feeds_get_messages_test
+  alert_type: expression
+  description: |-
+    Количество ошибок при запросе сообщений из feeds > 10%; Упавших запросов {{expression.percent_failed}}%.
+  program: |
+    let ok_data = max(group_lines("sum", drop_nan(drop_below(diff({project="taxi", cluster="testing_uservices", service="uservices", application="driver-communications", group="taxi_driver-communications_testing", sensor="feeds_source.fetch_all_ok"}), 0))));
+    let bad_data = max(group_lines("sum", drop_nan(drop_below(diff({project="taxi", cluster="testing_uservices", service="uservices", application="driver-communications", group="taxi_driver-communications_testing", sensor="feeds_source.fetch_all_failed"}), 0))));
+    let all_data = ok_data + bad_data;
+    let percent_failed = bad_data / all_data * 100.0;
+    alarm_if(percent_failed > 15);
+    warn_if(percent_failed >= 10);
+    ok_if(percent_failed < 10);
+  checkExpression: 'false'
+  period: 180
+- service: errors_feeds_log_status
+  alert_type: expression
+  description: |-
+    Количество ошибок при установке статусов в feeds больше 5%
+  program: |
+    let bad_rps = sum(group_lines("sum", non_negative_derivative({project="taxi", host="cluster", cluster="testing_uservices", service="uservices", group="taxi_driver-communications_testing", sensor="httpclient.reply-statuses", http_destination="*feeds*log_status*", http_code="500|400|401|403"})));
+    let all_rps = sum(group_lines("sum", non_negative_derivative({project="taxi", host="cluster", cluster="testing_uservices", service="uservices", group="taxi_driver-communications_testing", sensor="httpclient.reply-statuses", http_destination="*feeds*log_status*"})));
+    let bad_rps_percent = bad_rps / all_rps * 100.0;
+  checkExpression: bad_rps_percent > 5.0
+  period: 60
+- service: errors_feeds_create
+  alert_type: expression
+  description: |-
+    Количество ошибок при создании сообщений в feeds больше 5%
+  program: |
+    let bad_rps = sum(group_lines("sum", non_negative_derivative({project="taxi", host="cluster", cluster="testing_uservices", service="uservices", group="taxi_driver-communications_testing", sensor="httpclient.reply-statuses", http_destination="*feeds*create*", http_code="500|400|401|403|409"})));
+    let all_rps = sum(group_lines("sum", non_negative_derivative({project="taxi", host="cluster", cluster="testing_uservices", service="uservices", group="taxi_driver-communications_testing", sensor="httpclient.reply-statuses", http_destination="*feeds*create*"})));
+    let bad_rps_percent = bad_rps / all_rps * 100.0;
+  checkExpression: bad_rps_percent > 5.0
+  period: 60
+   

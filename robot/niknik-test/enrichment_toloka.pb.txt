@@ -1,0 +1,98 @@
+# TTolokaConfig
+
+YtCluster: "freud"
+TolokaClientConfig: {
+    Host: "https://sandbox.toloka.yandex.com"
+    IgnoreBadRequests: true
+}
+
+ResharderConfig: {
+    Enable: true
+    OutputQueuePath: "//home/jupiter-dev/niknik/smelter/toloka_graph_queue"
+    SupplierConfigs: {
+        Alias: "enrichment_queue"
+        YtSupplier: {
+            Cluster: "freud"
+            QueuePath: "//home/jupiter-dev/niknik/smelter/enrichment_queue"
+            QueueConsumer: "toloka"
+        }
+    }
+    ConsumingSystemConfig: {
+        Cluster: "freud"
+        MainPath: "//home/jupiter-dev/niknik/smelter/toloka_resharder_cs"
+        MaxShards: 1
+    }
+}
+
+TolokaGraphConfig: {
+    Enable: true
+    TolokaQueuePath: "//home/jupiter-dev/niknik/smelter/toloka_graph_queue"
+    VanadiumQueuePath: "//home/jupiter-dev/niknik/smelter/vanadium_graph_queue"
+    SupplierConfigs: {
+        Alias: "toloka_graph_queue"
+        YtSupplier: {
+            Cluster: "freud"
+            QueuePath: "//home/jupiter-dev/niknik/smelter/toloka_graph_queue"
+            QueueConsumer: "toloka"
+        }
+    }
+    ConsumingSystemConfig: {
+        Cluster: "freud"
+        MainPath: "//home/jupiter-dev/niknik/smelter/toloka_graph_cs"
+        MaxShards: 1
+    }
+    StateTablePath: "//home/jupiter-dev/niknik/smelter/toloka_pool_state"
+}
+
+VanadiumGraphConfig: {
+    Enable: true
+    TolokaQueuePath: "//home/jupiter-dev/niknik/smelter/toloka_graph_queue"
+    VanadiumQueuePath: "//home/jupiter-dev/niknik/smelter/vanadium_graph_queue"
+    SupplierConfigs: {
+        Alias: "vanadium_graph_queue"
+        YtSupplier: {
+            Cluster: "freud"
+            QueuePath: "//home/jupiter-dev/niknik/smelter/vanadium_graph_queue"
+            QueueConsumer: "toloka"
+        }
+    }
+    ConsumingSystemConfig: {
+        Cluster: "freud"
+        MainPath: "//home/jupiter-dev/niknik/smelter/vanadium_graph_cs"
+        MaxShards: 1
+    }
+    StateTablePath: "//home/jupiter-dev/niknik/smelter/toloka_vanadium_state"
+}
+
+VanadiumClientConfig: {
+    User: "robot-smelter"
+    YtCluster: "hahn"
+    Host: "https://vanadium.yandex-team.ru"
+    BatchNamePrefix: "smelter_toloka_niknik"
+}
+
+
+TableConfig: {
+    YtCluster: "freud"
+    YtPrefix: "//home/samovar-dev/smelter/prod"
+    FeedTableName: "feeds"
+    ContentTableName: "contents"
+}
+
+ProjectsConfig: {
+    ProjectConfig: {
+        ProjectType: "smelter9_simple_task"
+        ProjectID: 93295
+        PoolConfig: {
+            PoolType: "my_pool"
+            PoolConfigFile: "my_pool.json"
+            WillExpireFromNow: 100000
+        }
+        MakeScreenshots: true
+    }
+}
+
+
+
+LogConfigPath: "enrichment_toloka.logging.yson"
+BigRTLogVerbosity: 7

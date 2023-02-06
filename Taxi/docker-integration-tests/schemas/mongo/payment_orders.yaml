@@ -1,0 +1,60 @@
+settings:
+    collection: payment_orders
+    connection: payment_orders
+    database: dbpayment_orders
+indexes:
+  - key: idempotency_key
+    unique: true
+  - key:
+      - name: reason.id
+        type: ascending
+      - name: reason.type
+        type: ascending
+      - name: type
+        type: ascending
+    partialFilterExpression:
+        type:
+            $eq: deposit/driver
+  - key: status
+    partialFilterExpression:
+        status:
+            $eq: processing
+  - key: updated
+  - key:
+      - name: user_id
+        type: ascending
+      - name: reason.type
+        type: ascending
+      - name: reason.id
+        type: ascending
+    partialFilterExpression:
+        status:
+            $eq: succeeded
+        type:
+            $eq: charge
+  - key:
+      - name: yandex_uid
+        type: ascending
+      - name: wallet_id
+        type: ascending
+      - name: account_id
+        type: ascending
+      - name: type
+        type: ascending
+      - name: reason.type
+        type: ascending
+      - name: reason.id
+        type: ascending
+    partialFilterExpression:
+        status:
+            $eq: processing
+    unique: true
+  - key:
+      - name: yandex_uid
+        type: ascending
+      - name: wallet_id
+        type: ascending
+      - name: updated
+        type: descending
+      - name: idempotency_key
+        type: descending

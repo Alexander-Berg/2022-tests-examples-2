@@ -1,0 +1,46 @@
+credentials: !include credentials_test.yml
+
+logging:
+  root: {file: "/var/log/grad/server.log", severity: "ERROR"}
+  server: {file: "/var/log/grad/server.log", severity: "DEBUG"}
+  kikimr.public.sdk.python: {file: "/var/log/grad/server.log", severity: "INFO"}
+  kikimr.public.sdk.python.client.connection: { file: "/var/log/grad/server.log", severity: "INFO"}
+  grad: {file: "/var/log/grad/server%(log_file_prefix)s.log", severity: "DEBUG"}
+  grad.lib.scheduler: {file: "/var/log/grad/server%(log_file_prefix)s.log", severity: "DEBUG"}
+#  grad.lib.pipeline: {file: "/var/log/grad/server%(log_file_prefix)s.log", severity: "DEBUG"}
+  comocutor: {file: "/var/log/grad/server%(log_file_prefix)s.log", severity: "INFO"}
+
+importers:
+  perhost:
+    - speed
+  dchost: get_rt_hosts_tags
+
+
+# настройки отправки данных
+server_upstream:
+  http: # в таким режиме никуда не пушит, а выдает в http ручку
+    type: http
+    port: 12346
+    direct_write: false # собрать данные в мастер-процессе, иначе у каждого процесса нужно забирать отдельно
+
+# Настройки комокуторных поллеров. У них отличная от SNMP архитектура
+# и нужно гриппировка по хоста и поллерам, а не просто по поллерам.
+# Иначе будет по подключению на каждый каждый хост на каждый поллер
+instance_groups:
+  main comocutor instance:
+    instances: 1
+  main netconf instance:
+    instances: 1
+
+default_afterburn: 1
+
+# Глобальный фильтр для хостов
+host_filter:
+  hosts: ["netlab-sas-1ct99.netinfra.cloud.yandex.net"]
+
+#zookeeper:
+#  server: "iva-zk01.net.yandex.net,myt-zk01.net.yandex.net,vla-zk01.net.yandex.net"
+#  lock_path: "/grad/server_test"
+#  identifier: "testhost"
+#redis:
+#  server: "redis://localhost"

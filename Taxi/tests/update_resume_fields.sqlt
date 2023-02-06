@@ -1,0 +1,13 @@
+WITH updated_resumes AS (
+    UPDATE hiring_replica_zarplataru.resumes
+    SET
+        {% for item in fields %}
+            {% if item.field == 'contacts_updated' %}
+            contacts_updated = {{ item.value }}{% if not loop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    WHERE id = {{ resume_id }}
+    RETURNING *
+)
+
+SELECT * FROM updated_resumes;

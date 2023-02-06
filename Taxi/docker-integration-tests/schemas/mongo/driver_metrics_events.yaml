@@ -1,0 +1,53 @@
+settings:
+    collection: driver_metrics_events
+    connection: driver_events
+    database: dbdriver_events
+indexes:
+  - key:
+      - name: eid
+        type: ascending
+    unique: true
+  - key:
+      - name: udid
+        type: ascending
+      - name: processed
+        type: ascending
+      - name: timestamp
+        type: descending
+  - expireAfterSeconds: 259200
+    key: updated
+wiki_info: |
+    #### driver_metrics_events
+    *Назначение:* Хранит различные события в контексте для сервиса driver-metrics
+    На основе этих событий счиается Активность и блокировки.
+    Временное явление, в начале Q2 переедет в Postgre
+
+    *Структура документов:*
+    ```python
+    driver_metrics_events = {
+        # id события
+        '_id': ObjectId,
+        # уникальный для коллекции идентификатор события
+        'eid': 'o/d7cb9c0f60194333947afeb054796db5/2',
+        # тип события
+        'type': 'order',
+        # id заказа
+        'order_id': 'd7cb9c0f60194333947afeb054796db5',
+        # unique_drivers.id
+        'udid': '1a6ffe8d3115462c8d69739ce43cad52',
+        # id профиля водителя
+        'driver_id': '999002_1a14c0d21ffa4d10a03d87aad7b95358',
+        # id парка, в котором работает водитель
+        'db_id': '7ad36bc7560449998acbe2c57a75c293',
+        # водительские права, по которым можно найти одного из unique_drivers
+        'license': 'RB131791',
+        'current_dp': 85.0,
+        # Было ли уже обработано данное событие (для рассчёта рейтинга), изначально False.
+        'processed': True,
+        # Время события
+        'timestamp': datetime.datetime.utcnow(),
+        # Последнее время обновления записи. Нужно для заливки в YT
+        'updated': datetime.datetime.utcnow(),  # ($currentDate)
+    }
+
+    ```

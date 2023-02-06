@@ -1,0 +1,44 @@
+default: {}
+description: 'Настройки YT бэкапов: concurrency (py3) и concurrency_py2 задаёт количество
+    параллельных потоков, excluded задаёт список путей, excluded_prefix_aliases -
+    список алиасов префиксов, которые не нужно бэкапить. Используя overrides (daily/weekly
+    -> include/exclude, include оверрайдит exclude) можно более детально задать правила
+    создания бэкапов'
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: true
+        scheme:
+            concurrency:
+              - $integer
+              - $gte: 1
+              - $lte: 10
+            concurrency_py2:
+              - $integer
+              - $gte: 1
+              - $lte: 10
+            excluded:
+              - $sequence_of:
+                  - $string
+            excluded_prefix_aliases:
+              - $sequence_of:
+                  - $string
+            overrides:
+              - $dictionary_of:
+                    key_validators:
+                      - $string
+                      - $enum:
+                          - daily
+                          - weekly
+                    value_validators:
+                      - $dictionary:
+                            extra_ok: false
+                            missing_ok: true
+                            scheme:
+                                include:
+                                  - $sequence_of:
+                                      - $string
+                                exclude:
+                                  - $sequence_of:
+                                      - $string

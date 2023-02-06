@@ -1,0 +1,35 @@
+id: test_omit_payment_methods_query
+title: отправка заголовка SessionsCurrentOmitPaymentMethods при параметре от клиента
+
+source:
+    request:
+        method: get
+        query:
+            omit_payment_methods#string: 1
+        headers:
+            HeaderFromClient: HEADER_FROM_CLIENT
+    expectations:
+        response:
+            status-code: 200
+            body#any:
+
+mocks:
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            user: {}
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                HeaderFromClient: HEADER_FROM_CLIENT
+                StandartInsuranceSupported#string: 1
+                SessionsCurrentOmitPaymentMethods#string: 1
+
+  - resource: talaria-sessions-current
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

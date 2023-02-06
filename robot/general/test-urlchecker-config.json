@@ -1,0 +1,121 @@
+{
+    "GlobalLogVerbosity": 6,
+
+    "YtCluster": "arnold.yt.yandex.net",
+    "YtLogVerbosity": "Info",
+
+    "TvmConfig": {
+        "DstServices": [
+            {
+                "Id": 2001059,
+                "Alias": "logbroker_q"
+            },
+            {
+                "Id": 2023123,
+                "Alias": "gozora"
+            }
+        ],
+        "SrcIdEnvName": "TVM_ID",
+        "SrcSecretEnvName": "TVM_SECRET"
+    },
+
+    "SupplierConfigs": [
+        {
+            "Alias": "url-check-requests-iva",
+
+            "LbSupplier": {
+                "SrcServer": "iva.logbroker.yandex.net",
+                "SrcTopic": "callisto/test/check-url-requests",
+                "LogbrokerClientId": "callisto/test/check-url",
+                "LogbrokerTvmAlias": "logbroker_q",
+                "ConfigManagerGrpcHost": "cm.logbroker.yandex.net:1111"
+            }
+        },
+        {
+            "Alias": "url-check-requests-sas",
+
+            "LbSupplier": {
+                "SrcServer": "sas.logbroker.yandex.net",
+                "SrcTopic": "callisto/test/check-url-requests",
+                "LogbrokerClientId": "callisto/test/check-url",
+                "LogbrokerTvmAlias": "logbroker_q",
+                "ConfigManagerGrpcHost": "cm.logbroker.yandex.net:1111"
+            }
+        },
+        {
+            "Alias": "url-check-requests-vla",
+
+            "LbSupplier": {
+                "SrcServer": "vla.logbroker.yandex.net",
+                "SrcTopic": "callisto/test/check-url-requests",
+                "LogbrokerClientId": "callisto/test/check-url",
+                "LogbrokerTvmAlias": "logbroker_q",
+                "ConfigManagerGrpcHost": "cm.logbroker.yandex.net:1111"
+            }
+        },
+        {
+            "Alias": "url-check-requests-man",
+
+            "LbSupplier": {
+                "SrcServer": "man.logbroker.yandex.net",
+                "SrcTopic": "callisto/test/check-url-requests",
+                "LogbrokerClientId": "callisto/test/check-url",
+                "LogbrokerTvmAlias": "logbroker_q",
+                "ConfigManagerGrpcHost": "cm.logbroker.yandex.net:1111"
+            }
+        }
+    ],
+
+    "ConsumingSystemConfig": {
+        "Cluster": "arnold.yt.yandex.net",
+        "MainPath": "//home/robot-dev/d-dolgopolov/sandbox/urlchecker",
+        "MaxShards": 1
+    },
+
+    "ShardProcessorConfig": {
+        "CommitPeriodMs": 3000,
+        "DelayOnCommitErrorMs": 10000
+    },
+
+    "MaxInflightBytes": 1000000,
+
+    "SamovarClientConfig": {
+        "Label": "staging",
+        "Server": "zeno.yt.yandex.net",
+        "BasePrefix": "//home/samovar",
+        "DelayedPushDataTableShards": 150,
+        "ConnectionLightPoolSize": 8,
+        "ExportServer": "zeno.yt.yandex.net",
+        "WriteLbExportEnabled": false,
+        "UsePriorityQueue": true,
+        "PreferInLinksExtraColumn": true,
+        "UseInLinksExtraColumnDelta": true,
+        "PreferOutLinksExtraColumn": true,
+        "UseOutLinksExtraColumnDelta": true
+    },
+
+    "ZoraPPClientConfig": {
+        "Host": "https://urlchecker-zora-postprocessing-test.in.yandex-team.ru",
+        "Port": 443,
+        "Path": "/v1/zora/postprocessing/"
+    },
+
+    "RthubClientConfig": {
+        "Host": "https://urlchecker-rthub-pages-test.in.yandex-team.ru",
+        "Port": 443,
+        "Path": "/v1/zora/pages/"
+    },
+
+    "LogbrokerPusherConfig": {
+        "LogbrokerConfig" : {
+            "Server": "logbroker.yandex.net",
+            "Topic": "/callisto/test/check-url-responses"
+        },
+        "LogbrokerTvmConfig": {
+            "SourceId": 2001654,
+            "DestinationId": 2001059,
+            "DestinationAlias": "logbroker_r",
+            "TokenEnvVarName": "TVM_SECRET"
+        }
+    }
+}

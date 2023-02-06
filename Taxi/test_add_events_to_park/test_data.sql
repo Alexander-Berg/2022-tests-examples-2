@@ -1,0 +1,111 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    is_alive,
+    public_id,
+    public_key,
+    mac_wlan0,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    TRUE,
+    'pd1',
+    'pub_key_1',
+    '07:f2:74:af:8b:b1',
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    2,
+    TRUE,
+    'pd2',
+    'pub_key_2',
+    'a5:90:c5:98:95:48',
+    'AB12FE45DD',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    '2019-12-17T08:38:54',
+    '2019-12-17T08:38:54'
+),
+(
+    8,
+    FALSE,
+    'pd4',
+    'pub_key_4',
+    '32:41:27:d5:fb:ed',
+    'FFFDEAD4',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+),
+(
+    9,
+    FALSE,
+    'pd7',
+    'pub_key_5',
+    '11:11:11:22:22:ff',
+    '1337587103',
+    'hw_5',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+),
+(
+    10,
+    FALSE,
+    'pd93',
+    'pub_key_4165',
+    '32:41:27:d5:fb:23',
+    'REST112',
+    '3.03',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+ 'p1', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE
+),
+(
+ 'p4', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE
+),
+(
+ 'p8', 8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE
+),
+(
+ 'p8', 9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE
+),
+(
+ 'p8', 10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, TRUE
+)

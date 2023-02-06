@@ -1,0 +1,280 @@
+definitions:
+
+    ValueTypeObject:
+        type: object
+        additionalProperties: true
+        x-taxi-additional-properties-true-reason': 'It`s arbitrary value'
+        properties: {}
+
+    ValueType:
+        oneOf:
+          - type: string
+          - type: boolean
+          - type: number
+          - $ref: '#/definitions/ValueTypeObject'
+          - $ref: '#/definitions/ValueTypeArray'
+          - $ref: '#/definitions/ValueTypeArray2d'
+          - $ref: '#/definitions/ValueTypeArray3d'
+
+    MetaMergeValues:
+        type: array
+        items:
+            type: object
+            additionalProperties: false
+            properties:
+                tag:
+                    type: string
+                consumer:
+                    type: string
+                merge_method:
+                    type: string
+
+    TraitTags:
+        type: array
+        items:
+            type: string
+
+    Consumer:
+        type: object
+        additionalProperties: true
+        required:
+          - name
+        properties:
+            name:
+                type: string
+            service:
+                type: string
+            merge_tags:
+                type: array
+                items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - tag
+                      - merge_method
+                    properties:
+                        tag:
+                            type: string
+                        merge_method:
+                            type: string
+            supported_features:
+                type: array
+                items:
+                    type: string
+
+    Clause:
+        type: object
+        additionalProperties: true
+        required:
+          - value
+          - predicate
+        properties:
+            title:
+                type: string
+            predicate:
+                $ref: '#/definitions/ValueTypeObject'
+            value:
+                $ref: '#/definitions/ValueType'
+            extended_value:
+                $ref: '#/definitions/ValueType'
+            extension_method:
+                type: string
+            is_signal:
+                type: boolean
+            is_paired_signal:
+                type: boolean
+            is_tech_group:
+                type: boolean
+            alias:
+                type: string
+                pattern: '[0-9a-zA-Z_]+'
+
+    ActionTime:
+        type: object
+        additionalProperties: false
+        properties:
+            from:
+                type: string
+            to:
+                type: string
+
+    ApplicationItem:
+        type: object
+        additionalProperties: false
+        oneOf:
+          - required:
+              - name
+              - version_range
+          - required:
+              - name
+              - version_ranges
+        properties:
+            name:
+                type: string
+            version_range:
+                $ref: '#/definitions/VersionRange'
+            version_ranges:
+                type: array
+                items:
+                    $ref: '#/definitions/VersionRange'
+
+    ValueTypeArray:
+        type: array
+        items:
+            oneOf:
+              - type: string
+              - type: boolean
+              - type: number
+              - $ref: '#/definitions/ValueTypeObject'
+
+    ValueTypeArray2d:
+        type: array
+        items:
+            $ref: '#/definitions/ValueTypeArray'
+
+    ValueTypeArray3d:
+        type: array
+        items:
+            $ref: '#/definitions/ValueTypeArray2d'
+
+    VersionRange:
+        type: object
+        additionalProperties: false
+        properties:
+            from:
+                type: string
+                pattern: '^\d+\.\d+\.\d+$'
+            to:
+                type: string
+                pattern: '^\d+\.\d+\.\d+$'
+
+    Experiment:
+        type: object
+        additionalProperties: true
+        required:
+          - match
+          - clauses
+          - name
+        properties:
+            name:
+                type: string
+            last_modified_at:
+                type: integer
+            biz_revision:
+                type: integer
+            created:
+                type: string
+            last_manual_update:
+                type: string
+            self_ok:
+                type: boolean
+            enable_debug:
+                type: boolean
+            default_value:
+                oneOf:
+                  - type: 'null'
+                  - $ref: '#/definitions/ValueType'
+            merge_values_by:
+                $ref: '#/definitions/MetaMergeValues'
+            trait_tags:
+                $ref: '#/definitions/TraitTags'
+            clauses:
+                type: array
+                items:
+                    $ref: '#/definitions/Clause'
+            removed:
+                type: boolean
+            closed:
+                type: boolean
+            match:
+                type: object
+                additionalProperties: true
+                required:
+                  - enabled
+                  - consumers
+                  - predicate
+                properties:
+                    enabled:
+                        type: boolean
+                    schema:
+                        type: string
+                    predicate:
+                        $ref: '#/definitions/ValueTypeObject'
+                    action_time:
+                        $ref: '#/definitions/ActionTime'
+                    consumers:
+                        type: array
+                        items:
+                            $ref: '#/definitions/Consumer'
+                    applications:
+                        type: array
+                        items:
+                            $ref: '#/definitions/ApplicationItem'
+    Config:
+        type: object
+        additionalProperties: true
+        required:
+          - name
+          - match
+          - clauses
+          - default_value
+        properties:
+            name:
+                type: string
+            last_modified_at:
+                type: integer
+            biz_revision:
+                type: integer
+            created:
+                type: string
+            last_manual_update:
+                type: string
+            self_ok:
+                type: boolean
+            enable_debug:
+                type: boolean
+            default_value:
+                $ref: '#/definitions/ValueTypeObject'
+            merge_values_by:
+                $ref: '#/definitions/MetaMergeValues'
+            trait_tags:
+                $ref: '#/definitions/TraitTags'
+            clauses:
+                type: array
+                items:
+                    $ref: '#/definitions/Clause'
+            removed:
+                type: boolean
+            closed:
+                type: boolean
+            match:
+                type: object
+                additionalProperties: true
+                required:
+                  - enabled
+                  - consumers
+                  - predicate
+                properties:
+                    enabled:
+                        type: boolean
+                    schema:
+                        type: string
+                    predicate:
+                        type: object
+                        additionalProperties: false
+                        required:
+                          - type
+                        properties:
+                            type:
+                                type: string
+                                enum:
+                                  - 'TRUE'
+                                  - 'true'
+                            init:
+                                type: object
+                                additionalProperties: false
+                                properties: {}
+                    consumers:
+                        type: array
+                        items:
+                            $ref: '#/definitions/Consumer'

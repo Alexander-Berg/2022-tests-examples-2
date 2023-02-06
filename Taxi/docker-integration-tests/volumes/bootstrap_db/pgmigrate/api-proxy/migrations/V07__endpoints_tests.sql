@@ -1,0 +1,1 @@
+ALTER TABLE api_proxy.endpoints ADD COLUMN tests TEXT[] NULL DEFAULT NULL;

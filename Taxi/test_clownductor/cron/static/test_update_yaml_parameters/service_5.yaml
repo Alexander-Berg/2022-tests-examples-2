@@ -1,0 +1,65 @@
+python_service:
+    service_name: elrusso4-service
+
+debian:
+    source_package_name: yandex-taxi-geotracks-admin
+    maintainer_name: 'Dmitriy Karachev'
+    maintainer_login: 'karachevda'
+
+units:
+  - name: web
+    web:
+        description: Yandex.Taxi geotracks-admin web package
+        hostname:
+            production:
+              - geotracks-admin.taxi.yandex.net
+            testing:
+              - geotracks-admin.taxi.tst.yandex.net
+            unstable:
+              - geotracks-admin.taxi.dev.yandex.net
+        num_procs:
+            production: 4
+            testing: 2
+            unstable: 2
+    debian:
+        binary_package_name: yandex-taxi-geotracks-admin-web
+
+client_tvm: true
+
+clients:
+    services:
+      - eda-candidates
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy: {}
+
+maintainers:
+  - Sorokin Ilya <elrusso@yandex-team.ru>
+
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/geotracks-admin/
+clownductor_service_info:
+    preset:
+        production:
+            name: x2nano
+            overrides:
+                ram: 2
+                cpu: 1
+                error_key: error_value
+    disk_profile:
+        production:
+            name: default
+        testing:
+            name: default
+            overrides:
+              - path: /logs
+                size: 10240
+                type: hdd
+    design_review: https://st.yandex-team.ru
+    clownductor_project: testtaxi8
+    networks:
+        production: _ELRUSSO_STABLE_
+        testing: _ELRUSSO_TESTING_
+tvm:
+    service_name: elrusso4_service

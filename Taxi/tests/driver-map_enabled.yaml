@@ -1,0 +1,87 @@
+id: driver-map_enabled
+title: Получаем данные о водителе из сервиса driver-maps
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            break: 'user'
+            cancel_state: 'free'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid#string: '12345'
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - additional_buttons#object:
+              - feedback#object:
+              - key: driver
+                value#object:
+                  - key: extra_items
+                    value#array:
+                      - value#object:
+                          - key: title
+                            value: 'ИНН...'
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: api_proxy_totw_driver_map
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body#object:
+          - key: driver
+            value#object:
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: driver-map-driver-profile-response
+    response:
+        status-code: 200
+        body#object:
+          - key: extra_items
+            value#array:
+              - value#object:
+                  - key: title
+                    value: 'ИНН...'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                driver_id: 'driver_id'
+                order_id: 'order_id'
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#object:
+          - status#string: waiting
+          - key: driver
+            value#object:
+          - key: private_data
+            value#object:
+              - key: driver_id
+                value#string: 'driver_id'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

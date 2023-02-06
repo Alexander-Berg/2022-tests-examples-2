@@ -1,0 +1,54 @@
+id: test_error_400
+title: Проверка, что вызывы делаются с правильными параметрами
+
+
+source:
+    request:
+        method: post
+        body:
+            some_field_body: some_field_body
+            inbound_number: 89672763662
+            chainid: some_chainid
+            offer: some_offer
+        query:
+            some_field_query: some_field_query
+        headers:
+            some_field_headers: some_field_headers
+            X-Yandex-UID: some_uid
+    expectations:
+        response:
+            status-code: 404
+            body:
+                text: not_found
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code: 404
+        body:
+            text: not_found
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                some_field_body: some_field_body
+                chainid: some_chainid
+                offer: some_offer
+            query:
+                some_field_query: some_field_query
+            headers:
+                some_field_headers: some_field_headers
+                X-Yandex-UID: some_uid
+
+  - resource: callcenter-stats-operators-save_actions
+    expectations:
+        call-count: 0
+
+  - resource: taxi-ivr-dispatcher-inbound_number
+    expectations:
+        call-count: 0
+
+taxi_config:
+    INTEGRATION_AUTH_SAVE_ACTIONS_ENABLED: true
+    INTEGRATION_AUTH_STORE_INBOUND_NUMBER: true

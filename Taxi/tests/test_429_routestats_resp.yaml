@@ -1,0 +1,27 @@
+id: test_429_routestats_resp
+title: Сервис routestats отдает 429 код, клиентам отдаем 500ку.
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+    expectations:
+        response:
+            status-code: 500
+
+experiments:
+    values#object:
+      - key: api_proxy_use_new_routetestats
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: routestats-v1-routestats
+    response:
+        status-code: 429
+    expectations:
+        request:
+            body:
+                id: 'user_id'
+

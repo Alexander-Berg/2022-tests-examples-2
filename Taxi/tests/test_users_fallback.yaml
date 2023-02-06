@@ -1,0 +1,41 @@
+id: test_users_fallback
+title: Проверка фоллбека на users. Ожидаем, что ответом будет захардкоженный ответ
+    (только наличные).
+source:
+    request:
+        method: post
+        body:
+            point: [37.62, 55.75]
+            sourceid: "alice"
+            user_id: "USER_ID"
+        headers:
+            X-Request-Application: "app_name=android,app_brand=yataxi,app_ver1=1,app_ver2=1,app_ver3=0"
+            User-Agent: "ru.yandex.taxi.inhouse/550.12.0.68861 (iPhone; iPhone10,6;\
+                \ iOS 13.6.1; Darwin)"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                default_payment_method_id: "cash"
+                methods: [{"type": "cash", "label": "Наличные", "id": "cash", "zone_available": true,
+                        "can_order": true, "hide_user_cost": false}]
+mocks:
+  - resource: user-users-get
+    response:
+        status-code: 500
+    expectations:
+        call-count: 1
+taxi_config:
+    BILLING_SERVICE_NAME_MAP_BY_BRAND:
+        yataxi: "card"
+    APPLICATION_TO_CORP_SOURCE_MAP:
+        alice: "call_center"
+    PAYMENTMETHODS_INT_API_APPLEPAY_PARAMETERS_ENABLED: true
+    PAYMENTMETHODS_IPHONE_MERCHANT_LIST: ["MERCHANT_ID"]
+    INTEGRATION_API_PAYMENTMETHODS_FILTERED_CARDS_FOR_SOURCE_IDS: ["alice"]
+    INTEGRATION_API_PAYMENTMETHODS_FILTERED_CARDS_FOR_BRAND: []
+    INTEGRATION_API_PAYMENTMETHODS_SHOW_CARDS_FOR_SOURCE_IDS: ["alice"]
+    INTEGRATION_API_PAYMENTMETHODS_SHOW_CARDS_FOR_BRAND: []
+    CARD_SYSTEMS_MAPPING_V2:
+        CARD_SYSTEM:
+            human_readable: "CARD_SYSTEM_HUMAN_READABLE"

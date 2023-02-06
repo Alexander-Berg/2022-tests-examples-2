@@ -1,0 +1,69 @@
+id: test_with_retail_replacements
+title: Ответ eda-superapp-go-checkout с retailReplacements
+source:
+    request:
+        method: post
+        headers:
+            user-agent: user_agent
+        query:
+            deliveryDate: 2021-03-24T12:00:00+03:00
+        body:
+            address:
+                identity: 33670951
+                provider: eats
+    expectations:
+        response:
+            status-code: 200
+            body:
+                retailReplacements:
+                    communicationPoliciesBlockName: Что делать при заменах?
+                    communicationPolicies:
+                      - id: by_phone
+                        name: По телефону
+                        selected: true
+
+                      - id: in_app
+                        name: В приложении
+
+                    notFoundPoliciesBlockName: Если не отвечаете?
+                    notFoundPolicies:
+                      - id: propose_replacement
+                        name: Предлагать замену
+                        selected: true
+
+                      - id: skip_item
+                        name: Не заменять
+
+mocks:
+  - resource: eda-superapp-go-checkout
+    expectations:
+        call-count: 1
+    response:
+        status-code: 200
+        body#object:
+
+  - resource: eats-customer-calculate-slots
+    expectations:
+        call-count: 0
+
+experiments:
+    values:
+        api_proxy_retail_replacement_policies:
+            enabled: true
+            communicationPoliciesBlockName: Что делать при заменах?
+            communicationPolicies:
+              - id: by_phone
+                name: По телефону
+                selected: true
+
+              - id: in_app
+                name: В приложении
+
+            notFoundPoliciesBlockName: Если не отвечаете?
+            notFoundPolicies:
+              - id: propose_replacement
+                name: Предлагать замену
+                selected: true
+
+              - id: skip_item
+                name: Не заменять

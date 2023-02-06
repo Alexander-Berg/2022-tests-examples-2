@@ -1,0 +1,31 @@
+name: test_conditioned_pg
+queue_data:
+    db_cluster: replication_queue_mdb_0
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: modified_at
+    connection:
+        secret: conditioned
+    conditions:
+      - field: condition_field
+        operator: ">="
+        value: 1300
+      - field: condition_field
+        operator: "<="
+        value: 1600
+    timezone: Europe/Moscow
+    table: just_table
+
+    primary_key:
+      - id
+destinations:
+  - test_conditioned_pg_just_table:
+        type: yt
+        mapper: pg_mapper
+        target:
+            common_mapper_columns: true
+            partial_update: true
+            path: test/test_sharded_pg
+            cluster_groups:
+              - map_reduce

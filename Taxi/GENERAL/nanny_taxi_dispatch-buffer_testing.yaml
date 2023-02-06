@@ -1,0 +1,78 @@
+clownductor_config: taxi:dispatch-buffer:testing
+http_hosts:
+  - dispatch-buffer.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - http_basic
+  - http:
+        methods:
+          - id: performer-for-order_POST
+            title: performer-for-order_POST
+          - id: order-meta/add_POST
+            title: order-meta/add_POST
+  - include:
+        title: 'Lookup: /acquire_candidate'
+        path: nanny_taxi_dispatch-buffer/lookup_handlers.json
+        variables:
+          - group_name: dorblu_taxi_test_lookup
+          - object_name: lookup_taxi_tst_yandex_net_acquire_candidate
+  - include:
+        title: PostgreSQL
+        path: nanny_taxi_dispatch-buffer/postgresql.json
+        variables:
+          - cluster: testing_uservices
+  - include:
+        title: Lookup Fallbacks
+        path: taxi_lookup/fallback.json
+        variables:
+          - buffer_title: by lookup host
+          - group_name: taxi_test_lookup
+          - stats_title: by agglomeration
+          - class_name: dispatch-buffer
+          - client_service: lookup
+          - cluster_name: testing
+  - fallback_error_rates:
+        fallback_names:
+          - 'lookup-classes.dispatch-buffer.agglomerations.*'
+  - include:
+        title: Status metrics
+        path: nanny_taxi_dispatch-buffer/status_metrics.json
+        variables:
+          - cluster: testing_uservices
+  - userver_common:
+        uservice_name: dispatch-buffer
+        collapsed: true
+dashboard_update:
+    templating:
+        list:
+          - current:
+                selected: true
+                text:
+                  - moscow
+                  - spb
+                value:
+                  - moscow
+                  - spb
+            datasource: Solomon
+            definition: "{'cluster'='testing_uservices', 'project'='taxi', 'service'='uservices',\
+                \ 'client-service'='lookup', 'client-metric'='lookup-classes.dispatch-buffer.agglomerations.*.*'}\
+                \ #client-metric"
+            hide: 0
+            includeAll: false
+            label: agglomeration
+            multi: true
+            name: agglomeration
+            options: []
+            query: "{'cluster'='testing_uservices', 'project'='taxi', 'service'='uservices',\
+                \ 'client-service'='lookup', 'client-metric'='lookup-classes.dispatch-buffer.agglomerations.*.*'}\
+                \ #client-metric"
+            refresh: 1
+            regex: lookup-classes\.dispatch-buffer\.agglomerations\.(.*)\..*
+            skipUrlSync: false
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false

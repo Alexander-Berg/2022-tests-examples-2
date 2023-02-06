@@ -1,0 +1,551 @@
+type: apitest
+version: 0
+service: taxi_current_prices_calculator
+
+mockserver:
+  - url: /plus-wallet/v1/internal/payment/split
+    response:
+        body:
+            currency: RUB
+            sum_to_pay:
+                ride:
+                  - payment_method_id: main_card
+                    type: card
+                    sum: "30.0000"
+                  - payment_method_id: wallet_id
+                    type: personal_wallet
+                    sum: "70.0000"
+
+
+tests:
+  - name: happy_path
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_phone_id: some_phone_id
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+    response:
+        status: 200
+        body:
+            kind: 'fixed'
+            user_ride_display_price: '100.0000'
+            user_total_display_price: '100.0000'
+            user_total_price: '100.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+
+  - name: happy_path_with_split
+    marks:
+      - name: config
+        kwargs:
+            CURRENT_PRICES_CALCULATOR_SPLIT_REQUEST: true
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+                complements:
+                  - type: personal_wallet
+                    payment_method_id: wallet_id
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+    response:
+        status: 200
+        body:
+            kind: 'fixed'
+            user_ride_display_price: '100.0000'
+            user_total_display_price: '100.0000'
+            user_total_price: '100.0000'
+            cost_breakdown:
+              - type: card
+                amount: '30.0000'
+              - type: personal_wallet
+                amount: '70.0000'
+            cashback_by_sponsor: []
+
+
+  - name: cashback
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            current_cost: '100'
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+                cashback_multiplier: '0.9'
+    response:
+        status: 200
+        body:
+            kind: 'taximeter'
+            user_ride_display_price: '112.0000'
+            user_total_display_price: '112.0000'
+            user_total_price: '112.0000'
+            cashback_price: '12.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+  - name: toll_road
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: agent
+                payment_method_id: agent_gepard
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: false
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            current_cost: '150'
+            cost: '153'
+            toll_road:
+                toll_road_price: '5890'
+                hidden: false
+            pricing_data:
+                price_total: '48646'
+                currency: RUB
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '6043.0000'
+            user_total_display_price: '6043.0000'
+            user_total_price: '6043.0000'
+            toll_road_price: '5890.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+  - name: toll_road_hidden
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: agent
+                payment_method_id: agent_gepard
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: false
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            current_cost: '150'
+            cost: '153'
+            toll_road:
+                toll_road_price: '5890'
+                hidden: true
+            pricing_data:
+                price_total: '48646'
+                currency: RUB
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '6043.0000'
+            user_total_display_price: '6043.0000'
+            user_total_price: '6043.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+  - name: fixed_cashback
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+                cashback_multiplier: '0.9'
+                cashback_fixed_price: '12'
+    response:
+        status: 200
+        body:
+            kind: 'fixed'
+            user_ride_display_price: '112.0000'
+            user_total_display_price: '112.0000'
+            user_total_price: '112.0000'
+            cashback_price: '12.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+
+  - name: discount_cashback
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+                discount_cashback_rate: '0.2'
+
+    response:
+        status: 200
+        body:
+            kind: 'fixed'
+            user_ride_display_price: '100.0000'
+            user_total_display_price: '100.0000'
+            user_total_price: '100.0000'
+            discount_cashback: '20.0000'
+            cost_breakdown: []
+            cashback_by_sponsor:
+              - sponsor: discount
+                value: '20.0000'
+
+  - name: discount_cashback_for_cash
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: cash
+                payment_method_id: cash
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+                discount_cashback_rate: '0.2'
+    marks:
+      - name: config
+        kwargs:
+            CASHBACK_FOR_CASH_ENABLED: true
+    response:
+        status: 200
+        body:
+            kind: 'fixed'
+            user_ride_display_price: '100.0000'
+            user_total_display_price: '100.0000'
+            user_total_price: '100.0000'
+            discount_cashback: '20.0000'
+            cost_breakdown: []
+            cashback_by_sponsor:
+              - sponsor: discount
+                value: '20.0000'
+
+
+  - name: plus_cashback_unite
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            cost: '900'
+            cashback_cost: '100'
+            current_cost: '1000'
+            pricing_data:
+                price_total: '1000'
+                currency: RUB
+                unite_total_price_enabled: true
+                plus_cashback_rate: '0.1'
+                user_ride_price: '900'
+                cashback_calc_coeff: '0'
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '1000.0000'
+            user_total_display_price: '1000.0000'
+            user_total_price: '1000.0000'
+            cashback_price: '100.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+  - name: plus_cashback_fixed_unite
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            cost: '900'
+            cashback_cost: '100'
+            pricing_data:
+                price_total: '1000'
+                currency: RUB
+                unite_total_price_enabled: true
+                plus_cashback_rate: '0.1'
+                user_ride_price: '900'
+                cashback_calc_coeff: '0'
+                cashback_fixed_price: '100'
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '1000.0000'
+            user_total_display_price: '1000.0000'
+            user_total_price: '1000.0000'
+            cashback_price: '100.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+  - name: both_cashbacks_unite
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            cost: '900'
+            cashback_cost: '100'
+            current_cost: '1000'
+            pricing_data:
+                price_total: '1000'
+                currency: RUB
+                unite_total_price_enabled: true
+                plus_cashback_rate: '0.1'
+                user_ride_price: '900'
+                cashback_calc_coeff: '0'
+                discount_cashback_rate: '0.05'
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '1000.0000'
+            user_total_display_price: '1000.0000'
+            user_total_price: '1000.0000'
+            cashback_price: '100.0000'
+            discount_cashback: '45.0000'
+            cost_breakdown: []
+            cashback_by_sponsor:
+              - sponsor: discount
+                value: '45.0000'
+
+  - name: both_cashbacks_unite
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            cost: '900'
+            cashback_cost: '100'
+            current_cost: '1000'
+            pricing_data:
+                price_total: '1000'
+                currency: RUB
+                unite_total_price_enabled: true
+                plus_cashback_rate: '0.1'
+                user_ride_price: '900'
+                cashback_calc_coeff: '0'
+                discount_cashback_rate: '0.05'
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '1000.0000'
+            user_total_display_price: '1000.0000'
+            user_total_price: '1000.0000'
+            cashback_price: '100.0000'
+            discount_cashback: '45.0000'
+            cost_breakdown: []
+            cashback_by_sponsor:
+              - sponsor: discount
+                value: '45.0000'
+
+  - name: cashback_cost_not_equal_to_cashback_rate_times_total_price
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: complete
+            status: finished
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            cost: '850'
+            cashback_cost: '150'
+            current_cost: '1000'
+            pricing_data:
+                price_total: '1000'
+                currency: RUB
+                unite_total_price_enabled: true
+                plus_cashback_rate: '0.1'
+                user_ride_price: '900'
+                cashback_calc_coeff: '0'
+    response:
+        status: 200
+        body:
+            kind: 'final_cost'
+            user_ride_display_price: '1000.0000'
+            user_total_display_price: '1000.0000'
+            user_total_price: '1000.0000'
+            cashback_price: '150.0000'
+            cost_breakdown: []
+            cashback_by_sponsor: []
+
+
+  - name: marketing_cashback
+    request:
+        method: POST
+        path: /v1/internal/current_prices
+        body:
+            payment:
+                type: card
+                payment_method_id: main_card
+            currency: RUB
+            taxi_status: transporting
+            status: assigned
+            fixed_price: true
+            yandex_uid: fallback_uid
+            user_id: user_id
+            order_id: order_id
+            nearest_zone: nearest_zone
+            using_new_pricing: true
+            pricing_data:
+                price_total: '100'
+                currency: RUB
+                discount_cashback_rate: '0.2'
+                marketing_cashback:
+                    rates:
+                      - rate: '0.15'
+                        sponsor: fintech
+                        max_value: '10'
+                      - rate: '0.10'
+                        sponsor: portal
+
+
+    response:
+        status: 200
+        body:
+            kind: 'fixed'
+            user_ride_display_price: '100.0000'
+            user_total_display_price: '100.0000'
+            user_total_price: '100.0000'
+            discount_cashback: '40.0000'
+            cost_breakdown: []
+            cashback_by_sponsor:
+              - sponsor: portal
+                value: '10.0000'
+              - sponsor: fintech
+                value: '10.0000'
+              - sponsor: discount
+                value: '20.0000'

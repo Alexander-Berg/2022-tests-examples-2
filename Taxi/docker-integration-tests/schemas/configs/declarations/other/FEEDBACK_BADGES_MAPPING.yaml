@@ -1,0 +1,61 @@
+default: {}
+description: Бейджи для отзывов и их распределение по рейтингу
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: true
+        scheme:
+            feedback_badges:
+              - $sequence_of:
+                  - $dictionary:
+                        extra_ok: false
+                        missing_ok: false
+                        optional_keys:
+                          - images
+                        scheme:
+                            filters:
+                              - $dictionary:
+                                    extra_ok: false
+                                    missing_ok: false
+                                    optional_keys:
+                                      - cash
+                                      - notrip
+                                    scheme:
+                                        cash:
+                                          - $boolean
+                                        notrip:
+                                          - $boolean
+                                        tariffs:
+                                          - $sequence_of:
+                                              - $string
+                            images:
+                              - $dictionary:
+                                    extra_ok: false
+                                    missing_ok: false
+                                    scheme:
+                                        active_image_tag:
+                                          - $string
+                                        inactive_image_tag:
+                                          - $string
+                            label:
+                              - $string
+                            name:
+                              - $string
+            feedback_rating_mapping:
+              - $sequence_of:
+                  - $dictionary:
+                        extra_ok: false
+                        missing_ok: false
+                        optional_keys:
+                          - choice_title
+                        scheme:
+                            badges:
+                              - $sequence_of:
+                                  - $string
+                            choice_title:
+                              - $string
+                            rating:
+                              - $integer
+                              - $gte: 1
+                              - $lte: 5

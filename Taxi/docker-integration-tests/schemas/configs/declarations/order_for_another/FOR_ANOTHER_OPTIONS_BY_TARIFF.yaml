@@ -1,0 +1,47 @@
+default:
+    __default__: {}
+description: необходимо конфигурировать следующие поля 'заказа для другого' в зависимости
+    от тарифа 1) весь extra_contact_phone_rules 2) приоритет в ответе requestconfirm
+    3) label в requestconfirm
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/settings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/settings'
+    definitions:
+        settings:
+            type: object
+            additionalProperties: false
+            properties:
+                required:
+                    type: boolean
+                    description: необходимость ввода доп телефона в тарифе
+                tanker_prefix:
+                    type: string
+                    description: для всех ключей танкера заказа для другого по дефолту
+                        будет искаться client_messages.for_another_any_tanker_key,
+                        в то время как для нового тарифа client_messages.new_prefix.for_another_any_tanker_key
+                types_priority:
+                    type: array
+                    description: приоритет телефонов в ответе requestconfirm
+                    items:
+                        $ref: '#/definitions/type_priority'
+                disabled_by_experiment:
+                    type: string
+                    description: если в этом поле указан эксперимент(3й), то данное
+                        правило будет отключено при попадании в этот эксперимент
+        type_priority:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                weight:
+                    type: integer
+                    description: больше вес - раньше в массиве, по умолчанию у всех
+                        0 если веса равны, то сортируем по 'type'

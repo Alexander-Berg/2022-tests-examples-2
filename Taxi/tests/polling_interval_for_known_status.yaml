@@ -1,0 +1,49 @@
+id: polling_interval_for_known_status
+title: Проверяем что добавляется хедер с интервалом поллинга для известных статусов
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+    expectations:
+        response:
+            status-code: 200
+            headers:
+                X-Yataxi-Polling-Interval: 456
+            body:
+                additional_buttons: {}
+                feedback: {}
+                routeinfo:
+                    time_left: 1111
+                    distance_left: 2222
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+experiments:
+    values#object:
+      - key: api_proxy_taxiontheway_polling_interval
+        value#object:
+          - key: waiting
+            value: 123
+          - key: transporting
+            value: 456
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            routeinfo:
+                time_left: 1111
+                distance_left: 2222
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                driver_id: dbid_uuid
+            status: transporting

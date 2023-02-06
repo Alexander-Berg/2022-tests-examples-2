@@ -1,0 +1,82 @@
+id: new_zone_default_tariff_settings
+title: Тест для проверки new_zone_default_tariff_settings
+
+parameters:
+  - brand:
+      - brand: yataxi
+        settings#object:
+          - is_ascending: true
+          - tariff_groups: [['econom']]
+      - brand: yauber
+        settings#object:
+          - is_ascending: true
+          - tariff_groups: [['uberx']]
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-Request-Application#concat-strings:
+              - value: 'app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2,app_brand='
+              - value#xget: /test-params/brand/brand
+            X-YaTaxi-PhoneId: 'phone_id'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                authorized: false
+                client_geo_params:
+                    enabled: false
+                typed_experiments: {}
+                new_zone_default_tariff_settings#xget: /test-params/brand/settings
+
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS#object:
+      - key: __default__
+        value#object:
+          - is_ascending: true
+          - tariff_groups: [['error'], ['invalid']]
+      - key: yataxi
+        value#object:
+          - is_ascending: true
+          - tariff_groups: [['econom']]
+      - key: yauber
+        value#object:
+          - is_ascending: true
+          - tariff_groups: [['uberx']]
+
+mocks:
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: false
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+            method: post
+  - resource: taxi-3.0-launch
+    response:
+        status-code: 200
+        body:
+            typed_experiments: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post

@@ -1,0 +1,35 @@
+id: basic_test
+title: Просто проверка проксирования
+
+parameters:
+  - mocks:
+      - source_body:
+            some_field: 'some_value'
+        resp_body:
+            some_field: 'some_value'
+        call_count: 1
+
+source:
+    request:
+        method: post
+        body:
+            position: [37.0, 55.0]
+        headers:
+            User-Agent: some_agent
+    expectations:
+        response:
+            status-code#integer: 200
+            body#xget: /test-params/mocks/resp_body
+
+mocks:
+  - resource: shortcuts-v1-screen-shuttle
+    response:
+        status-code#integer: 200
+        body#xget: /test-params/mocks/source_body
+    expectations:
+        call-count#xget: /test-params/mocks/call_count
+        request:
+            body:
+                position: [37.0, 55.0]
+            headers:
+                User-Agent: some_agent

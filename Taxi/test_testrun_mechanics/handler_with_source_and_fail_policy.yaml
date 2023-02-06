@@ -1,0 +1,28 @@
+default-response: resp-ok
+enabled: true
+sources:
+  - id: test-resource
+    content-type: application/json
+    resource: resource
+    body:
+        value: 1234
+        new: true
+        arr:
+          - a
+          - b
+          - c
+          - d
+        deep:
+            x: abc
+    fail-policy:
+      - selector: any
+        action: disable
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#if:
+        condition#source-enabled: test-resource
+        then:
+            result#xget: /sources/test-resource/response/body/value
+        else:
+            result: empty

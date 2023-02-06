@@ -1,0 +1,234 @@
+Policy {
+    Common {
+        Id: 1
+        Name: "top-urls"
+        FilterLine: "IsNeedRotorUrl && Expr(!CrawlResult.IsProcessedByRotor) && Expr(!IsVideo) && !UrlRotorRegexp(deny)"
+        RankLine: "VisitsSmoothedRank"
+        QuotaRps: 50
+        State: PS_PAUSED
+    }
+}
+Policy {
+    Common {
+        Id: 2
+        Name: "forced-hosts"
+        FilterLine: "IsNeedRotorUrl && Expr(HOST.ForceRotor) && Expr(!CrawlResult.IsProcessedByRotor) && Expr(!IsVideo) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+        QuotaRps: 25
+        State: PS_PAUSED
+    }
+}
+Policy {
+    Common {
+        Id: 3
+        Name: "forced-crawl-url"
+        FilterLine: "IsNeedRotorUrl && HasNotCrawledRotorFeed(WEB) && HasNotCrawledReindexFeed(WEB) || HasNotCrawledRotorFeed(WEB) && HasNotCrawledCrawlFeed(WEB)"
+        RankLine: "Random"
+        QuotaRps: 100
+    }
+}
+Policy {
+    Common {
+        Id: 4
+        Name: "zen-hosts"
+        FilterLine: "IsNeedRotorUrl && Expr(HOST.ZenState.IsNeedRotor & HOST.ZenState.IsInteresting) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+        State: PS_PAUSED
+    }
+}
+Policy {
+    Common {
+        Id: 5
+        Name: "sprav-docs"
+        FilterLine: "IsNeedRotorUrl && Expr(DIRECT.SpravData.IsUrl) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+    }
+}
+Policy {
+    Common {
+        Id: 6
+        Name: "video-polirovka-rotor"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(force_video_crawl_rotor:WEB) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+        QuotaRps: 10
+    }
+}
+Policy {
+    Common {
+        Id: 7
+        Name: "verifying-samples-rotor"
+        FilterLine: "IsNeedRotorUrl && Expr(VerifyingSampleData.IsVerifyingSample) && Expr(VerifyingSampleData.UseRotor) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+        QuotaRps: 10
+    }
+}
+Policy {
+    Common {
+        Id: 9
+        Name: "patent-search"
+        FilterLine: "IsNeedRotorUrl && HasFeeds(patent-search-sitemap) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+    }
+}
+Policy {
+    Common {
+        Id: 10
+        Name: "vdp"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(vdp:VIDEO) && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+        QuotaRps: 10
+    }
+}
+
+Policy {
+    Common {
+        Id: 11
+        Name: "rotor-watson-pages"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(rotor-watson-pages:WATSON_PAGES) && FeedLastSignalAgeLessThan(rotor-watson-pages,604800) && !UrlRotorRegexp(deny)"
+        RankLine: "Random + RecencyCoeff(14400,0.5)"
+        QuotaRps: 80
+    }
+}
+
+Policy {
+    Common {
+        Id: 12
+        Name: "rotor-regexp-allow"
+        FilterLine: "IsNeedRotorUrl && UrlRotorRegexp(allow)"
+        RankLine: "Random"
+    }
+}
+
+# Id 13 can be reused
+
+Policy {
+    Common {
+        Id: 14
+        Name: "rotor-regexp-only"
+        FilterLine: "IsNeedRotorUrl && UrlRotorRegexp(only)"
+        RankLine: "Random"
+        IsStrictlyRotor: true
+    }
+}
+
+Policy {
+    Common {
+        Id: 15
+        Name: "rotor-watson-pages-priority"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(rotor-watson-pages-priority:WATSON_PAGES) && FeedLastSignalAgeLessThan(rotor-watson-pages-priority,43200) && !UrlRotorRegexp(deny)"
+        RankLine: "Random * RecencyCoeff(14400,0.5)"
+        QuotaRps: 20
+    }
+}
+
+Policy {
+    Common {
+        Id: 16
+        Name: "rotor-collect-host-stats"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(rotor-collect-host-stats:ROTOR_COLLECT_HOST_STATS) && FeedLastSignalAgeLessThan(rotor-collect-host-stats,864000) && !UrlRotorRegexp(deny)"
+        RankLine: "HostWeekShows + UrlHash"
+        QuotaRps: 120
+    }
+}
+
+Policy {
+    Common {
+        Id: 17
+        Name: "rotor-beru-pages"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(rotor-beru-pages:BERU_PAGES) && FeedLastSignalAgeLessThan(rotor-beru-pages,2592000) && !UrlRotorRegexp(deny)"
+        RankLine: "AgeSinceLastAccessCoeff(2592000:BERU_PAGES) + Random * 0.1"
+        QuotaRps: 20
+    }
+}
+
+Policy {
+    Common {
+        Id: 18
+        Name: "rotor-rank"
+        FilterLine: "IsNeedRotorUrl && !UrlRotorRegexp(deny)"
+        RankLine: "ZoneIndependentActualRank(R_ROTOR)"
+        QuotaRps: 4700
+    }
+}
+
+Policy {
+    Common {
+        Id: 19
+        Name: "rotor-jupiter-base"
+        FilterLine: "IsNeedRotorUrl && !UrlRotorRegexp(deny) && Expr(DIRECT.JupiterData:DEFINED) && Valid && !IsFiltered && !LastCrawlResultAgeIsLessThan(259200)"
+        RankLine: "ZoneIndependentActualRank(R_ROTOR)"
+        QuotaRps: 350
+        State: PS_PAUSED
+    }
+}
+
+Policy {
+    Common {
+        Id: 20
+        Name: "rotor-jupiter-base-youtube"
+        FilterLine: "IsNeedRotorUrl && Valid && !IsFiltered && HasAnyValue(HOST.Host,\"https://www.youtube.com\",\"https://m.youtube.com\",\"http://www.youtube.com\")"
+        RankLine: "FullUserDataRank"
+        QuotaRps: 250
+    }
+}
+
+Policy {
+    Common {
+        Id: 21
+        Name: "random-rotor"
+        FilterLine: "IsNeedRotorUrl && !UrlRotorRegexp(deny)"
+        RankLine: "Random"
+        QuotaRps: 20
+    }
+}
+
+Policy {
+    Common {
+        Id: 22
+        Name: "rotor-jupiter-base-with-userdata"
+        FilterLine: "IsNeedRotorUrl && !UrlRotorRegexp(deny) && Expr(DIRECT.JupiterData:DEFINED) && Valid && !IsFiltered && !LastCrawlResultAgeIsLessThan(259200) && HasUserDataCounter(LCT_SPY_LOG_URL)"
+        RankLine: "ZoneIndependentActualRank(R_ROTOR)"
+        QuotaRps: 125
+        State: PS_PAUSED
+    }
+}
+
+Policy {
+    Common {
+        Id: 23
+        Name: "market-pinger-general-rotor-ext"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(market-pinger-general-rotor-ext:MARKET_DOCS) && FeedLastSignalAgeLessThan(market-pinger-general-rotor-ext,3600)"
+        RankLine: "Random"
+        QuotaRps: 15
+    }
+}
+
+Policy {
+    Common {
+        Id: 24
+        Name: "market-pinger-mobile-rotor-ext"
+        FilterLine: "IsNeedRotorUrl && IsNotRotoredFeed(market-pinger-mobile-rotor-ext:MARKET_DOCS) && FeedLastSignalAgeLessThan(market-pinger-mobile-rotor-ext,3600)"
+        RankLine: "Random"
+        QuotaRps: 15
+    }
+}
+
+Policy {
+    Common {
+        Id: 25
+        Name: "weather"
+        FilterLine: "IsNeedRotorUrl && Expr(WeatherState.IsWeather) && HasAnyValue(HOST.Host,\"https://www.meteovesti.ru\",\"https://www.wunderground.com\")"
+        RankLine: "Random"
+        QuotaRps: 5
+    }
+}
+
+Policy {
+    Common {
+        Id: 26
+        Name: "market-prices-rotor"
+        FilterLine: "IsNeedRotorUrl && Expr(MarketPricesRankData.NeedRotor)"
+        RankLine: "Random(-1,1) - Expr(MarketPricesRankData.UrlRank)"
+        QuotaRps: 10
+    }
+}

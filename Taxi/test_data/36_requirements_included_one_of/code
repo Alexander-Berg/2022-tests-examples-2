@@ -1,0 +1,42 @@
+// About test cases:
+//  1. booster independent, nothing included                   => booster price
+//  2. booster independent, booster included                   => zero price
+//  3. booster independent, basic chair included               => booster price
+//  4. booster not independent, nothing included               => basic chair price
+//  5. booster not independent, booster included               => basic chair price
+//  6. booster not independent, basic chair included           => zero price
+//  7. 2 x booster independent, basic chair included           => 2 x booster price
+//  8. 2 x booster independent, booster included               => booster price
+//  9. booster independent + basic chair, booster included     => basic chair price
+// 10. booster independent + basic chair, basic chair included => booster price
+// 11. booster independent + basic chair, both included        => booster price (cheaper in this case)
+// 12. booster independent + basic chair, both included        => basic chair price (cheaper in this case)
+
+with (simple_cost = 0) generate(req : fix.requirements.simple)
+    let rprice = (req in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[req] : 0;
+endgenerate(simple_cost = simple_cost + rprice)
+
+with (select_cost = 0) generate(req : fix.requirements.select)
+    let rname = req.first;
+    with (
+        options_cost = 0,
+        included_most_expensive = 0
+    ) generate(opt : req.second)
+        let oname = (opt.independent) ? rname + "." + opt.name : rname;
+        let ocost = (oname in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[oname] : 0;
+        let ocost_if_included = (fix.tariff.requirements_included_one_of as included)
+                                    ? (oname in included)
+                                          ? ocost
+                                          : 0
+                                    : 0;
+    endgenerate(
+        options_cost = options_cost + ocost,
+        included_most_expensive = (ocost_if_included > included_most_expensive)
+                                      ? ocost_if_included
+                                      : included_most_expensive
+    )
+endgenerate(select_cost = select_cost + options_cost - included_most_expensive)
+
+return {
+    requirements = simple_cost + select_cost
+};

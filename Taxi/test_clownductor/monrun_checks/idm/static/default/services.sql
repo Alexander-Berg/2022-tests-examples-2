@@ -1,0 +1,32 @@
+INSERT INTO clownductor.services
+    (id, project_id, name, artifact_name, cluster_type)
+VALUES
+(
+    1,
+    1,
+    'srv1',
+    'artifact',
+    'nanny'
+),
+(
+    2,
+    1,
+    'srv2',
+    'artifact',
+    'nanny'
+),
+(
+    3,
+    2,
+    'srv3',
+    'artifact',
+    'nanny'
+),
+(
+    4,
+    2,
+    'srv3-pg',
+    'atrifact',
+    'postgres'
+)
+;

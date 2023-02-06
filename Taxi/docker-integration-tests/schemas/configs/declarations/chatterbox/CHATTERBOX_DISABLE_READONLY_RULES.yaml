@@ -1,0 +1,74 @@
+default:
+  - percentage: 0
+    tariff:
+      - any
+      - tariff
+      - from
+      - list
+    user_type:
+      - elite
+      - vip
+      - corp
+      - general
+description: Правила для выборочного отключения ReadOnly
+tags: []
+schema:
+    type: array
+    items:
+        type: object
+        properties:
+            percentage:
+                type: integer
+                minimum: 0
+                maximum: 100
+            user_type:
+                oneOf:
+                  - $ref: "#/definitions/UserType"
+                  - type: array
+                    items:
+                        $ref: "#/definitions/UserType"
+            tariff:
+                $ref: "#/definitions/StringOrArrayOfStrings"
+            max_rating:
+                type: integer
+                minimum: 1
+                maximum: 5
+            need_comment:
+                type: boolean
+            order_experiment:
+                $ref: "#/definitions/StringOrArrayOfStrings"
+            country:
+                $ref: "#/definitions/StringOrArrayOfStrings"
+            language:
+                $ref: "#/definitions/StringOrArrayOfLangs"
+            feedback_report_conditions:
+                description: дизъюнкция проверок из модуля feedback_report bad_route
+                    || nochange || driver_late || is_paid_cancel || bad_driving
+                type: boolean
+        required:
+          - percentage
+        additionalProperties: false
+    definitions:
+        StringOrArrayOfStrings:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                    type: string
+        StringOrArrayOfLangs:
+            oneOf:
+              - type: string
+                minLength: 2
+                maxLength: 2
+              - type: array
+                items:
+                    type: string
+                    minLength: 2
+                    maxLength: 2
+        UserType:
+            type: string
+            enum:
+              - general
+              - vip
+              - corp
+              - elite

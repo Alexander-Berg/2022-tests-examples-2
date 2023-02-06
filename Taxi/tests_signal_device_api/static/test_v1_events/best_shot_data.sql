@@ -1,0 +1,239 @@
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    2,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    3,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p2',
+    1,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p2',
+    2,
+    now(),
+    now(),
+    FALSE
+);
+
+INSERT INTO signal_device_api.car_device_bindings
+(
+    id,
+    park_id,
+    car_id,
+    device_id,
+    created_at,
+    detached_at,
+    updated_at
+)
+VALUES
+(
+    '1',
+    'p1',
+    'car1',
+    2,
+    '2019-12-17T10:38:54',
+    now(),
+    now()
+),
+(
+    '2',
+    'p1',
+    'car1',
+    2,
+    now(),
+    NULL,
+    now()
+),
+(
+    '3',
+    'p1',
+    'car3',
+    3,
+    now(),
+    NULL,
+    now()
+);
+
+INSERT INTO signal_device_api.devices
+       (
+         id,
+         is_alive,
+         mac_wlan0,
+         mac_eth0,
+         mac_usb_modem,
+         public_key,
+         user_password,
+         wifi_password,
+         bluetooth_password,
+         hardware_version,
+         imei,
+         serial_number,
+         total_ram_bytes,
+         public_id,
+         created_at,
+         updated_at)
+       VALUES
+         (2, TRUE, 'ae:d9:55:76:63:22', 'd8:96:27:3a:3d:27', 'f6:4b:c8:8a:7c:ac', '-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJdQTDj8OBfNV/+PVW2sQ/AcOX3bA
+PJU+PgROBTZFloOOrBB7jvKOg+xM1iPHeaPjGO+r8xrrTrbA4FqxgopVFQ==
+-----END PUBLIC KEY-----
+', 'user.p.a.s.s.w', 'wifi.p.a.s.s.w', 'bt.p.a.s.s.w',
+         '8.483', '737024710538104', '5987958976', 812058, 'device_id_test2', current_timestamp, current_timestamp);
+
+
+
+INSERT INTO signal_device_api.statuses
+(
+    id,
+    cpu_temperature,
+    disk_bytes_free_space,
+    disk_bytes_total_space,
+    root_bytes_free_space,
+    root_bytes_total_space,
+    ram_bytes_free_space,
+    gps_position_lat,
+    gps_position_lon,
+    gnss_latitude,
+    gnss_longitude,
+    software_version,
+    uptime_ms,
+    sim_iccid,
+    sim_phone_number,
+    sim_imsi,
+    status_at,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    2,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    73.3242,
+    54.9885,
+    NULL,
+    NULL,
+    '2.31',
+    90555,
+    '89310410106543789301',
+    '+7 (913) 617-82-58',
+    '502130123456789',
+    '2090-01-23T15:44:02',
+    '2090-09-04T08:18:54',
+    '2090-01-23T15:44:30'
+);
+
+
+INSERT INTO signal_device_api.events
+(
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    public_event_id,
+    event_at,
+    event_type,
+    gnss_latitude,
+    gnss_longitude,
+    park_id
+)
+VALUES
+(
+    2,
+    '2027-02-27T23:55:00',
+    '2027-02-27T23:55:00',
+    '5exxx66e59637858xxx6d76c4322b394',
+    '54b3d7ec-30f6-xxx6-94a8-afs6e8fe404c',
+    '2005-02-26T00:12:59+00:00',
+    'test',
+    54.99550072,
+    72.94622044,
+    'p1'
+),
+(
+    2,
+    '2020-02-27T13:00:00',
+    '2020-02-27T13:00:00',
+    'xxxx6e6e1331b3a7d35c585983076a',
+    'fasxxx6c-30f6-43cf-94a8-911bc8fe404c',
+    '2020-02-26T00:14:59+00:00',
+    'test',
+    54.99250000,
+    73.36861111,
+    'p1'
+),
+(
+    2,
+    '2020-02-27T23:55:00',
+    '2020-02-27T23:55:00',
+    '7exxx66e59637858xxx6d76c4322b394',
+    '74b3d7ec-30f6-xxx6-94a8-afs6e8fe404c',
+    '2020-02-26T00:12:59+00:00',
+    'test',
+    54.99550072,
+    72.94622044,
+    'p1'
+);
+
+
+INSERT INTO signal_device_api.user_notifications (park_id, user_id)
+VALUES 
+(
+    'p1', 'superuser'
+),
+(
+    'p1', 'user1'
+);
+
+INSERT INTO signal_device_api.declared_devices (
+    id,
+    serial_number,
+    aes_key,
+    imei,
+    mac_wlan0,
+    mac_bluetooth,
+    created_at,
+    updated_at
+) VALUES 
+(
+    1,
+    '5987958976',
+    'RkFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'FAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '123456789012345',
+    '38:fe:38:8e:84:e0',
+    'e6:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+);

@@ -1,0 +1,15 @@
+with (simple_cost = 0) generate(req : fix.requirements.simple)
+    let rprice = (req in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[req] : 0;
+endgenerate(simple_cost = simple_cost + rprice)
+
+with (select_cost = 0) generate(req : fix.requirements.select)
+    let rname = req.first;
+    with (options_cost=0) generate(opt: req.second)
+        let oname = (opt.independent) ? rname + "." + opt.name : rname;
+        let ocost = (oname in fix.tariff.requirement_prices) ? fix.tariff.requirement_prices[oname] : 0;
+    endgenerate(options_cost=options_cost + ocost)
+endgenerate(select_cost = select_cost + options_cost)
+
+return {
+    requirements = simple_cost + select_cost
+};

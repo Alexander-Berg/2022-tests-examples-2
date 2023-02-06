@@ -1,0 +1,17 @@
+INSERT INTO iiko_integration.orders
+    (id, restaurant_order_id, yandex_uid, status, created_at, idempotency_token, restaurant_id, expected_cashback_percentage, total_price, discount, currency, items, complement_amount, complement_payment_method_id, complement_payment_method_type)
+VALUES
+    ('01',       '123', 'user1_bound1', ('PENDING', 'INIT', now(),now()),                           '2020-06-11T09:05:00+00:00'::timestamptz, '01', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('02',       '123', 'user1',        ('CANCELED', 'INIT', now(),now()),                          '2020-06-10T09:05:00+00:00'::timestamptz, '02', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('03',       '123', 'user1',        ('CLOSED', 'INIT', now(),now()),                            '2020-06-09T09:05:00+00:00'::timestamptz, '03', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('04',       '123', 'user1_bound2', ('HOLDING', 'INIT', now(),now()),                           '2020-06-08T09:05:00+00:00'::timestamptz, '04', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('held_1',   '123', 'user1',        ('WAITING_FOR_CONFIRMATION','HELD', now(),now()),           '2020-06-07T09:05:00+00:00'::timestamptz, '05', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('held_2',   '123', 'user1',        ('PAYMENT_CONFIRMED','HELD', now(),now()),                  '2020-06-06T09:05:00+00:00'::timestamptz, '06', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('07',       '123', 'user1',        ('PENDING', 'HOLD_FAILED', now(),now()),                    '2020-06-05T09:05:00+00:00'::timestamptz, '07', 'restaurant01', 3, 200, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('clearing', '123', 'user1_bound1', ('PAYMENT_CONFIRMED', 'CLEARING', now(),now()),             '2020-06-04T09:05:00+00:00'::timestamptz, '08', 'restaurant01', 6, 300, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('cleared1', '123', 'user1_bound2', ('PAYMENT_CONFIRMED','CLEARED', now(),now()),               '2020-06-03T09:05:00+00:00'::timestamptz, '09', 'restaurant01', 9, 400, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('cleared2', '123', 'user1_bound1', ('PAYMENT_CONFIRMED','CLEARED',  now(),now()),              '2020-06-03T09:05:00+00:00'::timestamptz, '10', 'restaurant01', 11, 500, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('cleared3', '123', 'user1_bound2', ('PAYMENT_CONFIRMED','CLEARED',  now(),now()),              '2020-06-01T09:05:00+00:00'::timestamptz, '11', 'restaurant01', 13, 600, 0, 'RUB', ARRAY[]::ORDER_ITEM[], 400, '123456abcd', 'personal_wallet'),
+    ('12',       '123', 'user2',        ('PAYMENT_CONFIRMED','CLEARED',  now(),now()),              '2020-06-02T09:00:00+00:00'::timestamptz, '12', 'restaurant01', 1, 700, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('13',       '123', 'user2',        ('CANCELED', 'INIT',  now(),now()),                         '2020-06-04T09:15:00+00:00'::timestamptz, '13', 'restaurant01', 1, 100, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null),
+    ('14',       '123', 'user4',        ('PAYMENT_CONFIRMED','CLEARED', now(),now()),               '2020-06-02T09:00:00+00:00'::timestamptz, '14', 'wrong_restaurant', 1, 700, 0, 'RUB', ARRAY[]::ORDER_ITEM[], null, null, null);

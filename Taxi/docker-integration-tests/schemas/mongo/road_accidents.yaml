@@ -1,0 +1,107 @@
+description: road accidents
+settings:
+    collection: road_accidents
+    connection: misc
+    database: dbmisc
+indexes:
+  - expireAfterSeconds: 86400
+    key: created
+  - key:
+      - name: status
+        type: ascending
+      - name: alias_id
+        type: ascending
+      - name: critical_point.ts
+        type: ascending
+  - key: updated
+wiki_info: |
+    #### road_accidents
+    *Назначение* Коллекция хранит информацию о возможных ДТП
+
+    *Структура документа*
+
+    ```python
+    {
+        # Внутренний идентификатор происшествия
+        '_id': ObjectId('5bc107ea8ed15d15c08d3c7a'),
+        # Дата создания документа
+        'created': datetime.datetime(1970, 1, 2, 10, 17, 36, 789000),
+        # Дата последнего обновления документа (при создании совпадает с created)
+        'updated': datetime.datetime(1970, 1, 2, 10, 17, 36, 789000),
+        # Идентификатор парка
+        'db_id': 'my_db_id',
+        # Парковый идентификатор водителя
+        'driver_id': 'my_driver_id',
+        # Идентификатор заказа (таксометровый, опционально)
+        'alias_id': '5bc107ea8ed15d15c08daaaa',
+        # Идентификатор пассажира
+        'user_id': u'5bc107ea8ed15d15c08dbbbb',
+        # Кватернион, описывающий положение телефона
+        'phone_orientation': {
+            'y': 3.0,
+            'x': 2.0,
+            'z': 4.0,
+            'w': 1.0
+        },
+        # Координата GPS середины горба ускорений
+       'critical_point': {
+          'lat': 8.0,
+          'lon': 7.0,
+          'bearing': 5.0,
+          'ts': datetime.datetime(1970, 1, 2, 10, 17, 36, 789000)
+        },
+        # Информация об ускорениях за определенный интервал времени
+       'accelerations': {
+          # Массив координат ускорений
+          'coords': [
+              {
+                  'x': 10.0,
+                  'y': 11.0,
+              },
+              {
+                  'x': 15.0,
+                  'y': 17.0,
+              }
+          ],
+          # Время первого ускорения в масссиве coords
+          'first_ts': datetime.datetime(1970, 1, 2, 10, 17, 36, 689000),
+          # Время последнего ускорения в масссиве
+          'last_ts': datetime.datetime(1970, 1, 2, 10, 17, 36, 789000)
+         },
+         # Массив скоростей с координатами GPS, величиной и временем
+         'speeds': [
+             {
+                'lat': 8.0,
+                'lon': 7.0,
+                'ts': datetime.datetime(1970, 1, 2, 10, 13, 54, 567000),
+                'value': 100.0
+             },
+             {
+                'lat': 80.0,
+                'lon': 70.0,
+                'ts': datetime.datetime(1970, 1, 2, 10, 13, 54, 580000),
+                'value': 120.0
+             }
+         ],
+         # Результат проверки события (enum)
+         # 0 - подтверждено
+         # 1 - неподтверждено
+         'status': 1,
+         # Статистика работы cron таски при проверке на основании данных по geotracks
+         "geotracks_check" : {
+            "status" : 3,
+            # Проверка до критической точки
+            "before" : {
+              "distance" : 0,
+              "lon" : 37.57938003540039,
+              "lat" : 55.739871978759766,
+              "ts" : ISODate("2019-06-27T17:27:36Z")
+            },
+            "after" : {
+              "distance" : 0,
+                "lon" : 37.57938003540039,
+                "lat" : 55.739871978759766,
+                "ts" : ISODate("2019-06-27T15:00:00Z")
+            }
+         },
+    ```

@@ -1,0 +1,48 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:routehistory:testing
+
+http_hosts:
+  - routehistory.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        hide:
+          - redis_client
+          - redis_subscribe_client
+        uservice_name: routehistory
+  - include:
+        collapsed: true
+        path: taxi_routehistory/cache.json
+        title: Cache /routehistory/get
+        variables:
+          - cluster: testing_uservices
+          - cache_name: get
+  - include:
+        collapsed: true
+        path: taxi_routehistory/cache.json
+        title: Cache /routehistory/search-get
+        variables:
+          - cluster: testing_uservices
+          - cache_name: search-get
+  - include:
+        path: taxi_routehistory/misc_routehistory_get.json
+        row_panels: 6
+        title: Misc /routehistory/get
+        variables:
+          - cluster: testing_uservices
+  - include:
+        path: taxi_routehistory/db_cleaner.json
+        row_panels: 5
+        title: Avg DB records deleted (per sec)
+        variables:
+          - cluster: testing_uservices
+  - stq:
+        queues:
+          - routehistory_add
+          - routehistory_cargo_add
+          - routehistory_drive_add
+          - routehistory_grocery_order_add
+          - routehistory_shuttle_order_add
+  - http

@@ -1,0 +1,39 @@
+id: test_post_menu_no_access
+title: Проверяем что обработаем 403
+
+source:
+    request:
+        method: post
+        url: /4.0/restapp-front/api/v1/client/place/999/menu
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+        query:
+            some_param1: some text1
+            some_param2: some text2
+        body:
+            some_param3: body text1
+            some_param4: body text2
+    expectations:
+        response:
+            status-code: 403
+
+mocks:
+  - resource: backend-service-vendor-v1-client-place-menu-post
+    response:
+        status-code: 403
+        content-type: application/json
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+            path-params:
+                placeId: 999
+            query:
+                some_param1: some text1
+                some_param2: some text2
+            body:
+                some_param3: body text1
+                some_param4: body text2

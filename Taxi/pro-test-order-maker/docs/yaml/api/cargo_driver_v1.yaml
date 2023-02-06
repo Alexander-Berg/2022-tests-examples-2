@@ -1,0 +1,197 @@
+openapi: 3.0.0
+info:
+    version: '1.0'
+    title: 'Dummy API'
+
+x-taxi-client-qos:
+    taxi-config: PRO_TEST_ORDER_MAKER_CLIENT_QOS
+
+
+x-taxi-middlewares:
+    tvm: false
+
+paths:
+    /ptom/driver/v1/make-cargo-order:
+        post:
+            operationId: driver_v1_make_cargo_order_post
+            parameters:
+              - $ref: '#/components/parameters/XIdempotencyToken'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1MakeCargoOrderRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1MakeCargoOrderResponse'
+    /ptom/driver/v1/cargo-order-status:
+        post:
+            operationId: driver_v1_cargo_order_status_post
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1CargoOrderStatusRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1CargoOrderStatusResponse'
+
+
+components:
+    parameters:
+        XIdempotencyToken:
+            in: header
+            name: X-Idempotency-Token
+            schema:
+                type: string
+            required: true
+
+    schemas:
+        V1Point:
+            type: object
+            additionalProperties: false
+            required:
+              - lat
+              - lon
+              - point_id
+              - street
+            properties:
+                lat:
+                    type: number
+                lon:
+                    type: number
+                point_id:
+                    type: integer
+                    format: int64
+                street:
+                    type: string
+                    example: Moscow st. 6
+
+        V1Item:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - width
+              - height
+              - length
+              - weight
+              - price
+              - count
+              - destination
+            properties:
+                name:
+                    type: string
+                width:
+                    type: number
+                height:
+                    type: number
+                length:
+                    type: number
+                weight:
+                    type: number
+                price:
+                    type: number
+                count:
+                    type: integer
+                destination:
+                    type: integer
+                    format: int64
+
+        V1TariffOption:
+            type: string
+            enum:
+              - only_car
+              - termobox
+              - door_to_door
+              - pro
+
+        V1MakeCargoOrderRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - addresses
+              - goods
+              - tariff
+            properties:
+                addresses:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/V1Point'
+                goods:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/V1Item'
+                tariff:
+                    type: string
+                    enum: [eda, lavka, courier, express, lcv_s, lcv_m, lcv_l]
+                options:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/V1TariffOption'
+                    default: []
+                markdown:
+                    type: boolean
+                    default: false
+                payment_on_delivery:
+                    type: boolean
+                    default: false
+                partial_delivery:
+                    type: boolean
+                    default: false
+                return:
+                    $ref: '#/components/schemas/V1Point'
+                name:
+                    type: string
+                    example: Иван Иванов
+                phone:
+                    type: string
+
+        V1MakeCargoOrderResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - claim_id
+            properties:
+                claim_id:
+                    type: string
+
+        V1CargoOrderStatusRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - claim_id
+              - driver_id
+              - park_id
+            properties:
+                claim_id:
+                    type: string
+                driver_id:
+                    type: string
+                park_id:
+                    type: string
+
+        V1CargoOrderStatusResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - status
+            properties:
+                status:
+                    type: string
+                    enum:
+                      - ok
+                      - failed
+                      - waiting
+                message:
+                    type: string

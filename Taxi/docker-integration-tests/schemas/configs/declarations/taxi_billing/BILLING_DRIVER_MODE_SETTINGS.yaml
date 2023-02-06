@@ -1,0 +1,49 @@
+default: {}
+description: Настройки режимов работы водителя (driver_fix, orders, ...).
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        type: array
+        items:
+            $ref: '#/definitions/HistoricalValue'
+    definitions:
+        DriverModeSettings:
+            definition: Настройки режима работы водителя  .
+            type: object
+            additionalProperties: false
+            properties:
+                additional_profile_tags:
+                    definition: |
+                        Теги, которые при матчинге будут добавлены
+                        к тегам из профиля водителя.
+                    type: array
+                    items:
+                        type: string
+                commission_enabled:
+                    definition: Удерживать ли комиссию в данном режиме работы.
+                    type: boolean
+                promocode_compensation_enabled:
+                    definition: Компенсировать ли промокоды в данном режиме работы.
+                    type: boolean
+            required:
+              - additional_profile_tags
+              - commission_enabled
+              - promocode_compensation_enabled
+        HistoricalValue:
+            definition: Значение настроек с указанием времени начала действия.
+            type: object
+            additionalProperties: false
+            properties:
+                value:
+                    $ref: '#/definitions/DriverModeSettings'
+                start:
+                    definition: |
+                        Время начала действия настройки. Время окончания определяется
+                        временем начала следующей настройки в отсортированном
+                        по этому полю списке.
+                    type: string
+                    format: date-time
+            required:
+              - value
+              - start

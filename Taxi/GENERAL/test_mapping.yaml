@@ -1,0 +1,85 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi eats-menu-categories Service
+    title: Yandex Taxi eats-menu-categories Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: eats-menu-categories.eda.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: EATS_MENU_CATEGORIES_CLIENT_QOS
+
+
+paths:
+    /test/mapping/remove-mappings-for-items:
+        post:
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RemoveMappingsForItemsRequest"
+            responses:
+                204:
+                    description: Успешный ответ сервера
+
+    /test/mapping/save-mappings:
+        post:
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SaveMappingsRequest"
+            responses:
+                204:
+                    description: Успешный ответ сервера
+
+components:
+    schemas:
+        SaveMappingsRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - mappings
+            properties:
+                mappings:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Mapping"
+
+        RemoveMappingsForItemsRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - menu_items
+            properties:
+                menu_items:
+                    type: array
+                    items:
+                        type: string
+
+        Mapping:
+            type: object
+            additionalProperties: false
+            required:
+              - scored_category
+              - menu_item_id
+              - place_id
+              - rule_id
+            properties:
+                scored_category:
+                    $ref: "../definitions.yaml#/components/schemas/ScoredCategory"
+                menu_item_id:
+                    type: string
+                place_id:
+                    $ref: "eats-shared/definitions.yaml#/definitions/PlaceId"
+                rule_id:
+                    type: string

@@ -1,0 +1,74 @@
+id: driver-route-responder_use_ng_cache
+title: |
+    Проверяем что если включен эксперимент с ответом из кэша ng для drr, то флаг
+    передаётся в drr
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                routeinfo:
+                    time_left: 44
+                    distance_left: 100504
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: true
+
+experiments:
+    values#object:
+      - key: taxiontheway_timeleft_filters
+        value:
+            filters:
+              - filter: MinEta
+                min_eta: 1000
+        enabled: true
+      - key: driver_route_responder_use_ng_cache
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            routeinfo:
+                time_left: 1111
+                distance_left: 2222
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                driver_id: dbid_uuid
+            status: transporting
+  - resource: driver-route-responder-timeleft
+    response:
+        status-code: 200
+        body:
+            time_left: 44
+            distance_left: 100504
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                driver: 'dbid_uuid'
+                order_id: 'order_id'
+                meta:
+                    source: taxiontheway
+                    order_id: 'order_id'
+                    visible: true
+                filters:
+                  - filter: MinEta
+                    min_eta: 1000
+                use_ng_cache: true
+            content-type: application/json

@@ -1,0 +1,81 @@
+id: is_eats_from_dp
+title: Проверяем выбор эндпоинта
+
+parameters:
+  - case:
+      - expected_response: {"profiles": ["data": {"orders_provider": {"lavka": false,
+                            "park_driver_profile_id": "0253f79a86d14b7ab9ac1d5d3017be47_6ac1f8de97b2c39a31767cf72ba0a1e6"}}]}
+        expected_request: {"id_in_set": ["0253f79a86d14b7ab9ac1d5d3017be47_6ac1f8de97b2c39a31767cf72ba0a1e6"],
+            "projection": ["data.orders_provider.lavka"]}
+
+source:
+    request:
+        method: get
+        headers:
+            content-type: 'application/json'
+            X-Request-Application#string: taximeter
+            X-Request-Application-Version#string: '9.86'
+            X-YaTaxi-Driver-Profile-Id: 6ac1f8de97b2c39a31767cf72ba0a1e6
+            X-YaTaxi-Park-Id: 0253f79a86d14b7ab9ac1d5d3017be47
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                meta:
+                    count: 100
+                data:
+                  - a
+
+mocks:
+  - resource: driver-profiles-v1-driver-profiles-retrieve
+    response:
+        status-code: 200
+        body#xget: /test-params/case/expected_response
+    expectations:
+        call-count: 1
+        request:
+            body#xget: /test-params/case/expected_request
+  - resource: eats-ctt-v1-courier-shifts-actual
+    response:
+        status-code: 200
+        body:
+            meta:
+                count: 1
+            data:
+              - a
+    expectations:
+        call-count: 1
+  - resource: lavka-wms-pro-v1-courier-shifts-actual
+    response:
+        status-code: 200
+        body:
+            meta:
+                count: 2
+            data:
+              - b
+              - c
+    expectations:
+        call-count: 0
+  - resource: eats-performer-shifts-v1-courier-shifts-actual
+    response:
+        status-code: 200
+        body:
+            meta:
+                count: 2
+            data:
+              - b
+              - c
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats_performer_shifts_courier_shifts_separation
+        value:
+            enabled: false
+        enabled: true
+    expectations:
+        kwargs:
+          - key: driver_id
+            type: string
+            value#string: 6ac1f8de97b2c39a31767cf72ba0a1e6

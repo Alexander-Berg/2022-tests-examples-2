@@ -1,0 +1,27 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-single-pipeline:
+        scope: testsuite
+        single_pipeline: example
+        stq-queue: testsuite_example
+        pipeline:
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: broken_handler
+                    requests:
+                      - id: fallback-src
+                        resource: broken-resource
+                    resources:
+                      - id: broken-resource
+                        url: $broken_resource_url
+                        method: get
+                        max-retries: 5
+                    result:
+                        handler-result#xget: /sources/fallback-src/response/body
+                    handler-fallback-policy:
+                        strategy: ignore
+                        result:
+                            handler-result: {"result": "error"}

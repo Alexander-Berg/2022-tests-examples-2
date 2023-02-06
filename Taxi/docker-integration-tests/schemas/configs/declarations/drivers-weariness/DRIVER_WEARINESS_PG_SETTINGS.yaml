@@ -1,0 +1,47 @@
+default:
+    __default__:
+        execute_timeout_ms: 100
+        statement_timeout_ms: 75
+        chunk_size: 1000
+        pause_ms: 200
+
+description: Настройки таймаутов, размера балка и паузы после балка для запросов в
+    базу по наименованию действия, например, 'select_working_ranges', 'delete_expired_working_ranges'
+    и т.п.
+tags:
+  - notfallback
+maintainers:
+  - gor13
+  - vkanaev
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+
+    definitions:
+        Settings:
+            type: object
+            required:
+              - execute_timeout_ms
+              - statement_timeout_ms
+              - chunk_size
+              - pause_ms
+            properties:
+                execute_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                chunk_size:
+                    type: integer
+                    minimum: 1
+                pause_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            additionalProperties: false

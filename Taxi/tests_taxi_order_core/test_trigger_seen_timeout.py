@@ -1,0 +1,102 @@
+import datetime
+
+import bson
+import pytest
+
+
+_NOW = datetime.datetime.fromisoformat('2021-04-13T13:04:58.101')
+
+
+@pytest.mark.now(f'{_NOW.isoformat()}Z')
+async def test_seen_timeout_run(stq, stq_runner, mockserver, mongodb):
+    @mockserver.handler(
+        '/order-core/internal/processing/v1/event/seen_timeout',
+    )
+    def post_event(req):
+        assert req.query['order_id'] == order_id
+        assert 'due' not in req.query
+        body = bson.BSON(req.get_data()).decode()
+        new_performer = body['extra_update']['$set'].pop('performer')
+        assert new_performer == {
+            'candidate_index': None,
+            'need_sync': False,
+            'presetcar': False,
+            'alias_id': None,
+            'driver_id': None,
+            'park_id': None,
+        }
+        body_set = body['extra_update']['$set']
+        assert body_set == {'lookup.state': {}, 'lookup.need_start': True}
+        assert body['event_extra_payload'] == {'i': 1}
+        assert body['fields'] == []
+        assert body['filter'] == {'processing.version': 3}
+        return mockserver.make_response(
+            status=200,
+            content_type='application/bson',
+            response=bson.BSON.encode({}),
+        )
+
+    order_id = 'order_1'
+    args = [order_id, ['seentimeout']]
+
+    with stq.flushing():
+        await stq_runner.process_trigger.call(task_id=order_id, args=args)
+        # when run seen-timeout, do not reschedule
+        assert not stq.process_trigger.times_called
+
+    proc = mongodb.order_proc.find_one({'_id': order_id})
+    assert 'seentimeout' not in proc.get('trigger', {}).get('s', {})
+
+    assert post_event.times_called == 1
+
+
+@pytest.mark.now(f'{_NOW.isoformat()}Z')
+@pytest.mark.config(
+    DA_SEEN_TIMEOUT_DEFAULT=4,
+    DA_SEEN_TIMEOUT_EXTRA=3,
+    DA_SEEN_TIMEOUT_BY_TARIFF_EXTRA={
+        '__default__': 100,
+        'lavka/ekb': 122,
+        'lavka': 111,
+    },
+)
+@pytest.mark.parametrize(
+    'proc_update, expected_delay',
+    [
+        ({'$set': {'order.status': 'assigned'}}, None),
+        ({'$set': {'performer.presetcar': False}}, None),
+        ({'$set': {'performer.seen': _NOW}}, None),
+        ({'$unset': {'candidates.1.ost': ''}}, None),
+        (None, 44),
+        ({'$set': {'candidates.1.tariff_class': 'lavka'}}, 55),
+        (
+            {
+                '$set': {
+                    'candidates.1.tariff_class': 'lavka',
+                    'order.nz': 'ekb',
+                },
+            },
+            66,
+        ),
+        ({'$set': {'candidates.1.gprs_time': 33.1}}, 76.1),
+    ],
+)
+async def test_seen_timeout_eta(
+        stq, stq_runner, mongodb, proc_update, expected_delay,
+):
+    order_id = 'order_1'
+    args = [order_id, ['seentimeout']]
+
+    if proc_update is not None:
+        mongodb.order_proc.update({'_id': order_id}, proc_update)
+
+    await stq_runner.process_trigger.call(task_id=order_id, args=args)
+    if expected_delay is None:
+        assert not stq.process_trigger.times_called
+    else:
+        next_call = stq.process_trigger.next_call()
+        eta = _NOW + datetime.timedelta(seconds=expected_delay)
+        assert next_call['eta'] == eta
+
+    proc = mongodb.order_proc.find_one({'_id': order_id})
+    assert 'seentimeout' not in proc.get('trigger', {}).get('s', {})

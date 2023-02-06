@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Themes</title>
+</head>
+<body>
+<form class="form">
+    <label>
+        Theme
+        <input type="text" class="input">
+    </label>
+    <button type="submit">Set</button>
+</form>
+<button class="clear">Clear theme</button>
+<div class="log"></div>
+<script>
+    function log (msg) {
+        var p = document.createElement('p');
+        p.textContent = msg;
+        document.querySelector('.log').appendChild(p);
+    }
+
+    function setTheme (theme) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('get', '/themes/' + theme + '/set?sk=' + sk + '&json=1');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                log('Done');
+            }
+        };
+        xhr.send();
+    }
+
+    var sk = '[% sk %]';
+    document.querySelector('.form').addEventListener('submit', function (event) {
+        var theme = document.querySelector('.input').value || 'default';
+
+        setTheme(theme);
+
+        event.preventDefault();
+    });
+
+    document.querySelector('.clear').addEventListener('click', function() {
+        setTheme('default');
+    });
+</script>
+</body>
+</html>

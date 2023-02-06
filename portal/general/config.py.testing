@@ -1,0 +1,107 @@
+# -*- coding: utf-8 -*-
+#
+### config file
+
+import logging
+
+LOGS_PATH = '/opt/yastatic/log/static-uploader/'
+
+# General settings
+STDOUT_LOG_FILE               = '{}{}'.format(LOGS_PATH, 'stdout.log') # stdout logfile
+STDERR_LOG_FILE               = '{}{}'.format(LOGS_PATH, 'stderr.log') # stderr logfile
+DEBUG_LOG_FILE                = '{}{}'.format(LOGS_PATH, 'debug.log')  # debug logfile
+
+PKG_LOG_DIR                   = '{}{}'.format(LOGS_PATH, 'packages/')
+
+# Testing
+S3_ENDPOINT_URL               = 'http://s3.mds.yandex.net'
+S3_BUCKET_NAME                = 'yastatic-testing'
+S3_SERVICE_NAME               = 's3'
+MAX_THREADS                   = 10
+
+DPKG_STATUS                   = '/tmp/dpkg_position.status'
+DPKG_LOG                      = '/var/log/dpkg.log'
+DEB_LIST                      = '/var/lib/dpkg/info/'
+DPKG_STATUS_FILE              = '/var/lib/dpkg/status'
+APT_CACHE                     = '/var/cache/apt/archives'
+
+FLASK_HOST                    = '::'
+FLASK_PORT                    = 5000
+
+YASTATIC_PROD_PATH            = '/usr/local/www/static.yandex.net/'
+CHROOT_YASTATIC_PROD_PATH     = '/tmp/static-uploader/chroot/bionic/usr/local/www/static.yandex.net/'
+CHROOT_SCRIPT                 = '/opt/yastatic/static-uploader/src/chroot/make_chroot_bionic.sh'
+
+MONGO_COLLECTION              = 'packages_history_testing'
+MONGO_USER                    = 'uploaderUser'
+MONGO_PASSWORD                = 'uploaderPass'
+MONGO_HOSTS                   = 'localhost:27017'
+MONGO_DATABASE                = 'uploader'
+MONGO_RS                      = 'pstatic-mng-RS'
+MONGO_URL                     = 'mongodb://{}:{}@{}/{}'.format(
+                                    MONGO_USER,
+                                    MONGO_PASSWORD,
+                                    MONGO_HOSTS,
+                                    MONGO_DATABASE,
+                                )
+
+LOCK_MAX_TIMES                = 10.0
+
+MIME_FILE                     = '/opt/yastatic/static-uploader/src/etc/mime.types'
+MIME_EXCLUDE                  = ['gz',
+                                 'br',
+                                 'map',
+                                 'empty',
+                                 'cur',
+                                 'npmrc',
+                                 'styl',
+                                 'npmignore',
+                                 'md',
+                                 'touch',
+                                 'otf',
+                                 'dtd',
+                                 'LICENSE',
+                                 'yml']
+
+RSA_LOGIN                     = 'robot-yastatic'
+RSA_KEY_PATH                  = '/home/robot-yastatic/.ssh/id_rsa'
+
+LOGGING                       = {
+                                    'version': 1,
+                                    'disable_existing_loggers': False,
+                                    'formatters': {
+                                        'default': {
+                                            'format': '[%(asctime)s.%(msecs)03d] [%(name)s] [%(levelname)s] [%(process)d] [%(threadName)s] %(message)s',
+                                            'datefmt':'%Y-%m-%dT%H:%M:%S',
+                                        },
+                                    },
+                                    'root': {
+                                        'handlers': [
+                                            'stdout',
+                                            'stderr',
+                                        ],
+                                        'level': logging.INFO,
+                                    },
+                                    'handlers': {
+                                        'stdout': {
+                                            'class': 'logging.FileHandler',
+                                            'filename': '{}{}'.format(LOGS_PATH, 'stdout.log'),
+                                            'level': logging.INFO,
+                                            'formatter': 'default',
+                                        },
+                                        'stderr': {
+                                            'class': 'logging.FileHandler',
+                                            'filename': '{}{}'.format(LOGS_PATH, 'stderr.log'),
+                                            'level': logging.WARNING,
+                                            'formatter': 'default',
+                                        },
+                                    },
+                                    'loggers': {
+                                        'botocore.vendored.requests.packages.urllib3.connectionpool': {
+                                            'level': logging.CRITICAL,
+                                        },
+                                        'apscheduler': {
+                                            'level': logging.CRITICAL,
+                                        },
+                                    },
+                                }

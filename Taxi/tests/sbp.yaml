@@ -1,0 +1,70 @@
+id: sbp
+title: Тест СБП
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: corp
+                value:
+                    available_accounts: []
+                    payment_available: false
+              - key: card
+                value:
+                    payment_available: true
+                    available_cards: []
+                    unverified_cards: []
+              - key: sbp
+                value:
+                    payment_available: true
+              - key: service_token
+                value: some_token
+
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: card-filter-v1-filteredcards-legacy
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: shared-internal-stats
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+taxi_config:
+    BILLING_SBP_ENABLED: true
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: true
+experiments:
+    values#concat-objects:
+      - value:
+            sbp_enabled:
+                enabled: true
+      - value:
+            taxi_service_token:
+                enabled: true
+                service_token: some_token

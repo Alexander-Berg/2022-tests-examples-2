@@ -1,0 +1,55 @@
+---
+db_table: "taxi_reg_test"
+db_user: "cipt-user"
+db_password: "{{lookup('pipe', 'yav get version sec-01efkqfb35295fx1606a13dde0 -o cipt-user')}}"
+#redis_password: "{{lookup('pipe', 'yav get version ver-01fb9mmvc7g1ng2a06zhbqpdg1 -o redis')}}"
+
+pgaas_host1: "sas-xndgjoqe7crhan84.db.yandex.net"
+pgaas_host2: "vla-2wxcomhgaesh48j7.db.yandex.net"
+
+sbc_hosts:
+  - host: taxi-myt-provreg-test.yndx.net
+    # if present and true - deploy this host in LXC
+#!    lxc_deploy: false
+#!    # not include common dispatcher targets
+#!    skip_common_dispatcher: true
+#!    # ringall processing mechanics, enabled by default
+#!    ringal_processing: false
+    childrens: 8
+    # external address, can be floating for anycast
+    ext_ip4_addr: 87.250.237.98
+#!    # internal address, can be floating for anycast
+#!    int_ip6_addr: "[2a02:6b8:b010:9001::10]"
+    # additional listen sockets
+    listen: 
+      - { addr: "[2a02:6b8:b010:9001::10]", port:5060 }
+    ## need for anycast bind
+#!    ip_free_bind: 1
+    ## topology hiding module, if set use topos else use topoh
+#!    use_topos: true
+    ## this is optional, if present - use only this list of rtpe for this node
+    ## optional - host can include weight attribute
+    ## if no rtpengine_hosts present - use current host
+    rtpengine_hosts:
+      - taxi-myt-provreg-test.yndx.net
+#!    rtpengine_hosts:
+#!      - { host: "taxi-myt-provreg-test.yndx.net", weight: 5000 }
+#!      - test11.yndx.net
+#!    ## this is for topos
+#!    redis:
+#!       addr: 127.0.0.1
+#!       port: 6379
+#!       db: 1
+    ## DMQ, if set - enable DMQ
+#!    dmq:
+#!      ## note: in anycast scheme this is a fixed node addresses, not floating anycast 
+#!      server_address: "[2a02:6b8:0:201d::d99]:5060"
+#!      ## for now use only one peer
+#!      peer_node: "[2a02:6b8:0:3714::233]:5060"
+
+#redis_haproxy:
+#    listen: { addr: "127.0.0.1", port: 6379 }
+#    servers:
+#      - "man-tt823lfwfjak3bfy.db.yandex.net:6379"
+#      - "sas-w46kaxjza9hcogo3.db.yandex.net:6379"
+#      - "vla-n36k54ytv3wt244f.db.yandex.net:6379"

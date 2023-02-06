@@ -1,0 +1,20 @@
+INSERT INTO retail_info
+(
+    place_group_id,
+    vendor_host,
+    client_id,
+    client_secret,
+    dek,
+    scope,
+    retail_key
+)
+VALUES
+(
+ '123',
+ '$mockserver/',
+ 'yxgQeoNd5dCymSlI2q+gUapc+QeFoXIHGWZEgZuGEn4=',
+ 'QbaaHYwdkNtHblUARIuOZjU2INUYtikVrNcJ0p8r8O8=',
+ 'OCNT9RgQ2L81Hjnov7hiqK+5skv6H/FIpHroDjiGx+VqMcqhOTU0MfrdNzcu2haIsjE9zL7/4R4BtN4MHkZkog==',
+ 'main',
+ '123'
+ );

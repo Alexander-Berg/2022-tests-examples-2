@@ -1,0 +1,4 @@
+INSERT INTO discounts.discounts_lists
+    (zonal_list_id,reference_entity_id,prev_item,next_item)
+VALUES
+    (1,1,NULL,NULL)

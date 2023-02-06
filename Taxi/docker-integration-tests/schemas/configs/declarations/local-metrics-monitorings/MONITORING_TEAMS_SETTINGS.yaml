@@ -1,0 +1,40 @@
+description: Настройки мониторинга локальных метрик в разрезе команд
+default:
+    aggregation-interval: 60
+    min-events: 100
+    error-threshold: 10
+maintainers:
+  - lol4t0
+  - bznk0
+tags:
+  - notfallback
+  - by-service
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - aggregation-interval
+      - min-events
+      - error-threshold
+    properties:
+        aggregation-interval:
+            description: >
+                Окно агрегации результатов обращения к локальным метрикам
+            type: integer
+            minimum: 10
+            maximum: 300
+            x-taxi-cpp-type: std::chrono::seconds
+        min-events:
+            description: >
+                Минимальное число событий за aggregation-interval,
+                при котором активируется расчет error-rate
+            type: integer
+            minimum: 0
+        error-threshold:
+            description: >
+                Доля ошибок на локальной метрике, при превышении которой
+                зажигается мониторинг о проблемах на команду,
+                которая ответственна за эту метрику
+            type: number
+            format: double
+

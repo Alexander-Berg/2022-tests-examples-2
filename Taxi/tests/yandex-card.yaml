@@ -1,0 +1,95 @@
+id: yandex-card
+title: Тест карты финтеха
+
+parameters:
+  - yandex_card_experiment:
+      - matched: false
+        enabled: true
+        expect_yandex_card: false
+      - matched: true
+        enabled: false
+        expect_yandex_card: false
+      - matched: true
+        enabled: true
+        expect_yandex_card: true
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: corp
+                value:
+                    available_accounts: []
+                    payment_available: false
+              - key: card
+                value:
+                    payment_available: true
+                    available_cards: []
+                    unverified_cards: []
+              - key: yandex_card
+                enabled#xget: /test-params/yandex_card_experiment/expect_yandex_card
+                value:
+                    available_cards:
+                      - card_id: card_id
+                        currency_code: RUB
+                    unverified_cards: []
+
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: card-filter-v1-filteredcards-legacy
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+            yandex_cards:
+                available_cards:
+                  - id: card_id
+                    currency: RUB
+
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: shared-internal-stats
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: personal-v1-available-accounts
+    response:
+        status-code: 500
+    expectations:
+        call-count: 0
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: true
+experiments:
+    values#concat-objects:
+      - value:
+            card_filter_legacy_enabled:
+                enabled: true
+      - value#object:
+          - key: yandex_card
+            enabled#xget: /test-params/yandex_card_experiment/matched
+            value:
+                enabled#xget: /test-params/yandex_card_experiment/enabled
+

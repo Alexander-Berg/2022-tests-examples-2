@@ -1,0 +1,328 @@
+default: {}
+description: |
+    Хранилище туториалов, синхронизированное с feeds
+    Схема туториала:
+    {
+        id_туториала : {
+            payloads: [
+                {
+                    title: "title_1", - заголовок
+                    body: "text", - тело
+                    buttons: [ - кнопки (опционально)
+                        {
+                            title: 'button', - текст кнопки
+                            action: {
+                                type: 'link|previous|next|screen_id',
+                                id: '12345' (опционально)
+                            },
+                            body: 'body',
+                            params: {
+                                color: '#122faa'
+                            },
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ],
+            params: {
+                enabled: True, - флаг включения
+                need_confirm: False, - подтверждение прочтения
+                priority: 10, - приоритет (меньше - выше)
+                is_repeatable: True, - повторяемый или одноразовый
+                interval_hours: 3, - сколько часов должно пройти для повторного показа (опционально)
+                start_at: "2020-01-01T00:00:00+03:00", - дата начала показа (опционально)
+                expired_at: "2020-12-01T00:00:00+03:00", - дата окончания показа (опционально)
+                special_rule: "fleet_personal_account" - особое правило показа (опционально)
+                    Доступные правила:
+                    - fleet_personal_account - показывать до пополнения личного счета таксопарка
+            },
+            destination: {
+                locations: {
+                    include: [
+                        {
+                            "category": "country|city|park_id",
+                            "id": "Russia|Moscow|park_1"
+                        },
+                        ...
+                    ],
+                    exclude: [ (опционально)
+                        {
+                            "category": "country|city|park_id",
+                            "id": "Russia|Moscow|park_1"
+                        },
+                        ...
+                    ],
+                page_ids: { - опционально
+                    include|exclude: [
+                        "page_1",
+                        "page_2",
+                        ...
+                    ],
+                },
+                positions: { - опционально
+                    include|exclude: [
+                        "director",
+                        ...
+                    ]
+                }
+            }
+        },
+        ...
+    }
+
+tags: [notfallback]
+maintainers:
+  - riozon
+  - spriymenko
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Tutorial'
+
+    definitions:
+
+        ButtonAction:
+            type: object
+            required:
+              - type
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - link
+                      - previous
+                      - next
+                      - screen_id
+                id:
+                    type: string
+                    minLength: 1
+            additionalProperties: false
+
+        ButtonParams:
+            type: object
+            properties:
+                color:
+                    type: string
+                    minLength: 1
+            additionalProperties: false
+
+        Button:
+            type: object
+            required:
+              - title
+              - action
+            properties:
+                title:
+                    type: string
+                    minLength: 1
+                action:
+                    $ref: '#/definitions/ButtonAction'
+                body:
+                    type: string
+                    minLength: 1
+                params:
+                    $ref: '#/definitions/ButtonParams'
+            additionalProperties: false
+
+        Buttons:
+            type: array
+            items:
+                $ref: '#/definitions/Button'
+            minItems: 1
+
+        Payload:
+            type: object
+            description: Тело туториала
+            required:
+              - title
+              - body
+            properties:
+                title:
+                    type: string
+                    minLength: 1
+                body:
+                    type: string
+                    minLength: 1
+                buttons:
+                    $ref: '#/definitions/Buttons'
+            additionalProperties: false
+
+        Payloads:
+            type: array
+            items:
+                $ref: '#/definitions/Payload'
+            minItems: 1
+
+        LocationCategory:
+            type: string
+            enum:
+              - country
+              - city
+              - park_id
+
+        LocationId:
+            type: string
+            minLength: 1
+
+        Location:
+            type: object
+            properties:
+                category:
+                    $ref: "#/definitions/LocationCategory"
+                id:
+                    $ref: "#/definitions/LocationId"
+            required:
+              - category
+              - id
+            additionalProperties: false
+
+        Locations:
+            type: array
+            items:
+                $ref: '#/definitions/Location'
+            minItems: 1
+
+        PageId:
+            type: string
+            minLength: 1
+            description: Идентификатор страницы Оптеума
+
+        PageIds:
+            type: array
+            items:
+                $ref: '#/definitions/PageId'
+            minItems: 1
+            description: Идентификаторы страниц Оптеума
+
+        Position:
+            type: string
+            enum:
+              - director
+
+        Positions:
+            type: array
+            items:
+                $ref: '#/definitions/Position'
+            minItems: 1
+            description: Должности
+
+        LocationsFilter:
+            type: object
+            required:
+              - include
+            properties:
+                include:
+                    $ref: '#/definitions/Locations'
+                exclude:
+                    $ref: '#/definitions/Locations'
+            additionalProperties: false
+
+        PageIdsInclude:
+            type: object
+            required:
+              - include
+            properties:
+                include:
+                    $ref: '#/definitions/PageIds'
+            additionalProperties: false
+
+        PageIdsExclude:
+            type: object
+            required:
+              - exclude
+            properties:
+                exclude:
+                    $ref: '#/definitions/PageIds'
+            additionalProperties: false
+
+        PositionsInclude:
+            type: object
+            required:
+              - include
+            properties:
+                include:
+                    $ref: '#/definitions/Positions'
+            additionalProperties: false
+
+        PositionsExclude:
+            type: object
+            required:
+              - exclude
+            properties:
+                exclude:
+                    $ref: '#/definitions/Positions'
+            additionalProperties: false
+
+        Destination:
+            type: object
+            properties:
+                locations:
+                    $ref: '#/definitions/LocationsFilter'
+                page_ids:
+                    oneOf:
+                      - $ref: '#/definitions/PageIdsInclude'
+                      - $ref: '#/definitions/PageIdsExclude'
+                positions:
+                    oneOf:
+                      - $ref: '#/definitions/PositionsInclude'
+                      - $ref: '#/definitions/PositionsExclude'
+            required:
+              - locations
+            additionalProperties: false
+
+        Params:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: Флаг включения
+                need_confirm:
+                    type: boolean
+                    description: Флаг необходимости подтверждения прочтения
+                priority:
+                    type: integer
+                    minimum: 0
+                    description: Приоритет туториала
+                is_repeatable:
+                    type: boolean
+                    description: Флаг повторяемости
+                interval_hours:
+                    type: integer
+                    minimum: 1
+                    description: |
+                        Сколько часов должно пройти с с момента последнего показа
+                start_at:
+                    type: string
+                    format: date-time
+                    description: Время начала показа
+                expired_at:
+                    type: string
+                    format: date-time
+                    description: Время окончания показа
+                special_rule:
+                    type: string
+                    enum:
+                      - fleet_personal_account
+                    description: Особые правила показа
+            required:
+              - enabled
+              - need_confirm
+              - priority
+              - is_repeatable
+            additionalProperties: false
+
+        Tutorial:
+            type: object
+            properties:
+                payloads:
+                    $ref: '#/definitions/Payloads'
+                params:
+                    $ref: '#/definitions/Params'
+                destination:
+                    $ref: '#/definitions/Destination'
+            required:
+              - payloads
+              - params
+              - destination
+            additionalProperties: false

@@ -1,0 +1,270 @@
+---
+- service: pricing-data-preparer_not_found_modification_in_cache
+  description: |
+    В кеше преобразований не нашлось того, которое должно сработать при расчёте
+    https://nda.ya.ru/t/kXTKXGjy4rm6mo
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host="cluster",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="missed_modifications"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: ALARM
+- service: pricing-data-preparer_calculated_invalid_price
+  description: |
+    В результате применения преобразований вычислена некорректная цена: negative, Nan, Inf
+    https://nda.ya.ru/t/YcpuqG274rm6ra
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host="cluster",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="invalid_prices"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: ALARM
+- service: pricing-data-preparer_exceeded_level_v2_calc_paid_supply_bad_responses
+  description: |
+    Массовые ошибки ручки v2/calc_paid_supply (коды 40x/50x)
+    https://nda.ya.ru/t/Y2RJrQy44rm6vZ
+  alert_type: expression
+  checkExpression: 'false'
+  program: |
+    let good_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.good_responses",
+     handler="handler-v2_calc_paid_supply-post"});
+    let bad_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.bad_responses",
+     handler="handler-v2_calc_paid_supply-post"});
+    ok_if(bad_data == 0);
+    let all_data = good_data + bad_data;
+    warn_if(bad_data / all_data > 0.01);
+    alarm_if(bad_data / all_data > 0.05);
+  period: 300
+  delay: 30
+- service: pricing-data-preparer_exceeded_level_v2_prepare_bad_responses
+  description: |
+    Массовые ошибки ручки v2/prepare (коды 40x/50x)
+    https://nda.ya.ru/t/veChyk5m4rm7Qo
+  alert_type: expression
+  checkExpression: 'false'
+  program: |
+    let good_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.good_responses",
+     handler="handler-v2_prepare-post"});
+    let bad_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.bad_responses",
+     handler="handler-v2_prepare-post"});
+    ok_if(bad_data == 0);
+    let all_data = good_data + bad_data;
+    warn_if(bad_data / all_data > 0.01);
+    alarm_if(bad_data / all_data > 0.05);
+  period: 300
+  delay: 30
+- service: pricing-data-preparer_exceeded_level_v2_recalc_bad_responses
+  description: |
+    Массовые ошибки ручки v2/recalc (коды 40x/50x)
+    https://nda.ya.ru/t/K7UY_B4-4rm7Xw
+  alert_type: expression
+  checkExpression: 'false'
+  program: |
+    let good_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.good_responses",
+     handler="handler-v2_recalc-post"});
+    let bad_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.bad_responses",
+     handler="handler-v2_recalc-post"});
+    ok_if(bad_data == 0);
+    let all_data = good_data + bad_data;
+    warn_if(bad_data / all_data > 0.01);
+    alarm_if(bad_data / all_data > 0.05);
+  period: 300
+  delay: 30
+- service: pricing-data-preparer_exceeded_level_v2_recalc_order_bad_responses
+  description: |
+    Массовые ошибки ручки v2/recalc_order (коды 40x/50x)
+    https://nda.ya.ru/t/6CZsNj5U4rm7tG
+  alert_type: expression
+  checkExpression: 'false'
+  program: |
+    let good_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.good_responses",
+     handler="handler-v2_recalc_order-post"});
+    let bad_data = sum({project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="pricing_data_preparer_metrics.bad_responses",
+     handler="handler-v2_recalc_order-post"});
+    ok_if(bad_data == 0);
+    let all_data = good_data + bad_data;
+    warn_if(bad_data / all_data > 0.01);
+    alarm_if(bad_data / all_data > 0.05);
+  period: 300
+  delay: 30
+- service: pricing-data-preparer_compose_pricing_data_timeouts
+  description: |
+    Таймауты по вине прайсинга - недопустимое увеличение времени выполнения compose_pricing_data
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="compose_pricing_data_timings", percentile="p98"}
+  period: 300
+  delay: 30
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 500
+    targetStatus: WARN
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 750
+    targetStatus: ALARM
+- service: pricing-data-preparer_fetch_data_timeouts
+  description: |
+    Таймауты не по вине прайсинга - при сборе данных от других сервисов
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="fetch_data_timings", percentile="p98"}
+  period: 300
+  delay: 30
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 500
+    targetStatus: WARN
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 750
+    targetStatus: ALARM
+- service: pricing-data-preparer_router_errors
+  description: |
+    Массовые ошибки при получении маршрута от роутера
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="bad_requests_relative.router"}
+  period: 300
+  delay: 30
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0.1
+    targetStatus: WARN
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0.3
+    targetStatus: ALARM
+- service: pricing-data-preparer_recalc_prices_mismatch
+  description: |
+    Цена, пересчитанная на бэкенде, не совпадает с ценой, полученной от таксометра
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host="cluster",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="recalc_prices_mismatch"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: ALARM
+- service: pricing-data-preparer_too_long_compilation_time
+  description: |
+    Время компиляции преобразований превысило допустимый порог
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host!="cluster|Iva|Man|Myt|Sas|Vla",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="compile_modifications_list_timings", percentile="p98"}
+  period: 300
+  delay: 30
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 200
+    targetStatus: WARN
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 300
+    targetStatus: ALARM
+- service: pricing-data-preparer_backend_variables_optional_parse
+  description: |
+    Отсутствуют обязательные поля в backend variables, сработал фолбек на parse as optional
+    https://nda.ya.ru/t/XZQvON3L4rm83B
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host="cluster",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="backend_variables_optional_parse",
+     handler="*"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: ALARM
+- service: pricing-data-preparer_no_paid_supply_additional_price
+  description: |
+    Отсутствуют цены для платной подачи в pricing_data.additional_prices, сработал фолбек на основные цены
+    https://nda.ya.ru/t/lQ8spLF64rm85i
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host="cluster",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="no_paid_supply_additional_price",
+     handler="*"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: ALARM
+- service: pricing-data-preparer_modification_rules_list_update_error
+  description: |
+    Ошибка загрузки списка преобразований
+    https://nda.ya.ru/t/M2uGHveo4rm8Ls
+  alert_type: threshold
+  selectors: |
+    {project="taxi", cluster="testing_uservices", service="uservices",
+     application="pricing-data-preparer", host="cluster",
+     group="taxi_pricing-data-preparer_testing",
+     sensor="price_modification_rules_update_error"}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: ALARM

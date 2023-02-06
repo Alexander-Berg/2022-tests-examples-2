@@ -1,0 +1,281 @@
+{
+  "docs": [
+    {
+      "created": "2019-04-14T10:30:03.102042+00:00",
+      "data": {
+        "alias_id": "deadbeef",
+        "client_payment": {
+          "billing_id": "client_billing_id",
+          "contract_currency": "USD",
+          "contract_currency_rate": "0.0154",
+          "ride_cost": "200.0000"
+        },
+        "due": "2019-04-14T10:17:25.000000+00:00",
+        "order_currency": "RUB",
+        "order_id": "some_order_id",
+        "park_payment": {
+          "billing_id": "park_billing_id",
+          "contract_currency": "EUR",
+          "contract_currency_rate": "0.0143",
+          "db_id": "01abcdef",
+          "driver_uuid": "abcdef01",
+          "ride_cost": "100.0000",
+          "vat": "1.2000"
+        },
+        "version": 1
+      },
+      "doc_id": 1000,
+      "event_at": "2019-04-14T10:17:29.000000+00:00",
+      "external_event_ref": "taxi/b2b_trip_payment/deadbeef/1",
+      "external_obj_id": "taxi/b2b_trip_payment/deadbeef",
+      "kind": "bypass_b2b_trip_payment",
+      "process_at": "2019-04-14T10:30:03.102042+00:00",
+      "service": "billing-orders",
+      "status": "new"
+    }
+  ],
+  "expected_accounts": [
+    {
+      "account_id": 1,
+      "agreement_id": "taxi/yandex_ride",
+      "currency": "RUB",
+      "entity_external_id": "taximeter_driver_id/01abcdef/abcdef01",
+      "expired": "9999-12-31T23:59:59.999999+00:00",
+      "opened": "2018-10-10T09:56:13.758202Z",
+      "sub_account": "payment/corp"
+    },
+    {
+      "account_id": 2,
+      "agreement_id": "taxi/driver_balance",
+      "currency": "RUB",
+      "entity_external_id": "taximeter_driver_id/01abcdef/abcdef01",
+      "expired": "9999-12-31T23:59:59.999999+00:00",
+      "opened": "2018-10-10T09:56:13.758202Z",
+      "sub_account": "total"
+    },
+    {
+      "account_id": 3,
+      "agreement_id": "taxi/yandex_ride",
+      "currency": "RUB",
+      "entity_external_id": "taximeter_park_id/01abcdef",
+      "expired": "9999-12-31T23:59:59.999999+00:00",
+      "opened": "2018-10-10T09:56:13.758202Z",
+      "sub_account": "payment/corp"
+    }
+  ],
+  "expected_docs": [
+    {
+      "data": {
+        "alias_id": "deadbeef",
+        "based_on_doc_id": 1000,
+        "driver": {
+          "db_id": "01abcdef",
+          "driver_uuid": "abcdef01"
+        },
+        "order_id": "some_order_id",
+        "version": 1
+      },
+      "event_at": "2019-04-14T10:17:29.000000+00:00",
+      "external_event_ref": "taxi/journal/bypass_b2b_trip_payment/deadbeef/1",
+      "external_obj_id": "taxi/bypass_b2b_trip_payment/deadbeef",
+      "journal_entries": [
+        {
+          "account_id": 1,
+          "amount": "120.00000000",
+          "details": {
+            "alias_id": "deadbeef"
+          },
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "reason": ""
+        },
+        {
+          "account_id": 2,
+          "amount": "120.00000000",
+          "details": {
+            "alias_id": "deadbeef"
+          },
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "reason": ""
+        },
+        {
+          "account_id": 3,
+          "amount": "120.00000000",
+          "details": {
+            "alias_id": "deadbeef",
+            "driver": {
+              "driver_uuid": "abcdef01"
+            }
+          },
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "reason": ""
+        }
+      ],
+      "kind": "journal",
+      "service": "billing-calculators",
+      "status": "new",
+      "tags": [
+        "taxi/alias_id/deadbeef"
+      ]
+    },
+    {
+      "data": {
+        "alias_id": "deadbeef",
+        "based_on_doc_id": 1000,
+        "driver": {
+          "db_id": "01abcdef",
+          "driver_uuid": "abcdef01"
+        },
+        "kind": "balance_change",
+        "order_id": "some_order_id",
+        "payments": [
+          {
+            "agreement": "taxi/yandex_ride",
+            "amount": "120.00000000",
+            "currency": "RUB",
+            "sub_account": "payment/corp"
+          }
+        ],
+        "transaction_id": "some_order_id/1"
+      },
+      "event_at": "2019-04-14T10:17:29.000000+00:00",
+      "external_event_ref": "taxi/taximeter_request/balance_change/some_order_id/1",
+      "external_obj_id": "taxi/taximeter_request/balance_change/some_order_id/1",
+      "journal_entries": [],
+      "kind": "taximeter_request",
+      "service": "billing-calculators",
+      "status": "new",
+      "tags": [
+        "taxi/alias_id/deadbeef"
+      ]
+    }
+  ],
+  "expected_entities": [
+    {
+      "external_id": "taximeter_driver_id/01abcdef/abcdef01",
+      "kind": "driver"
+    },
+    {
+      "external_id": "taximeter_park_id/01abcdef",
+      "kind": "park"
+    }
+  ],
+  "expected_stq_balance_update_calls": [
+    {
+      "args": null,
+      "eta": null,
+      "kwargs": {
+        "account": {
+          "agreement_id": "taxi/driver_balance",
+          "currency": "RUB",
+          "entity_external_id": "taximeter_driver_id/01abcdef/abcdef01",
+          "sub_account": "total"
+        },
+        "log_extra": {},
+        "max_entry_id": 12
+      },
+      "queue": "billing_functions_internal_balance_update",
+      "task_id": "doc_id/2001/12"
+    }
+  ],
+  "reports": {
+    "docs/select": {
+      "docs": [
+        {
+          "created": "2019-04-14T10:30:03.102042+00:00",
+          "data": {
+            "alias_id": "deadbeef",
+            "client_payment": {
+              "billing_id": "client_billing_id",
+              "contract_currency": "USD",
+              "contract_currency_rate": "0.0154",
+              "ride_cost": "200.0000"
+            },
+            "due": "2019-04-14T10:17:25.000000+00:00",
+            "order_currency": "RUB",
+            "order_id": "some_order_id",
+            "park_payment": {
+              "billing_id": "park_billing_id",
+              "contract_currency": "EUR",
+              "contract_currency_rate": "0.0143",
+              "db_id": "01abcdef",
+              "driver_uuid": "abcdef01",
+              "ride_cost": "100.0000",
+              "vat": "1.2000"
+            },
+            "version": 1
+          },
+          "doc_id": 1000,
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "external_event_ref": "taxi/b2b_trip_payment/deadbeef/1",
+          "external_obj_id": "taxi/b2b_trip_payment/deadbeef",
+          "kind": "bypass_b2b_trip_payment",
+          "process_at": "2019-04-14T10:30:03.102042+00:00",
+          "service": "billing-orders",
+          "status": "new"
+        }
+      ]
+    },
+    "journal/search": {
+      "entries": [
+        {
+          "account": {
+            "account_id": 1,
+            "agreement_id": "taxi/yandex_ride",
+            "currency": "RUB",
+            "entity_external_id": "taximeter_driver_id/01abcdef/abcdef01",
+            "sub_account": "payment/corp"
+          },
+          "amount": "120.00000000",
+          "details": {
+            "alias_id": "deadbeef"
+          },
+          "doc_ref": "2001",
+          "entry_id": 11,
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "reason": ""
+        },
+        {
+          "account": {
+            "account_id": 2,
+            "agreement_id": "taxi/driver_balance",
+            "currency": "RUB",
+            "entity_external_id": "taximeter_driver_id/01abcdef/abcdef01",
+            "expired": "9999-12-31T23:59:59.999999+00:00",
+            "opened": "2018-10-10T09:56:13.758202Z",
+            "sub_account": "total"
+          },
+          "amount": "120.00000000",
+          "details": {
+            "alias_id": "deadbeef"
+          },
+          "doc_ref": "2001",
+          "entry_id": 12,
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "reason": ""
+        },
+        {
+          "account": {
+            "account_id": 3,
+            "agreement_id": "taxi/yandex_ride",
+            "currency": "RUB",
+            "entity_external_id": "taximeter_park_id/01abcdef",
+            "expired": "9999-12-31T23:59:59.999999+00:00",
+            "opened": "2018-10-10T09:56:13.758202Z",
+            "sub_account": "payment/corp"
+          },
+          "amount": "120.00000000",
+          "details": {
+            "alias_id": "deadbeef",
+            "driver": {
+              "driver_uuid": "abcdef01"
+            }
+          },
+          "doc_ref": "2001",
+          "entry_id": 13,
+          "event_at": "2019-04-14T10:17:29.000000+00:00",
+          "reason": ""
+        }
+      ]
+    }
+  }
+}

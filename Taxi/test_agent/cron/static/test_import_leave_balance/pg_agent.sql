@@ -1,0 +1,33 @@
+INSERT INTO agent.users (
+    uid,
+    guid,
+    created,
+    login,
+    first_name,
+    last_name,
+    join_at,
+    piece,
+    country
+)
+VALUES (
+    1120000000252888,
+    'abeb11542dbaee44bf7753d5ddf41100',
+     NOW(),
+    'webalex',
+    'Александр',
+    'Иванов',
+    '2016-06-02',
+    false,
+    null
+),
+(
+    1120000000252888,
+    '86b4253c71f04848a614b7ea57000116',
+     NOW(),
+    'liambaev',
+    'Лиам',
+    'Баев',
+    '2016-06-02',
+    false,
+    null
+);

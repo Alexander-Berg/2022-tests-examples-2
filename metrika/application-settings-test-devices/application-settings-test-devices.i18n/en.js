@@ -1,0 +1,31 @@
+module.exports = {
+    "application-settings-test-devices": {
+        "description": "Add devices for which attribution will always be applied (regardless of the re-attribution setting) or test push notifications will be sent.",
+        "how-get-apple": "How to get the Apple IDFA",
+        "how-get-apple-desc-1": "Install application <a class=\"link\" href=\"https://apps.apple.com/ru/app/appmetrica/id1282946899\" target=\"_blank\">AppMetrica</a> on the test device.",
+        "how-get-apple-desc-2": "Log in and select your application from the list.",
+        "how-get-apple-desc-3": "At the top left corner press <strong>&#9776; &rarr; Device</strong>.",
+        "how-get-apple-desc-4": "The value of the field <strong>IDFA</strong> is the Apple IDFA. Specify this value at the AppMetrica web-interface.",
+        "how-get-appmetrica": "How to get the appmetrica_device_id (AM Device ID)",
+        "how-get-appmetrica-desc-1": "Install your app on the test device",
+        "how-get-appmetrica-desc-2": "Go to Profiles",
+        "how-get-appmetrica-desc-3": "\nFind your profile using segmentation (for example, by build number or device attributes)",
+        "how-get-appmetrica-desc-4": "Open your profile card and copy the appmetrica_device_id",
+        "how-get-google": "How to get the Google AID",
+        "how-get-google-desc-1": "Install application <a class=\"link\" href=\"https://play.google.com/store/apps/details?id=ru.yandex.mobile.appmetrica\" target=\"_blank\">AppMetrica</a> on the test device.",
+        "how-get-google-desc-2": "Log in and select your application from the list.",
+        "how-get-google-desc-3": "At the top left corner press <strong>&#9776; &rarr; Device</strong>.",
+        "how-get-google-desc-4": "The value of the field <strong> AID</strong> is the Google AID. Specify this value at the AppMetrica web-interface.",
+        "how-get-huawei": "How to get the Huawei OAID",
+        "how-get-huawei-desc-1": "On the phone with EMUI navigate to Settings -> Privacy -> Ads and privacy -> More Information",
+        "how-get-huawei-desc-2": "Copy identifier under <strong>Your Ad-ID</strong> header",
+        "how-get-idfv": "How to get the Apple IDFV",
+        "how-get-idfv-desc-1": "Install your app on the test device",
+        "how-get-idfv-desc-2": "Export installations (Data export ->  To the file) with the ios_ifv parameter using filters (for example, by app_version_name)",
+        "how-get-idfv-desc-3": "Use the id from the ios_ifv field",
+        "how-get-windows": "How to get the Windows AID",
+        "how-get-windows-desc-1": "Install application <a class=\"link\" href=\"https://www.microsoft.com/store/apps/9pb3z0wx0h9h\" target=\"_blank\">AppMetrica Identifiers</a> on the test device.",
+        "how-get-windows-desc-2": "Launch and copy the specified identifier.",
+        "title": "Test devices"
+    }
+};

@@ -1,0 +1,150 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi test-service Service
+    title: Yandex Taxi test-service Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: test-service.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: TEST_SERVICE_CLIENT_QOS
+
+
+paths:
+    /invalid-names/parameters:
+        get:
+            description: for test generation of parameters
+            parameters:
+              - $ref: '#/components/parameters/1stInvalidParameter'
+              - in: query
+                name: 2ndInvalidParameter
+                required: true
+                schema:
+                    type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    1stInvalidParameter:
+                                        type: string
+                                    2ndInvalidParameter:
+                                        type: string
+                                required:
+                                  - 1stInvalidParameter
+                                  - 2ndInvalidParameter
+
+    /invalid-names/parameters-defs:
+        get:
+            description: for test generation of parameters
+            parameters:
+              - $ref: '../definitions/invalid-names-defs.yaml#/components/parameters/1stInvalidParameterDef'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    1stInvalidParameter:
+                                        type: string
+                                required:
+                                  - 1stInvalidParameter
+
+    /invalid-names/responses:
+        get:
+            description: for test generation of responses
+            responses:
+                '200':
+                    $ref: '#/components/responses/1stInvalidResponse'
+
+    /invalid-names/responses-defs:
+        get:
+            description: for test generation of responses
+            responses:
+                '200':
+                    $ref: '../definitions/invalid-names-defs.yaml#/components/responses/1stInvalidResponseDef'
+
+    /invalid-names/schemas:
+        post:
+            requestBody:
+                description: for test generation of schemas
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/1stInvalidSchema'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/1stInvalidSchema'
+
+    /invalid-names/schemas-defs:
+        post:
+            requestBody:
+                description: for test generation of schemas
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions/invalid-names-defs.yaml#/components/schemas/1stInvalidSchemaDef'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions/invalid-names-defs.yaml#/components/schemas/1stInvalidSchemaDef'
+
+
+components:
+    schemas:
+        1stInvalidSchema:
+            type: object
+            additionalProperties: false
+            properties:
+                1stInvalidProperty:
+                    $ref: '#/components/schemas/2ndInvalidSchema'
+            required:
+              - 1stInvalidProperty
+
+        2ndInvalidSchema:
+            type: object
+            additionalProperties: false
+            properties:
+                value:
+                    type: string
+            required:
+              - value
+
+    parameters:
+        1stInvalidParameter:
+            in: query
+            name: 1stInvalidParameter
+            required: true
+            schema:
+                type: string
+
+    responses:
+        1stInvalidResponse:
+            description: OK
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/1stInvalidSchema'

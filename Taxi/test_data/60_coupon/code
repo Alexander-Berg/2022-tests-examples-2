@@ -1,0 +1,64 @@
+function min(a:double, b:double) {
+  return { res = (a < b) ? a : b };
+}
+
+// Функция subtractValueFromCompositePrice вычитает значение из покомпонентной цены.
+// При необходимости зануляет компоненты в следующем порядке: distance, time, requirements, boarding,
+// destination_waiting, transit_waiting, waiting
+function subtractValueFromCompositePrice(price: price_calc::models::Price, value: double) {
+  let distance_dec = min(a=price.distance, b=value).res;
+  let value1 = value - distance_dec;
+  let time_dec = min(a=price.time, b=value1).res;
+  let value2 = value1 - time_dec;
+  let requirements_dec = min(a=price.requirements, b=value2).res;
+  let value3 = value2 - requirements_dec;
+  let boarding_dec = min(a=price.boarding, b=value3).res;
+  let value4 = value3 - boarding_dec;
+  let destination_waiting_dec = min(a=price.destination_waiting, b=value4).res;
+  let value5 = value4 - destination_waiting_dec;
+  let transit_waiting_dec = min(a=price.transit_waiting, b=value5).res;
+  let value6 = value5 - transit_waiting_dec;
+  let waiting_dec = min(a=price.waiting, b=value6).res;
+
+  return {
+      boarding = price.boarding - boarding_dec,
+      distance = price.distance - distance_dec,
+      time = price.time - time_dec,
+      requirements = price.requirements - requirements_dec,
+      waiting = price.waiting - waiting_dec,
+      transit_waiting = price.transit_waiting - transit_waiting_dec,
+      destination_waiting = price.destination_waiting - destination_waiting_dec
+  };
+}
+
+if (fix.coupon as coupon) {
+  if (coupon.valid) {
+    let price = *ride.price;
+    let meta1 = ["price_before_coupon": round_to(price, fix.rounding_factor)];
+
+    if (price >= 0.0001) {
+      let percent_value = (coupon.percent as percent) ? price * percent / 100 : 0;
+      let coupon_value = (coupon.percent as percent)
+                           ? (coupon.limit as limit)
+                               ? min(a=limit, b=percent_value).res
+                               : percent_value
+                           : coupon.value;
+      let meta2 = ["coupon_value": coupon_value];
+
+      let new_price = subtractValueFromCompositePrice(price=ride.price, value=coupon_value);
+      return {
+        boarding = new_price.boarding,
+        distance = new_price.distance,
+        time = new_price.time,
+        requirements = new_price.requirements,
+        waiting = new_price.waiting,
+        transit_waiting = new_price.transit_waiting,
+        destination_waiting = new_price.destination_waiting,
+        metadata = meta1 + meta2
+      };
+    }
+    return {metadata = meta1 };
+  }
+}
+
+return ride.price;

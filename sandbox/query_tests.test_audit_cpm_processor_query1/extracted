@@ -1,0 +1,148 @@
+
+    USE hahn;
+
+    -- check CPM
+
+    $runTime =  01012022;
+
+    $date_format = DateTime::Format('%Y-%m-%d');
+    $date_format2 = DateTime::Format('%Y-%m-%dT%H-%M-%S');
+    $day = ($ts) -> {
+        return $date_format(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow'))
+    };
+
+    $week = ($ts) -> {
+        return $date_format(DateTime::StartOfWeek(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow')))
+    };
+
+    $fmt = ($ts) -> {
+        return $date_format2(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow'))
+    };
+
+
+    $orders_checked = (
+        select *
+        from `//home/yabs/autobudget/AuditCPM`
+        where RunTime = $runTime
+            and LimitAvgCPMCur < AvgCPMCur
+            and FirstEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+            and LastEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+            and FirstEvent < LastEvent
+            and (
+                (LimitType == 'daily' and $day(FirstEvent) == $day(LastEvent)) -- дневной FirstEvent, LastEvent в пределах одних суток
+                or
+                (LimitType == 'week' and $week(FirstEvent) == $week(LastEvent)) -- недельный FirstEvent, LastEvent в пределах одной календарной недели
+                or
+                (LimitType == 'period'
+                    and FirstEvent between PeriodStartTime and PeriodFinishTime
+                    and LastEvent between PeriodStartTime and PeriodFinishTime
+                ) -- период FirstEvent, LastEvent в пределах периода
+            )
+    );
+
+    $from = (select $day(min(FirstEvent)) from $orders_checked);
+    $to = (select $day(max(LastEvent)) from $orders_checked);
+
+    $ab_restarts = (
+        select OrderID, FirstEvent, LastEvent, count(*) as restarts
+            from range(`//logs/bs-abrestart-log/1d`, $from, $to) as r
+                join $orders_checked as o on Cast(r.orderid as Uint64) == o.OrderID
+            where cast(r.starttime as Uint64) > o.FirstEvent
+                and cast(r.starttime as Uint64) < o.LastEvent
+            group by o.OrderID as OrderID, o.FirstEvent as FirstEvent, o.LastEvent as LastEvent
+            having count(*) > 0
+    );
+
+    $orders = (
+        select
+                OrderID as OrderID,
+                LimitType as LimitType,
+                LimitAvgCPMCur as LimitAvgCPMCur,
+                AutobudgetStartTime as AutobudgetStartTime,
+                PeriodStartTime as PeriodStartTime,
+                PeriodFinishTime as PeriodFinishTime,
+                FirstEvent as FirstEvent,
+                LastEvent as LastEvent
+            from $orders_checked as o
+                left only join $ab_restarts as ab using(OrderID, FirstEvent, LastEvent)
+    );  -- нет рестартов автобюджета в период FirstEvent LastEvent
+
+    $stat = (
+        select OrderID,
+            FirstEvent,
+            LastEvent,
+            sum(costcur) as costcur,
+            count(*) as events -- billing events (for cpm, cpc calculation)
+        from range(`//cooked_logs/bs-chevent-cooked-log/1d`, $from, $to) as stat
+            join $orders as o on o.OrderID = stat.orderid
+        where fraudbits == 0
+            and ((placeid == 542 AND countertype == 2) OR (placeid == 1542 AND countertype == 1))
+            and stat.eventtime between o.FirstEvent and o.LastEvent
+        group by o.OrderID as OrderID,
+            o.FirstEvent as FirstEvent,
+            o.LastEvent as LastEvent
+    );
+
+    $check = (
+        select o.OrderID as OrderID,
+                o.LimitType as LimitType,
+                $fmt(o.FirstEvent) as FirstEvent,
+                $fmt(o.LastEvent) as LastEvent,
+                s.events as EventsCnt,
+                s.costcur as CostCur,
+                (cast(s.costcur as Double) / s.events) as AvgCPMCur,
+                o.LimitAvgCPMCur as LimitAvgCPMCur,
+                (100. * (cast(s.costcur as Double) / s.events)) / o.LimitAvgCPMCur - 100 as ExceedRate,
+                (1.04 * LimitAvgCPMCur > (cast(s.costcur as Double) / s.events) or s.events <= 10000) as IsGood
+            from $stat as s
+                join $orders as o using(OrderID, FirstEvent, LastEvent)
+    );
+
+    -- проблемные заказы
+
+    select OrderID,
+            LimitType,
+            FirstEvent,
+            LastEvent,
+            EventsCnt,
+            AvgCPMCur,
+            LimitAvgCPMCur,
+            ExceedRate
+        from $check
+        where not IsGood
+        order by
+            OrderID, FirstEvent
+        into result `true-cases`;
+
+    -- ложные срабатывания
+
+    select OrderID,
+            LimitType,
+            FirstEvent,
+            LastEvent,
+            EventsCnt,
+            AvgCPMCur,
+            LimitAvgCPMCur,
+            ExceedRate
+        from $check
+        where IsGood
+        order by
+            OrderID, FirstEvent
+        into result `false-cases`;
+
+    /*
+    некорректные срабатывания мониторинга:
+    - выброка событий вне периода управлния автобюджетом;
+    - некорректный период;
+    - не проверялось ограничение в валюте;
+    - рестарты автобюджета в периоде выборки
+    */
+
+    select *
+    from (
+            select *
+            from `//home/yabs/autobudget/AuditCPM`
+                where RunTime = $runTime
+        ) as mon
+        left only join $orders as valid using(OrderID, AutobudgetStartTime, PeriodStartTime, PeriodFinishTime, FirstEvent, LastEvent)
+        into result `invalid-cases`;

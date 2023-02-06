@@ -1,0 +1,61 @@
+id: test_bt_flow_return_info
+title: |
+    тест bluetooth-flow с возвратом информации из sessions/current
+
+parameters:
+  - case:
+      - bluetooth_flow_enabled: true
+        expected_response:
+            status-code: 200
+            body:
+                bluetooth:
+                    password: SESSION_KEY
+                    mac: MAC
+                    imei: IMEI
+                    name: ZK600
+      - bluetooth_flow_enabled: false
+        expected_response:
+            status-code: 400
+            body:
+                telematic_status: connection_not_found
+
+source:
+    request:
+        method: post
+        body:
+            tag_name: TAG_NAME
+            session_id: SESSION_ID
+    expectations:
+        response#xget: /test-params/case/expected_response
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code: 400
+        body:
+            telematic_status: connection_not_found
+    expectations:
+        call-count: 1
+        request:
+            body:
+                tag_name: TAG_NAME
+                session_id: SESSION_ID
+
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            car:
+                imei: IMEI
+                telematics:
+                    ble_mac: MAC
+                    ble_session_key: SESSION_KEY
+    expectations:
+        request:
+            query:
+                session_id: SESSION_ID
+
+experiments:
+    values#object:
+      - scooters-bluetooth-flow-enabled:
+            enabled#xget: /test-params/case/bluetooth_flow_enabled

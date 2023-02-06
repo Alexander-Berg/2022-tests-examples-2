@@ -1,0 +1,148 @@
+{
+  "compare_yt_to_pg": false,
+  "expected_accounts_request": {
+    "accounts": [
+      {
+        "agreement_id": "taxi/yandex_ride",
+        "entity_external_id": "taximeter_driver_id/a3608/c6bda"
+      }
+    ]
+  },
+  "expected_balances_request": {},
+  "expected_requested_resources": [
+    [
+      "/v1/balances/select:yt:balances",
+      1
+    ]
+  ],
+  "expected_response": {
+    "entries": [
+      {
+        "account": {
+          "account_id": 31370003,
+          "agreement_id": "taxi/yandex_ride",
+          "currency": "RUB",
+          "entity_external_id": "taximeter_driver_id/a3608/c6bda",
+          "sub_account": "income"
+        },
+        "balances": [
+          {
+            "accrued_at": "2018-10-02T12:00:00.000000+00:00",
+            "balance": "0",
+            "last_created": "2018-10-04T12:00:00.000000+00:00",
+            "last_entry_id": 0
+          }
+        ]
+      },
+      {
+        "account": {
+          "account_id": 31370004,
+          "agreement_id": "taxi/yandex_ride",
+          "currency": "XXX",
+          "entity_external_id": "taximeter_driver_id/a3608/c6bda",
+          "sub_account": "num_orders"
+        },
+        "balances": [
+          {
+            "accrued_at": "2018-10-02T12:00:00.000000+00:00",
+            "balance": "5",
+            "last_created": "2018-10-02T11:00:00.000000+00:00",
+            "last_entry_id": 739001
+          }
+        ]
+      }
+    ]
+  },
+  "expected_spent_resources": [
+    [
+      "/v1/balances/select:yt:balances",
+      2
+    ]
+  ],
+  "expected_yql_params": [
+    [
+      "//home/taxi/unstable/replica/api/billing_accounts/balance_at",
+      [
+        31370003,
+        31370004
+      ],
+      1538481600000000
+    ],
+    [
+      "//home/taxi/unstable/replica/api/billing_accounts/balance_at",
+      31370004,
+      [
+        1538478000000000
+      ]
+    ]
+  ],
+  "expected_yql_queries": [
+    [
+      "MAX(accrued_at) AS accrued, account_id AS acc_id",
+      "FROM %t",
+      "WHERE account_id IN %p AND accrued_at <= %p",
+      "GROUP BY account_id"
+    ],
+    [
+      "      *",
+      " FROM %t AS balance_at",
+      "WHERE false",
+      "OR (balance_at.account_id = %p AND balance_at.accrued_at IN %p)"
+    ]
+  ],
+  "pg_accounts": {
+    "accounts": [
+      {
+        "account_id": 31370003,
+        "agreement_id": "taxi/yandex_ride",
+        "currency": "RUB",
+        "entity_external_id": "taximeter_driver_id/a3608/c6bda",
+        "expired": "2018-01-01T00:00:00.000000+00:00",
+        "opened": "2018-01-01T00:00:00.000000+00:00",
+        "sub_account": "income"
+      },
+      {
+        "account_id": 31370004,
+        "agreement_id": "taxi/yandex_ride",
+        "currency": "XXX",
+        "entity_external_id": "taximeter_driver_id/a3608/c6bda",
+        "expired": "2018-01-01T00:00:00.000000+00:00",
+        "opened": "2018-01-01T00:00:00.000000+00:00",
+        "sub_account": "num_orders"
+      }
+    ]
+  },
+  "pg_balances": [],
+  "request_body": {
+    "accounts": [
+      {
+        "agreement_id": "taxi/yandex_ride",
+        "entity_external_id": "taximeter_driver_id/a3608/c6bda"
+      }
+    ],
+    "accrued_at": [
+      "2018-10-02T12:00:00+00:00"
+    ]
+  },
+  "use_yt": true,
+  "yt_data": [
+    {
+      "items": [
+        {
+          "acc_id": 31370004,
+          "accrued": 1538478000000000
+        }
+      ]
+    },
+    {
+      "items": [
+        {
+          "balance_at.account_id": 31370004,
+          "balance_at.accrued_at": 1538478000000000,
+          "balance_at.balance": "5",
+          "balance_at.journal_id": 739001
+        }
+      ]
+    }
+  ]
+}

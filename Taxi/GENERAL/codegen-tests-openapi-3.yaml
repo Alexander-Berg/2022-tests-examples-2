@@ -1,0 +1,624 @@
+openapi: 3.0.0
+info:
+    title: Yandex Taxi Userver Sample Service
+    description: Yandex Taxi Userver Sample Service
+    version: '1.0'
+
+servers:
+  - url: http://example.com
+    description: production
+
+x-taxi-client-qos:
+    taxi-config: USERVER_SAMPLE_CLIENT_QOS
+
+paths:
+    /autogen/x-taxi-cpp-type/openapi-3-0-0:
+        post:
+            description: Test "x-taxi-cpp-type" params in body
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties:
+                                type: integer
+                                x-taxi-cpp-type: std::chrono::milliseconds
+                            properties:
+                                case-simple:
+                                    type: integer
+                                    x-taxi-cpp-type: std::chrono::milliseconds
+                                case-ref-simple:
+                                    $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeSimple'
+                                case-array:
+                                    type: array
+                                    x-taxi-cpp-type: std::vector
+                                    items:
+                                        type: integer
+                                        x-taxi-cpp-type: std::chrono::milliseconds
+                                case-ref-array:
+                                    $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeArray'
+                                case-ref-array-item:
+                                    type: array
+                                    x-taxi-cpp-type: std::vector
+                                    items:
+                                        $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeSimple'
+                                case-object:
+                                    type: object
+                                    x-taxi-cpp-type: gpssignal::GpsSignal
+                                    additionalProperties: false
+                                    required:
+                                      - timestamp
+                                      - lat
+                                      - lon
+                                    properties:
+                                        lat:
+                                            type: number
+                                            minimum: -90
+                                            maximum: 90
+                                        lon:
+                                            type: number
+                                            minimum: -180
+                                            maximum: 180
+                                        timestamp:
+                                            type: integer
+                                            format: int64
+                                        accuracy:
+                                            type: number
+                                            x-taxi-cpp-type: geometry::Distance
+                                        speed:
+                                            type: number
+                                            x-taxi-cpp-type: gpssignal::Speed
+                                        direction:
+                                            type: number
+                                            x-taxi-cpp-type: geometry::Azimuth
+                                case-ref-object:
+                                    $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeObject'
+                                case-ref-object-simple:
+                                    $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeObjectSimple'
+                                case-ref-object-item:
+                                    type: object
+                                    additionalProperties:
+                                        $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeSimple'
+                                    properties:
+                                        field:
+                                            $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeAltSimple'
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties:
+                                    type: integer
+                                    x-taxi-cpp-type: std::chrono::milliseconds
+                                properties:
+                                    case-simple:
+                                        type: integer
+                                        x-taxi-cpp-type: std::chrono::milliseconds
+                                    case-ref-simple:
+                                        $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeSimple'
+                                    case-array:
+                                        type: array
+                                        x-taxi-cpp-type: std::vector
+                                        items:
+                                            type: integer
+                                            x-taxi-cpp-type: std::chrono::milliseconds
+                                    case-ref-array:
+                                        $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeArray'
+                                    case-ref-array-item:
+                                        type: array
+                                        x-taxi-cpp-type: std::vector
+                                        items:
+                                            $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeSimple'
+                                    case-object:
+                                        type: object
+                                        x-taxi-cpp-type: gpssignal::GpsSignal
+                                        additionalProperties: false
+                                        required:
+                                          - timestamp
+                                          - lat
+                                          - lon
+                                        properties:
+                                            lat:
+                                                type: number
+                                                minimum: -90
+                                                maximum: 90
+                                            lon:
+                                                type: number
+                                                minimum: -180
+                                                maximum: 180
+                                            timestamp:
+                                                type: integer
+                                                format: int64
+                                            accuracy:
+                                                type: number
+                                                x-taxi-cpp-type: geometry::Distance
+                                            speed:
+                                                type: number
+                                                x-taxi-cpp-type: gpssignal::Speed
+                                            direction:
+                                                type: number
+                                                x-taxi-cpp-type: geometry::Azimuth
+                                    case-ref-object:
+                                        $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeObject'
+                                    case-ref-object-simple:
+                                        $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeObjectSimple'
+                                    case-ref-object-item:
+                                        type: object
+                                        additionalProperties:
+                                            $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeSimple'
+                                        properties:
+                                            field:
+                                                $ref: '../definitions.yaml#/definitions/TestRefXTaxiCppTypeAltSimple'
+
+    /autogen/x-taxi-cpp-type-with-oneof:
+        post:
+            description: test "oneOf" with "x-taxi-cpp-type"
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                              - type: integer
+                                x-taxi-cpp-type: std::chrono::seconds
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                  - type: integer
+                                    x-taxi-cpp-type: std::chrono::seconds
+
+    /autogen/allof-inline/openapi-3-0:
+        get:
+            description: Test "allOf" inline usage in responses
+            parameters:
+              - in: query
+                name: x
+                schema:
+                    type: number
+                required: true
+              - in: query
+                name: w
+                schema:
+                    type: string
+                required: true
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                allOf:
+                                  - type: object
+                                    properties:
+                                        x:
+                                            type: number
+                                    # Don't use it without dire necessity
+                                    additionalProperties: true
+                                    x-taxi-additional-properties-true-reason: for
+                                        allOf
+                                  - $ref: '#/components/schemas/LocalExtraW'
+
+    /autogen/header-accept/openapi-3-0:
+        get:
+            description: Test of header "Accept" in request
+            parameters:
+              - in: header
+                name: accept
+                schema:
+                    type: string
+                default: text/plain
+            responses:
+                200:
+                    description: OK
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                        text/html:
+                            schema:
+                                type: string
+
+    /autogen/optional-header/inplace/openapi-3-0:
+        get:
+            description: Test codegen optional header inplace
+            parameters:
+              - in: header
+                name: X-Test-Header
+                schema:
+                    type: string
+                required: true
+              - in: header
+                name: X-Test-Optional-Header
+                schema:
+                    type: string
+              - in: query
+                name: response_code
+                schema:
+                    type: integer
+            responses:
+                200:
+                    description: Optional header test response
+                    headers:
+                        X-Test-Header:
+                            schema:
+                                type: string
+                            required: true
+                        X-Test-Optional-Header:
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties: {}
+                400:
+                    description: Optional header test response
+                    headers:
+                        X-Test-Header:
+                            schema:
+                                type: string
+                            required: true
+                        X-Test-Optional-Header:
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties: {}
+
+    /autogen/optional-header/ref/openapi-3-0:
+        get:
+            description: Test codegen optional header ref
+            parameters:
+              - $ref: "#/components/parameters/TestHeaderOpenapi30"
+              - $ref: "#/components/parameters/TestOptionalHeaderOpenapi30"
+              - in: query
+                name: response_code
+                schema:
+                    type: integer
+            responses:
+                200:
+                    $ref: "#/components/responses/ResponseOptionalHeaderOpenapi30"
+                400:
+                    $ref: "#/components/responses/ResponseOptionalHeaderOpenapi30"
+
+    /autogen/optional-header/strong-typedef/openapi-3-0:
+        get:
+            description: Test codegen optional header ref
+            parameters:
+              - $ref: "#/components/parameters/TestHeaderOpenapi30"
+              - $ref: "#/components/parameters/TestOptionalHeaderOpenapi30"
+              - in: query
+                name: response_code
+                schema:
+                    type: integer
+            responses:
+                200:
+                    description: Optional header test response
+                    headers:
+                        X-Test-Header:
+                            schema:
+                                type: string
+                            required: true
+                        X-Test-Optional-Header:
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEmptyOpenapi30"
+                400:
+                    description: Optional header test response
+                    headers:
+                        X-Test-Header:
+                            schema:
+                                type: string
+                            required: true
+                        X-Test-Optional-Header:
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEmptyOpenapi30"
+
+    /autogen/ref-in-parameters-schema/openapi-3-0/query_headers:
+        get:
+            description: Test codegen parameters schema ref for query/header params
+            parameters:
+              - in: query
+                name: ref_query_int
+                schema:
+                    $ref: "#/components/schemas/RefForInt"
+              - in: query
+                name: ref_query_int_required
+                schema:
+                    $ref: "#/components/schemas/RefForInt"
+                required: true
+
+              - in: query
+                name: ref_query_bool
+                schema:
+                    $ref: "#/components/schemas/RefForBool"
+
+              - in: query
+                name: ref_query_string
+                schema:
+                    $ref: "#/components/schemas/RefForStr"
+
+              - in: query
+                name: ref_query_str_enum
+                schema:
+                    $ref: "#/components/schemas/RefForStrEnum"
+
+              - in: header
+                name: ref_header_string
+                schema:
+                    $ref: "#/components/schemas/RefForStr"
+              - in: header
+                name: ref_header_string_required
+                schema:
+                    $ref: "#/components/schemas/RefForStr"
+                required: true
+
+              - in: header
+                name: ref_header_str_enum
+                schema:
+                    $ref: "#/components/schemas/RefForStrEnum"
+
+              - in: header
+                name: ref_header_int
+                schema:
+                    $ref: "#/components/schemas/RefForInt"
+
+            responses:
+                200:
+                    description: Response 200
+                    headers:
+                        ref_header_string:
+                            schema:
+                                type: string
+                        ref_header_string_required:
+                            schema:
+                                type: string
+                            required: true
+                        ref_header_str_enum:
+                            schema:
+                                type: string
+                                enum: [value1]
+                        ref_header_int:
+                            schema:
+                                type: integer
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                  - ref_query_int_required
+                                additionalProperties: false
+                                properties:
+                                    ref_query_int:
+                                        type: integer
+                                    ref_query_int_required:
+                                        type: integer
+                                    ref_query_bool:
+                                        type: boolean
+                                    ref_query_string:
+                                        type: string
+                                    ref_query_str_enum:
+                                        $ref: "#/components/schemas/RefForStrEnum"
+
+    /autogen/ref-in-parameters-schema/openapi-3-0/path_string_enum/{enum}:
+        get:
+            description: Test codegen parameters schema ref for path enum params
+            parameters:
+              - in: path
+                name: enum
+                schema:
+                    $ref: "#/components/schemas/RefForStrEnum"
+                required: true
+            responses:
+                200:
+                    description: Response 200
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                  - enum
+                                additionalProperties: false
+                                properties:
+                                    enum:
+                                        $ref: "#/components/schemas/RefForStrEnum"
+
+    /autogen/ref-in-parameters-schema/openapi-3-0/path_string/{string}:
+        get:
+            description: Test codegen parameters schema ref for path string params
+            parameters:
+              - in: path
+                name: string
+                schema:
+                    $ref: "#/components/schemas/RefForStr"
+                required: true
+            responses:
+                200:
+                    description: Response 200
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                  - string
+                                additionalProperties: false
+                                properties:
+                                    string:
+                                        type: string
+
+    /autogen/ref-in-parameters-schema/openapi-3-0/lib_ref/{enum}:
+        get:
+            description: Test codegen parameters schema ref from lib for path enum
+                params
+            parameters:
+              - in: path
+                name: enum
+                schema:
+                    $ref: '../libraries/lib-sample/definitions.yaml#/components/schemas/RefForStrEnum'
+                required: true
+            responses:
+                200:
+                    description: Response 200
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                  - enum
+                                additionalProperties: false
+                                properties:
+                                    enum:
+                                        $ref: '../libraries/lib-sample/definitions.yaml#/components/schemas/RefForStrEnum'
+
+    /autogen/ref-in-parameters-schema/openapi-3-0/path_int/{integer}:
+        get:
+            description: Test codegen parameters schema ref for path int params
+            parameters:
+              - in: path
+                name: integer
+                schema:
+                    $ref: "#/components/schemas/RefForInt"
+                required: true
+            responses:
+                200:
+                    description: Response 200
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required:
+                                  - integer
+                                additionalProperties: false
+                                properties:
+                                    integer:
+                                        type: integer
+
+    /autogen/client-parse-empty-response/openapi-3-0:
+        get:
+            parameters:
+              - in: query
+                name: ret-code
+                schema:
+                    type: integer
+                required: true
+              - in: query
+                name: ret-throw
+                schema:
+                    type: boolean
+                required: true
+            description: Test client parse empty response
+            responses:
+                200:
+                    description: Test success response
+                400:
+                    description: Bad request
+                403:
+                    description: Test error response
+
+    /autogen/complex-response-headers-openapi-3-0:
+        get:
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties: {}
+                    headers:
+                        enum:
+                            schema:
+                                type: string
+                                enum:
+                                  - value1
+                                  - value2
+                        string:
+                            schema:
+                                type: string
+                                default: asd
+                        int:
+                            schema:
+                                type: integer
+                                default: 42
+
+components:
+    schemas:
+        LocalExtraW:
+            type: object
+            # Don't use it without dire necessity
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: for allOf
+            properties:
+                w:
+                    type: string
+            required:
+              - w
+
+        ObjectEmptyOpenapi30:
+            type: object
+            additionalProperties: false
+            properties: {}
+
+        RefForBool:
+            type: boolean
+
+        RefForInt:
+            type: integer
+
+        RefForStr:
+            type: string
+
+        RefForStrEnum:
+            type: string
+            enum: [value1]
+
+    parameters:
+        TestHeaderOpenapi30:
+            in: header
+            name: X-Test-Header
+            schema:
+                type: string
+            required: true
+
+        TestOptionalHeaderOpenapi30:
+            in: header
+            name: X-Test-Optional-Header
+            schema:
+                type: string
+
+    responses:
+        ResponseOptionalHeaderOpenapi30:
+            description: Optional header test response
+            headers:
+                X-Test-Header:
+                    schema:
+                        type: string
+                    required: true
+                X-Test-Optional-Header:
+                    schema:
+                        type: string
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        additionalProperties: false
+                        properties: {}

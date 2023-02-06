@@ -1,0 +1,26 @@
+default-response: resp-ok
+allow-unauthorized: true
+enabled: true
+sources:
+  - id: test-resource1
+    content-type: application/json
+    resource: resource1
+    body:
+        id#xget: /request/body/id
+        uuid#xget: /sources/test-resource2/response/body/uuid
+        key#xget: /taxi-configs/TEST_CONFIG
+    response-cache:
+        enabled: true
+        keys:
+          - value#xget: /request/body/id
+          - value#xget: /sources/test-resource2/response/body/uuid
+          - value#xget: /taxi-configs/TEST_CONFIG
+  - id: test-resource2
+    content-type: application/json
+    resource: resource2
+responses:
+  - id: resp-ok
+    content-type: application/json
+    headers#request-headers: {}
+    body:
+        result#xget: /sources/test-resource1/response/body/value

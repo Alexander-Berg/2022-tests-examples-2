@@ -1,0 +1,64 @@
+<!-- http://wiki.freeswitch.org/wiki/Dialplan_XML -->
+<include>
+  <context name="noc_cc">
+    <extension name="ORDER_CREATOR_WORKER">
+      <condition field="destination_number" expression="^98002$">
+        <action application="set" data="session_project=TAXI"/>
+        <action application="set" data="session_type=IVRDispatcher"/>
+        <action application="set" data="send_silence_when_idle=4800"/>
+        <action application="set" data="RECORD_STEREO=true"/>
+        <action application="socket" data="127.0.0.1:8999 async full"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+    <extension name="TO_IVR">
+      <condition field="destination_number" expression="^982\d{2}$">
+        <action application="set" data="session_project=TAXI"/>
+        <action application="set" data="session_type=IVRDispatcher"/>
+        <action application="set" data="send_silence_when_idle=4800"/>
+        <action application="set" data="RECORD_STEREO=true"/>
+        <action application="socket" data="127.0.0.1:8999 async full"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+    <extension name="TAXI_IVR_DRIVER">
+      <condition field="destination_number" expression="^11963$">
+        <action application="set" data="session_project=TAXI"/>
+        <action application="set" data="session_type=IVRDriver"/>
+        <action application="set" data="domain_name=$${domain}"/>
+        <action application="socket" data="127.0.0.1:8999 async full"/>
+        <action application="hangup"/>
+      </condition>
+    </extension>
+    <extension name="TAXI_IVR">
+      <condition field="destination_number" expression="^80085$">
+        <action application="speak" data="unimrcp:mrcp-proxy-local||ура" />
+        <action application="set" data="operator_refer=sip:8001@taxi.yandex.net" />
+        <action application="set" data="outgoing_gateway_override=ivr_via_noc" />
+        <action application="set" data="session_project=TAXI"/>
+        <action application="set" data="session_type=IVR"/>
+        <action application="set" data="send_silence_when_idle=4800"/>
+        <action application="set" data="RECORD_STEREO=true"/>
+        <action application="set" data="domain_name=$${domain}"/>
+        <action application="socket" data="127.0.0.1:8999 async full"/>
+      </condition>
+    </extension>
+    <extension name="unloop">
+      <condition field="${unroll_loops}" expression="^true$"/>
+      <condition field="${sip_looped_call}" expression="^true$">
+        <action application="deflect" data="${destination_number}"/>
+      </condition>
+    </extension>
+    <!--
+        Tag anything pass thru here as an outside_call so you can make sure not
+        to create any routing loops based on the conditions that it came from
+        the outside of the switch.
+    -->
+    <extension name="outside_call" continue="true">
+      <condition>
+        <action application="set" data="outside_call=true"/>
+        <action application="export" data="RFC2822_DATE=${strftime(%a, %d %b %Y %T %z)}"/>
+      </condition>
+    </extension>
+  </context>
+</include>

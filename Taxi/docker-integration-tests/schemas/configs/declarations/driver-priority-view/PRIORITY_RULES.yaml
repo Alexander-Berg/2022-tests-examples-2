@@ -1,0 +1,203 @@
+default:
+    __default__: {}
+
+description: Правила приоритетов водителей по тарифным зонам. Правила из указанных
+    зон дополняют правила из зоны __default__ (правило, которого нет в дефолте, добавляется;
+    правило, которое в дефолте есть, заменяется)
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ZonePriorities'
+    properties:
+        __default__:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Priority'
+    required:
+      - __default__
+
+    definitions:
+        AttributeRuleTags:
+            type: array
+            description: Массив тегов, к которому применяется алгоритм (к примеру
+                any_of) для определения наличия какого-либо признака (к примеру is_achievable)
+            items:
+                type: string
+                description: Название тега
+            minItems: 1
+
+        NoneOfAttributeRule:
+            type: object
+            description: Правило, возвращающее true, если у водителя нет ни одного
+                тега из списка
+            additionalProperties: false
+            properties:
+                none_of:
+                    $ref: '#/definitions/AttributeRuleTags'
+            required:
+              - none_of
+
+        AllOfAttributeRule:
+            type: object
+            description: Правило, возвращающее true, если у водителя есть все перечисленные
+                теги
+            additionalProperties: false
+            properties:
+                all_of:
+                    $ref: '#/definitions/AttributeRuleTags'
+            required:
+              - all_of
+
+        AnyOfAttributeRule:
+            type: object
+            description: Правило, возвращающее true, если у водителя есть хотя бы
+                один из перечисленных тегов
+            additionalProperties: false
+            properties:
+                any_of:
+                    $ref: '#/definitions/AttributeRuleTags'
+            required:
+              - any_of
+
+        ComplexRule:
+            oneOf:
+              - $ref: '#/definitions/NoneOfAttributeRule'
+              - $ref: '#/definitions/AllOfAttributeRule'
+              - $ref: '#/definitions/AnyOfAttributeRule'
+
+        LogicalAndRule:
+            type: object
+            description: Операция "И" второго уровня, применяющаяся к результатам
+                выражений первого уровня
+            additionalProperties: false
+            properties:
+                and:
+                    type: array
+                    items:
+                        $ref: '#/definitions/ComplexRule'
+            required:
+              - and
+
+        LogicalOrRule:
+            type: object
+            description: Операция "ИЛИ" второго уровня, применяющаяся к результатам
+                выражений первого уровня
+            additionalProperties: false
+            properties:
+                or:
+                    type: array
+                    items:
+                        $ref: '#/definitions/ComplexRule'
+            required:
+              - or
+
+        LogicalRule:
+            oneOf:
+              - $ref: '#/definitions/LogicalAndRule'
+              - $ref: '#/definitions/LogicalOrRule'
+
+        ComplexPriorityRule:
+            oneOf:
+              - $ref: '#/definitions/NoneOfAttributeRule'
+              - $ref: '#/definitions/AllOfAttributeRule'
+              - $ref: '#/definitions/AnyOfAttributeRule'
+              - $ref: '#/definitions/LogicalRule'
+
+        TagRule:
+            type: object
+            description: Приоритет за тег
+            additionalProperties: false
+            properties:
+                value:
+                    type: string
+                    description: Водительский тег
+                priority:
+                    type: integer
+                    description: Приоритет за тег
+                    minimum: -10000
+                    maximum: 10000
+                override:
+                    $ref: '#/definitions/ComplexPriorityRule'
+            required:
+              - value
+              - priority
+
+        TagRuleDetector:
+            type: object
+            additionalProperties: false
+            properties:
+                tag:
+                    $ref: '#/definitions/TagRule'
+            required:
+              - tag
+
+        TagsRankedRule:
+            type: array
+            description: Упорядоченный массив приоритетов по тегам
+            items:
+                $ref: '#/definitions/TagRule'
+
+        TagsRankedRuleDetector:
+            type: object
+            additionalProperties: false
+            properties:
+                tags_ranked:
+                    $ref: '#/definitions/TagsRankedRule'
+            required:
+              - tags_ranked
+
+        TagsExcludingRule:
+            type: array
+            description: Приоритет за один из тегов
+            items:
+                $ref: '#/definitions/TagRule'
+
+        TagsExcludingRuleDetector:
+            type: object
+            additionalProperties: false
+            properties:
+                tags_excluding:
+                    $ref: '#/definitions/TagsExcludingRule'
+            required:
+              - tags_excluding
+
+        ComplexAttributeRule:
+            oneOf:
+              - type: boolean
+              - $ref: '#/definitions/NoneOfAttributeRule'
+              - $ref: '#/definitions/AllOfAttributeRule'
+              - $ref: '#/definitions/AnyOfAttributeRule'
+              - $ref: '#/definitions/LogicalRule'
+
+        Priority:
+            type: object
+            description: Правило получения приоритета
+            additionalProperties: false
+            properties:
+                rule:
+                    oneOf:
+                      - $ref: '#/definitions/TagRuleDetector'
+                      - $ref: '#/definitions/TagsRankedRuleDetector'
+                      - $ref: '#/definitions/TagsExcludingRuleDetector'
+                is_temporary:
+                    description: Признак временного приоритета (по-умолчанию, false)
+                    $ref: '#/definitions/ComplexAttributeRule'
+                is_disabled:
+                    description: Признак отключения приоритета (по-умолчанию, false)
+                    $ref: '#/definitions/ComplexAttributeRule'
+                is_achievable:
+                    description: Признак достижимого приоритета (по-умолчанию, false)
+                    $ref: '#/definitions/ComplexAttributeRule'
+                sort_order:
+                    description: Вес при сортировке
+                    type: integer
+            required:
+              - rule
+              - sort_order
+
+        ZonePriorities:
+            type: object
+            description: Настройки приоритетов в тарифной зоне
+            additionalProperties:
+                $ref: '#/definitions/Priority'

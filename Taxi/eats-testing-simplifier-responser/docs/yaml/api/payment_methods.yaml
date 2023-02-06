@@ -1,0 +1,129 @@
+openapi: 3.0.0
+info:
+    version: '1.0'
+    title: 'Dummy API'
+
+paths:
+    /payment-methods:
+        get:
+            summary: 'Возвращает полный список всех возможных видов оплат'
+            operationId: ListPaymentMethods
+
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListPaymentMethods'
+
+    /users/payments-methods:
+        get:
+            summary: 'Возвращает список включенных методов оплаты для юзера'
+            operationId: SearchPaymentMethods
+            parameters:
+              - in: query
+                name: passport_uid
+                description: 'Yandex UID'
+                schema:
+                    type: string
+                required: true
+
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserPaymentMethodsAvailability'
+
+        post:
+            summary: 'Добавляет методы оплаты для юзера'
+            operationId: CommitPaymentMethods
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserPaymentMethodsAvailability'
+
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/EmptyResponse'
+
+
+components:
+    schemas:
+        UserPaymentMethodsAvailability:
+            type: object
+            additionalProperties: false
+            required:
+              - uid
+              - mock_usage
+              - payment_methods
+            properties:
+                uid:
+                    type: string
+                    description: 'Yandex UID'
+                    example: '4090938941'
+                mock_usage:
+                    type: boolean
+                    description: 'Mock usages flag'
+                    example: true
+                payment_methods:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PaymentMethodAvailabilityState'
+
+        PaymentMethodAvailabilityState:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - enable
+            properties:
+                id:
+                    type: string
+                    description: 'ID метода оплаты.  ID будут браться на стороне бэка
+                        с конфига'
+                    example: 'VISA4242'
+                enable:
+                    type: boolean
+                    description: 'Будет ли способ оплаты available'
+                    example: true
+
+        ListPaymentMethods:
+            type: object
+            additionalProperties: false
+            required:
+              - default_payment_methods
+            properties:
+                default_payment_methods:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PaymentMethods'
+
+        PaymentMethods:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - title
+              - type
+            properties:
+                id:
+                    type: string
+                    description: 'ID метода оплаты'
+                    example: 'VISA4242'
+                type:
+                    type: string
+                    description: 'Например Карты или корпоративный счет'
+                    example: 'cash'
+                title:
+                    type: string
+                    description: 'Краткое описание метода оплаты'
+                    example: 'VISA 4242***'

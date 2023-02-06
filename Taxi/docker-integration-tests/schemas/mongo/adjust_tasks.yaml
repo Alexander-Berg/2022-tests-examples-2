@@ -1,0 +1,53 @@
+settings:
+    collection: adjust_tasks
+    connection: stats
+    database: dbstats
+indexes:
+  - expireAfterSeconds: 2592000
+    key: c
+  - key: t
+    sparse: true
+  - key:
+      - name: u
+        type: ascending
+      - name: e
+        type: ascending
+      - name: c
+        type: ascending
+    unique: true
+wiki_info: |
+    #### adjust_tasks
+    *Назначение:* Коллекция содердит информация о событиях, которые не удлаось успешно отправить в Adjust и надо повторить отправку.
+    В Adjust отправляется четыре типа события:
+
+    1. order_attempt - заказ
+    2. first_order_attempt - первй заказ пользователем
+    3. success_order - успешно завершение заказа
+    4. first_success_order - первое успешное завершение заказа пользователем
+
+    *Структура документа:*
+    ```python
+    adjust_tasks={
+        #Идентификатор задачи
+        '_id': ObjectId('585fb781468c89f90a67ccfc'),
+        #Время создания задачи
+        'c': datetime.datetime(2016, 12, 25, 12, 11, 44, 710000),
+        #Тип события
+        'e': 'success_order',
+        #Время следующей попытки отправки события в adjust
+        'n': datetime.datetime(2016, 12, 26, 12, 15, 8, 421000),
+        #Timezone заказа
+        'tz': 'Asia/Yekaterinburg',
+        #Идентифкатор пользователя
+        'u': '088e2eb42e614bba98138a1046cb019e',
+        #Идентификатор устройства
+        't': '5cef2bd4-aeb2-482a-8d6e-c38b8943aae0',
+        #Идентификатора типа устройства
+        'i': 'android_id',
+        #Тип устройства
+        'k': 'android',
+        #Cтоимость и валюта заказа, есть только для событий завершения заказа
+        'co': 148.0,
+        'cu': 'RUB',
+     }
+    ```

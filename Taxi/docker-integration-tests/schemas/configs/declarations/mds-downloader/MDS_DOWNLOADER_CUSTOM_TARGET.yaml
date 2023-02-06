@@ -1,0 +1,60 @@
+default: {}
+description: Конфиг для указания конкретной версии для скачавания. Ключ - содержание
+    секции name в конфиге /etc/mds-downloader/conf.d/* (подробнее wiki.yandex-team.ru/taxi/backend/graph/utils/mds-downloader/).
+    Значение - объект со свойствами, TIMESTAMP - онкретная версия для скачивания,
+    HOSTS - список хостов, на которых нужно скачивать конкретную версию. TIMESTAMP
+    - обязательное, HOSTS - необязательное(отсутсвие означает на всех)
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        type: object
+        properties:
+            TIMESTAMP:
+                type: integer
+                minimum: 1500000000
+            HOSTS:
+                type: array
+                items:
+                    type: string
+        required:
+          - TIMESTAMP
+        additionalProperties: false
+
+samples:
+  - {}
+
+  - some_name:
+        TIMESTAMP: 1574208000
+
+  - other_name:
+        TIMESTAMP: 1573948800
+        HOSTS:
+          - graph-vla-1
+          - graph-sas-1
+
+  - some_name:
+        TIMESTAMP: 1574208000
+    other_name:
+        TIMESTAMP: 1573948800
+        HOSTS:
+          - graph-vla-1
+          - graph-sas-1
+
+invalid-samples:
+  - some_name: {}
+
+  - invalid_name:
+        TIMESTAMP: 15739488
+
+  - other_name:
+        HOSTS:
+          - tracks-graph-sas-03
+
+  - some_name: {}
+    other_name:
+        HOSTS:
+          - tracks-graph-sas-02
+
+  - third_name:
+        unknown_property: false

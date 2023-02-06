@@ -1,0 +1,44 @@
+default:
+    __default__: {'body_xml': '<?xml version="1.0" encoding="UTF-8"?><mails><mail>
+            <from>cargo@yandex.ru</from> <subject>Order {shipment_name} confirmation</subject>
+            <body> Shipment {shipment_name} details: {shipment_details}
+
+            Taxi order details: - Driver {driver_name} - Driver phone number {driver_phone}
+            - Car {car_model} {car_number} - Car requirements: {vehicle_requirements}
+            </body></mail></mails>', 'act_file_name': '{shipment_name}_act.pdf'}
+description: |
+    Тело письма, которое отправляется кладовщику при приеме/передаче товара водителю
+    (вызов ручки .../exchange/init). Список доступных параметров:
+    point_source - адрес склада выдачи,
+    point_destination - адрес получателя,
+    shipment_name - название заказа,
+    shipment_details - детали заказа,
+    vehicle_requirements - требования к автомобилю,
+    driver_name - ФИО водителя,
+    driver_phone - номер телефона водителя,
+    car_number - гос. номер автомобиля водителя,
+    car_model - марка автомобиля водителя;
+
+    Хранится в формате карты {lang -> email}
+tags: ['notfallback']
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/email'
+    properties:
+        __default__:
+            $ref: '#/definitions/email'
+    required:
+      - __default__
+    definitions:
+        email:
+            type: object
+            additionalProperties: false
+            properties:
+                body_xml:
+                    type: string
+                act_file_name:
+                    type: string
+            required:
+              - body_xml
+              - act_file_name

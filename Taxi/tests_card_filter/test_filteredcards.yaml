@@ -1,0 +1,813 @@
+type: apitest
+version: 0
+service: taxi_card_filter
+
+mockserver:
+  - url: /cardstorage/v1/payment_methods
+    response:
+        body:
+            available_cards:
+              - card_id: card_id
+                billing_card_id: card_id
+                permanent_card_id: card_id
+                currency: RUR
+                expiration_year: 2020
+                expiration_month: 10
+                number: XXX1111
+                owner: Owner
+                possible_moneyless: false
+                region_id: "3"
+                regions_checked: []
+                system: visa
+                valid: true
+                bound: true
+                unverified: false
+                busy: false
+                busy_with: []
+                from_db: false
+                updated_at: "2020-10-31T00:00:00+00:00"
+                card_bank: "METABANK"
+                card_country: "USA"
+              - card_id: unverified_card
+                billing_card_id: card_id
+                permanent_card_id: card_id
+                currency: RUR
+                expiration_year: 2020
+                expiration_month: 10
+                number: XXX1112
+                owner: Owner
+                possible_moneyless: false
+                region_id: "3"
+                regions_checked: []
+                system: visa
+                valid: true
+                bound: true
+                unverified: true
+                busy: false
+                busy_with: []
+                from_db: false
+                updated_at: "2020-10-31T00:00:00+00:00"
+                card_bank: "METABANK"
+                card_country: "USA"
+
+  - url: /card-antifraud/v1/payment/availability
+    response:
+        body:
+            all_payments_available: true
+            available_cards: []
+
+tests:
+  - name: filteredcards_empty_cards
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets: []
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards: []
+
+  - name: filteredcards_default_cards
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: true
+                availability:
+                    available: true
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+  - name: filteredcards_no_user_id
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards:
+                  - card_id: card_id
+                    billing_card_id: card_id
+                    permanent_card_id: card_id
+                    currency: RUR
+                    expiration_year: 2020
+                    expiration_month: 10
+                    number: XXX1111
+                    owner: Owner
+                    possible_moneyless: false
+                    region_id: "3"
+                    regions_checked: []
+                    system: visa
+                    valid: true
+                    bound: true
+                    unverified: false
+                    busy: false
+                    busy_with: []
+                    from_db: false
+                    verification_details:
+                        level: cvv
+                    card_bank: "METABANK"
+                    card_country: "USA"
+                  - card_id: unverified_card
+                    billing_card_id: card_id
+                    permanent_card_id: card_id
+                    currency: RUR
+                    expiration_year: 2020
+                    expiration_month: 10
+                    number: XXX1112
+                    owner: Owner
+                    possible_moneyless: false
+                    region_id: "3"
+                    regions_checked: []
+                    system: visa
+                    valid: true
+                    bound: true
+                    unverified: true
+                    busy: false
+                    busy_with: []
+                    from_db: false
+                    card_bank: "METABANK"
+                    card_country: "USA"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 0
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                available: true
+                availability:
+                    available: true
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+  - name: filteredcards_empty_user_id
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: ""
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards:
+                  - card_id: card_id
+                    billing_card_id: card_id
+                    permanent_card_id: card_id
+                    currency: RUR
+                    expiration_year: 2020
+                    expiration_month: 10
+                    number: XXX1111
+                    owner: Owner
+                    possible_moneyless: false
+                    region_id: "3"
+                    regions_checked: []
+                    system: visa
+                    valid: true
+                    bound: true
+                    unverified: false
+                    busy: false
+                    busy_with: []
+                    from_db: false
+                    verification_details:
+                        level: cvv
+                    card_bank: "METABANK"
+                    card_country: "USA"
+                  - card_id: unverified_card
+                    billing_card_id: card_id
+                    permanent_card_id: card_id
+                    currency: RUR
+                    expiration_year: 2020
+                    expiration_month: 10
+                    number: XXX1112
+                    owner: Owner
+                    possible_moneyless: false
+                    region_id: "3"
+                    regions_checked: []
+                    system: visa
+                    valid: true
+                    bound: true
+                    unverified: true
+                    busy: false
+                    busy_with: []
+                    from_db: false
+                    card_bank: "METABANK"
+                    card_country: "USA"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 0
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                available: true
+                availability:
+                    available: true
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+  - name: allowed_by_card_antifraud_blocked_by_uantifraud
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "experiments3_uantifraud_enabled.json"
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            body:
+                all_payments_available: true
+                available_cards: []
+      - url: /uantifraud/v1/card/verification/required
+        response:
+            body:
+                unavailable_cards:
+                  - id: card_id
+                    reason:
+                        key: banned_by_uantifraud
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 1
+      - type: mockserver-called
+        url: /uantifraud/v1/card/verification/required
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: "card_banned_by_uantifraud"
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+  - name: filter_by_antifraud
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            body:
+                all_payments_available: false
+                available_cards: []
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+
+  - name: allowed_by_antifraud
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            body:
+                all_payments_available: false
+                available_cards:
+                  - card_id: card_id
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: true
+                availability:
+                    available: true
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+
+  - name: allowed_by_verification_level
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            body:
+                all_payments_available: false
+                available_cards: []
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards:
+                  - card_id: card_id
+                    billing_card_id: card_id
+                    permanent_card_id: card_id
+                    currency: RUR
+                    expiration_year: 2020
+                    expiration_month: 10
+                    number: XXX1111
+                    owner: Owner
+                    possible_moneyless: false
+                    region_id: "3"
+                    regions_checked: []
+                    system: visa
+                    valid: true
+                    bound: true
+                    unverified: false
+                    busy: false
+                    busy_with: []
+                    from_db: false
+                    verification_details:
+                        level: cvv
+                    card_bank: "METABANK"
+                    card_country: "USA"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions: []
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                available: true
+                availability:
+                    available: true
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+
+  - name: blocked_by_verification_level
+    marks:
+      - name: config
+        kwargs:
+            CARD_ANTIFRAUD_VERIFICATION_LEVELS_BLACKLIST:
+              - cvv
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            body:
+                all_payments_available: false
+                available_cards: []
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards:
+                  - card_id: card_id
+                    billing_card_id: card_id
+                    permanent_card_id: card_id
+                    currency: RUR
+                    expiration_year: 2020
+                    expiration_month: 10
+                    number: XXX1111
+                    owner: Owner
+                    possible_moneyless: false
+                    region_id: "3"
+                    regions_checked: []
+                    system: visa
+                    valid: true
+                    bound: true
+                    unverified: false
+                    busy: false
+                    busy_with: []
+                    from_db: false
+                    verification_details:
+                        level: cvv
+                    card_bank: "METABANK"
+                    card_country: "USA"
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions: []
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+
+  - name: error_on_paymentmethods_500
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            status: 500
+            body: {}
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions: []
+    response:
+        status: 500
+
+  - name: error_on_paymentmethods_400
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            status: 400
+            body: {}
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions: []
+    response:
+        status: 500
+
+  - name: error_on_antifraud_500
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            status: 500
+            body: {}
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions: []
+    response:
+        status: 500
+
+  - name: ok_on_antifraud_429
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            status: 429
+            body: {}
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions: []
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: true
+                availability:
+                    available: true
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                available: false
+                updated_at: "2020-10-31T00:00:00+00:00"
+                availability:
+                    available: false
+                    disabled_reason: ""
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []
+
+  - name: filteredcards_strange_ip_address_not_500
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "172.28.0.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets: []
+    mockserver:
+      - url: /cardstorage/v1/payment_methods
+        response:
+            body:
+                available_cards: []
+
+  - name: return_verify_strategy
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "experiments3_return_verify_strategy.json"
+    mockserver:
+      - url: /card-antifraud/v1/payment/availability
+        response:
+            body:
+                all_payments_available: false
+                available_cards: []
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    assertions:
+      - type: mockserver-called
+        url: /cardstorage/v1/payment_methods
+        times: 1
+      - type: mockserver-called
+        url: /card-antifraud/v1/payment/availability
+        times: 1
+    response:
+        status: 200
+        body:
+            available_cards:
+              - id: card_id
+                system: visa
+                type: card
+                name: visa
+                number: XXX1111
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                verify_strategy: "card_antifraud"
+                card_bank: "METABANK"
+                card_country: "USA"
+              - id: unverified_card
+                system: visa
+                type: card
+                name: visa
+                number: XXX1112
+                currency: RUR
+                updated_at: "2020-10-31T00:00:00+00:00"
+                available: false
+                availability:
+                    available: false
+                    disabled_reason: ""
+                verify_strategy: "standard"
+                card_bank: "METABANK"
+                card_country: "USA"
+            wallets: []

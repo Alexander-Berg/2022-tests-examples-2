@@ -1,0 +1,41 @@
+default:
+    enabled: false
+    allowed_zones: []
+    allowed_tariffs: []
+
+description: |
+    Списки допустимых зон и тарифов, по которым производится фильтрация
+    входящих заказов до их попадания в базу данных с целью уменьшения
+    нагрузки на базу. Если выключен, то фильтрация не производится.
+
+tags: [notfallback]
+maintainers:
+  - Roman Silakov <silakov@yandex-team.ru>
+  - Kolibaba Sergey <skolibaba@yandex-team.ru>
+  - Daria Turichina <tdasha5@yandex-team.ru>
+schema:
+    type: object
+    properties:
+        enabled:
+            description: Включена ли фильтрация по зонам и тарифам
+            type: boolean
+
+        allowed_zones:
+            description: Список допустимых зон. Заказы из других зон не рассматриваются.
+            type: array
+            x-taxi-cpp-type: std::unordered_set
+            items:
+                type: string
+
+        allowed_tariffs:
+            description: Список допустимых тарифов. Заказы с другими тарифами не рассматриваются.
+            type: array
+            x-taxi-cpp-type: std::unordered_set
+            items:
+                type: string
+
+    additionalProperties: false
+    required:
+      - enabled
+      - allowed_zones
+      - allowed_tariffs

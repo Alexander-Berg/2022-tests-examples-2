@@ -1,0 +1,34 @@
+id: post_use_taxi_stories
+title: POST Используем ответ /4.0/stories из taxi-stories
+
+source:
+    request:
+        method: post
+        body:
+            context: eats
+            location:
+              - 37.5
+              - 55.5
+        headers:
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            Accept-Language: ru-RU
+            X-Remote-IP: 2.60.0.0
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+    expectations:
+        response:
+            status-code: 200
+            body:
+                stories:
+                  - id: id_taxi_stories
+
+mocks:
+  - resource: inapp-communications-4.0-stories-post
+    response:
+        status-code: 500
+  - resource: taxi-stories-4.0-stories-post
+    response:
+        status-code: 200
+        body:
+            stories:
+              - id: id_taxi_stories

@@ -1,0 +1,93 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: router
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/proxy-body-size: 200m
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: education.adm.tst.training.yandex
+      http: &http_rules
+        paths:
+          - path: /web_api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: users
+                port:
+                  number: 80
+          - path: /web_api/users
+            pathType: Prefix
+            backend:
+              service:
+                name: users
+                port:
+                  number: 80
+          - path: /web_api/organizations
+            pathType: Prefix
+            backend:
+              service:
+                name: users
+                port:
+                  number: 80
+          - path: /web_api/validations/users
+            pathType: Prefix
+            backend:
+              service:
+                name: users
+                port:
+                  number: 80
+          - path: /web_api/folders
+            pathType: Prefix
+            backend:
+              service:
+                name: folders
+                port:
+                  number: 80
+          - path: /web_api/static_screens
+            pathType: Prefix
+            backend:
+              service:
+                name: static-screens
+                port:
+                  number: 80
+          - path: /web_api/kiosk_forms
+            pathType: Prefix
+            backend:
+              service:
+                name: forms
+                port:
+                  number: 80
+          - path: /web_api/
+            pathType: Prefix
+            backend:
+              service:
+                name: backoffice
+                port:
+                  number: 3000
+          - path: /(web|api|instructor_api|private_read|agent_api)/.*
+            pathType: Prefix
+            backend:
+              service:
+                name: backoffice
+                port:
+                  number: 3000
+    - host: education.tst.training.yandex
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: instructor
+                port:
+                  number: 80
+    - host: router.internal
+      http: *http_rules
+  defaultBackend:
+    service:
+      name: front
+      port:
+        number: 80

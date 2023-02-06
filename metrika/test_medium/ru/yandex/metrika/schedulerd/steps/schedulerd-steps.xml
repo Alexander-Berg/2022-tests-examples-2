@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.springframework.org/schema/beans"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+">
+
+    <context:annotation-config/>
+
+    <context:component-scan base-package="ru.yandex.metrika.schedulerd.steps"/>
+
+    <!--Load conf from file-->
+    <bean class="ru.yandex.metrika.task.BazingaBeanFactoryPostProcessor" id="taskConfigurer"/>
+    <bean class="ru.yandex.metrika.util.app.BishopXmlPropertyConfigurer" id="xmlPropertyConfigurer"
+          depends-on="taskConfigurer">
+        <property name="order" value="-1"/> <!--should be invoked before BazingaBeanFactoryPostProcessor-->
+    </bean>
+    <!--MySQL-->
+    <bean id="mysql_counters" factory-bean="convDataSourceFactory" factory-method="getNamedDataSource">
+        <constructor-arg name="poolSize" value="1"/>
+        <constructor-arg name="uniqueName" value="mysql_counters"/>
+    </bean>
+    <bean id="countersTemplate" factory-bean="convDataSourceFactory" factory-method="getTemplate">
+        <constructor-arg ref="mysql_counters"/>
+    </bean>
+
+    <bean id="mysql_monitoring" factory-bean="convDataSourceFactory" factory-method="getNamedDataSource">
+        <constructor-arg name="poolSize" value="1"/>
+        <constructor-arg name="uniqueName" value="mysql_monitoring"/>
+    </bean>
+    <bean id="monitoringTemplate" factory-bean="convDataSourceFactory" factory-method="getTemplate">
+        <constructor-arg ref="mysql_monitoring"/>
+    </bean>
+    <!--Log Broker-->
+    <bean id="logbrokerProxyParamsHolder" class="ru.yandex.metrika.lb.ProxyParamsHolder"/>
+
+    <bean id="logbrokerProxyBalancer" class="ru.yandex.kikimr.persqueue.proxy.ProxyBalancer"
+          depends-on="logbrokerProxyParamsHolder">
+        <constructor-arg name="balancerHost" value="#{logbrokerProxyParamsHolder.host}"/>
+        <constructor-arg name="balancerPort" value="#{logbrokerProxyParamsHolder.balancerPort}"/>
+        <constructor-arg name="proxyPort" value="#{logbrokerProxyParamsHolder.proxyPort}"/>
+    </bean>
+
+    <bean id="logbrokerClientFactory" class="ru.yandex.kikimr.persqueue.LogbrokerClientFactory">
+        <constructor-arg index="0" ref="logbrokerProxyBalancer"/>
+    </bean>
+
+
+</beans>

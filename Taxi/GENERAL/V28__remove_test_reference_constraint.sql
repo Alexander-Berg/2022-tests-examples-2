@@ -1,0 +1,1 @@
+ALTER TABLE price_modifications.tests DROP CONSTRAINT tests_last_result_rule_id_fkey;

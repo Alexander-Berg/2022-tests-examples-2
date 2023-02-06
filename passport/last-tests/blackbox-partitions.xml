@@ -1,0 +1,228 @@
+<test>
+
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="userip">
+            <instance id="localhost">127.0.0.1</instance>
+            <instance id="internal">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">yandex.ru</instance>
+        </cgi>
+
+        <header name="X-Ya-Service-Ticket" func="get_service_ticket">
+            <instance id="passport_dev">
+                <arg name="dst">242</arg>
+            </instance>
+        </header>
+
+        <cgi name="method">
+            <instance id="userinfo">userinfo</instance>
+            <instance id="login">login</instance>
+            <instance id="sessionid">sessionid</instance>
+            <instance id="oauth">oauth</instance>
+            <instance id="user_ticket">user_ticket</instance>
+        </cgi>
+
+        <cgi name="partition">
+            <instance id="default">default</instance>
+            <instance id="foo">foo</instance>
+            <instance id="default_foo">default,foo</instance>
+            <instance id="unknown">unknown</instance>
+        </cgi>
+
+        <cgi name="uid">
+            <instance id="70495">70495</instance>
+        </cgi>
+
+        <cgi name="login">
+            <instance id="malice_70495">malice</instance>
+        </cgi>
+
+        <cgi name="password">
+            <instance id="PW_70495">qwerty</instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <arg name="type">valid</arg>
+            <arg name="host">yandex.ru</arg>
+            <instance id="70495">
+                <arg name="uid">70495</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="oauth_token" func="gentoken">
+            <arg name="type">stateless</arg>
+            <arg name="client_id">2267</arg>
+            <instance id="ST_70495">
+                <arg name="uid">70495</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="user_ticket" func="gen_user_ticket">
+            <instance id="70495">
+                <arg name="default_uid">70495</arg>
+            </instance>
+        </cgi>
+
+
+        <result name="bad_partition">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Unsupported partition 'unknown'</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="partition_not_supported">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: Partitions are not supported for method=\~`cgi:method`</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="partition_array_not_allowed">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: Array is not allowed in 'partition' param for method=\~`cgi:method`</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid">70495</arg>
+                <arg name="/doc/login">malice</arg>
+            </body>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>BlackBox</description>
+
+        <case lastid="bad_partition">
+            <description>Check method=userinfo by uid with bad partition</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="uid">70495</cgi>
+            <cgi name="partition">foo;unknown;default_foo</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <cgi name="partition">unknown</cgi>
+                <result>bad_partition</result>
+            </check>
+
+            <check>
+                <cgi name="partition">foo;default_foo</cgi>
+                <result>partition_not_supported</result>
+            </check>
+        </case>
+
+        <case lastid="bad_partition">
+            <description>Check method=userinfo by login with bad partition</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="login">malice_70495</cgi>
+            <cgi name="partition">foo;unknown;default_foo</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <cgi name="partition">unknown</cgi>
+                <result>bad_partition</result>
+            </check>
+
+            <check>
+                <cgi name="partition">foo</cgi>
+                <result>partition_not_supported</result>
+            </check>
+
+            <check>
+                <cgi name="partition">default_foo</cgi>
+                <result>partition_array_not_allowed</result>
+            </check>
+        </case>
+
+        <case lastid="bad_partition">
+            <description>Check method=login with bad partition</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="login">malice_70495</cgi>
+            <cgi name="password">PW_70495</cgi>
+            <cgi name="partition">foo;unknown;default_foo</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <cgi name="partition">unknown</cgi>
+                <result>bad_partition</result>
+            </check>
+
+            <check>
+                <cgi name="partition">foo</cgi>
+                <result>partition_not_supported</result>
+            </check>
+
+            <check>
+                <cgi name="partition">default_foo</cgi>
+                <result>partition_array_not_allowed</result>
+            </check>
+        </case>
+
+        <case lastid="bad_partition">
+            <description>Check method=sessionid/oauth/user_ticket with bad partition</description>
+            <path>blackbox</path>
+            <cgi name="method">sessionid;oauth;user_ticket</cgi>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="sessionid">70495</cgi>
+            <cgi name="oauth_token">ST_70495</cgi>
+            <cgi name="user_ticket">70495</cgi>
+            <cgi name="partition">foo;unknown;default_foo</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <cgi name="partition">unknown</cgi>
+                <result>bad_partition</result>
+            </check>
+
+            <check>
+                <cgi name="partition">foo;default_foo</cgi>
+                <result>partition_not_supported</result>
+            </check>
+        </case>
+
+        <case lastid="general">
+            <description>placeholder</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo;login;sessionid;oauth;user_ticket</cgi>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="login">malice_70495</cgi>
+            <cgi name="password">PW_70495</cgi>
+            <cgi name="sessionid">70495</cgi>
+            <cgi name="oauth_token">ST_70495</cgi>
+            <cgi name="user_ticket">70495</cgi>
+            <cgi name="partition" withnull="1">default</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <result>70495</result>
+            </check>
+        </case>
+
+    </node>
+
+</test>

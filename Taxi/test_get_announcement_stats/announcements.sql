@@ -1,0 +1,67 @@
+INSERT INTO corp_announcements.images (
+    image_id,
+    name,
+    avatars_group_id,
+    sizes,
+    created_at,
+    created_by
+)
+VALUES (
+    'image_id_001',
+    'kitten0.jpg',
+    123,
+    '{"orig": {"width": 123, "height": 456}}',
+    '2019-08-18 15:30:27'::timestamp,
+    10000000000
+);
+
+INSERT INTO corp_announcements.announcements (
+    announcement_id,
+    announcement_type,
+    admin_title,
+    title,
+    text,
+    priority,
+    cta_is_active,
+    cta_title,
+    cta_url,
+    base_image_id,
+    preview_image_id,
+    clients_filter,
+    roles_filter,
+    country_filter,
+    payment_type_filter,
+    common_contract_filter,
+    publish_at,
+    status,
+    created_at,
+    updated_at,
+    approved_at,
+    created_by,
+    approved_by
+)
+VALUES (
+    '12345',
+    'news',
+    'Название в админке',
+    'Заголовок',
+    'Текст новости',
+    0,
+    TRUE,
+    'CTA button title',
+    'https://yandex.ru',
+    'image_id_001',
+    NULL,
+    array['client_id1', 'client_id2'],
+    array['manager', 'department_manager'],
+    array['rus'],
+    array['prepaid'],
+    array['available_enabled'],
+    '2019-07-24 10:30:00'::timestamp,
+    'approved',
+    '2019-08-18 15:30:27'::timestamp,
+    '2019-08-18 15:33:27'::timestamp,
+    '2019-08-18 15:33:27'::timestamp,
+    12345,
+    56789
+)

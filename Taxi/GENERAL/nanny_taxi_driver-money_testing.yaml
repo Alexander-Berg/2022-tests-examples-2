@@ -1,0 +1,37 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:driver-money:testing
+
+http_hosts:
+  - driver-money.taxi.tst.yandex.net
+awacs_namespace: driver-money-lb.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        uservice_name: driver-money
+  - include:
+        collapsed: true
+        path: taxi_driver-money-partner_payments_details.json
+        title: Payments details errors
+        variables:
+          - uservice_name: driver-money
+          - uservices_cluster: testing_uservices
+  - metrics:
+        metrics_list:
+          - client_service: userver@driver-money
+            name: billing_bank_orders Partner Payments by order_id
+            prefix: handler.billing-bank-orders./v1/parks/payments/orders*
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: driver-money-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - fallback_error_rates:
+        fallback_names:
+          - handler.billing-bank-orders./v1/parks/payments/orders*
+  - fallbacks:
+        services:
+          - driver-money
+  - http

@@ -1,0 +1,52 @@
+id: test_eats_core_error
+title: Ошибка в eda-superapp-go-checkout
+parameters:
+  - status_code:
+      - 404
+      - 500
+source:
+    request:
+        method: post
+        headers:
+            user-agent: user_agent
+        query:
+            deliveryDate: 2021-03-24T12:00:00+03:00
+        body:
+            address:
+                identity: 33670951
+                provider: eats
+    expectations:
+        response:
+            status-code#xget: /test-params/status_code
+            body:
+              - code: error_code
+                title: error_title
+                source:
+                meta:
+                    context: {}
+
+mocks:
+  - resource: eda-superapp-go-checkout
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                user-agent: user_agent
+            query:
+                deliveryDate: 2021-03-24T12:00:00+03:00
+            body:
+                address:
+                    identity: 33670951
+                    provider: eats
+    response:
+        status-code#xget: /test-params/status_code
+        body:
+          - code: error_code
+            title: error_title
+            source:
+            meta:
+                context: {}
+
+  - resource: eats-customer-calculate-slots
+    expectations:
+        call-count: 0

@@ -1,0 +1,121 @@
+id: test_disabling_active_orders_flow
+title: Проверка, что отключение возврата заказов работает
+
+parameters:
+  - filter-state:
+      - exp-enabled: false
+        parameter-exist: true
+        call-count: 1
+      - exp-enabled: true
+        parameter-exist: false
+        call-count: 0
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-YaTaxi-PhoneId: 'phone_id'
+    expectations:
+        response:
+            status-code#integer: 200
+            body#object:
+              - key: id
+                value#string: 'user_id'
+              - key: authorized
+                value#boolean: true
+              - key: client_geo_params
+                value#object:
+                  - key: enabled
+                    value#boolean: false
+              - typed_experiments#object:
+              - ask_feedback#object:
+                enabled#xget: /test-params/filter-state/parameter-exist
+              - orders#array:
+                enabled#xget: /test-params/filter-state/parameter-exist
+              - orders_state#object:
+                  - orders#array:
+                    enabled#xget: /test-params/filter-state/parameter-exist
+                enabled#xget: /test-params/filter-state/parameter-exist
+              - key: mlutp_orders_state
+                enabled#xget: /test-params/filter-state/parameter-exist
+                value#object:
+                  - orders#array:
+                  - allowed_changes#array:
+                  - polling_policy#array:
+
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+
+experiments:
+    values#object:
+      - key: 'new_polling_flow_enabled'
+        value: {'enabled': true}
+      - key: 'launch_disable_active_orders_flow'
+        value: {'enabled#xget': /test-params/filter-state/exp-enabled}
+
+mocks:
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: true
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+            method: post
+  - resource: order-v1-tc-active-orders
+    response:
+        status-code: 200
+        body:
+            orders: []
+            orders_state:
+                orders: []
+    expectations:
+        call-count#xget: /test-params/filter-state/call-count
+  - resource: feedback-wanted
+    expectations:
+        request:
+            method: post
+            body: {"id": "user_id", "phone_id": "phone_id"}
+            content-type: application/json
+        call-count#xget: /test-params/filter-state/call-count
+    response:
+        status-code: 200
+        body: {"ask_feedback": {}, "orders": []}
+        headers:
+            content-type: "application/json"
+  - resource: order-state-v1-orders-state
+    response:
+        status-code: 200
+        body:
+            orders: []
+            allowed_changes: []
+            polling_policy: []
+    expectations:
+        call-count#xget: /test-params/filter-state/call-count
+  - resource: taxi-3.0-launch
+    response:
+        status-code: 200
+        body:
+            typed_experiments: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post

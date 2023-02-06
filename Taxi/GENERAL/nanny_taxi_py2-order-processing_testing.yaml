@@ -1,0 +1,94 @@
+clownductor_config: taxi:py2-order-processing:testing
+http_hosts:
+  - py2-order-processing.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http
+  - stq:
+      collapsed: true
+      queues:
+        - taxi_orders_processing
+        - process_trigger
+        - process_cancel
+        - process_update
+        - notify_on_change
+  - include:
+      collapsed: true
+      path: nanny_taxi_order-core/stq-processing-starter.json
+      title: Stq processing starter
+      variables:
+          cluster_name: testing_uservices
+          group: '*'
+          uservice_name: order-core
+  - include:
+      title: 'Event types'
+      path: taxi_processing/procaas_event_types.json
+      collapsed: true
+      variables:
+        - cluster_name: testing_uservices
+        - application: processing
+        - cluster_group: taxi_processing_testing
+        - - event_lifecycle: created
+          - event_lifecycle: pre-process
+          - event_lifecycle: post-process
+  - include:
+      collapsed: true
+      path: taxi_processing/procaas_failed_handlers.json
+      title: Errors by handlers on processing
+      variables:
+          cluster_name: testing_uservices
+          cluster_group: taxi_processing_testing
+          application: processing
+          sensor: processing-ng.queue.internals.handlers.errors
+  - fallbacks:
+      services:
+        - processing
+  - fallback_error_rates:
+      fallback_names:
+        - 'processing.handler.taxi.orders.*.fallback'
+dashboard_update:
+    templating:
+        list:
+          - label: ProcaaS Scope
+            allValue: '*'
+            current:
+                selected: true
+                text: taxi
+                value: taxi
+            datasource: Solomon
+            hide: 0
+            includeAll: false
+            multi: false
+            name: procaas_scope
+            query: '{project="taxi", cluster="testing_uservices", service="uservices", application="processing", sensor="processing-ng.*"}  #scope'
+            refresh: 1
+            regex: ''
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+            skipUrlSync: false
+          - label: ProcaaS Queue
+            allValue: '*'
+            current:
+                selected: true
+                text: orders
+                value: orders
+            datasource: Solomon
+            hide: 0
+            includeAll: false
+            multi: false
+            name: procaas_queue
+            query: '{project="taxi", cluster="testing_uservices", service="uservices", application="processing", sensor="processing-ng.*"}  #queue'
+            refresh: 1
+            regex: ''
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+            skipUrlSync: false

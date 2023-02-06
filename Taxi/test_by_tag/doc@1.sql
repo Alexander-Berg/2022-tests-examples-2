@@ -1,0 +1,120 @@
+INSERT INTO bd_testsuite_04.doc
+(
+    id,
+    prev_doc_id,
+    kind,
+    external_obj_id,
+    external_event_ref,
+    service,
+    service_user_id,
+    data,
+    process_at,
+    event_at,
+    created
+)
+VALUES
+(
+    10004,
+    0,
+    'test',
+    'abcdef',
+    'ride_order_completed',
+    'billing-docs',
+    NULL,
+    '{"shoop": "da whoop"}'::jsonb,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp
+),
+(
+    20004,
+    0,
+    'test',
+    'queue_1',
+    'first_in_queue',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp
+),
+(
+    30004,
+    0,
+    'test',
+    'queue_2',
+    'first_in_queue_and_complete',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp
+),
+(
+    40004,
+    30004,
+    'test',
+    'queue_2',
+    'second_in_queue',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp
+),
+(
+    50004,
+    40004,
+    'test',
+    'queue_2',
+    'third_in_queue',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp
+),
+(
+    60004,
+    0,
+    'subvention_journal',
+    'alias_id/6c41503787c149cbb7b650ab3d6ea44c',
+    'order_subvention_changed/1/subvention_handled',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp,
+    '2018-09-10 07:07:52.019582'::timestamp
+),
+(
+    70004,
+    60004,
+    'subvention_journal',
+    'alias_id/6c41503787c149cbb7b650ab3d6ea44c',
+    'order_subvention_changed/2/subvention_handled',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-12 07:07:52.019582'::timestamp,
+    '2018-09-12 07:07:52.019582'::timestamp,
+    '2018-09-12 07:07:52.019582'::timestamp
+),
+(
+    80004,
+    70004,
+    'subvention_journal',
+    'alias_id/6c41503787c149cbb7b650ab3d6ea44c',
+    'order_subvention_changed/3/subvention_handled',
+    'billing-docs',
+    NULL,
+    '{}'::jsonb,
+    '2018-09-14 07:07:52.019582'::timestamp,
+    '2018-09-14 07:07:52.019582'::timestamp,
+    '2018-09-14 07:07:52.019582'::timestamp
+);
+ALTER SEQUENCE bd_testsuite_04.doc_id_seq RESTART WITH 9;

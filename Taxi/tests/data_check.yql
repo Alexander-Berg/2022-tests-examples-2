@@ -1,0 +1,94 @@
+$get_hour = ($utc_dt) -> {{
+    $parse_time = DateTime::Parse('%Y-%m-%d %H:%M:%S');
+    return DateTime::GetHour($parse_time($utc_dt))
+}};
+
+$date_parser = DateTime::Parse("%Y-%m-%d %H:%m%:%s");
+
+$trips = (
+SELECT
+    day,
+    hour,
+    COUNT_IF(success_order_flg) AS trips,
+    tariff_zone,
+    city
+FROM
+    CONCAT({dm_order_new})
+GROUP BY
+    utc_order_dt AS day,
+    $get_hour(utc_order_dttm) AS hour,
+    tariff_zone,
+    attr_city AS city
+);
+
+$demand = (
+SELECT
+    day,
+    hour,
+    SUM_IF(max_of(1,success_order_cnt),(not (pin_cnt < 2 and break_reason == 'distance')) and pin_cnt != 1) AS demand,
+    tariff_zone
+FROM
+    CONCAT({user_sessions_new})
+GROUP BY
+    SUBSTRING(utc_session_start_dttm, 0, 10) AS day,
+    $get_hour(utc_session_start_dttm) AS hour,
+    last_tariff_zone AS tariff_zone
+);
+
+$supply = (
+SELECT
+    day,
+    hour,
+    SUM_IF(CAST(duration_sec AS Double) / 3600, status != "verybusy") AS supply,
+    tariff_zone,
+    city
+FROM
+    CONCAT({driver_sessions_new})
+GROUP BY
+    SUBSTRING(utc_start_dttm, 0, 10) AS day,
+    $get_hour(utc_start_dttm) AS hour,
+    tariff_zone,
+    attr_city AS city
+);
+
+
+$all_sessions_result = (
+SELECT
+    t.day??d.day??s.day AS day,
+    t.hour??d.hour??s.hour AS hour,
+    t.tariff_zone??d.tariff_zone??s.tariff_zone AS tariff_zone,
+    t.city??s.city AS city,
+    trips,
+    supply,
+    demand
+FROM
+    $trips AS t
+FULL JOIN
+    $demand AS d
+ON
+    t.day == d.day AND t.hour == d.hour AND t.tariff_zone == d.tariff_zone
+FULL JOIN
+    $supply AS s
+ON
+    d.day == s.day AND d.hour == s.hour AND s.tariff_zone == d.tariff_zone
+);
+
+$all_zones = (
+    SELECT
+        tariff_zone,
+        True as in_dwh
+    FROM
+        `{dwh_hierarchy}`
+    GROUP BY
+        tariff_zone
+);
+
+SELECT
+    s.*,
+    d.in_dwh as in_dwh
+FROM
+    $all_sessions_result AS s
+LEFT JOIN
+    $all_zones AS d
+ON
+s.tariff_zone == d.tariff_zone;

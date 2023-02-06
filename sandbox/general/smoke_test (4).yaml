@@ -1,0 +1,46 @@
+---
+apiVersion: '1'
+kind: Task
+params:
+  custom_fields:
+    # Package build
+    src_origin: git 
+    git_url: 'https://bb.yandex-team.ru/scm/PORTO/porto.git'
+    git_head: 'refs/heads/master'
+    git_shallow: true
+    git_token: RCCS-ADMINS:bitbucket_token
+    pbuilder_tarball_origin: 'pbuilderrc'
+    distribution: xenial
+    config_url: arcadia:/arc/trunk/arcadia/infra/kernel/scripts/pbuilderrc
+    # package sign
+    sign_packages: true
+    ssh_private: RCCS-ADMINS:robot-rtc-builder-ssh
+    gpg_private: RCCS-ADMINS:robot-rtc-builder-gpg-private
+    gpg_public: RCCS-ADMINS:robot-rtc-builder-gpg-public
+    # package upload on release 
+    ssh_login: robot-rtc-builder
+    #release_changelog: ''
+    release_dist_repo: search-test
+    release_upload_packages: true
+  description: 'test build'
+  owner: RCCS-ADMINS
+  priority: SERVICE:NORMAL
+  type: PBUILDER_BUILD_DEB_PACKAGE
+  notifications:
+  - recipients:
+    - wwfq 
+    statuses:
+    - EXCEPTION
+    - SUCCESS
+    - RELEASED
+    transport: telegram
+  - recipients:
+    - wwfq 
+    statuses:
+    - RELEASED
+    transport: q
+  - recipients:
+    - wwfq@yandex-team.ru
+    statuses:
+    - RELEASED
+    transport: email

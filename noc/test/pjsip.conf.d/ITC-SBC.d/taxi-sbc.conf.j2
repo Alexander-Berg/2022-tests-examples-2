@@ -1,0 +1,30 @@
+[TAXI-SBC-00](!)
+type=endpoint
+transport=transport-udp-ipv6
+context=from-TAXI-SBC
+disallow=all
+allow=alaw
+allow=ulaw
+direct_media=no
+
+;---------------------------------------------------
+{% for item in sbc_test %}
+;{{ item.name }}
+;AORS
+[{{ item.name }}-aor]
+type=aor
+qualify_frequency=30
+contact=sip:[{{ item.dstip }}]
+
+; IDENTITIES
+[{{ item.name }}-id]
+type=identify
+endpoint={{ item.endpoint }}
+match=[{{ item.dstip }}]
+
+;ENDPOINTS
+[{{ item.endpoint }}](TAXI-SBC-00)
+aors={{ item.name }}-aor
+;---------------------------------------------------
+
+{%endfor%}

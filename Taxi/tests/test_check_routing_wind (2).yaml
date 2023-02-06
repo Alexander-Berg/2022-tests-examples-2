@@ -1,0 +1,39 @@
+id: test_check_routing_wind
+title: Проверяем что роутинг по апи тегу работает
+
+parameters:
+  - group:
+      - api_tag: wind
+        talaria-call-count: 1
+        drive-call-count: 0
+      - api_tag: rf
+        talaria-call-count: 0
+        drive-call-count: 1
+
+source:
+    request:
+        method: post
+        body:
+            action: blink-n-horn
+            car_id: CAR_ID
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-Scooters-Tag: wind
+    expectations:
+        response:
+            status-code#integer: 200
+            body#any:
+
+mocks:
+  - resource: talaria-car-control
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+  - resource: scooters-car-control
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

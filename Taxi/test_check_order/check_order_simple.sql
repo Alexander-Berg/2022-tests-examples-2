@@ -1,0 +1,87 @@
+INSERT INTO persey_payments.order
+    (
+        order_id,
+        payment_method_id,
+        need_free,
+        status
+    )
+VALUES
+    (
+        'some_order',
+        'some_payment_method',
+        FALSE,
+        'in_progress'
+    );
+
+
+INSERT INTO persey_payments.basket
+    (
+        purchase_token,
+        order_id,
+        mark,
+        trust_payment_id,
+        trust_order_id_delivery,
+        trust_order_id_test,
+        user_uid,
+        test_cost,
+        delivery_cost,
+        hold_amount,
+        status,
+        created_at
+    )
+VALUES
+    (
+        'trust-basket-token',
+        'some_order',
+        'main',
+        'trust-payment-id',
+        'some_order_delivery',
+        'some_order_test',
+        'some_user_uid',
+        '321',
+        '123',
+        '777.7',
+        'clear_called',
+        '2019-01-11T22:49:56+0300'
+    ),
+    (
+        'trust-basket-token2',
+        'some_order',
+        'main2',
+        'trust-payment-id2',
+        'some_order_delivery2',
+        'some_order_test2',
+        'some_user_uid2',
+        '3212',
+        '1232',
+        '777.7',
+        'delivered',
+        '2019-01-11T23:49:56+0300'
+    );
+
+INSERT INTO persey_payments.refund
+    (
+        order_id,
+        mark,
+        refund_id,
+        trust_refund_id,
+        operator_login,
+        ticket
+    )
+VALUES
+    (
+        'some_order',
+        'main',
+        'rid',
+        'first',
+        'operator1',
+        'PERSEY-123'
+    ),
+    (
+        'some_order',
+        'main2',
+        'rid2',
+        'second',
+        'operator2',
+        'PERSEY-321'
+    )

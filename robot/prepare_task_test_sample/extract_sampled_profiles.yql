@@ -1,0 +1,47 @@
+use hahn;
+
+$sample_result_prefix = "//home/jupiter-test/blrt_users/alexanderplat_task_sample/external_data/";
+
+$sampled_banners = select cast(OrderID as Uint64) as OrderID, cast(BannerID as Uint64) as BannerID
+from (
+    select OrderID, substring(BannerID, 1, cast((len(BannerID) - 2) as Uint32)) as BannerID
+    from (
+        select OrderID, BannerIDs as BannerID
+        from (
+            select OrderID, String::SplitToList(BannerIDs, ",") as BannerIDs
+            from (
+                select OrderID, SUBSTRING(BannerIDs, 1, cast((len(BannerIDs) - 2) as Uint32)) as BannerIDs
+                from `//home/yabs-cs/export/SmartTemplates`
+            )
+        )
+        flatten list by BannerIDs
+    )
+)
+where Digest::CityHash(BannerID) % 1000 < 5;
+
+$order_sample_result = $sample_result_prefix || "caesar/Order";
+
+INSERT INTO $order_sample_result WITH TRUNCATE
+select *
+from `//home/bs/logs/AdsCaesarOrdersFullDump/latest` as a
+left semi join $sampled_banners as b
+using (OrderID)
+order by OrderID;
+
+$banner_sample_result = $sample_result_prefix || "caesar/Banner";
+
+INSERT INTO $banner_sample_result WITH TRUNCATE
+select *
+from `//home/bs/logs/AdsCaesarBannersFullDump/latest` as a
+left semi join $sampled_banners as b
+using (BannerID)
+order by BannerID;
+
+$orderinfo_sample_result = $sample_result_prefix || "direct/OrderInfo";
+
+INSERT INTO $orderinfo_sample_result WITH TRUNCATE
+select *
+from `//home/yabs/dict/OrderInfo` as a
+left semi join $sampled_banners as b
+using (OrderID)
+order by OrderID;

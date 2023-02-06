@@ -1,0 +1,84 @@
+id: test_happy_path
+title: Проверка ручки поиска по истории заказов
+
+source:
+    request:
+        url: /4.0/restapp-front/api/v1/client/orders/search
+        method: post
+        body#object:
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: isSuccess
+                value: true
+              - key: meta
+                value#object:
+                  - key: count
+                    value: 3
+              - key: payload
+                value#array:
+                  - value#object:
+                      - key: externalId
+                        value: 123456-098765
+                      - key: refusedReason
+                        value#array:
+                          - value: reason1
+                  - value#object:
+                      - key: externalId
+                        value: 123456-098766
+                      - key: refusedReason
+                        value#array:
+                          - value: reason2
+                  - value#object:
+                      - key: externalId
+                        value: 123456-098767
+                      - key: refusedReason
+                        value#array:
+
+mocks:
+  - resource: backend-service-vendor-v1-client-orders-search
+    response:
+        status-code: 200
+        body#object:
+          - key: isSuccess
+            value: true
+          - key: meta
+            value#object:
+              - key: count
+                value: 3
+          - key: payload
+            value#array:
+              - value#object:
+                  - key: externalId
+                    value: 123456-098765
+              - value#object:
+                  - key: externalId
+                    value: 123456-098766
+              - value#object:
+                  - key: externalId
+                    value: 123456-098767
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: eats-ordershistory-internal-v1-get-orders-list
+    response:
+        status-code: 200
+        body#object:
+          - key: orders
+            value#array:
+              - value#object:
+                  - key: order_id
+                    value: 123456-098765
+                  - key: cancel_reason
+                    value: reason1
+              - value#object:
+                  - key: order_id
+                    value: 123456-098766
+                  - key: cancel_reason
+                    value: reason2
+    expectations:
+        call-count: 1
+        request:
+            method: post

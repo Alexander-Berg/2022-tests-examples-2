@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -e
+
+
+# Have you ever tried to remove old config file from previous version of deb package?
+# Well, it took 4 people and a day of thinking and we came to conslusion that this is by far
+# the easiest way to do it.
+rm -f "/etc/yandex/taxi/second-unit/push-client-second-unit.production.yaml"
+rm -f "/etc/yandex/taxi/second-unit/push-client-second-unit.testing.yaml"
+rm -f "/etc/yandex/taxi/second-unit/push-client-second-unit.unstable.yaml"
+rm -f "/etc/yandex/taxi/second-unit/push-client-second-unit.stress.yaml"
+rm -f "/etc/yandex/taxi/second-unit/push-client-second-unit.testsuite.yaml"
+rm -f "/etc/yandex/statbox-push-client/custom/second-unit.yaml"
+
+
+if ! getent group www-data >/dev/null; then
+  groupadd -r www-data
+fi
+if ! getent passwd www-data >/dev/null; then
+  useradd -M -r -g www-data -d /var/lib/www-data \
+    -s /sbin/nologin -c "Service User" www-data
+fi
+
+#DEBHELPER#
+
+exit 0

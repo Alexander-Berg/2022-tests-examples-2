@@ -1,0 +1,41 @@
+---
+apiVersion: '1'
+kind: Task
+params:
+  custom_fields:
+    # Package build
+    src_origin: tar
+    tar_resource: '1570597574'
+    # package sign
+    sign_packages: true
+    ssh_private: RCCS-ADMINS:robot-rtc-builder-ssh
+    gpg_private: RCCS-ADMINS:robot-rtc-builder-gpg-private
+    gpg_public: RCCS-ADMINS:robot-rtc-builder-gpg-public
+    # package upload on release 
+    ssh_login: robot-rtc-builder
+    #release_changelog: ''
+    release_dist_repo: search-test
+    release_upload_packages: true
+  description: 'test build'
+  owner: RCCS-ADMINS
+  priority: SERVICE:NORMAL
+  type: BUILD_DEB_PACKAGE
+  notifications:
+  - recipients:
+    - dmtrmonakhov
+    statuses:
+    - EXCEPTION
+    - SUCCESS
+    - RELEASED
+    transport: telegram
+  - recipients:
+    - dmtrmonakhov
+    statuses:
+    - RELEASED
+    transport: q
+  - recipients:
+    - dmtrmonakhov
+    - rtc-builder-announce@yandex-team.ru
+    statuses:
+    - RELEASED
+    transport: email

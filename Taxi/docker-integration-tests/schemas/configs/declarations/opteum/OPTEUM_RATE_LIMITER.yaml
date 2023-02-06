@@ -1,0 +1,77 @@
+default:
+    cities: []
+    countries: []
+    dbs: []
+    dbs_disable: []
+    enable: false
+    rules: []
+description: Настройки включения функциональности - rate limiter для фронта
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - cities
+      - countries
+      - dbs
+      - dbs_disable
+      - enable
+      - rules
+    properties:
+        cities:
+            description: Список разрешенных городов, например "Москва", "Омск"
+            $ref: '#/definitions/string_array'
+        countries:
+            description: Список разрешенных стран, например "Россия", "Казахстан",
+                "rus", "kaz"
+            $ref: '#/definitions/string_array'
+        dbs:
+            description: Список разрешённых парков (db_id)
+            $ref: '#/definitions/string_array'
+        dbs_disable:
+            description: Список явно запрещённых парков (db_id)
+            $ref: '#/definitions/string_array'
+        enable:
+            description: Выключатель
+            type: boolean
+        rules:
+            description: Список урлов (формат)
+            type: array
+            items:
+                $ref: '#/definitions/rule'
+    definitions:
+        string_array:
+            type: array
+            items:
+                type: string
+        rule:
+            type: object
+            additionalProperties: false
+            required:
+              - route
+              - limit
+            properties:
+                route:
+                    description: Имя роута, например "drivers.index"
+                    type: string
+                limit:
+                    description: Лимит
+                    type: integer
+                    minimum: 1
+samples:
+  - cities:
+      - "Москва"
+    countries:
+      - "rus"
+    dbs:
+      - "test1"
+      - "test2"
+    dbs_disable:
+      - "test1"
+      - "test2"
+    enable: true
+    rules:
+      - route: "drivers.list"
+        limit: 120
+      - route: "vehicles.list"
+        limit: 60

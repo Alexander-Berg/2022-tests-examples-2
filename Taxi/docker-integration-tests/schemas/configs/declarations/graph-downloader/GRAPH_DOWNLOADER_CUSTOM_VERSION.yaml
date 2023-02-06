@@ -1,0 +1,28 @@
+default: {}
+description: Если есть поле VERSION, graph-downloader постарается скачать версию VERSION.
+    Если есть поле DATE, то наличие поля VERSION игнорируется во все дни, кроме DATE.
+    DATE без VERSION не может быть
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        VERSION:
+            type: integer
+            minimum: 1500000000
+        DATE:
+            type: string
+            pattern: '^([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))$'
+    dependencies:
+        DATE:
+          - VERSION
+samples:
+  - {}
+  - VERSION: 1567900800
+  - VERSION: 1567645200
+    DATE: '2019-09-09'
+invalid-samples:
+  - VERSION: 156764520
+  - DATE: '2019-09-09'
+  - VERSION: 1567645200
+    DATE: '2019-13-33'

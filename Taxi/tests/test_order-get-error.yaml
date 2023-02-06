@@ -1,0 +1,43 @@
+id: test_order-get-error
+title: Проверяем, что при ошибке от picker-orders не будет запроса в picker-timers
+
+source:
+    request:
+        method: get
+        query:
+            eats_id#string: 123456-123456
+            version#integer: 0
+        headers:
+            X-YaEda-CourierId#string: 12345678910
+            X-Measure-Version#string: 2
+            X-Request-Application-Version#string: 9.65 (5397)
+    expectations:
+        response:
+            status-code: 404
+            body:
+                code: 'not found'
+                message: 'order not found'
+
+
+mocks:
+  - resource: eats-picker-orders-4-0-eats-picker-api-v1-order-get
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                eats_id#string: 123456-123456
+                version#string: 0
+            headers:
+                X-YaEda-CourierId#string: 12345678910
+                X-Measure-Version#string: 2
+                X-Request-Application-Version#string: 9.65 (5397)
+    response:
+        status-code: 404
+        body:
+            code: 'not found'
+            message: 'order not found'
+
+  - resource: eats-picker-timers-4-0-eats-picker-timers-api-v1-timers-get
+    expectations:
+        call-count: 0

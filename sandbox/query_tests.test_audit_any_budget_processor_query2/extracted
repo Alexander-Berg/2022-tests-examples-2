@@ -1,0 +1,330 @@
+
+    USE hahn;
+    pragma AutoCommit;
+    -- check DAILY budget
+
+    $runTime =  01012022;
+
+    $ab_current_run_tbl = 'tmp/ab_' || cast($runTime as string);
+
+    $date_format = DateTime::Format('%Y-%m-%d');
+    $date_format2 = DateTime::Format('%Y-%m-%dT%H-%M-%S');
+
+    /*
+    insert into $ab_current_run_tbl WITH TRUNCATE
+        select *
+        from `//home/yabs/autobudget/AuditBudget`
+        where RunTime = $runTime;
+    */
+$day = ($ts) -> {
+    return $date_format(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow'))
+};
+
+$week = ($ts) -> {
+    return $date_format(DateTime::StartOfWeek(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow')))
+};
+
+$fmt = ($ts) -> {
+    return $date_format2(AddTimezone(DateTime::MakeDatetime(DateTime::FromSeconds(cast($ts as Uint32))), 'Europe/Moscow'))
+};
+
+$orders_checked = (
+    select *
+    from $ab_current_run_tbl
+    where LimitBudgetCur < BudgetCur
+        and FirstEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+        and LastEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+        and FirstEvent < LastEvent
+        and (
+            -- дневной FirstEvent, LastEvent в пределах одних суток
+            (LimitType == 'daily' and $day(FirstEvent) == $day(LastEvent))
+            or
+            -- недельный и дневно-недельный FirstEvent, LastEvent в пределах одной календарной недели
+            ((LimitType == 'week' or LimitType == 'daily-week') and $week(FirstEvent) == $week(LastEvent))
+            or
+            -- период FirstEvent, LastEvent в пределах периода
+            (LimitType == 'period'
+                and FirstEvent between PeriodStartTime and PeriodFinishTime
+                and LastEvent between PeriodStartTime and PeriodFinishTime
+            )
+        )
+);
+
+SELECT * from $orders_checked;
+
+$from = (select $day(min(FirstEvent)) from $orders_checked);
+$to = (select $day(max(LastEvent)) from $orders_checked);
+
+-- $ab_restarts = (
+--     select OrderID, FirstEvent, LastEvent, count(*) as restarts
+--         from range(`//logs/bs-abrestart-log/1d`, $from, $to) as r
+--             join $orders_checked as o on Cast(r.orderid as Uint64) == o.OrderID
+--         where cast(r.starttime as Uint64) > o.FirstEvent
+--             and cast(r.starttime as Uint64) < o.LastEvent
+--         group by o.OrderID as OrderID, o.FirstEvent as FirstEvent, o.LastEvent as LastEvent
+--         -- примерное обрезание рестартов с
+--         having COUNT_IF(reason <> 'new_moneydaylimit') > 0
+-- );
+
+-- $orders = (
+--     select
+--             OrderID as OrderID,
+--             LimitType as LimitType,
+--             LimitBudgetCur as LimitBudgetCur,
+--             AutobudgetStartTime as AutobudgetStartTime,
+--             PeriodStartTime as PeriodStartTime,
+--             PeriodFinishTime as PeriodFinishTime,
+--             FirstEvent as FirstEvent,
+--             LastEvent as LastEvent
+--         from $orders_checked as o
+--             left only join $ab_restarts as ab using(OrderID, FirstEvent, LastEvent)
+-- );  -- нет рестартов автобюджета в период FirstEvent LastEvent
+
+-- SELECT * FROM $orders;
+
+
+$child_orders = FROM
+    `//home/yabs/dict/CaesarOrderInfo` AS oi
+INNER JOIN
+    $orders_checked AS o
+ON
+    oi.OrderID = o.OrderID
+SELECT
+    o.OrderID AS OrderID,
+    LimitType as LimitType,
+    LimitBudgetCur as LimitBudgetCur,
+    AutobudgetStartTime as AutobudgetStartTime,
+    PeriodStartTime as PeriodStartTime,
+    PeriodFinishTime as PeriodFinishTime,
+    FirstEvent as FirstEvent,
+    LastEvent as LastEvent,
+WHERE
+    oi.OrderID <> oi.GroupOrderID
+;
+
+SELECT * FROM $child_orders;
+
+$group_orders = FROM
+    `//home/yabs/dict/CaesarOrderInfo` AS oi
+INNER JOIN
+    $orders_checked AS o
+ON
+    oi.OrderID = o.OrderID
+SELECT
+    o.OrderID AS OrderID,
+    LimitType AS LimitType,
+    LimitBudgetCur AS LimitBudgetCur,
+    AutobudgetStartTime AS AutobudgetStartTime,
+    PeriodStartTime AS PeriodStartTime,
+    PeriodFinishTime AS PeriodFinishTime,
+    FirstEvent AS FirstEvent,
+    LastEvent AS LastEvent,
+WHERE
+    oi.OrderID = oi.GroupOrderID
+;
+
+SELECT * FROM $group_orders;
+
+$stat = (
+    select OrderID,
+        FirstEvent,
+        LastEvent,
+        coalesce(sum_if(costcur, not stat.`autobudgetoptions_paid-actions`), 0) as costcur,
+        count(*) as events -- billing events (for cpm, cpc calculation)
+    from range(`//cooked_logs/bs-chevent-cooked-log/1d`, $from, $to) as stat
+        join $child_orders as o on o.OrderID = stat.orderid
+    where fraudbits == 0
+        and ((placeid == 542 AND countertype == 2) OR (placeid == 1542 AND countertype == 1))
+        and stat.eventtime between o.FirstEvent and o.LastEvent
+    group by o.OrderID AS OrderID,
+        o.FirstEvent as FirstEvent,
+        o.LastEvent as LastEvent
+    union all
+    select OrderID,
+        FirstEvent,
+        LastEvent,
+        coalesce(sum_if(costcur, not stat.`autobudgetoptions_paid-actions`), 0) as costcur,
+        count(*) as events -- billing events (for cpm, cpc calculation)
+    from range(`//cooked_logs/bs-chevent-cooked-log/1d`, $from, $to) as stat
+        join $group_orders as o on o.OrderID = stat.grouporderid
+    where fraudbits == 0
+        and ((placeid == 542 AND countertype == 2) OR (placeid == 1542 AND countertype == 1))
+        and stat.eventtime between o.FirstEvent and o.LastEvent
+        and stat.`autobudgetoptions_limit-group-daily-budget`
+    group by o.OrderID AS OrderID,
+        o.FirstEvent as FirstEvent,
+        o.LastEvent as LastEvent
+);
+
+SELECT * FROM $stat;
+
+$max_day_limit = FROM
+    `//home/yabs/dict/CaesarAutoBudgetOrderWithHistory` AS a
+INNER JOIN
+    $orders_checked AS o
+ON
+    a.OrderID = o.OrderID
+SELECT
+    OrderID,
+    StartTime,
+    MAX_BY(MaxLimitDayMoney, LastUpdateTime) AS MaxLimitDayMoney,
+    MAX_BY(MaxLimitDayMoneyCur, LastUpdateTime) AS MaxLimitDayMoneyCur,
+WHERE
+    LimitType = 'daily'
+    AND a.LastUpdateTime < o.PeriodStartTime
+GROUP BY
+    a.OrderID AS OrderID, a.StartTime AS StartTime, o.LimitType AS LimitType
+;
+
+$max_day_limit = FROM
+    $max_day_limit AS A
+LEFT JOIN (
+    FROM
+        `//home/yabs/dict/CaesarAutoBudgetOrderWithHistory` AS a
+    INNER JOIN
+        $orders_checked AS o
+    ON
+        a.OrderID == o.OrderID
+    SELECT
+        OrderID,
+        StartTime,
+        MAX(LimitDayMoney) AS MaxLimitDayMoney,
+        MAX(LimitDayMoneyCur) AS MaxLimitDayMoneyCur,
+    WHERE
+        LimitType = 'daily'
+        AND $day(a.LastUpdateTime) = $day(o.PeriodStartTime)
+    GROUP BY
+        a.OrderID AS OrderID, a.StartTime AS StartTime, o.LimitType AS LimitType
+) AS B
+ON
+    A.OrderID = B.OrderID AND A.StartTime = B.StartTime
+SELECT
+    A.OrderID AS OrderID,
+    A.StartTime AS StartTime,
+    MAX_OF(A.MaxLimitDayMoney, COALESCE(B.MaxLimitDayMoney, 0)) AS MaxLimitDayMoney,
+    MAX_OF(A.MaxLimitDayMoneyCur, COALESCE(B.MaxLimitDayMoneyCur, 0)) AS MaxLimitDayMoneyCur,
+;
+
+$max_day_limit = FROM
+    $max_day_limit
+SELECT
+    OrderID,
+    MAX(StartTime) AS StartTime,
+    MAX_BY(MaxLimitDayMoney, StartTime) AS MaxLimitDayMoney,
+    MAX_BY(MaxLimitDayMoneyCur, StartTime) AS MaxLimitDayMoneyCur,
+GROUP BY
+    OrderID
+;
+
+SELECT * FROM $max_day_limit;
+
+$check = (
+    select o.OrderID as OrderID,
+            o.LimitType as LimitType,
+            o.FirstEvent as FirstEvent,
+            o.LastEvent as LastEvent,
+            s.events as EventsCnt,
+            s.costcur as CostCur,
+            o.LimitBudgetCur as LimitBudgetCur,
+            mdl.MaxLimitDayMoneyCur as MaxLimitDayMoneyCur,
+            (100. * s.costcur) / o.LimitBudgetCur - 100 as ExceedRate,
+            (o.LimitBudgetCur >= s.costcur or (o.LimitType == 'daily' and (1.3 * nvl(MaxLimitDayMoneyCur, o.LimitBudgetCur)) >= s.costcur)) as IsGood
+        from $stat as s
+            join $orders_checked as o on o.OrderID == s.OrderID and o.FirstEvent = s.FirstEvent and o.LastEvent = s.LastEvent
+            left join $max_day_limit as mdl on mdl.OrderID = o.OrderID
+);
+
+SELECT * FROM $check;
+
+$tbl = ('//home/bs/users/audit/ab-budget_' || cast($runTime as String));
+
+insert into $tbl with truncate
+    select * from $check;
+
+
+-- проблемные заказы
+
+$pre_true =
+(
+select OrderID,
+        LimitType,
+        $fmt(FirstEvent) as FirstEvent,
+        $fmt(LastEvent) as LastEvent,
+        EventsCnt,
+        CostCur,
+        LimitBudgetCur,
+        MaxLimitDayMoneyCur,
+        ExceedRate
+    from $check
+    where not IsGood
+);
+
+select
+    pt.OrderID as OrderID,
+    LimitType,
+    FirstEvent,
+    LastEvent,
+    EventsCnt,
+    CostCur,
+    LimitBudgetCur,
+    MaxLimitDayMoneyCur,
+    ExceedRate,
+    c.CurrencyCode as CurrencyCode,
+    1.0 * (CostCur - LimitBudgetCur) * c.Ratio / 1000 / 1000 as Compensation,
+    1.0 * (CostCur - LimitBudgetCur) * c.Ratio * if(oi.CurrencyID = 0, 30.0, cast(cr.Rate as float)) / 1000 / 1000 > 300 as IsCompensationNeeded
+from
+    $pre_true as pt
+inner join
+    `home/yabs/dict/CaesarOrderInfo` as oi -- узнаём валюту заказа
+on
+    pt.OrderID == oi.OrderID
+inner join
+    `home/yabs/dict/Currency` as c -- необходимо для получения Ratio
+on
+    oi.CurrencyID == c.CurrencyID
+left join -- left, потому что можем встретить CurrencyID = 0
+    `home/yabs/dict/CurrencyRates` as cr -- необходима для получения актуального курса валют
+on
+    oi.CurrencyID == cr.CurrencyID
+where
+    cr.EventDate = (($runTime / 24 / 3600) * 24 * 3600 - (3 * 3600)) -- используем курс на дату проверки аудита, функция преобразовывает unix-время к началу дня по Москве
+order by
+    OrderID, FirstEvent
+into result `true-cases`;
+
+-- ложные срабатывания
+
+select OrderID,
+        LimitType,
+        $fmt(FirstEvent) as FirstEvent,
+        $fmt(LastEvent) as LastEvent,
+        EventsCnt,
+        CostCur,
+        LimitBudgetCur,
+        MaxLimitDayMoneyCur,
+        ExceedRate
+    from $check
+    where IsGood
+    order by
+        OrderID, FirstEvent
+    into result `false-cases`;
+
+/*
+некорректные срабатывания мониторинга:
+- выброка событий вне периода управлния автобюджетом;
+- некорректный период;
+- не проверялось ограничение в валюте;
+*/
+select mon.OrderID, mon.FirstEvent, mon.LastEvent,
+        not (
+            FirstEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+            and
+            LastEvent between max_of(AutobudgetStartTime, PeriodStartTime) and PeriodFinishTime
+        ) as notInRange
+from (
+        select *
+        from `//home/yabs/autobudget/AuditBudget`
+            where RunTime = $runTime
+    ) as mon
+    left only join $orders_checked as valid using(OrderID, AutobudgetStartTime, PeriodStartTime, PeriodFinishTime, FirstEvent, LastEvent)
+    into result `invalid-cases`;

@@ -1,0 +1,21 @@
+INSERT INTO hiring_candidates.phone_regions (
+    phones_from,
+    phones_to,
+    geo_id
+)
+VALUES
+(
+    79997760000,
+    79997769999,
+    192
+),
+(
+    79997790000,
+    79997798999,
+    2
+),
+(
+    79033630000,
+    79033639999,
+    213
+)

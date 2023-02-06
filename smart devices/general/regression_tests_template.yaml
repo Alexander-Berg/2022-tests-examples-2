@@ -1,0 +1,59 @@
+# WiKi: https://docs.yandex-team.ru/teamcity-sandbox-runner/
+# https://wiki.yandex-team.ru/tv-android/testing/androidtvautomation/
+
+_lxc_with_api25_28: &lxc_with_api25_28
+  lxc:
+    # system-images;android-25;android-tv;x86
+    # system-images;android-28;google_apis;x86_64
+    # java 11
+    # Python 3.8
+    # marathon 0.7.3
+    # allure 2.18.1
+    # https://sandbox.yandex-team.ru/task/1392069262/view
+    3374852184
+
+_lxc_with_api30: &lxc_with_api30
+  lxc:
+    # system-images;android-30;google_apis;x86
+    # java 11
+    # Python 3.8
+    # marathon 0.7.3
+    # allure 2.18.1
+    # https://sandbox.yandex-team.ru/task/1392070282/view
+    3374860080
+
+_env_path: &env_path
+  ANDROID_HOME: "/usr/local/android-sdk-linux"
+  ANDROID_SDK_ROOT: "/usr/local/android-sdk-linux"
+  PATH: "/usr/local/android-sdk-linux/platform-tools:\
+         /usr/local/android-sdk-linux/emulator:\
+         /usr/local/android-sdk-linux/cmdline-tools/latest/bin:\
+         /usr/local/android-sdk-linux/build-tools/31.0.0:\
+         /usr/local/android-sdk-linux/tools/bin:\
+         /opt/gradle/gradle-5.4.1/bin:\
+         /usr/local/bin:/usr/bin:/bin:\
+         /usr/local/sbin:/usr/sbin:/sbin:/Berkanavt/bin/scripts:$PATH"
+
+_basic: &basic
+  work_dir:
+    smart_devices/android
+  fail_fast:
+    false
+  env:
+    <<: *env_path
+  secrets:
+    # https://yav.yandex-team.ru/secret/sec-01fsrr8cgn5tq5bref1fecnx43 android-tv-autotests
+    # https://yav.yandex-team.ru/secret/sec-01d1ehgnbf5981b4f8dkg78ndj eva-credentials-robot-edi
+    :sec-01d1ehgnbf5981b4f8dkg78ndj[signer-token]: YANDEX_SIGNER_OAUTH
+    :sec-01d1ehgnbf5981b4f8dkg78ndj[yav-token]: ROBOT_YAV_TOKEN
+    :sec-01d1ehgnbf5981b4f8dkg78ndj[ya-token]: YA_TOKEN
+    :sec-01fsrr8cgn5tq5bref1fecnx43[testpalm-token]: TESTPALM_TOKEN
+    :sec-01fsrr8cgn5tq5bref1fecnx43[kolhoz_token]: KOLHOZ_TOKEN
+  caches:
+    - ~/.gradle/caches/modules-2
+    - ~/.gradle/wrapper
+  kill_timeout:
+    32400
+  multislot:
+    LARGE
+  client_tags: USER_MONOREPO & (SAS | VLA | MYT | IVA | UNK)

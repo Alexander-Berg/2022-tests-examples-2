@@ -1,0 +1,67 @@
+options:
+  width: 800
+  height: 600
+  browser: chrome
+  base_url: http://nginx
+  selenium_hub_url: http://127.0.0.1:4450/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+  - click_ok: css:button#to-click
+  - log:  # simple like
+      like: Clicked
+      description: Simple like
+  - _inner_test: True
+
+  - click_ok: css:button#to-click
+  - log: info:Clicked  # short with level
+  - _inner_test: [True, Short with level.]
+
+  - click_ok: css:button#to-click
+  - log: debug:Clicked  # Cross level
+  - _inner_test: [True, Passed cross level.]
+
+  - click_ok: css:button#to-click
+  - log: warning:Clicked  # Cross level failed
+  - _inner_test:
+      success: False
+      message: log has no message part
+      tap_description: Failed non relevant cross level.
+
+  - click_ok: css:button#to-click-debug
+  - log:  # filter by level
+      level: debug
+      like: Clicked
+      description: filter by level
+  - _inner_test: [True, Passed filter by level.]
+
+  - log:  # like+unlike error
+      like: Some text
+      unlike: Some text
+      description: like+unlike error
+  - _inner_test:
+      success: False
+      message: unwanted args
+      tap_description: Failed with both like+unlike.
+
+  - log:  # no like nor unlike error
+      description: no like nor unlike error
+  - _inner_test:
+      success: False
+      message: missed args
+      tap_description: No like nor unlike error.
+
+  - click_ok: css:button#to-click
+  - log:  # unlike error
+      unlike: Clicked
+      description: unlike error
+  - _inner_test:
+      success: False
+      message: log should not have
+      tap_description: Failed with existing unlike.
+
+  - click_ok: css:button#to-click
+  - wait:
+    - log: Clicked
+  - _inner_test: [True, Wait with log works well.]

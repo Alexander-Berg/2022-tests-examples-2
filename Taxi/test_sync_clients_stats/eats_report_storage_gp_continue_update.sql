@@ -1,0 +1,66 @@
+SET TIME ZONE 'UTC';
+
+INSERT INTO snb_eda.rad_dm_client_metric(
+    place_id,
+    brand_id,
+    utc_period_start_dttm,
+    scale_name,
+    users_with_1_order_cnt,
+    users_with_2_orders_cnt,
+    users_with_3_orders_and_more_cnt,
+    unique_users_cnt,
+    newcommers_cnt,
+    oldcommers_cnt,
+    oldcommers_gmv_pcnt,
+    oldcommers_gmv_lcy,
+    newcommers_gmv_lcy,
+    _etl_processed_dttm)
+VALUES
+  (
+     1,
+     2,
+     '2021-07-01 00:00'::timestamp,
+     'monthly',
+     41,
+     42,
+     43,
+     44,
+     45,
+     46,
+     4.7,
+     4.8,
+     4.9,
+     '2021-06-30 00:03:30'::timestamp + interval '1 minute'
+  ),
+  (
+     1,
+     2,
+     '2021-06-30 00:03:30'::timestamp,
+     'weekly',
+     51,
+     52,
+     53,
+     54,
+     55,
+     56,
+     5.7,
+     5.8,
+     5.9,
+     '2021-06-30 00:03:30'::timestamp + interval '1 minute'
+  ),
+  (
+     1,
+     2,
+     '2021-06-30 00:03:30'::timestamp,
+     'dayly',
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
+     6.7,
+     6.8,
+     6.9,
+     '2021-06-30 00:03:30'::timestamp + interval '2 minute'
+  );

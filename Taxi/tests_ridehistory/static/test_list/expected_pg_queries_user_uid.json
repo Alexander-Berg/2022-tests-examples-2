@@ -1,0 +1,4 @@
+{
+  "hidden_orders": "SELECT DISTINCT order_id FROM ((SELECT order_id FROM ridehistory.hidden_orders WHERE user_uid IN (SELECT UNNEST($3))) UNION (SELECT order_id FROM ridehistory.hidden_orders WHERE phone_id IN (SELECT UNNEST($1)))) AS q",
+  "orders": "SELECT DISTINCT ON (order_id) order_created_at, order_id FROM ((SELECT order_created_at, order_id FROM ridehistory.user_index WHERE ((NOT is_hidden) AND (user_uid IN (SELECT UNNEST($3)))) AND ($8 IS NULL OR order_created_at > $8 AT TIME ZONE 'UTC')) UNION (SELECT order_created_at, order_id FROM ridehistory.user_index WHERE ((NOT is_hidden) AND (phone_id IN (SELECT UNNEST($1)) AND order_created_at > $2 AT TIME ZONE 'UTC')) AND ($8 IS NULL OR order_created_at > $8 AT TIME ZONE 'UTC'))) AS q"
+}

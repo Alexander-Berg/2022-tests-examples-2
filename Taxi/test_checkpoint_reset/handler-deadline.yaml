@@ -1,0 +1,50 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: default
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: simple_handler
+                    requests:
+                      - id: first-handler-src
+                        resource: first-handler-resource
+                    resources:
+                      - id: first-handler-resource
+                        url: $first_handler_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        simple-handler-result#xget: /sources/first-handler-src/response/body
+              - id: stage-2
+                handlers:
+                  - id: fail_handler
+                    requests:
+                      - id: second-handler-src
+                        resource: second-handler-resource
+                    resources:
+                      - id: second-handler-resource
+                        url: $second_handler_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        fail-handler-result#xget: /sources/second-handler-src/response/body
+                    handler-fallback-policy:
+                        reset-checkpoint: true
+                        strategy: deadline
+                        deadline: 5m
+                        result:
+                            deadline-handler-result: {"result": "fallback"}

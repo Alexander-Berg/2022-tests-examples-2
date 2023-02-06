@@ -1,0 +1,127 @@
+settings:
+    collection: tariff_settings
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: country
+  - key: hz
+    unique: true
+  - key: updated
+wiki_info: |
+    #### tariff_settings
+
+    *Назначение:* содержит информацию о зоне.
+
+    *Структура документа*:
+
+    ```python
+    {
+        'hz': 'moscow',                                             # название зоны, к которой привязан тариф
+        's': [                                                      # список активных категорий
+            {
+                'n': 'econom',                                      # название категории express/econom/business/vip/comfortplus/minivan
+                't': 'name.econom',                                 # ключ танкера с названием тарифа из кейсета backend.tariff
+                'sl': [30],                                         # маппинг тарифа в service_levels
+                'd': True,                                          # выбран ли тариф по умолчанию у новых пользователей
+                'r': True,                                          # может ли быть тариф заполнен как тариф тариф по умолчанию
+                'cc': [0],                                          # ограничениями на клиенты для которых доступен тариф (taxi/client_protocol/protocol_3_0/client_possibilities.py)
+                'oso': False,                                       # только для заказов на ближайшее время
+                'd_dest_change': False,                             # запрещено менять точку назначения
+                'd_zone_leave': False,                              # запрещено покидать зону начала заказа
+                'd_live_loc': False,                                # live location отключен для тарифа
+                'd_ban_feedback': False,                            # отключить бан водителя для пассажира за плохой фидбек
+                'rpt': [                                            # разрешенные типы оплаты для данного тарифа (отсутствие поля означает поддержку всех типов)
+                    'cash', 'card',
+                    'corp', 'applepay', 'googlepay'
+                ],
+                'tc': [                                             # настройки трансферов для отображения на карточке тарифа
+                    {
+                        'src': 'svo',                               # начальная зона
+                        'dsts': ['sao', 'seao', 'wao']              # в какие зоны учитываем поездки для нахождения диапазона
+                    },
+                    # ...
+                ],
+                'persistent_reqs': ['animaltransport']              # требования запоминаемые на клиенте
+                'client_requirements': ['animaltransoprt'],         # требования доступные для тарифа
+                'glued_requirements':['animaltransoprt'],           # "Приклеенные" требования (по умолчанию все обязательные, если не указаны в glued_optional_requirements)
+                'glued_optional_requirements':['animaltransoprt']   # "Приклеенные" необязательные требования (подмножество glued_requirements)
+            },
+            # ...
+        ],
+        'for_wizard': True,                                         # показывать город в колдунщике или нет
+        'updated': datetime.datetime.utcnow(),                      # время последнего обновления документа
+        'max_eta': 600,                                             # максимальное время подачи до получения статуса "нет свободных машин", секунды
+        'hide_dest_for_driver': True,                               # скрывать точку Б для водителя до статуса waiting
+        'hide_dest_for_driver_by_class': {                          # скрывать точку Б для водителя до статуса waiting по классам
+          'econom': false
+        }
+        'client_exact_order_round_minutes': 10,                     # ко скольки минутам округлять время заказа
+        'client_exact_order_min_timedelta': 0,                      # Минимальная разница между текущем временем и временем подачи в секундах
+        'client_exact_order_times': [600, 900, 1200],               # Список интервалов времени для заказа такси, значения в секундах
+        'show_onboarding': False,                                   # Показывать "onboard" подсказки
+        'rl': [2, 3],                                               # Список требуемых id поставщиков лицензий (логика oneOf)
+        'classifier_name': 'Москва',                                # Идентификатор классификатора из коллекции classification_rules
+        'city_id': 'Москва'                                         # идентификатор города ассоциированного с зоной
+        'country': 'rus',                                           # идентификатор страны
+        'is_beta': false                                            # зона работает в бетта режиме
+        'req_destination': false                                    # точка Б обязательна
+        'req_destination_rules': {
+          'min_timedelta': 1500                                     # требовать точку Б при заказе больше чем на X секунд вперед
+         },
+        'support_phone': '8...',                                    # телефон поддержки
+        'tz': 'Europe/Moscow',                                      # таймзона
+        'layout': 'default',                                        # способ отображения трансферов на сайте с тарифами (default/tight) (используется фронтами)
+        'compact_transfers_layout': False,                          # использовать компактный режим отображения траснферов
+        'max_eta': 180,                                             # максимальное разрешенное время подачи
+        'hide_dest_for_driver': false,                              # cкрывать точку Б для водителя до статуса waiting
+        'extra_charge': 0,                                          # надбавка на заказ через колл-центр
+        'discount': 0,                                              # скидка на заказ через колл-центр
+        'payment_options': ['applepay', 'coupon'],                  # поддерживаемые способы оплаты
+        'client_exact_order_round_minutes': 2                       # Ко скольким минутам округлять время заказа
+        'client_exact_order_min_timedelta': 1500,                   # Минимальная разница между текущем временем и временем подачи в секундах
+        'client_exact_order_times': [60, 300],                      # Список интервалов времени для заказа такси, значения в секундах
+        'show_onboarding': false,                                   # Показывать или нет заставку onboarding
+        'skip_main_screen': False,                                  # при запуске приложения показываем summary минуя главный экран
+        'paid_cancel_enabled': false,                               # включена платная отмена
+        'fixed_price_enabled': false,                               # включен fix price
+        'fixed_price_max_distance_from_b': 1000,                    # максимальная допустимая погрешность для точки Б
+        'fixed_price_show_in_taximeter': false,                     # Показывать цену в таксометре
+        'disable_required_b': false,                                # Отключение требования точки Б при сурже
+
+        # Мы планируем отказаться от 'surge_tariff_class_upgrades' в пользу 'surge_ratio_upgrade'. Логикой
+        # выбора правил управляет значение 'surge_upgrade_type'.
+        'surge_upgrade_type':'simple',                              # 'simple' или 'ratio'
+        'surge_tariff_class_upgrades': {                            # Правила повышения класса при сурже
+          'econom': [                                               # Повышем с эконома
+            [1.5, 'business'],                                      # На комфорт при сурже больше или равном 1.5
+            [2.5, 'comformtplus'],                                  # На комфортплюс при сурже больше или равном 2.5
+          ]
+        },
+        'surge_ratio_upgrade': {                                    # Пропорциональная логика surge upgrade (TAXIBACKEND-10143):
+          'econom': {                                               # Повышение с эконома...
+            'surge_ratio': [                                        # ...в случае если точка B не задана,
+              [1.1, 'business'],                                    #    повышаем до комфорта если surge_econom >= 1.1 * surge_business
+              [1.2, 'comfortplus']                                  #    повышаем до комфортплюса если surge_econom >= 1.2 * surge_comfortplus
+            ],
+            'price_ratio': [                                        # ...в случае если точка В задана,
+              [1.1, 'business'],                                    #    повышаем до комфорта если price_econom >= 1.1 * prace_business
+              [1.3, 'comfortplus']                                  #    повышаем до комфортплюса если price_econom >= 1.3 * price_comfortplus
+            ]
+          }
+        },
+
+        'card_payment_settings': {                                  # Настройки платежей для банковских карт
+            'max_refund': 1500,                                     # максимальный рефанд пользователю в рублях
+            'max_compensation': 3200,                               # максимальная компенсация таксопарку в рублях
+            'max_manual_charge': 5000,                              # максимальная сумма списания
+        },
+        'max_card_payment': 3200,                                   # оплата заказов по карте с большей стоимостью в этом городе будет проводиться вручную
+        'max_corp_payment': 20000,                                  # оплата корпоративных заказов с большей стоимостью в этом городу будет проводиться вручную
+
+        'require_driver_speak_rus': false,                          # В данной тарифной зоне запрещено давать заказы не русскоязычным водителям
+        'antifraud_config': antifraud_config,                       # настройки антифрода (**)
+        'holidays': ['2014-05-01', ...],                            # Cписок праздничных дней (*)
+        'workdays': ['2014-10-12', ...],                            # Cписок рабочих дней (*)
+    }
+    ```
+    `*` с++ код читает их отсюда, python-код пока ещё читает их из `cities` .

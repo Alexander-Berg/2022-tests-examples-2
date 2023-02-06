@@ -1,0 +1,47 @@
+description: user emails
+settings:
+    collection: user_emails
+    connection: users
+    database: dbusers
+indexes:
+  - key: confirmation_code
+    unique: true
+  - key:
+      - name: confirmed
+        type: ascending
+      - name: updated
+        type: ascending
+    partialFilterExpression:
+        confirmed: false
+    unique: false
+  - key: email
+  - key: personal_email_id
+  - key: phone_id
+    sparse: true
+    unique: false
+  - key: updated
+  - key: yandex_uid
+    sparse: true
+wiki_info: |
+    ####dbusers.user_emails - Адреса электронной почты пользователей
+
+    Коллекция содержит привязки адресов электронной почты к телефонам пользователей или к их паспортным аккаунтам в связке с названием бренда.
+    В данный момент каждый адрес хранится в отдельном документе.
+    Один и тот же адрес может быть привязан к разным телефонным номерам и паспортным аккаунтам.
+    Важно: уникальный индекс по phone_id или yandex_uid должен быть составным с brand_name.
+
+    ```python
+    user_emails = {
+        '_id': ObjectId(),              # Первичный ключ документа, в общем случае, никак не связана с phone_id
+        'phone_id': ObjectId(),         # ID телефона, на который привязана данная почта (может отсутствовать)
+        'yandex_uid': 'строка',         # Паспортный UID аккаунта, к которому привязанна данная почта (может отсутствовать)
+        'brand_name': string,           # Название бренда сервиса (yataxi|yauber|...)
+        'email': 'sample@ya.ru',        # Собственно адрес электронной почты
+        'email_domain': 'yandex.ru'     # Доменная часть адреса электронной почты
+        'personal_email_id': 'id',      # Идентификатор почты в сервисе personal
+        'confirmed': True,              # Признак того, что адрес подтвержден пользователем
+        'confirmation_code': 'строка',  # Секретный код, используемый при подтверждении e-mail и позднее при отписке (unset). Меняется при смене e-mail.
+        'created': utcnow(),            # Дата и время создания документа
+        'updated': utcnow(),            # Дата и время обновления документа
+    }
+    ```

@@ -1,0 +1,29 @@
+options:
+  width: 800
+  height: 600
+  browser: chrome
+  base_url: http://nginx
+  selenium_hub_url: http://127.0.0.1:4450/wd/hub
+  timeout: 2.0
+
+tests:
+  - get_ok:
+      url: base.html
+  - wait:  # Common case
+      - has: /html/body/div
+      - has: css:p.text
+  - _inner_test: [True, Passed common case.]
+
+# tests for implicit wait:
+  - click_ok:
+      xpath: //*[@id="show-yohoho"]
+  - is:
+      timeout: 0.5
+      xpath: //*[@id="yohoho"]
+      value: YOHOHO
+  - _inner_test:
+      success: False
+      elapsed:
+        min: 0.5
+        max: 1.0
+      tap_description: Really waits and fails.

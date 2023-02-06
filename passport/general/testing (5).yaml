@@ -1,0 +1,43 @@
+emitter:
+  args:
+    balancer_host: '%(dc)s.logbroker-prestable.yandex.net:8999'
+    client: passport@lbc-avatars
+    data_port: 8999
+    ident: passport
+    per_host_config:
+      .*?:
+        dc: myt
+        topics:
+        - rt3.myt--passport--avatars-log
+        - rt3.man--passport--avatars-log
+    workers_count: 4
+  class: passport.backend.logbroker_client.core.consumers.simple.emitter.PartitionsCountEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+avatars:
+  write_url: http://avatars-int.mdst.yandex.net:13000
+  read_url: https://avatars.mdst.yandex.net
+  retries: 1
+  timeout: 5
+blackbox:
+  url: https://pass-test.yandex.ru/
+  timeout: 1
+  retries: 2
+  use_tvm: false
+  get_hidden_aliases: false
+passport:
+  url: https://passport-test-internal.yandex.ru
+  timeout: 3
+  retries: 2
+  use_tvm: true
+logpath: /var/log/yandex/logbroker-client/passport-avatars/
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.avatars.handler.AvatarsHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.worker.AutoBalancedLogbrokerWorker
+  count: 96
+

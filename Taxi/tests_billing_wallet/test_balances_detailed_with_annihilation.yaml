@@ -1,0 +1,107 @@
+type: apitest
+version: 0
+service: taxi_billing_wallet
+
+marks:
+  - name: config
+    kwargs:
+        CASHBACK_START_ANNIHILATION_DATE:
+            enabled: true
+            general_annihilation_date: '2020-01-01T00:00:00Z'
+
+mockserver:
+  - url: /billing-accounts/v2/balances/select
+    response:
+        body:
+          - account:
+                account_id: 38550187
+                entity_external_id: "wallet_id/4004011005"
+                agreement_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+                currency: "RUB"
+                sub_account: "deposit"
+            balances:
+              - accrued_at: "2020-10-11T13:05:01.458765+00:00"
+                balance: "4690.0000"
+                last_entry_id: 1149830187
+                last_created: "2020-09-16T08:08:36.592404+00:00"
+              - accrued_at: "2020-10-12T15:05:01.458765+00:00"
+                balance: "4690.0000"
+                last_entry_id: 1149830287
+                last_created: "2020-09-16T08:08:36.592404+00:00"
+              - accrued_at: "2020-10-15T13:05:01.458765+00:00"
+                balance: "11048.0000"
+                last_entry_id: 1118080187
+                last_created: "2020-06-09T13:15:08.073228+00:00"
+          - account:
+                account_id: 40580187
+                entity_external_id: "wallet_id/4004011005"
+                agreement_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+                currency: "RUB"
+                sub_account: "topup/payment"
+            balances:
+              - accrued_at: "2020-10-11T13:05:01.458765+00:00"
+                balance: "5163.0000"
+                last_entry_id: 1149830187
+                last_created: "2020-09-16T08:08:36.592404+00:00"
+              - accrued_at: "2020-06-11T13:05:01.458765+00:00"
+                balance: "0"
+                last_entry_id: 1118080187
+                last_created: "2020-06-09T13:15:08.073228+00:00"
+
+
+tests:
+  - name: happy_path
+    request:
+        method: POST
+        path: /balance/detailed
+        body:
+            yandex_uid: "12345678"
+            wallet_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+            accrued_at:
+              - "2020-06-11T13:05:01.458765+00:00"
+
+    response:
+        status: 200
+        body:
+            balances:
+              - accrued_at: "2020-10-11T13:05:01.458765+00:00"
+                amount: "4690.0000"
+                currency: "RUB"
+                sub_account: "deposit"
+                wallet_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+              - accrued_at: "2020-10-12T15:05:01.458765+00:00"
+                amount: "4490.0000"
+                currency: "RUB"
+                sub_account: "deposit"
+                wallet_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+              - accrued_at: "2020-10-15T13:05:01.458765+00:00"
+                amount: "10848.0000"
+                currency: "RUB"
+                sub_account: "deposit"
+                wallet_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+              - accrued_at: "2020-10-11T13:05:01.458765+00:00"
+                amount: "5163.0000"
+                currency: "RUB"
+                sub_account: "topup/payment"
+                wallet_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+              - accrued_at: "2020-06-11T13:05:01.458765+00:00"
+                amount: "0.0000"
+                currency: "RUB"
+                sub_account: "topup/payment"
+                wallet_id: "w/7bab4d2d-84c4-5177-9764-6f45ed315a91"
+
+  - name: invalid_account
+    mockserver:
+      - url: /billing-accounts/v2/balances/select
+        response:
+            body: []
+    request:
+        method: POST
+        path: /balance/detailed
+        body:
+            yandex_uid: "olololo"
+            wallet_id: "lololo"
+            accrued_at:
+              - "2020-06-11T13:05:01.458765+00:00"
+    response:
+        status: 404

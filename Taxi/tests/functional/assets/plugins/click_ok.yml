@@ -1,0 +1,94 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+  screenshots:
+    dir: '/home/andrew-zak/prog/pahtest/screenshots'
+    before: none  # none | all | fail
+    after: all  # none | all | fail
+
+tests:
+  - get_ok: base.html
+  - wait:
+      - has: css:input[type=submit]
+
+  - click_ok: css:button#to-click
+  - _inner_test: [True, Passed most common click.]
+  - eq: [css:.log, Clicked]
+  - _inner_test: [True, Really done most common click.]
+
+  - click_ok:
+      xpath: /html/body/div/p
+  - _inner_test: [True, Passed click on non clickable.]
+  - eq: [css:.log, Clicked non clickable]
+  - _inner_test: [True, Really clicked to non clickable.]
+
+  - click_ok:
+      fill:
+        - css: input#first
+          value: to submit
+        - css: input#second
+          value: 123
+      css: input[type=submit]
+  - _inner_test: [True, Passed fill and click.]
+  - url: first=to+submit&second=123
+  - _inner_test: [True, Form really submitted]
+
+  - wait:
+      - has: css:input[type=submit]
+
+  - click_ok:
+      fill:
+        - css: input#first
+          value: to submit
+        - css: input#second
+          value: wrong str value
+      css: input[type=submit]
+  - _inner_test: [True, Passed filling with wrong input value type.]
+
+  - click_ok:
+      fill:
+        - css: input#first
+          value: to submit
+        - css: input#not-existing
+          value: wrong css value
+      css: input[type=submit]
+  - _inner_test:
+      success: False
+      message: Page has no element
+      tap_description: Failed filling not existing element.
+
+  - get_ok: base.html
+  - wait:
+      - has: css:input[type=submit]
+
+  - wait:
+    - clickable: css:input[type=submit]
+  - click_ok:
+      fill:
+        - css: input#first
+          value: to submit
+        - xpath: /html/body
+          value: not input element
+      css: input[type=submit]
+  - _inner_test: [True, Passed filling non text element.]
+  - wait:
+      - has: css:input[type=submit]
+
+  - click_ok: css:.none > button
+  - _inner_test:
+      success: False
+      message: Element with css ".none > button" is not interactable
+      tap_description: Not displayed element failed
+
+  - click_ok: css:.hidden > button
+  - _inner_test: [False, Click to hidden element.]
+
+  - click_ok: css:not-existing-element
+  - _inner_test:
+      success: False
+      message: Page has no element with css "not-existing-element"
+      tap_description: Not existing element failed

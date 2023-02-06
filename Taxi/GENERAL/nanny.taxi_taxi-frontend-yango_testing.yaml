@@ -1,0 +1,99 @@
+group:
+  type: rtc
+  name: taxi_taxi-frontend-yango_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+  taxi-frontend-yango.taxi.tst.yandex.net:
+    Equals: { http_host: "taxi-frontend-yango.taxi.tst.yandex.net" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  yango-frontend.taxi.tst.yandex.com:
+    Equals: { http_host: "yango-frontend.taxi.tst.yandex.com" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  m.yango.taxi.tst.yandex.com:
+    Equals: { http_host: "m.yango.taxi.tst.yandex.com" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+
+  yango.taxi.tst.yandex.com_nodejs:
+    And:
+      - Or:
+          - Equals: { http_host: "yango-frontend.taxi.tst.yandex.com" }
+          - Equals: { http_host: "m.yango.taxi.tst.yandex.com" }
+      - Not:
+          - StartsWith: { request_url: "/3.0" }
+      - Not:
+          - StartsWith: { request_url: "/utils" }
+      - Not:
+          - StartsWith: { request_url: "/form-builder-api" }
+      - Not:
+          - StartsWith: { request_url: "/action" }
+      - Not:
+          - StartsWith: { request_url: "/signup" }
+      - Not:
+          - StartsWith: { request_url: "/driver" }
+      - Not:
+          - StartsWith: { request_url: "/legal" }
+
+  yango.taxi.tst.yandex/support:
+    And:
+      - Or:
+          - Equals: { http_host: "yango-frontend.taxi.tst.yandex.com" }
+          - Equals: { http_host: "m.yango.taxi.tst.yandex.com" }
+      - Contains: { request_url: "/support" }
+
+
+  yango.taxi.tst.yandex.webview:
+    And:
+      - Or:
+          - Equals: { http_host: "yango-frontend.taxi.tst.yandex.com" }
+          - Equals: { http_host: "m.yango.taxi.tst.yandex.com" }
+      - Or:
+          - Contains: { request_url: "/webview/" }
+          - StartsWith: { request_url: "/help" }
+          - StartsWith: { request_url: "/zone-tariff" }
+          - StartsWith: { request_url: "/park-tariff" }
+
+  yango.taxi.tst.yandex.com_robots:
+    And:
+      - Or:
+          - Equals: { http_host: "yango-frontend.taxi.tst.yandex.com" }
+          - Equals: { http_host: "m.yango.taxi.tst.yandex.com" }
+      - Or:
+          - StartsWith: { request_url: "/3.0/routestats" }
+          - StartsWith: { request_url: "/3.0/auth" }
+
+  taxi-frontend-yango.taxi.tst.yandex.net/ping_GET:
+    And:
+      - Equals: {http_host: "taxi-frontend-yango.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # No description provided.
+          - Equals: {request_url: "/ping"}
+          - Equals: {request_url: "/ping/"}
+          - StartsWith: {request_url: "/ping?"}
+          - StartsWith: {request_url: "/ping/?"}

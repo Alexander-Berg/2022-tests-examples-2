@@ -1,0 +1,65 @@
+id: test_get_menu_core_noaccess
+title: Проверяем что нормально отработаем проверку доступа (ошибка 403 от eats-restapp-authorizer)
+
+source:
+    request:
+        method: get
+        url: /4.0/restapp-front/api/v1/client/place/999/menu
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - code: 2
+                    message: "One or more places are forbidden."
+
+mocks:
+  - resource: eats-core-v1-places-place-menu-get
+    response:
+        status-code: 200
+        body:
+            is_success: true
+            payload:
+                menu:
+                    categories: []
+                    items: []
+                    lastChange: "2021-07-12T18:32:07.152676+03:00"
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+            path-params:
+                placeId: 999
+            query:
+            body:
+
+  - resource: eats-restapp-authorizer-place-access-check
+    response:
+        status-code: 403
+        body:
+            code: "403"
+            message: "One or more places are forbidden."
+            place_ids: [162]
+    expectations:
+        call-count: 1
+        request:
+            body:
+                partner_id: 123
+                place_ids: [999]
+
+experiments:
+    values:
+        eats-restapp-switch-menu:
+            method: core
+    expectations:
+        consumer: eats-api-proxy/restapp-menu
+        kwargs:
+          - key: place_id
+            type: string
+            value#string: 999

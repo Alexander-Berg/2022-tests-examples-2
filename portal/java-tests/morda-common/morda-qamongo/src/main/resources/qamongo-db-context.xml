@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/data/mongo
+    http://www.springframework.org/schema/data/mongo/spring-mongo-1.0.xsd">
+
+    <bean id="apiProps" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="localOverride" value="true"/>
+        <property name="locations">
+            <list>
+                <value>classpath*:qamongo-db.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <mongo:mongo id="mongo" replica-set="${mongo.replicaSet}">
+        <mongo:options
+                connections-per-host="${mongo.connections.per.host}"
+                threads-allowed-to-block-for-connection-multiplier="${mongo.threads.connection.mult}"
+                connect-timeout="${mongo.connect.timeout}"
+                auto-connect-retry="${mongo.autoconnect.retry}"
+                max-auto-connect-retry-time="0"
+                socket-timeout="${mongo.socket.timeout}"/>
+    </mongo:mongo>
+
+    <mongo:db-factory id="mongoDbFactory"
+                      dbname="${mongo.dbname}"
+                      username="${mongo.username}"
+                      password="${mongo.password}"
+                      mongo-ref="mongo"
+                      write-concern="safe"/>
+
+    <bean id="mongoOperations" class="org.springframework.data.mongodb.core.MongoTemplate" scope="prototype">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+        <property name="readPreference" ref="readPreferenceSecondary"/>
+    </bean>
+
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate" scope="prototype">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+        <property name="readPreference" ref="readPreferenceSecondary"/>
+    </bean>
+
+    <mongo:repositories base-package="ru.yandex.autotests.morda.qamongo.repositories"
+                        repository-impl-postfix="CustomImpl"/>
+
+    <bean id="readPreferenceSecondary" class="com.mongodb.TaggableReadPreference.SecondaryReadPreference">
+    </bean>
+</beans>

@@ -1,0 +1,23 @@
+INSERT INTO receipts
+    (id, park_id, driver_id, receipt_type, inn, status, total, is_corp, do_send_receipt, is_own_park,
+     receipt_at, receipt_at_tstz, checkout_at, checkout_at_tstz, created_at, modified_at)
+VALUES ('order_failed_3', 'p4', 'd4', 'order', 'inn4', 'new', 1.8, false, true, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('order_failed_4', 'p5', 'd5', 'order', 'inn5', 'new', 1.8, false, true, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('order_duplicate_1', 'p6', 'd6', 'order', 'inn_d1', 'new', 1.8, false, true, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('order_duplicate_2', 'p6', 'd6', 'order', 'inn_d2', 'new', 1.8, false, true, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('order_duplicate_3', 'p6', 'd6', 'order', 'inn_d3', 'new', 1.8, false, true, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('order_duplicate_4', 'p6', 'd6', 'order', 'inn_d4', 'new', 1.8, false, true, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('order_receipts_disabled_1', 'p6', 'd6', 'order', 'inn6', 'new', 1.8, false, false, true,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('quasi_order', 'p10', 'd10', 'order', 'inn10', 'new', 10.1, false, true, false,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('quasi_corp', 'p10', 'd10', 'order', 'inn10', 'new', 10.2, true, true, false,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW()),
+       ('quasi_subv', 'p11', 'd11', 'subvention', 'inn11', 'new', 11.1, false, true, false,
+        NOW(), NOW(), NOW(), NOW(), NOW(), NOW());

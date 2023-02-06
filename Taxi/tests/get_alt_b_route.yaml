@@ -1,0 +1,67 @@
+id: get_alt_b_route
+title: Проверка альтернативной точки Б
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+experiments:
+    values#object:
+      - key: alt_b_route
+        value:
+            enabled: true
+        enabled: true
+
+source:
+    request:
+        method: post
+        body:
+            id: test_user_id
+            orderid: test_order_id
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                origin_point_b:
+                    point:
+                        position: [45.45, 46.46]
+                        bubble:
+                            text: Панкратьевский пер. 12
+                    seconds_after_finish: 120
+                    info_block:
+                        title: Дальше 1 мин. пешком
+                        subtitle: До Панкратьевский пер. 12
+                        close_button:
+                            color: '#000000'
+                            text_color: '#FFFFFF'
+                            text: Сбросить
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                driver_id: test_driver_id
+  - resource: alt-b-v1-get-by-order-id
+    response:
+        status-code: 200
+        body:
+            point:
+                position: [45.45, 46.46]
+                bubble:
+                    text: Панкратьевский пер. 12
+            seconds_after_finish: 120
+            info_block:
+                title: Дальше 1 мин. пешком
+                subtitle: До Панкратьевский пер. 12
+                close_button:
+                    color: '#000000'
+                    text_color: '#FFFFFF'
+                    text: Сбросить

@@ -1,0 +1,81 @@
+id: cancel_rules_409_cancel_action
+title: Получаем cancel_rules из новой ручки, когда totw вернул ошибку 409 при отмене
+    заказа
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            cancel_state: 'free'
+            break: 'user'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+    expectations:
+        response:
+            status-code#integer: 409
+            body:
+                error:
+                    cancel_rules:
+                        state: 'paid'
+                        cost: 0
+                    code: 'ERROR_CANCEL_STATE_CHANGED'
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: cancel_rules
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 409
+        body:
+            error:
+                cancel_state: 'paid'
+                code: 'ERROR_CANCEL_STATE_CHANGED'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: order-parts-frequency-mid
+    response:
+        status-code: 200
+        body:
+            cancel_rules:
+                cost: 0
+                state: 'paid'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                order_id: 'order_id'
+                cancel_state: 'paid'
+                allowed_changes: []
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: transporting
+            request:
+                due: '2020-12-15T08:30:00+0000'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

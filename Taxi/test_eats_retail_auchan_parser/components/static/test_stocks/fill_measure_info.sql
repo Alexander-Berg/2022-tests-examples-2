@@ -1,0 +1,26 @@
+INSERT INTO measure_info
+(
+  place_id,
+  articul,
+  quantum,
+  value,
+  is_catch_weight,
+  vat
+)
+VALUES
+(
+  'place_id',
+  '46956',
+  0.5,
+  500,
+  true,
+  '20'
+),
+(
+  'place_id',
+  '29',
+  0,
+  500,
+  false,
+  10
+);

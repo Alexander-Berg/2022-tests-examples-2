@@ -1,0 +1,113 @@
+project-name: yandex-taxi-stq-agent
+short-name: stq-agent
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/stq-agent/
+maintainers:
+  - Ksenia Lukashevichus <luxenia@yandex-team.ru>
+
+units:
+  - uservice_unit:
+        name: stq-agent
+        description: STQ agent service for normal priority queues
+
+        hostname:
+            production:
+              - stq-agent.taxi.yandex.net
+            testing:
+              - stq-agent.taxi.tst.yandex.net
+            unstable:
+              - stq-agent.taxi.dev.yandex.net
+
+        grafana:
+            production: https://grafana.yandex-team.ru/d/Xv_McdzWk/taxi_conductor_taxi_stq_agent
+            testing: https://grafana.yandex-team.ru/d/WIFGpdkZz/taxi_conductor_taxi_test_stq_agent
+    realm: taxi
+
+    tvm2:
+        secdist-service-name: stq-agent
+        secdist-service-id: 25115365
+
+    debian:
+        binary_package_name: yandex-taxi-stq-agent
+
+    docker-deploy:
+        clownductor-service: stq-agent
+        #
+        #docker-deploy:
+        #clownductor-service: stq-agent
+
+    push-client:
+        #Legacy option ONLY for services created before 01.04.2021
+        compatibility_primary_host: logbroker.yandex.net
+        files:
+            production:
+              - name: /var/log/yandex/taxi-stq-agent/server.log
+                topic: taxi/taxi-stq-agent-yandex-taxi-stq-agent-log
+                logrotate: false
+
+clownductor_service_info:
+    service:
+        clownductor_project: taxi-infra
+        preset:
+            production:
+                name: x3pico
+                overrides:
+                    cpu: 20
+                    ram: 14
+                    datacenters_count: 2
+                    stable_instances: 14
+            testing:
+                name: x2pico
+                overrides:
+                    cpu: 10
+                    ram: 14
+        disk_profile:
+            production:
+                name: ssd-default
+            testing:
+                name: ssd-default
+            unstable:
+                name: ssd-default
+        design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-684
+        duty_group_id: 5fd0fffa398be3389d0487ed
+        responsible_managers:
+          - tanzila
+        release_flow:
+            single_approve: true
+        reallocation_settings:
+            min_update_delay_seconds: 1200
+    aliases:
+      - name: stq-agent-taxi-critical
+        preset:
+            production:
+                name: x3micro
+            testing:
+                name: x2micro
+        disk_profile:
+            production:
+                name: default
+            testing:
+                name: default
+            unstable:
+                name: default
+        design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-891
+        duty_group_id: 5fd0fffa398be3389d0487ed
+        responsible_managers:
+          - tanzila
+        release_flow:
+            single_approve: true
+        clownductor_project: taxi-infra
+
+dashboards:
+    service_group:
+        rtc:
+            name: stq-agent
+    dorblu_custom:
+        production:
+            $ref: dorblu/production.yaml.template
+
+ya-make:
+    owners:
+      - g:taxi-core-infra
+
+teamcity:
+    conductor-disabled: true

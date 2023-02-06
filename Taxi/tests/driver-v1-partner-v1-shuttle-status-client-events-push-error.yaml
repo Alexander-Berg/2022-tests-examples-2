@@ -1,0 +1,52 @@
+id: driver-v1-partner-v1-shuttle-status-client-events-push-error
+title: Handler client-events/push returned error
+source:
+    request:
+        method: POST
+        url: /driver/v1/partner/v1/shuttle/status
+        body: {}
+        headers:
+            Content-Type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+    expectations:
+        response:
+            status-code: 200
+            headers:
+                X-Polling-Power-Policy: full=60s, powersaving=120s, idle=120s
+            body:
+                payload:
+                    state: "route_selection"
+                    panel_route_selection:
+                        header:
+                            title: "Title"
+                            subtitle: "Subtitle"
+                        items:
+                          - text: "Text"
+
+mocks:
+  - resource: shuttle-control-v1-shuttle-status
+    response:
+        status-code: 200
+        body:
+            state: "route_selection"
+            panel_route_selection:
+                header:
+                    title: "Title"
+                    subtitle: "Subtitle"
+                items:
+                  - text: "Text"
+
+    expectations:
+        call-count: 1
+        request:
+            method: POST
+            body: {}
+
+  - resource: client-events-push
+    response:
+        status-code: 500
+
+    expectations:
+        call-count: 1

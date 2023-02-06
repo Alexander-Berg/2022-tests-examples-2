@@ -1,0 +1,34 @@
+if (fix.country_code2 == "RS") {
+  let suggest_mp = round_to(*ride.price, fix.rounding_factor);
+  let delta = 10000;
+
+  let meta1 = [
+      "start_manual_price": suggest_mp,
+      "min_manual_price": ((suggest_mp > delta) ? suggest_mp - delta : 0),
+      "max_manual_price": suggest_mp + delta
+  ];
+
+  if ("manual_price" in ride.ride.user_options) {
+    let manual_price = ride.ride.user_options["manual_price"];
+    let meta2 = [
+        "manual_price": manual_price,
+        "manual_price:disp_cost.driver_cost": manual_price,
+        "manual_price:disp_cost.taximeter_cost": suggest_mp
+    ];
+    return {
+      boarding = manual_price,
+      distance = 0,
+      time = 0,
+      requirements = 0,
+      waiting = 0,
+      transit_waiting = 0,
+      destination_waiting = 0,
+      metadata = meta1 + meta2
+    };
+  }
+  return {
+    metadata = meta1
+  };
+}
+
+return ride.price;

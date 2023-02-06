@@ -1,0 +1,130 @@
+INSERT INTO scooter_accumulator.cabinets (
+    cabinet_id,
+    depot_id,
+    updated_at
+) VALUES
+(
+    'cabinet_id1',
+    'depot_id1',
+    NOW()
+),
+(
+    'cabinet_id2',
+    'depot_id2',
+    NOW()
+);
+
+INSERT INTO scooter_accumulator.accumulators (
+    accumulator_id,
+    serial_number,
+    contractor_id,
+    cabinet_id,
+    scooter_id,
+    charge,
+    updated_at
+) VALUES
+(
+    'accum_id1',
+    'serial_number1',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    95,
+    NOW()
+),
+(
+    'accum_id2',
+    'serial_number2',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    100,
+    NOW()
+),
+(
+    'accum_id4',
+    'serial_number4',
+    NULL,
+    'cabinet_id2',
+    NULL,
+    90,
+    NOW()
+);
+
+INSERT INTO scooter_accumulator.cells (
+    cell_id,
+    cabinet_id,
+    accumulator_id,
+    is_open,
+    booked_by,
+    updated_at
+) VALUES
+(
+    'cell_id1',
+    'cabinet_id1',
+    'accum_id1',
+    False,
+    'booking_id_created',
+    NOW()
+),
+(
+    'cell_id2',
+    'cabinet_id1',
+    'accum_id2',
+    False,
+    NULL,
+    NOW()
+),
+(
+    'cell_id4',
+    'cabinet_id2',
+    'accum_id4',
+    False,
+    'booking_id_created2',
+    NOW()
+);
+
+INSERT INTO scooter_accumulator.bookings (
+    booking_id,
+    contractor_id,
+    cabinet_id,
+    cells_count,
+    cell_id,
+    accumulator_id,
+    booking_status,
+    created_at,
+    updated_at
+) VALUES
+(
+    'booking_id_created',
+    Null,
+    'cabinet_id1',
+    '1',
+    'cell_id1',
+    'accum_id1',
+    'CREATED',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id_revoked',
+    Null,
+    'cabinet_id1',
+    '1',
+    'cell_id2',
+    'accum_id2',
+    'REVOKED',
+    NOW(),
+    NOW()
+),
+(
+    'booking_id_created2',
+    Null,
+    'cabinet_id2',
+    '1',
+    'cell_id4',
+    'accum_id4',
+    'CREATED',
+    NOW(),
+    NOw()
+);

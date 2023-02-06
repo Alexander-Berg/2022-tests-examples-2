@@ -1,0 +1,46 @@
+id: test_get_menu_restapp_menu_noaccess
+title: Проверяем что нормально отработаем проверку доступа (ошибка 403)
+
+source:
+    request:
+        method: get
+        url: /4.0/restapp-front/api/v1/client/place/999/menu
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - code: 2
+                    message: ""
+
+mocks:
+  - resource: eats-restapp-menu-v1-menu-active
+    response:
+        status-code: 403
+        body:
+            code: "403"
+            message: "Access to place is denied"
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+            query:
+                place_id#string: 999
+            body:
+
+experiments:
+    values:
+        eats-restapp-switch-menu:
+            method: restapp-menu
+    expectations:
+        consumer: eats-api-proxy/restapp-menu
+        kwargs:
+          - key: place_id
+            type: string
+            value#string: 999

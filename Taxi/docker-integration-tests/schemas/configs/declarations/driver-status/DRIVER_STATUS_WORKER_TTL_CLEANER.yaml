@@ -1,0 +1,38 @@
+default:
+    __default__:
+        ttl_hours: 12
+        batch_size: 1000
+description: Настройки воркеров очищения таблиц по TTL
+maintainers:
+  - basil-shuman
+  - vpalchikov
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/WorkerSettings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/WorkerSettings'
+    definitions:
+        WorkerSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                ttl_hours:
+                    description: >
+                        Время, прошедшее с последнего обновления строки
+                        таблицы, после которого она считается устаревшей
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::hours
+                batch_size:
+                    description: >
+                        Максимальное количество строк, удаляемое за раз
+                    type: integer
+                    minimum: 1
+            required:
+              - ttl_hours
+              - batch_size

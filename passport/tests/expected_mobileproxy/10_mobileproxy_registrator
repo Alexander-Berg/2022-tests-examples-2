@@ -1,0 +1,190 @@
+server {
+    # SLB IP
+    listen 213.180.193.115:443;
+    listen [2a02:6b8::115]:443;
+
+    # Tunnel IP
+    listen 5.45.202.34:443;
+    listen 5.45.202.35:443;
+    listen 5.45.202.36:443;
+    listen 5.45.202.37:443;
+
+    # Server IP
+    listen [1::2:3:4]:443;
+    listen 127.0.0.1:443;
+    listen [::1]:443;
+
+
+    server_name registrator.mobile.yandex.net mobile-partners.registrator.mobile.yandex.net megafon.mobile-partners.registrator.mobile.yandex.net;
+
+    set $ya_consumer_client_ip $remote_addr;
+
+    ssl on;
+    ssl_certificate certs/mobileproxy.passport.yandex.net.crt;
+    ssl_certificate_key certs/mobileproxy.passport.yandex.net.key;
+    ssl_ciphers kEECDH+AES128:kECDH:kEDH:-3DES:kRSA+AES128:kEDH+3DES:DES-CBC3-SHA:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_session_cache shared:SSL:32m;
+    ssl_session_timeout 5m;
+
+    access_log /var/log/nginx/mobileproxy.access.log mobileproxy buffer=128k flush=5s;
+    error_log /var/log/nginx/mobileproxy.error.log warn;
+
+    location ^~ /ping {
+        proxy_set_header    Host                        passport-internal.yandex.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        proxy_pass https://passport-internal.yandex.ru;
+    }
+
+    location ~ ^/1/bundle/experiments/by_device_id/?$ {
+        rewrite ^/(.*)/$ /$1;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+
+        proxy_read_timeout 1s;
+        proxy_send_timeout 1s;
+        proxy_connect_timeout 100ms;
+
+        proxy_set_header    Host                        uaas.passport.yandex.net;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass http://uaas;
+    }
+
+    location ~ ^/1/account/register/(?:simple|alternative)/? {
+        return 404;
+    }
+
+    location ~ ^/1/bundle/mobile/auth/password/? {
+        rewrite ^/(.*)/$ /$1;
+        rewrite ^/(.*)$ /mobileproxy/$1/ break;
+        proxy_set_header    Host                        passport-internal.yandex.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://passport-internal.yandex.ru;
+        mirror /ysa_mirror;
+    }
+
+    location ~ ^/(?:1/(?:account/(?:register|subscription)|captcha|login|oauth/token|phonenumber|questions|social_token$|statbox|suggest|track|user_info/?$|validation)|1/bundle/|2/bundle/) {
+        rewrite ^/(.*)/$ /$1;
+        rewrite ^/(.*)$ /mobileproxy/$1/ break;
+        proxy_set_header    Host                        passport-internal.yandex.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://passport-internal.yandex.ru;
+    }
+
+    location ~ ^/1/user_info/intranet/?$ {
+        rewrite ^/(.*)$ /mobileproxy/1/user_info/ break;
+        proxy_set_header    Host                        passport-internal.yandex-team.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://passport-internal.yandex-team.ru;
+    }
+
+    location ~ ^/2/change_avatar/?$ {
+        client_max_body_size 10m;
+        rewrite ^/(.*)/$ /$1;
+        rewrite ^/(.*)$ /mobileproxy/$1/ break;
+        proxy_set_header    Host                        passport-internal.yandex.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://passport-internal.yandex.ru;
+    }
+
+    location ~ ^/1/external_auth_by_login/?$ {
+        # support for deprecated api method name
+        rewrite ^/.*$ /1/external_auth_by_password;
+    }
+
+    location ~ ^/1/external_auth_by_(oauth|external_token|password|password_ex)/?$ {
+        if ($request_method != POST) {
+            return 403;
+        }
+        rewrite /1/external_(.*) /api/mobile/v1/$1 break;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-NginX-Proxy true;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://xeno.mail.yandex.net;
+    }
+
+    location ~ ^/1/authz_in_app/entrust_to_account/?$ {
+        rewrite ^/(.*)/$ /$1;
+        rewrite ^/1/(.*)$ /broker2/$1 break;
+        proxy_set_header    Host                        social.yandex.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://social.yandex.ru;
+    }
+
+    location ~ ^/1/(?:bind_yandex_by_token|does_profile_exist_by_token)/?$ {
+        rewrite ^/(.*)/$ /$1;
+        rewrite ^/1/(.*)$ /brokerapi/$1?consumer=mobileproxy&$args break;
+        proxy_set_header Ya-Consumer-Authorization $http_authorization;
+        proxy_set_header    Host                        api.social.yandex.ru;
+        proxy_set_header    Ya-Consumer-Client-Ip       $ya_consumer_client_ip;
+        proxy_set_header    X-Request-Id                $request_id;
+        proxy_set_header    X-YProxy-Header-Ip          $http_x_yproxy_header_ip;
+
+        antirobot_request /nocaptcha-antirobot;
+
+        proxy_pass https://api.social.yandex.ru;
+    }
+
+    location = /ysa_mirror {
+        internal;
+
+        access_log /var/log/nginx/mobileproxy-ysa.access.log mobileproxy buffer=128k flush=5s;
+        error_log /var/log/nginx/mobileproxy-ysa.error.log warn;
+        log_subrequest on;
+
+        proxy_read_timeout    3ms;
+        proxy_send_timeout    1ms;
+        proxy_connect_timeout 1ms;
+        proxy_http_version    1.1;
+        proxy_set_header      Connection "";
+        proxy_set_header      X-Request-Id   $request_id;
+        proxy_set_header      X-Real-IP      $remote_addr;
+        proxy_set_header      X-Real-Port    $remote_port;
+        proxy_set_header      X-Server-IP    $server_addr;
+        proxy_set_header      X-Server-Port  $server_port;
+        proxy_pass http://ysa$request_uri;
+    }
+
+    include /etc/nginx/conf.d/antirobot_locations;
+
+    location / {
+        return 404;
+    }
+}

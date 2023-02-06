@@ -1,0 +1,344 @@
+<test>
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="format">
+            <instance id="xml">xml</instance>
+            <instance id="json">json</instance>
+        </cgi>
+
+        <cgi name="method">
+            <instance id="decrease_sessionid_lifetime">decrease_sessionid_lifetime</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">yandex.ru</instance>
+            <instance id="com">yandex.com</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="someip">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <arg name="uid">70500</arg>
+            <arg name="type">valid</arg>
+
+            <instance id="broken">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">no_cookie</arg>
+            </instance>
+
+            <instance id="ru_valid">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="time">-10</arg>
+            </instance>
+            <instance id="ru_need_reset">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">need_reset</arg>
+            </instance>
+            <instance id="ru_expired">
+                <arg name="host">beta.yandex.ru</arg>
+                <arg name="type">expired</arg>
+            </instance>
+
+            <instance id="com_valid">
+                <arg name="host">beta.yandex.com</arg>
+                <arg name="time">-10</arg>
+            </instance>
+            <instance id="com_need_reset">
+                <arg name="host">beta.yandex.com</arg>
+                <arg name="type">need_reset</arg>
+            </instance>
+            <instance id="com_expired">
+                <arg name="host">beta.yandex.com</arg>
+                <arg name="type">expired</arg>
+            </instance>
+        </cgi>
+
+        <header name="X-Ya-Service-Ticket" func="get_service_ticket">
+            <instance id="passport_dev">
+                <arg name="dst">242</arg>
+            </instance>
+            <instance id="id_ip_denied">
+                <arg name="dst">253</arg>
+            </instance>
+            <instance id="not_exists_grants">
+                <arg name="dst">257</arg>
+            </instance>
+            <instance id="invalid">
+                <arg name="const_value">some invalid ticket</arg>
+            </instance>
+        </header>
+
+        <result name="grants_missing_service_ticket">
+            <body func="matchxpath">
+                <arg name="/doc/exception">ACCESS_DENIED</arg>
+                <arg name="/doc/exception/@id">21</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Access denied: method=decrease_sessionid_lifetime allowed only with header 'X-Ya-Service-Ticket'</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">ACCESS_DENIED</arg>
+                <arg name="/exception/id">21</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: Access denied: method=decrease_sessionid_lifetime allowed only with header 'X-Ya-Service-Ticket'</arg>
+            </jsonBody>
+        </result>
+        <result name="grants_invalid_service_ticket">
+            <body func="matchxpath">
+                <arg name="/doc/exception">UNKNOWN</arg>
+                <arg name="/doc/exception/@id">1</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: failed to check service ticket: Malformed ticket.</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">UNKNOWN</arg>
+                <arg name="/exception/id">1</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: failed to check service ticket: Malformed ticket.</arg>
+            </jsonBody>
+        </result>
+
+        <result name="missing_sessionid">
+            <body func="matchxpath">
+                <arg name="/doc/exception">INVALID_PARAMS</arg>
+                <arg name="/doc/exception/@id">2</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Missing sessionid argument</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: Missing sessionid argument</arg>
+            </jsonBody>
+        </result>
+        <result name="missing_host">
+            <body func="matchxpath">
+                <arg name="/doc/exception">INVALID_PARAMS</arg>
+                <arg name="/doc/exception/@id">2</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Missing host argument</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: Missing host argument</arg>
+            </jsonBody>
+        </result>
+        <result name="missing_userip">
+            <body func="matchxpath">
+                <arg name="/doc/exception">INVALID_PARAMS</arg>
+                <arg name="/doc/exception/@id">2</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: invalid userip argument:</arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/exception/value">INVALID_PARAMS</arg>
+                <arg name="/exception/id">2</arg>
+                <arg name="/error" comp="starts_with">BlackBox error: invalid userip argument:</arg>
+            </jsonBody>
+        </result>
+
+        <result name="invalid_session_without_comment">
+            <body func="matchxpath">
+                <arg name="/doc/status">INVALID</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session"></arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">INVALID</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session"></arg>
+            </jsonBody>
+        </result>
+        <result name="expired_session">
+            <body func="matchxpath">
+                <arg name="/doc/status">EXPIRED</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session"></arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">EXPIRED</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session"></arg>
+            </jsonBody>
+        </result>
+
+        <result name="need_reset_session_ru">
+            <body func="matchxpath">
+                <arg name="/doc/status">NEED_RESET</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.ru</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">NEED_RESET</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.ru</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </jsonBody>
+        </result>
+        <result name="need_reset_session_com">
+            <body func="matchxpath">
+                <arg name="/doc/status">NEED_RESET</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.com</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">NEED_RESET</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.com</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </jsonBody>
+        </result>
+
+        <result name="valid_session_ru">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.ru</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.ru</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </jsonBody>
+        </result>
+        <result name="valid_session_com">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/comment"></arg>
+                <arg name="/doc/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.com</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </body>
+            <jsonBody func="matchjsonpoint">
+                <arg name="/status">VALID</arg>
+                <arg name="/comment"></arg>
+                <arg name="/new-session" func="checksessid">
+                    <arg name="uid">70500</arg>
+                    <arg name="host">yandex.com</arg>
+                    <arg name="time">-3600</arg>
+                    <arg name="type">need_reset</arg>
+                </arg>
+            </jsonBody>
+        </result>
+    </variables>
+
+    <node>
+        <description>BlackBox</description>
+
+        <case>
+            <description>Check grants for method=decrease_sessionid_lifetime</description>
+            <path>blackbox</path>
+            <cgi name="method">decrease_sessionid_lifetime</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket" withnull="1">*</header>
+
+            <check>
+                <header name="X-Ya-Service-Ticket" withnull="1"></header>
+                <result>grants_missing_service_ticket</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">invalid</header>
+                <result>grants_invalid_service_ticket</result>
+            </check>
+
+            <check>
+                <result>missing_sessionid</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Check method=decrease_sessionid_lifetime</description>
+            <path>blackbox</path>
+            <cgi name="method">decrease_sessionid_lifetime</cgi>
+            <cgi name="sessionid" withnull="1">*</cgi>
+            <cgi name="host" withnull="1">*</cgi>
+            <cgi name="userip" withnull="1">*</cgi>
+            <cgi name="format">*</cgi>
+            <header name="X-Ya-Service-Ticket">passport_dev</header>
+
+            <check>
+                <cgi name="sessionid" withnull="1"></cgi>
+                <result>missing_sessionid</result>
+            </check>
+            <check>
+                <cgi name="host" withnull="1"></cgi>
+                <result>missing_host</result>
+            </check>
+            <check>
+                <cgi name="userip" withnull="1"></cgi>
+                <result>missing_userip</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">broken</cgi>
+                <result>invalid_session_without_comment</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_valid; ru_need_reset; ru_expired</cgi>
+                <cgi name="host">com</cgi>
+                <result>invalid_session_without_comment</result>
+            </check>
+            <check>
+                <cgi name="sessionid">com_valid; com_need_reset; com_expired</cgi>
+                <cgi name="host">ru</cgi>
+                <result>invalid_session_without_comment</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_expired; com_expired</cgi>
+                <result>expired_session</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_need_reset</cgi>
+                <result>need_reset_session_ru</result>
+            </check>
+            <check>
+                <cgi name="sessionid">com_need_reset</cgi>
+                <result>need_reset_session_com</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">ru_valid</cgi>
+                <result>valid_session_ru</result>
+            </check>
+            <check>
+                <cgi name="sessionid">com_valid</cgi>
+                <result>valid_session_com</result>
+            </check>
+        </case>
+
+    </node>
+
+</test>

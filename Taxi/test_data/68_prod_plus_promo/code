@@ -1,0 +1,58 @@
+function abs(val : double) {
+    return {res = (val < 0) ? -val : val};
+}
+
+if (fix.plus_promo as plus_promo) {
+
+  if (fix.previously_calculated_categories as previously_calculated_categories) {
+    if (plus_promo.tariff_from in previously_calculated_categories) {
+
+      let tariff_from_final_prices = previously_calculated_categories[plus_promo.tariff_from].user.final_prices;
+
+      let tariff_from_price = ("user_total_price" in tariff_from_final_prices["main"].meta)
+        ? tariff_from_final_prices["main"].meta["user_total_price"]  // cashback case
+        : tariff_from_final_prices["main"].total;
+
+      // the promoted tariff price should be more expensive
+      if (*ride.price <= tariff_from_price) {
+        return ride.price;
+      }
+
+      let base_diff = *ride.price - tariff_from_price;
+
+      // need_modify_diff is used for skip *100/100 logic because double precision side effect
+      let need_modify_diff = abs(val=plus_promo.change_diff_percent).res > 0.001;
+      let diff = (need_modify_diff)
+        ? base_diff * (100 + plus_promo.change_diff_percent) / 100
+        : base_diff;
+
+      let result_diff = (diff < *ride.price) ? diff : *ride.price;
+
+      let withdraw_amount = round_to(result_diff, fix.rounding_factor);
+      if (withdraw_amount < fix.rounding_factor) {
+        return ride.price;
+      }
+
+      let display_price = *ride.price - withdraw_amount;
+      let display_min_price = (fix.tariff.minimum_price > withdraw_amount)
+        ? (fix.tariff.minimum_price - withdraw_amount)
+        : 0;
+
+      return { metadata=[
+          // for cashback withdraw
+          "personal_wallet_withdraw_amount": withdraw_amount,
+          "display_price": round_to(display_price, fix.rounding_factor),
+          "display_min_price": round_to(display_min_price, fix.rounding_factor),
+
+          // disable cashback
+          "cashback_rate": 0,
+          "cashback_max_value": 0,
+
+          // for promo data
+          "tariff_from_" + plus_promo.tariff_from: 1,
+          "tariff_to_" + fix.category: 1
+      ]};
+    }
+  }
+}
+return ride.price;

@@ -1,0 +1,98 @@
+PRAGMA page_size = 32768;
+PRAGMA encoding = "UTF-8";
+PRAGMA auto_vacuum = 2;
+PRAGMA incremental_vacuum(10);
+
+CREATE TABLE `smsgates` (
+    `gateid`      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `aliase`      TEXT    NOT NULL DEFAULT '',
+    `fromname`    TEXT    NOT NULL DEFAULT 'Yandex',
+    `description` TEXT    DEFAULT NULL,
+    `delay`       INTEGER NOT NULL DEFAULT 100
+);
+
+CREATE INDEX `gateseek` ON `smsgates` (`gateid`, `aliase`);
+
+INSERT INTO `smsgates` (`gateid`, `aliase`, `fromname`, `description`, `delay`) VALUES
+(15, 'infobip',      'Yandex',      '', 0),
+(18, 'mfms',         'Yandex',      '', 0),
+(20, 'infobip',      'AUTO.RU',     '', 0),
+(21, 'infobip',      'ZBX',         '', 0),
+(22, 'devnull',      'Yandex',      '', 0),
+(23, 'devdelivered', 'Yandex',      '', 0),
+(24, 'infobipyt',    'Yandex.Taxi', '', 0),
+(26, 'taxiauth',     'Yandex.Taxi', '', 0),
+(28, 'infobip',      'Talents',     '', 0),
+(29, 'infobipyd',    'YandexDrive', '', 0),
+(30, 'infobipyt',    'Uber',        '', 0),
+(31, 'taxiauth',     'Uber',        '', 0),
+(32, 'gms',          'Yandex',      '', 0),
+(33, 'infobip',      'Ya.Realty',   '', 0),
+(34, 'gmsyt',        'Yandex.Taxi', '', 0),
+(35, 'infobipyt',    'Yandex.Eda',  '', 0),
+(36, 'taxiauth',     'Yandex.Eda',  '', 0),
+(37, 'infobipyt',    'Yango',       '', 0),
+(38, 'taxiauth',     'Yango',       '', 0),
+(39, 'infobip',      'YandexTrack', '', 0),
+(41, 'gmsyt',        'Uber',        '', 0),
+(42, 'gmsyt',        'Yango',       '', 0);
+
+CREATE TABLE `smsrt` (
+    `ruleid`      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `destination` TEXT    NOT NULL DEFAULT '',
+    `gateid`      INTEGER NOT NULL DEFAULT 0,
+    `gateid2`     INTEGER NOT NULL DEFAULT 0,
+    `gateid3`     INTEGER NOT NULL DEFAULT 0,
+    `mode`        TEXT    NOT NULL DEFAULT 'default',
+    `weight`      INTEGER NOT NULL DEFAULT 1,
+    `groupname`   TEXT    NOT NULL DEFAULT '',
+    UNIQUE (`ruleid`, `destination`)
+);
+
+CREATE INDEX `gateid` ON `smsrt`(`gateid`);
+CREATE INDEX `bymode` ON `smsrt`(`mode`, `destination`);
+
+INSERT INTO `smsrt` (`ruleid`, `destination`, `gateid`, `gateid2`, `gateid3`, `mode`, `weight`, `groupname`) VALUES
+(180,  '+7', 15, 18, 32, 'default',    1, ''),
+(959,  '+',  15, 18, 32, 'default',    1, ''),
+(1092, '+7', 18, 15, 32, 'default',    1, ''),
+(1104, '+',  20,  0,  0, 'autoru',     1, ''),
+(1105, '+',  21,  0,  0, 'autoruzbx',  1, ''),
+(1115, '+',  24,  0,  0, 'taxi',       1, ''),
+(3603, '+',  26,  0,  0, 'taxiauth',   1, ''),
+(3605, '+',  27,  0,  0, 'market',     1, ''),
+(3609, '+',  28,  0,  0, 'talents',    1, ''),
+(3611, '+',  29,  0,  0, 'drive',      1, ''),
+(4085, '+',  30,  0,  0, 'uber',       1, ''),
+(4086, '+',  31,  0,  0, 'uber_auth',  1, ''),
+(4100, '+',  33,  0,  0, 'realty',     1, ''),
+(4104, '+',  35,  0,  0, 'eda',        1, ''),
+(4105, '+',  36,  0,  0, 'eda_auth',   1, ''),
+(4131, '+',  37,  0,  0, 'yango',      1, ''),
+(4132, '+',  38,  0,  0, 'yango_auth', 1, ''),
+(4134, '+',  39,  0,  0, 'courier',    1, '');
+
+CREATE TABLE `daemon_heartbeat` (
+    `hostname`  TEXT NOT NULL PRIMARY KEY,
+    `beat_time` TEXT NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
+CREATE TABLE `smsqueue_anonym` (
+    `smsid`       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    `phone`       TEXT    NOT NULL DEFAULT '',
+    `status`      TEXT    NOT NULL DEFAULT 'ready',
+    `gateid`      INTEGER          DEFAULT NULL,
+    `dlrmessage`  TEXT    NOT NULL DEFAULT '',
+    `text`        TEXT    NOT NULL DEFAULT '',
+    `create_time` TEXT    NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `touch_time`  TEXT    NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `sender`      TEXT             DEFAULT NULL,
+    `errors`      INTEGER NOT NULL DEFAULT 0,
+    `metadata`    TEXT             DEFAULT NULL
+);
+
+CREATE INDEX `queuelookup`   ON `smsqueue_anonym` (`smsid`, `gateid`, `status`, `create_time`, `touch_time`);
+CREATE INDEX `userqueue`     ON `smsqueue_anonym` (`smsid`, `phone`, `status`, `create_time`, `touch_time`);
+CREATE INDEX `senders`       ON `smsqueue_anonym` (`sender`);
+CREATE INDEX `sendsmslookup` ON `smsqueue_anonym` (`status`, `touch_time`);
+CREATE INDEX `touch_time`    ON `smsqueue_anonym` (`touch_time`);

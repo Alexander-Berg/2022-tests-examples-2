@@ -1,0 +1,160 @@
+version: "2.3"
+
+services:
+    taxi-atlas-mongo:
+        extends:
+            service: taxi-mongo
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+        ports:
+          - "27017:27017"
+        command: /taxi/atlas/run/atlas-mongo.sh
+        working_dir: /data/atlas/db
+        volumes:
+          - ./volumes/taxi-secdist/atlas.yaml:/etc/yandex/taxi-secdist/atlas.yaml:ro
+          - ./atlas/mongo:/data/db:rw
+          - ./atlas/run:/taxi/atlas/run:ro
+          - ./_logs/atlas:/taxi/logs:rw
+        hostname: mongo.atlas.taxi.yandex
+        networks:
+            taxi_internal:
+                aliases:
+                  - mongo.atlas.taxi.yandex
+                  - taxi-mrs-myt-01.taxi.tst.yandex.net
+                  - taxi-mrs-iva-01.taxi.tst.yandex.net
+                  - taxi-mrs-vla-01.taxi.tst.yandex.net
+                  - taxi-mrs-dev01e8.taxi.yandex.net
+
+    taxi-atlas-backend-router:
+        extends:
+            service: taxi-backend
+        image: registry.yandex.net/taxi/taxi-integration/trusty/taxi-atlas-backend-router:${taxi_atlas_backend_router_version:-latest}
+        build:
+            context: services
+            args:
+                packages: yandex-taxi-atlas-backend-router
+        depends_on:
+            taxi-atlas-mongo:
+                condition: service_healthy
+            taxi-reposition:
+                condition: service_healthy
+            taxi-tracker:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-atlas-backend-router
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/yandex-taxi-atlas-backend-router
+        volumes:
+          - ./volumes/nginx/listen_https:/etc/nginx/listen_https:ro
+          - ./atlas:/taxi/atlas:ro
+        hostname: atlas-api.taxi.yandex.net
+        command: /taxi/atlas/run/atlas-backend-router.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z atlas-api.taxi.yandex.net 80
+            timeout: 10s
+            interval: 1s
+            retries: 100
+        networks:
+            taxi_internal:
+                aliases:
+                  - atlas-api.taxi.yandex.net
+                  - atlas-api01h.taxi.tst.yandex.net
+                  - atlas-api.taxi.tst.yandex.net
+    # it's being built by https://qloud-ext.yandex-team.ru/projects/taxi-tools/atlas/testing
+    taxi-atlas-backend:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi-atlas/taxi-atlas-api-prod:${taxi_atlas_api_prod_version:-latest}
+        depends_on:
+            taxi-atlas-backend-router:
+                condition: service_healthy
+            taxi-graph:
+                condition: service_healthy
+            taxi-tracker:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-atlas-backend
+        volumes:
+          - ./volumes/nginx/listen_https:/etc/nginx/listen_https:ro
+          - ./volumes/nginx/logs:/etc/nginx/logs:ro
+          - ./volumes/nginx/empty-route:/etc/nginx/route:ro
+          - ./atlas:/taxi/atlas:ro
+        hostname: taxi-atlas-api.taxi.yandex.net
+        command: /taxi/atlas/run/atlas-backend.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - taxi-atlas-api.taxi.yandex.net
+                  - taxi-atlas-api.yandex.nonexistent
+
+    # it's being built by https://qloud-ext.yandex-team.ru/projects/taxi-tools/atlas/testing
+    taxi-atlas-frontend:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi-atlas/taxi-atlas-static:${taxi_atlas_frontend_prod_version:-latest}
+        depends_on:
+            taxi-atlas-backend:
+                condition: service_started
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-atlas-frontend
+        volumes:
+          - ./volumes/nginx/listen_https:/etc/nginx/listen_https:ro
+          - ./atlas/nginx/taxi-atlas-static-nopassport.conf:/etc/nginx/sites-enabled/taxi-atlas-static.conf:ro
+          - ./volumes/nginx/logs:/etc/nginx/logs:ro
+          - ./atlas/run:/taxi/atlas/run:ro
+        hostname: taxi-atlas-static.taxi.yandex.net
+        command: /taxi/atlas/run/atlas-frontend.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - taxi-atlas.yandex.nonexistent
+                  - atlas.taxi.yandex-team.net
+    taxi-atlas-deps:
+        extends:
+            service: taxi-integration-xenial-base
+        depends_on:
+            taxi-atlas-backend-router:
+                condition: service_healthy
+            taxi-atlas-frontend:
+                condition: service_healthy
+            taxi-atlas-backend:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-atlas-deps
+        volumes:
+          - ./atlas/run:/taxi/atlas/run:ro
+        command: /taxi/atlas/run/wait_atlas_services.sh
+        networks:
+            taxi_internal:
+
+    taxi-atlas-proxy:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./volumes/nginx/logs:/etc/nginx/logs:ro
+          - ./atlas/nginx/taxi-atlas-proxy.conf:/etc/nginx/sites-enabled/taxi-atlas-proxy.conf:ro
+          - ./atlas/run:/taxi/atlas/run:ro
+        environment:
+            program_name: taxi-atlas-proxy
+        depends_on:
+          - taxi-atlas-frontend
+          - taxi-atlas-backend
+        ports:
+          - "9000:9000"
+        command: /taxi/atlas/run/taxi-atlas-proxy.sh
+        networks:
+          - taxi_internal
+          - taxi_net
+

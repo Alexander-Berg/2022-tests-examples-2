@@ -1,0 +1,80 @@
+INSERT INTO chatterbox.online_supporters(supporter_login, status, lines, updated, in_additional)
+VALUES
+('user_1', 'online', ARRAY['first', 'second'], '2019-07-25 09:49:25.000000+00', false),
+('user_2', 'offline', ARRAY['first', 'second'], '2019-07-25 09:49:25.000000+00', false),
+('user_3', 'online', ARRAY['second', 'eda_first'], '2019-07-25 09:49:25.000000+00', false),
+('user_4', 'online', ARRAY['first', 'eda_first'], '2019-07-25 09:49:25.000000+00', false),
+('user_5', 'online', ARRAY['corp'], '2019-07-25 09:49:25.000000+00', false),
+('user_6', 'online', ARRAY['corp'], '2019-07-25 09:49:25.000000+00', false),
+('user_7', 'online', ARRAY['corp'], '2019-07-25 09:49:25.000000+00', false),
+('user_8', 'offline', ARRAY['corp', 'new_line'], '2019-07-25 09:49:25.000000+00', false),
+('user_9', 'online', ARRAY['vip', 'corp'], '2019-07-25 09:49:25.000000+00', false),
+('user_10', 'online', ARRAY['hard_line'], '2019-07-25 09:49:25.000000+00', false),
+('user_11', 'online', ARRAY['hard_line'], '2019-07-25 09:49:25.000000+00', false),
+('user_12', 'online', ARRAY['fourth'], '2019-07-25 09:49:25.000000+00', false),
+('user_13', 'online', ARRAY['fifth'], '2019-07-25 09:49:25.000000+00', false),
+('user_14', 'online', ARRAY['fifth'], '2019-07-25 09:49:25.000000+00', false),
+('user_15', 'online', ARRAY['eda_first'], '2019-07-25 09:49:25.000000+00', false),
+('user_16', 'online', ARRAY['eda_first'], '2019-07-25 09:49:25.000000+00', false),
+('user_17', 'online', ARRAY['telephony'], '2019-07-25 09:49:25.000000+00', false),
+('user_18', 'online', ARRAY['telephony2', 'not_telephony'], '2019-07-25 09:49:25.000000+00', false),
+('user_19', 'online', ARRAY['telephony2', 'not_telephony'], '2019-07-25 09:49:25.000000+00', false),
+('user_20', 'online', ARRAY['telephony2'], '2019-07-25 09:49:25.000000+00', false),
+('user_21', 'online', ARRAY['telephony3'], '2019-07-25 09:49:25.000000+00', false),
+('user_22', 'online', ARRAY['test_max_tasks'], '2019-07-25 09:49:25.000000+00', false),
+('user_23', 'online', ARRAY['test_max_tasks'], '2019-07-25 09:49:25.000000+00', false),
+('user_24', 'online', ARRAY['test_no_pw_priority'], '2019-07-25 09:49:25.000000+00', false),
+('user_25', 'online', ARRAY['test_no_pw_priority'], '2019-07-25 09:49:25.000000+00', false),
+('user_26', 'online', ARRAY['test_no_pw_priority'], '2019-07-25 09:49:25.000000+00', false);
+
+INSERT INTO chatterbox.supporter_profile(supporter_login, max_chats, is_piecework)
+VALUES
+('user_1', 10, TRUE),
+('user_4', 10, FALSE),
+('user_12', 1, TRUE),
+('user_13', 2, TRUE),
+('user_14', 1, TRUE),
+('user_15', 1, TRUE),
+('user_16', 2, TRUE),
+('user_18', 2, TRUE),
+('user_19', 2, TRUE),
+('user_20', 10, TRUE),
+('user_21', 2, TRUE),
+('user_22', 1, TRUE),
+('user_23', 3, TRUE),
+('user_24', 3, FALSE),
+('user_25', 3, TRUE),
+('user_26', 3, TRUE);
+
+INSERT INTO chatterbox.supporter_tasks(supporter_login, task_id)
+VALUES
+('user_4', '5d398480779fb318087520d6'),
+('user_5', '5b2cae5cb2682a976914c2a1'),
+('user_6', '5b2cae5cb2682a976914c2a2'),
+('user_7', '5b2cae5cb2682a976914c2a3'),
+('user_5', '5b2cae5cb2682a976914c2a4'),
+('user_6', '5b2cae5cb2682a976914c2a5'),
+('user_9', '5b2cae5cb2682a976914c2a6'),
+('user_9', '5b2cae5cb2682a976914c2a7'),
+('user_9', '5b2cae5cb2682a976914c2a8'),
+('user_10', '5d398480779fb31808752013'),
+('user_11', '5d398480779fb31808752014'),
+('user_12', '5d398480779fb31808752016'),
+('user_13', '5d398480779fb31808752017'),
+('user_16', '5d398480779fb31808752020'),
+('user_17', '5a59e916e62e4cb1ac384785'),
+('user_18', '5d398480779fb31808752024'),
+('user_20', '5d398480779fb31808752025'),
+('user_20', '5d398480779fb31808752026'),
+('user_22', '5d398480779fb31808750001'),
+('user_23', '5d398480779fb31808750002'),
+('user_23', '5d398480779fb31808750003'),
+('user_24', '5d398480779fb31808750004'),
+('user_25', '5d398480779fb31808750005'),
+('user_26', '5d398480779fb31808750006'),
+('user_26', '5d398480779fb31808750007');
+
+INSERT INTO chatterbox.supporter_offer_skip_count(supporter_login, offer_skip_count)
+VALUES
+('user_15', 3),
+('user_21', 3);

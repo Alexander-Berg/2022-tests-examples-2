@@ -1,0 +1,38 @@
+description: information for YT replication
+settings:
+    collection: yt_replications
+    connection: taxi
+    database: dbtaxi
+wiki_info: |
+    #### yt_replications
+    *Назначение:* Коллекция с информацией о репликации данных на кластерах YT.
+
+    *Структура документов:*
+    ```python
+    yt_replication = {
+        # Имя правила репликации
+        '_id': 'rule_name',
+        # ss
+        'clusters_info': [
+            {
+                # Значение datetime поля последнего прореплицированного документа
+                'last_updated': datetime,
+                # Режим репликации
+                # initial - "начальный" режим, в котором все кластера загружаются вместе до перехода в режим normal
+                # normal - в кластеры в этом режиме данные загружаются основным процессом репликации
+                # recovery - "отставшие" кластеры, которые "догоняются" отдельным recovery процессом
+                'mode': 'normal',
+                # Имя кластера (строго говоря, alias клиента из конфига YT в секдисте)
+                'name': 'hahn'
+            },
+        ],
+        # Значение datetime поля последнего прореплицированного документа - max(clusters_info.last_updated)
+        'last_updated': datetime,
+        # Время последнего успешного завершения основного процесса репликации
+        'last_synced': datetime,
+        # Включена ли синхронизация таблицы с Mongo
+        'enabled': True,
+        # Относительный путь до таблицы в YT
+        'table_path': 'relative/table/path'
+    }
+    ```

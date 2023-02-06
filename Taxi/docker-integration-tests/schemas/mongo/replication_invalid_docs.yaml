@@ -1,0 +1,36 @@
+description: information about replication errors because of invalid docs
+settings:
+    collection: invalid_docs
+    connection: replication_queue
+    database: replication_queue
+wiki_info: |
+    #### replication_invalid_docs
+    *Назначение:* Коллекция для хранения информации о произошедших во время
+    репликации данных ошибках. Ошибки сохраняются только в случае непревышения
+    порога ошибок и только для некоторых видов ошибок (несоответствие документа
+    схеме, битый документ и т.п.).
+
+    *Структура документа*
+    ```python
+    replication_invalid_docs = {
+        # идентификатор записи
+        '_id': uuid.uuid4(),
+        # идентификатор документа
+        'doc_id': '',
+        # время сохранения ошибки
+        'error_ts': datetime.datetime.utcnow(),
+        # имя правила, по которому произошла ошибка
+        'rule_name': 'billing_docs_doc',
+        # стадия, на которой произошла ошибка
+        'stage': 'map',
+        # имя объекта, по которому произошла ошибка
+        # (имя маппера/имя таргета/имя коллекции-источника)
+        'unit_id': 'billing_docs_indexes_doc_tag',
+        # текст ошибки
+        'errors': [
+          {'message': 'Mapper billing_docs_indexes_doc_tag got null value error'
+                      'during mapping dfua7326hdaf6a87d77sf doc: Null in non '
+                      'nullable: doc_id, mapper: billing_docs_indexes_doc_tag'}
+        ]
+    }
+    ```

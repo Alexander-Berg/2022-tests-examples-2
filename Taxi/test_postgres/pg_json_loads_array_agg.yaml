@@ -1,0 +1,37 @@
+name: pg_json_loads_array_agg
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: id
+    type_of_replicate_by: int
+    iteration_type: sequence
+    connection:
+        secret: conditioned
+    primary_key:
+      - id
+    table: simple_table
+
+    connection_json_decoder: true
+    raw_select:
+        data: |
+            SELECT
+                id,
+                (
+                    SELECT array_agg(json_table.*)
+                    FROM json_table
+                ) AS raw
+            FROM simple_table
+        data_query_has_conditions: false
+destinations:
+  - pg_json_loads_array_agg:
+        type: yt
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    sort_order: ascending
+            path: pg_json_loads_array_agg_raw
+            cluster_groups:
+              - map_reduce

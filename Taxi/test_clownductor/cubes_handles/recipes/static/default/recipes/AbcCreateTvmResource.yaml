@@ -1,0 +1,102 @@
+data:
+    name: AbcCreateTvmResource
+    provider_name: clownductor
+    job_vars:
+      - project_name
+      - service_name
+      - service_id
+      - abc_slug
+      - tvm_name
+      - env
+      - override_tvm_id
+      - override_tvm_resource_slug
+      - override_tvm_resource_name
+      - new_secret_owners
+      - skip_db_record
+      - tvm_extra_robot
+    stages:
+      - name: PerforatorCheckExistingTvm
+        provider_name: clownductor
+        input:
+            env_type: env
+            tvm_name: tvm_name
+            override_tvm_id: override_tvm_id
+        output:
+            tvm_id: tvm_id
+
+      - name: AbcCubeGenerateTvmName
+        provider_name: clownductor
+        input:
+            tvm_id: tvm_id
+            project: project_name
+            service: service_name
+            env: env
+            override_tvm_resource_slug: override_tvm_resource_slug
+            override_tvm_resource_name: override_tvm_resource_name
+        output:
+            tvm_resource_slug: slug
+            tvm_resource_name: name
+
+      - name: AbcCubeRequestTvm
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            name: tvm_resource_slug
+            tvm_id: tvm_id
+            extra_robot: tvm_extra_robot
+
+      - name: AbcCubeWaitForTvm
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            name: tvm_resource_slug
+            tvm_id: tvm_id
+        output:
+            tvm_id: tvm_id
+
+      - name: AbcCubeStashTvmSecret
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            tvm_id: tvm_id
+        output:
+            tvm_secret_tmp_yav_id: secret_id
+
+      - name: StrongboxCubeAddTvm
+        provider_name: clownductor
+        input:
+            project: project_name
+            service: service_name
+            env: env
+            tvm_id: tvm_id
+            tvm_secret_tmp_yav_id: tvm_secret_tmp_yav_id
+            skip_db_record: skip_db_record
+            extra_robot: tvm_extra_robot
+        output:
+            strongbox_yav_id: strongbox_yav_id
+
+      - name: FindServiceForClown
+        provider_name: clowny-perforator
+        input:
+            clowny_service_id: service_id
+        output:
+            perforator_service_id: service_id
+
+      - name: PerforatorCreateEnvironment
+        provider_name: clownductor
+        input:
+            service_id: perforator_service_id
+            tvm_id: tvm_id
+            env_type: env
+
+      - name: PerforatorEnsureDefaultTvmRules
+        provider_name: clownductor
+        input:
+            source_tvm_name: tvm_name
+            env_type: env
+
+      - name: ChangeOwnersCompletely
+        provider_name: taxi-strongbox
+        input:
+            secret_uuid: strongbox_yav_id
+            new_owners: new_secret_owners

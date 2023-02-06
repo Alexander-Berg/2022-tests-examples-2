@@ -1,0 +1,51 @@
+name: test_sharded_pg
+queue_data:
+    db_cluster: replication_queue_mdb_0
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: modified_at
+    connection:
+        secret: example_pg
+    timezone: Europe/Moscow
+    table: just_table
+
+    primary_key:
+      - id
+      - doc_type
+destinations:
+  - test_sharded_pg_just_table:
+        type: yt
+        mapper: pg_mapper
+        target:
+            common_mapper_columns: true
+            partial_update: true
+            path: test/test_sharded_pg
+            cluster_groups:
+              - map_reduce
+            verification_settings:
+                client_name: hahn
+                cron_schedule: '* * * * *'
+                fields_to_check:
+                  - id
+                  - doc_type
+                  - total
+                  - created_at
+                  - modified_at
+                period_to_check:
+                    days: 7
+    test_sharded_pg_ext_hahn:
+        type: ext
+        target: {}
+    test_sharded_pg_ext_arni:
+        type: ext
+        target: {}
+    test_sharded_pg_ext_yammy:
+        type: ext
+        target: {}
+    test_sharded_pg_ext_disabled:
+        type: ext
+        target: {}
+    test_sharded_pg_ext_not_initialized:
+        type: ext
+        target: {}

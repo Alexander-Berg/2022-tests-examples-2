@@ -1,0 +1,147 @@
+insert into payouts.payout_batches (
+    type_code,
+    status_code,
+    client_id,
+    contract_id,
+    contract_alias,
+    contract_type,
+    firm_id,
+    person_id,
+    amount_w_vat,
+    currency,
+    updated_at_utc,
+    dry_run
+)
+values
+(
+    'PAYOUT',
+    'PAYOUT_READY',
+    '123456',
+    '654321',
+    '654321/123',
+    'revenues',
+     13,
+    '111111',
+    1234.56,
+    'RUB',
+    CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text,
+    False
+),
+(
+    'PAYOUT',
+    'PAYOUT_READY',
+    '123457',
+    '754321',
+    '754321/123',
+    'revenues',
+    13,
+    '222222',
+    1234.57,
+    'RUB',
+    CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text,
+    False
+),
+(
+    'PAYOUT',
+    'PAYOUT_READY',
+    '123458',
+    '854321',
+    '854321/123',
+    'revenues',
+    13,
+    '333333',
+    1234.58,
+    'RUB',
+    CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text,
+    False
+),
+(
+    'PAYOUT',
+    'PAYOUT_READY',
+    '123458',
+    '854321',
+    '854321/123',
+    'revenues',
+    13,
+    '444444',
+    1234.58,
+    'RUB',
+    CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text,
+    True
+),
+(
+    'PAYOUT',
+    'PAYOUT_READY',
+    '123458',
+    '854321',
+    '854321/123',
+    'revenues',
+    13,
+    '444444',
+    1234.58,
+    'RUB',
+    CURRENT_TIMESTAMP AT TIME ZONE 'UTC'::text,
+    True
+);
+
+insert into payouts.batch_change_log (
+    batch_id,
+    batch_status_code,
+    idempotency_key,
+    created_at_utc
+)
+values
+(
+    1,
+    'EXPORT_READY',
+    '1/EXPORT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    1,
+    'PAYOUT_READY',
+    '1/PAYOUT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    2,
+    'EXPORT_READY',
+    '2/EXPORT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    2,
+    'PAYOUT_READY',
+    '2/PAYOUT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    4,
+    'PAYOUT_READY',
+    '4/PAYOUT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    3,
+    'EXPORT_READY',
+    '3/EXPORT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    3,
+    'PAYOUT_READY',
+    '3/PAYOUT_READY',
+    '2022-03-04T09:53:52.200001'::timestamp
+),
+(
+    5,
+    'EXPORT_READY',
+    '3/EXPORT_READY',
+    '2022-03-03T09:53:52.200001'::timestamp
+),
+(
+    5,
+    'PAYOUT_READY',
+    '3/PAYOUT_READY',
+    '2022-04-04T09:53:52.200001'::timestamp
+);

@@ -1,0 +1,84 @@
+default:
+  - action_id: dismiss
+    display_conditions: {}
+    query_params:
+        chatterbox_button: chatterbox_nto
+    title: "\U0001F910 НТО"
+  - action_id: export
+    display_conditions: {}
+    query_params:
+        chatterbox_button: chatterbox_zen
+    title: ✍️ Ручное
+  - action_id: export
+    display_conditions: {}
+    query_params:
+        chatterbox_button: chatterbox_urgent
+    title: "\U0001F4A3 Ургент"
+  - action_id: export
+    display_conditions: {}
+    query_params:
+        chatterbox_button: chatterbox_lost
+    title: "\U0001F511 Потеряшки"
+
+description: Универсальный список кнопок действий на верхней панели
+tags: []
+schema:
+    type: array
+    minItems: 4
+    items:
+        type: object
+        additionalProperties: false
+        properties:
+            action_id:
+                description: Идентификатор действия
+                type: string
+            display_conditions:
+                description: Mongo conditions для таски (определят, добавлять кнопку
+                    или нет)
+                $ref: "#/definitions/ButtonCondition"
+            query_params:
+                description: Дополнительные параметры запроса
+                type: object
+                additionalProperties: true
+            title:
+                description: Название кнопки
+                type: string
+            title_tanker:
+                description: Tanker key
+                type: string
+            lines:
+                description: Список линий, в которых доступна кнопка
+                type: array
+                items:
+                    type: string
+
+        required:
+          - action_id
+          - query_params
+          - title
+
+    definitions:
+        ButtonCondition:
+            type: object
+            properties:
+
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ButtonCondition"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ButtonCondition"
+
+                "#not":
+                    $ref: "#/definitions/ButtonCondition"
+
+            patternProperties:
+                ^\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                ^meta_info\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            additionalProperties: false

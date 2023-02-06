@@ -1,0 +1,64 @@
+id: test-achievements-reward-list-ok
+title: Тест для ручки driver-v1-partner-achievements-v1-reward-list (POST)
+source:
+    request:
+        method: post
+        headers:
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+            Accept-Language: 'ru'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payload:
+                    rewards:
+                      - description: some reward
+                        code: some_reward_1
+                        category_code: heroic
+                      - description: another reward
+                        code: another_reward
+                        category_code: ordinary
+                    category_ordering:
+                      - heroic
+                      - ordinary
+                version: 'event1'
+            headers: {}
+
+mocks:
+  - resource: achievements-v1-reward-list
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Request-Application-Version#string: '9.32'
+                X-YaTaxi-Park-Id: 'dbid'
+                X-YaTaxi-Driver-Profile-Id: 'uuid'
+                Accept-Language: 'ru'
+    response:
+        status-code: 200
+        body:
+            rewards:
+              - description: some reward
+                code: some_reward_1
+                category_code: heroic
+              - description: another reward
+                code: another_reward
+                category_code: ordinary
+            category_ordering:
+              - heroic
+              - ordinary
+  - resource: client-events-push
+    expectations:
+        call-count: 1
+        request:
+            body:
+                service: 'yandex.pro'
+                event: 'achievements_state'
+                channel: 'contractor:dbid_uuid'
+                send_notification: false
+    response:
+        status-code: 200
+        body:
+            version: 'event1'

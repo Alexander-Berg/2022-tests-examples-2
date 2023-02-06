@@ -1,0 +1,45 @@
+INSERT INTO classifier.tariffs (
+    classifier_id,
+    tariff_id,
+    is_allowing,
+    updated_at
+)
+VALUES
+(
+    'classifier_id_1',
+    'tariff_id_1',
+    TRUE,
+    '2011-01-01T10:00:00'
+),
+(
+    'classifier_id_2',
+    'tariff_id_2',
+    FALSE,
+    '2012-01-01T10:00:00'
+),
+(
+    'classifier_id_3',
+    'tariff_id_3',
+    TRUE,
+    '2013-01-01T10:00:00'
+),
+(
+    'classifier_id_4',
+    'tariff_id_4',
+    FALSE,
+    '2014-01-01T10:00:00'
+),
+(
+    'classifier_id_5',
+    'tariff_id_5',
+    TRUE,
+    '2015-01-01T10:00:00'
+),
+(
+    'classifier_id_6',
+    'tariff_id_6',
+    FALSE,
+    '2016-01-01T10:00:00'
+);
+
+

@@ -1,0 +1,1396 @@
+type: apitest
+version: 0
+service: taxi_zalogin
+
+marks:
+  - name: now
+    args:
+      - "2019-10-31T11:30:00+0300"
+  - name: config
+    kwargs:
+        PORTAL_AUTH_PHONE_CONFIRMATION_PERIODS_SECONDS:
+            __default__: 315360000
+  - name: experiments3
+    kwargs:
+        filename: "exp3_disable_plus_by_number.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_cashback_for_plus_by_app.json"
+  - name: experiments3
+    kwargs:
+        filename: "conf3_plus_by_app.json"
+
+mockserver:
+  - url: /personal/v1/phones/retrieve
+    request:
+        body:
+            id: "my-personal-id"
+            primary_replica: false
+    response:
+        body:
+            id: "my-personal-id"
+            value: "+72222222222"
+
+  - url: /blackbox
+    request:
+        query_params:
+            method: "user_ticket"
+            format: "json"
+            dbfields: "subscription.suid.669"
+            aliases: "all"
+            getphones: "bound"
+            attributes: "1015,1025"
+            phone_attributes: "102,107,4,108"
+        form:
+            user_ticket: "my-user-ticket"
+    response:
+        body:
+            users:
+              - uid:
+                    value: "12345"
+                aliases:
+                    1: "phne-3duidcuu"
+                dbfields:
+                    subscription.suid.669: ""
+                phones:
+                  - id: "1111"
+                    attributes:
+                        102: "+71111111111"
+                        4:
+                            $param:
+                                name: "bb_confirmation_time"
+                                default: "1556681850"
+                  - id: "2222"
+                    attributes:
+                        102: "+72222222222"
+                        4:
+                            $param:
+                                name: "bb_confirmation_time"
+                                default: "1556681858"
+                        107: "1"
+
+  - url: /user-api/v3/users/create
+    request:
+        body:
+            application: "web"
+            application_version: "2.0.0"
+            authorized: false
+            token_only: false
+            has_ya_plus: false
+            has_cashback_plus: false
+            yandex_staff: false
+            yandex_uid: "12345"
+            yandex_uuid: "my0yandex0uuid000000000000000000"
+    response:
+        body:
+            id: "my-new-user-id-11111111111111111"
+
+  - url: /user-api/v3/users/update
+    request:
+        body:
+            id: "my-found-user-id-111111111111111"
+            application: "web"
+            application_version: "2.0.0"
+            authorized: false
+            token_only: false
+            has_ya_plus: false
+            has_cashback_plus: false
+            yandex_staff: false
+            yandex_uid: "12345"
+            yandex_uuid: "my0yandex0uuid000000000000000000"
+    response:
+        body: {}
+
+  - url: /user-api/v3/userinfo
+    response:
+        body:
+            id:
+                $param:
+                    name: "/request/json/id"
+                    default: "my-found-user-id-111111111111111"
+            token_only: false
+            authorized: false
+            yandex_uid: "12345"
+            yandex_uuid: "my0yandex0uuid000000000000000000"
+            phone:
+                id: "000000000000000000000000"
+                personal_id: "my-personal-id"
+                phone_hash:
+                    hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+                    salt: "cHVibGljIHNhbHQ="
+
+  - url: /user-api/user_phones
+    request:
+        body:
+            phone: "+72222222222"
+            type: "yandex"
+            validate_phone: false
+    response:
+        body:
+            id: "000000000000000000000000"
+            phone: "+72222222222"
+            type: "yandex"
+            personal_phone_id: "my-personal-id"
+            stat:
+                big_first_discounts: 0
+                complete: 0
+                complete_card: 0
+                complete_apple: 0
+                complete_google: 0
+                fake: 0
+                total: 0
+            is_loyal: false
+            is_yandex_staff: false
+            is_taxi_staff: false
+            phone_hash: "cbedcf0d6e7ab751726ebfb367093352a1a92bfd6fa8242ae267d3b278ce151c"
+            phone_salt: "cHVibGljIHNhbHQ="
+
+tests:
+  - name: no-id-no-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body: {}
+    response:
+        status: 500
+
+  - name: valid-id-no-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 500
+
+  - name: no-id-valid-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body: {}
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: valid-id-valid-uid
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: user-not-found
+    mockserver:
+      - url: /user-api/v3/userinfo
+        response:
+            status: 404
+            body:
+                code: "404"
+                message: "not found"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: broken-cookie
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            status: 200
+            body:
+                error: "FAIL"
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                authorized: false
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            uuid: "my0yandex0uuid000000000000000000"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: auth-as-portal-new-user
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /user-api/v3/userinfo
+        response:
+            status: 404
+            body:
+                code: "404"
+                message: "not found"
+
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+  - name: auth-as-portal-new-user-pdd-account
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        7: "pdd-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    phones:
+                      - id: "2222"
+                        attributes:
+                            102: "+72222222222"
+                            4:
+                                $param:
+                                    name: "bb_confirmation_time"
+                                    default: "1556681858"
+                            107: "1"
+
+      - url: /user-api/v3/userinfo
+        response:
+            status: 404
+            body:
+                code: "404"
+                message: "not found"
+
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+  - name: auth-as-portal-update-confirmed
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-found-user-id-111111111111111"
+                application: "web"
+                application_version: "2.0.0"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+        times: 0
+
+  - name: auth-as-portal-update-confirmation-expired
+    params:
+        bb_confirmation_time: "1257080862"
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/user_phones
+        request:
+            body:
+                phone: "+71111111111"
+                type: "yandex"
+                validate_phone: false
+        response:
+            body:
+                id: "000000000000000000000000"
+                phone: "+71111111111"
+                type: "yandex"
+                personal_phone_id: "my-personal-id"
+                stat:
+                    big_first_discounts: 0
+                    complete: 0
+                    complete_card: 0
+                    complete_apple: 0
+                    complete_google: 0
+                    fake: 0
+                    total: 0
+                is_loyal: false
+                is_yandex_staff: false
+                is_taxi_staff: false
+                phone_hash: "862e994f450624e17fac8fda6c45c9acafa2405809ab9a78d6344a51226dc666"
+                phone_salt: "cHVibGljIHNhbHQ="
+
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-found-user-id-111111111111111"
+                application: "web"
+                application_version: "2.0.0"
+                authorized: false
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+71111111111"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+  - name: auth-as-portal-set-phone
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/userinfo
+        response:
+            body:
+                id:
+                    $param:
+                        name: "/request/json/id"
+                        default: "my-found-user-id-111111111111111"
+                token_only: false
+                authorized: false
+                yandex_uid: "12345"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-found-user-id-111111111111111"
+                application: "web"
+                application_version: "2.0.0"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+# for TAXIDATA-2255
+  - name: auth-as-portal-change-phone-to-phone-from-passport
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/userinfo
+        response:
+            body:
+                id: "my-found-user-id-111111111111111"
+                token_only: false
+                authorized: false
+                yandex_uid: "12345"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+                phone:
+                    id: "000000000000000000000000"
+                    personal_id: "my-personal-id"
+                    phone_hash:
+                        hash: "other_hash"
+                        salt: "cHVibGljIHNhbHQ="
+
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-found-user-id-111111111111111"
+                application: "web"
+                application_version: "2.0.0"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+  - name: auth-as-portal-change-phone-passport-phones-empty
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /blackbox
+        request:
+            query_params:
+                method: "user_ticket"
+                format: "json"
+                dbfields: "subscription.suid.669"
+                aliases: "all"
+                getphones: "bound"
+                attributes: "1015,1025"
+                phone_attributes: "102,107,4,108"
+            form:
+                user_ticket: "my-user-ticket"
+        response:
+            body:
+                users:
+                  - uid:
+                        value: "12345"
+                    aliases:
+                        1: "portal-account"
+                    dbfields:
+                        subscription.suid.669: ""
+                    attributes:
+                        1015: ""
+                        1025: ""
+                    phones: []
+
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                authorized: false
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/userinfo
+        response:
+            body:
+                id: "my-found-user-id-111111111111111"
+                token_only: false
+                authorized: false
+                yandex_uid: "12345"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+                phone:
+                    id: "000000000000000000000000"
+                    personal_id: "my-personal-id"
+                    phone_hash:
+                        hash: "other_hash"
+                        salt: "cHVibGljIHNhbHQ="
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-found-user-id-111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones: {}
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+  - name: no-search-by-uid-no-request-id
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_zuser_web.json"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_web_search_by_uid_disabled.json"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body: {}
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: no-search-by-uid-user-request-id
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_zuser_web.json"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_web_search_by_uid_disabled.json"
+    mockserver:
+      - url: /user-api/v3/users/update
+        request:
+            body:
+                id: "my-request-user-id-1111111111111"
+                application: "web"
+                application_version: "2.0.0"
+                authorized: false
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body: {}
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+    response:
+        status: 200
+        body:
+            id: "my-request-user-id-1111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: no-search-by-uid-zuser-request-id
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_zuser_web.json"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_web_search_by_uid_disabled.json"
+    mockserver:
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                zuser_id: "z-my-request-zuser-id-1111111111"
+                authorized: false
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "z-my-request-zuser-id-1111111111"
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: false
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+        times: 0
+
+  - name: zuser-auth-as-portal-without-search-by-uid
+    marks:
+      - name: experiments3
+        kwargs:
+            filename: "exp3_zuser_web.json"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_web_search_by_uid_disabled.json"
+      - name: experiments3
+        kwargs:
+            filename: "exp3_launch_auth_web_as_portal.json"
+    mockserver:
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                zuser_id: "z-my-request-zuser-id-1111111111"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "z-my-request-zuser-id-1111111111"
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2
+
+  - name: auth-as-portal-by-flag
+    mockserver:
+      - url: /user-api/v3/userinfo
+        response:
+            status: 404
+            body:
+                code: "404"
+                message: "not found"
+
+      - url: /social/api/special/who_shares_taxi_data_v2
+        request:
+            query_params:
+                consumer: "taxi-zalogin"
+                provider: "ya"
+                userid: "12345"
+        response:
+            body:
+                status: "ok"
+
+      - url: /user-api/v3/users/create
+        request:
+            body:
+                application: "web"
+                application_version: "2.0.0"
+                authorized: true
+                token_only: false
+                has_ya_plus: false
+                has_cashback_plus: false
+                yandex_staff: false
+                yandex_uid: "12345"
+                phone_id: "000000000000000000000000"
+                yandex_uuid: "my0yandex0uuid000000000000000000"
+        response:
+            body:
+                id: "my-new-user-id-11111111111111111"
+
+    request:
+        method: POST
+        path: v1/launch/auth
+        headers:
+            X-Yandex-UID: "12345"
+            X-Ya-User-Ticket: "my-user-ticket"
+            X-YaTaxi-Pass-Flags: "credentials=session"
+            X-Request-Application: "app_name=web,app_ver1=2"
+            X-Remote-Ip: "::ffff:5.255.245.107"
+        query_params:
+            uuid: "my0yandex0uuid000000000000000000"
+        body:
+            id: "my-request-user-id-1111111111111"
+            allow_full_account: true
+    response:
+        status: 200
+        body:
+            id: "my-new-user-id-11111111111111111"
+            authorization_confirmed: true
+            authorized: true
+            loyal: false
+            phone_id: "000000000000000000000000"
+            phone: "+72222222222"
+            phones:
+                "+71111111111": true
+                "+72222222222": true
+            uuid: "my0yandex0uuid000000000000000000"
+            personal_phone_id: "my-personal-id"
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /personal/v1/phones/retrieve
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/users/create
+      - type: mockserver-called
+        url: /user-api/v3/users/update
+        times: 0
+      - type: mockserver-called
+        url: /user-api/v3/userinfo
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /social/api/special/who_shares_taxi_data_v2

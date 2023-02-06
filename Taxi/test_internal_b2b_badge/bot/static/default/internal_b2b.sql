@@ -1,0 +1,37 @@
+INSERT INTO internal_b2b.telegram_staff (
+    login,
+    is_deleted,
+    is_dismissed,
+    telegram_account
+)
+VALUES (
+    'good_boy',
+    false,
+    false,
+    'tg_good_boy'
+),(
+    'boy_who_crash_badgepay',
+    false,
+    false,
+    'tg_boy_who_crash_badgepay'
+),(
+    'deleted_boy',
+    true,
+    false,
+    'tg_deleted_boy'
+),(
+    'dismissed_boy',
+    false,
+    True,
+    'tg_dismissed_boy'
+),(
+    'twin1_boy',
+    false,
+    false,
+    'twins_tg'
+),(
+    'twin2_boy',
+    false,
+    false,
+    'twins_tg'
+);

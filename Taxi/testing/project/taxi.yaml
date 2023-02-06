@@ -1,0 +1,64 @@
+- id: taxi
+  routes:
+    - from: telephony::taxi_call_center::market_support_flow
+      to: logbroker::conversation-out-messages
+      handlers:
+        - taxiTelephonyCommon
+        - taxiTelephonyIncoming
+        - taxiTelephonyHangup
+        - taxiTelephonyForwardFail
+        - taxiTelephonyConnected
+        - taxiTelephonyAsk
+        - taxiTelephonyOriginateFail
+    - from: mail::test-conversation-1@yandex-team.ru
+      to: logbroker::conversation-out-messages
+      handlers:
+        - IncomingMailHandler
+    - from: logbroker::conversation-in-messages
+      to: mail::test-conversation-1@yandex-team.ru
+      handlers:
+        - OutgoingMailHandler
+    - from: mail::test-conversation-2@yandex-team.ru
+      to: logbroker::conversation-out-messages
+      handlers:
+        - IncomingMailHandler
+    - from: logbroker::conversation-in-messages
+      to: mail::test-conversation-2@yandex-team.ru
+      handlers:
+        - OutgoingMailHandler
+    - from: logbroker::conversation-in-messages
+      to: telephony::taxi_call_center::market_support_flow
+      handlers:
+        - taxiTelephonyCommandForward
+        - taxiTelephonyCommandHold
+        - taxiTelephonyCommandHangup
+        - taxiTelephonyCommandCsat
+        - taxiTelephonyCommandOutgoing
+    - from: whatsapp::messenger_services::taxi_test
+      to: logbroker::conversation-out-messages
+      handlers:
+        - whatsappInboundMessageHandler
+        - whatsappDeliveryReportHandler
+    - from: telegram::messenger_services::eats_personal_manager
+      to: logbroker::conversation-out-messages
+      handlers:
+        - telegramInboundMessageHandler
+        - telegramDeliveryReportHandler
+    - from: logbroker::conversation-in-whatsapp
+      to: whatsapp::messenger_services::taxi_test
+      handlers:
+        - whatsappOutgoingMessageHandler
+    - from: logbroker::conversation-in-telegram
+      to: telegram::messenger_services::eats_personal_manager
+      handlers:
+        - telegramOutgoingMessageHandler
+    - from: yamb::33644700-428b-94c9-6b92-9a831dc2af57
+      to: logbroker::conversation-out-messages
+      handlers:
+        - yambMessage
+        - yambSeenMarker
+    - from: logbroker::conversation-in-yamb
+      to: yamb::33644700-428b-94c9-6b92-9a831dc2af57
+      handlers:
+        - yambCommandMessage
+        - yambCommandSeenMarker

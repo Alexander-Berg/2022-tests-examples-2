@@ -1,0 +1,104 @@
+default: []
+description: Настройки фолбеков по сервисам
+tags: [notfallback]
+maintainers: [vicstepanov, lol4t0]
+schema:
+    type: array
+    items:
+        $ref: "#/definitions/ServiceConfig"
+
+    definitions:
+        ServiceFallbackConfig:
+            description: |
+                Описание фолбека, фолбек влкючается, если выполняется условие
+                total = sum(totals..., interval)
+                errors = sum(errors..., interval)
+                fire = totals > min_events && 100 * (errors / totals) > threshold
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - errors
+              - totals
+              - threshold
+              - min_events
+              - interval
+            properties:
+                name:
+                    description: название фолбека
+                    type: string
+                    minLength: 1
+                errors:
+                    description: Список метрик, которые считаются за error
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set  # так удобнее вычитывать
+                    minItems: 1
+                    items:
+                        type: string
+                        minLength: 1
+                        x-taxi-cpp-type: statistics_config::Pattern
+                totals:
+                    description: Список метрик, которые идут в total
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set  # так удобнее вычитывать
+                    minItems: 1
+                    items:
+                        type: string
+                        minLength: 1
+                        x-taxi-cpp-type: statistics_config::Pattern
+                threshold:
+                    description: порог включения фолбека
+                    type: number
+                    minimum: 0
+                    maximum: 100
+                interval:
+                    description: |
+                        Велична временного окна, в котором считать количетсво ошибок и
+                        успешных запросов, в секундах
+                    type: integer
+                    minimum: 1
+                    maximum: 500  # можно поменять, но это завязано на время хранения статистики
+                    x-taxi-cpp-type: std::chrono::seconds
+                critical_time:
+                    description: |
+                        Время, в течение которого держать фоллбек активным после
+                        последнего срабатывания, в секундах
+                    type: integer
+                    minimum: 1
+                    default: 1
+                    x-taxi-cpp-type: std::chrono::seconds
+                min_events:
+                    description: |
+                        Минимальное число событий total, при котором начинает считаться статистика.
+                        Если событий меньше, то фолбек будет выключен
+                    type: integer
+                    minimum: 0
+                    x-taxi-cpp-type: unsigned
+        ServiceConfig:
+            type: object
+            additionalProperties: false
+            required:
+              - service
+              - fallbacks
+            properties:
+                service:
+                    description: Название сервиса
+                    type: string
+                    minLength: 1
+                    x-taxi-cpp-type: statistics_config::Pattern
+                fallbacks:
+                    description: список фолбпеков для сервиса
+                    type: array
+                    items:
+                        $ref: "#/definitions/ServiceFallbackConfig"
+
+samples:
+  -   - service: cardstorage
+        fallbacks:
+          - name: cards-listpaymentmethods
+            errors: [card.lpm.error]
+            totals: [card.lpm.success, card.lpm.error]
+            threshold: 1.5
+            min_events: 100
+            interval: 120
+            critical_time: 600

@@ -1,0 +1,280 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'TaxiFleet.API'
+
+x-taxi-middlewares:
+    tvm:
+        user-scopes: []
+        adjust-prod-env: true
+
+basePath: /api/v1/reports/payouts
+
+paths:
+    /list:
+        post:
+            summary: List of payouts
+            operationId: ReportPayoutsList
+            parameters:
+              - $ref: 'codegen-service/definitions.yaml#/parameters/x_ya_user_ticket'
+              - $ref: 'codegen-service/definitions.yaml#/parameters/x_ya_user_ticket_provider'
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/ReportPayoutsListRequest'
+            responses:
+                200:
+                    description: 'ОК'
+                    schema:
+                        $ref: '#/definitions/ReportPayoutsListResponse'
+                400:
+                    description: 'Validation Error'
+                    schema:
+                        $ref: 'codegen-service/definitions.yaml#/definitions/Response400'
+
+    /details:
+        post:
+            summary: Details for a selected payout
+            operationId: ReportPayoutsDetails
+            parameters:
+              - $ref: 'codegen-service/definitions.yaml#/parameters/x_ya_user_ticket'
+              - $ref: 'codegen-service/definitions.yaml#/parameters/x_ya_user_ticket_provider'
+              - in: body
+                name: body
+                required: true
+                schema:
+                    $ref: '#/definitions/ReportPayoutsDetailsRequest'
+            responses:
+                200:
+                    description: 'OK'
+                    schema:
+                        $ref: '#/definitions/ReportPayoutsDetailsResponse'
+                400:
+                    description: 'Validation Error'
+                    schema:
+                        $ref: 'codegen-service/definitions.yaml#/definitions/Response400'
+                401:
+                    description: 'Unauthorized'
+                    schema:
+                        $ref: 'codegen-service/definitions.yaml#/definitions/Response401'
+
+    /categories:
+        post:
+            summary: Category list
+            operationId: ReportPayoutsCategories
+            parameters:
+              - $ref: 'codegen-service/definitions.yaml#/parameters/accept_language'
+              - $ref: 'codegen-service/definitions.yaml#/parameters/x_ya_user_ticket'
+              - $ref: 'codegen-service/definitions.yaml#/parameters/x_ya_user_ticket_provider'
+            responses:
+                200:
+                    description: 'OK'
+                    schema:
+                        $ref: '#/definitions/ReportPayoutsCategoriesResponse'
+                401:
+                    description: 'Unauthorized'
+                    schema:
+                        $ref: 'codegen-service/definitions.yaml#/definitions/Response401'
+
+definitions:
+    ReportPayoutsListResponse:
+        type: object
+        additionalProperties: false
+        required:
+          - payments
+          - cursor
+        properties:
+            payments:
+                type: array
+                items:
+                    $ref: '#/definitions/PaymentOrder'
+            cursor:
+                type: object
+                additionalProperties: true
+                x-taxi-additional-properties-true-reason: The object may have an arbitrary
+                    structure
+
+    PaymentOrder:
+        type: object
+        additionalProperties: false
+        required:
+          - id
+          - order_number
+          - status
+          - creation_date
+          - bank_account_number
+          - payment_target
+          - amount
+          - currency
+        properties:
+            id:
+                description: Payment id
+                type: string
+            order_number:
+                description: Payment order number
+                type: string
+            status:
+                $ref: '#/definitions/PaymentStatus'
+            creation_date:
+                description: Date of payment
+                type: string
+            bank_account_number:
+                description: Bank account
+                type: string
+            bank_name:
+                description: Name of the bank to describe
+                type: string
+            payee_name:
+                description: payee name for description
+                type: string
+            payment_target:
+                description: Additional description of the payment order
+                type: string
+            amount:
+                description: Payment amount
+                type: string
+            currency:
+                description: Payment currency
+                type: string
+            void_details:
+                $ref: '#/definitions/PaymentOrderVoidDetails'
+
+    PaymentStatus:
+        type: string
+        enum:
+          - processing
+          - paid
+          - canceled
+
+    PaymentOrderVoidDetails:
+        type: object
+        additionalProperties: false
+        properties:
+            reason:
+                description: Reason for canceling payment
+                type: string
+            event_at:
+                description: Date and time of cancellation of payment
+                type: string
+
+    ReportPayoutsDetailsResponse:
+        type: object
+        additionalProperties: false
+        required:
+          - transactions
+          - cursor
+        properties:
+            transactions:
+                type: array
+                items:
+                    $ref: '#/definitions/OrderTransaction'
+            cursor:
+                type: string
+
+    OrderTransaction:
+        type: object
+        additionalProperties: false
+        required:
+          - transaction_id
+          - contract_id
+          - transaction_type
+          - amount
+          - currency
+        properties:
+            transaction_id:
+                description: Transaction id
+                type: string
+            contract_id:
+                description: The contract the transaction is associated with
+                type: string
+            order_id:
+                description: Order id
+                type: string
+            driver_id:
+                description: Driver id
+                type: string
+            driver_name:
+                description: Driver name
+                type: string
+            transaction_type:
+                description: Transaction type (product)
+                type: string
+            amount:
+                description: Payment amount
+                type: string
+            currency:
+                description: Payment currency
+                type: string
+
+    ReportPayoutsCategoriesResponse:
+        type: object
+        additionalProperties: false
+        required:
+          - categories
+        properties:
+            categories:
+                type: array
+                items:
+                    $ref: '#/definitions/ReportPayoutsCategory'
+
+    ReportPayoutsCategory:
+        type: object
+        additionalProperties: false
+        required:
+          - id
+          - name
+        properties:
+            id:
+                type: string
+            name:
+                type: string
+
+    ReportPayoutsListRequest:
+        type: object
+        additionalProperties: false
+        required:
+          - payment_at
+          - status
+          - limit
+        properties:
+            payment_at:
+                $ref: 'codegen-service/definitions.yaml#/definitions/DateTimeInterval'
+            status:
+                type: array
+                items:
+                    $ref: '#/definitions/PaymentStatus'
+            limit:
+                type: integer
+                minimum: 1
+                maximum: 100
+            cursor:
+                description: Cursor object with offset information when searching
+                type: object
+                additionalProperties: true
+                x-taxi-additional-properties-true-reason: The object may have an arbitrary
+                    structure
+
+    ReportPayoutsDetailsRequest:
+        type: object
+        additionalProperties: false
+        required:
+          - payment_id
+          - limit
+        properties:
+            payment_id:
+                type: string
+            driver_id:
+                type: string
+            order_id:
+                type: string
+            contract_id:
+                type: string
+            category_id:
+                type: string
+            limit:
+                type: integer
+                minimum: 1
+                maximum: 100
+            cursor:
+                type: string

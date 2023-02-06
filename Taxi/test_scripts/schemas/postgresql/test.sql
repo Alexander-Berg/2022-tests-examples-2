@@ -1,0 +1,8 @@
+DROP SCHEMA IF EXISTS common CASCADE;
+
+CREATE SCHEMA common;
+
+CREATE TABLE common.test(
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL
+);

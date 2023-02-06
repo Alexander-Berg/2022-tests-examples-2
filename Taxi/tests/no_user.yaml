@@ -1,0 +1,49 @@
+id: no_user
+title: no user key in request body
+source:
+    request:
+        method: post
+        url: /integration/turboapp/v1/orders/search
+        headers:
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+            X-Yandex-UID: test_yandex_uid
+            X-YaTaxi-UserId: test_user_id
+        body:
+            some: request
+            orderid: orderid
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                feedback:
+                    rating_feedback: some_rating
+                test: data
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body:
+            test: data
+    expectations:
+        request:
+            body:
+                some: request
+                orderid: orderid
+            headers:
+                X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+                X-Yandex-UID: test_yandex_uid
+                X-YaTaxi-UserId: test_user_id
+        call-count: 1
+
+  - resource: passenger-feedback-v1-retrieve
+    response:
+        status-code: 200
+        body:
+            rating_feedback: some_rating
+    expectations:
+        request:
+            body:
+                order_id: orderid
+                from_archive: false
+        call-count: 1

@@ -1,0 +1,56 @@
+default:
+    modes: []
+    tanker_keys:
+        __default__:
+            disable_button: "offer_screen.button_title_in_reposition"
+            message_title: "set_by_session.error.CHECK_NOT_IN_REPOSITION_FAILED.title"
+            message_body: "set_by_session.error.CHECK_NOT_IN_REPOSITION_FAILED.message"
+description: Содержит список режимов, переход с которых и на которые должен блокироваться,
+    когда водитель находится в одном из режимов reposition.
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - modes
+      - tanker_keys
+    properties:
+        modes:
+            description: Список режимов, переход с которых и на которые должен блокироваться,
+                когда водитель находится в одном из режимов reposition.
+            type: array
+            items:
+                type: string
+            x-taxi-cpp-type: std::unordered_set
+
+        tanker_keys:
+            description: Список танкерных ключей для сообщений о непройденной проверке.
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/TankerKeys'
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/TankerKeys'
+
+    definitions:
+        TankerKeys:
+            type: object
+            additionalProperties: false
+            required:
+              - disable_button
+              - message_title
+              - message_body
+            properties:
+                disable_button:
+                    description: Танкерный ключ для сообщения на недоступной кнопке.
+                    type: string
+                message_title:
+                    description: Танкерный ключ для заголовка окна, всплывающего при
+                        невозможности подписки.
+                    type: string
+                message_body:
+                    description: Танкерный ключ для сообщения в окне, всплывающем
+                        при невозможности подписки.
+                    type: string

@@ -1,0 +1,1277 @@
+# Created with generator. Save this comment for future reference.
+# Launch args: --source postgres --database pricing_data_preparer --table price_modifications.rules --yt-struct
+  - input:
+        rule_id: 2384
+        name: prod_yaplus_cashback_user
+        description: ''
+        source_code: |-
+            function getAvailableCashback() {
+              if (fix.category_data.yaplus_coeff as yaplus_coeff) {
+                return {enabled=true, rate=1-yaplus_coeff, price_decreasing_coeff=yaplus_coeff};
+              }
+
+              return {enabled=false, rate=0.0, price_decreasing_coeff=1.0};
+            }
+
+            function getMinimalPrimaryPayment() {
+              let minimal_primary_sum_exp = "composite_payment_minimal_primary_sum" in fix.exps;
+              if (!minimal_primary_sum_exp) {
+                  return {res = 0};
+              }
+
+              return {res = fix.rounding_factor};
+            }
+
+            function max(a : double, b : double) {
+              return {res = (a > b) ? a : b};
+            }
+
+            function getComposite() {
+                // only under exp
+                let cashback_for_composite_enabled = "cashback_for_composite_enabled" in fix.exps;
+                if (!cashback_for_composite_enabled) {
+                    return {enabled=false,
+                            paid_by_card=0,
+                            meta=[]};
+                }
+
+                if (fix.complements as complements) {
+                    if (complements.personal_wallet as personal_wallet) {
+                        let min_primary_payment = getMinimalPrimaryPayment().res;
+
+                        let display_price = (*ride.price > personal_wallet.balance)
+                                            ? (*ride.price - personal_wallet.balance)
+                                            : 0;
+
+                        let display_price_rounded = round_to(display_price, fix.rounding_factor);
+                        let display_price_rounded_checked = max(a = display_price_rounded, b = min_primary_payment).res;
+
+
+                        let display_min_price = (fix.tariff.minimum_price > personal_wallet.balance)
+                                                ? (fix.tariff.minimum_price - personal_wallet.balance)
+                                                : 0;
+
+                        let display_min_price_rounded = round_to(display_min_price, fix.rounding_factor);
+                        let composite_meta = [
+                          "cashback_for_composite": 1,
+                          "display_price": display_price_rounded_checked,
+                          "display_min_price": display_min_price_rounded,
+                          "wallet_balance": personal_wallet.balance
+                        ];
+                        return {enabled=true,
+                                paid_by_card=display_price_rounded_checked,
+                                meta=composite_meta};
+                    }
+                }
+                return {enabled=false,
+                        paid_by_card=0,
+                        meta=[]};
+            }
+
+            function makeCouponMeta() {
+              if (fix.coupon as coupon) {
+                  if (coupon.valid) {
+                    let using_user_meta_enabled = "using_user_meta_enabled" in fix.exps;
+                    if (using_user_meta_enabled) {
+                      return { meta=["cashback_with_coupon": 1], ret=false };
+                    } else {
+                      return { meta=[], ret=true };
+                    }
+                  }
+                }
+              return { meta=[], ret=false };
+            }
+
+            // we need all this only for unite price case
+            let unite_total_price_enabled = "cashback_unite_total_price" in fix.exps;
+            if (!unite_total_price_enabled) {
+              return ride.price;
+            }
+
+            if(fix.payment_type as payment_type) {
+              let corp_type = payment_type == "corp";
+              let wallet_type = payment_type == "personal_wallet";
+              let corp_acc_type = payment_type == "coop_account";
+              let bad_type = corp_type || wallet_type || corp_acc_type;
+              
+              if (bad_type) {
+                return ride.price;
+              }
+              
+              let cashback_params = getAvailableCashback();
+              if (cashback_params.enabled) {
+
+                // no cashback for cash
+                if (payment_type == "cash") {
+                  return ride.price;
+                }
+                // no cashback when spending cashback
+                //if (fix.complements as complements) {
+                  //return ride.price;
+                //}
+
+                // avoiding nan_test
+                if (cashback_params.price_decreasing_coeff < 0.01) {
+                  return ride.price;
+                }
+                
+                // это контрольная группа эксперимента Логистики
+                if (cashback_params.rate < 0.01) {
+                  return ride.price;
+                }
+                
+                let cashback_for_plus_available = "cashback_for_plus_availability" in fix.exps;
+                if (!cashback_for_plus_available) {
+                  return ride.price;
+                }
+                
+                // allow coupon only by exp
+                let meta_return = makeCouponMeta();
+                if (meta_return.ret) {
+                  return ride.price;
+                }
+                let meta1 = meta_return.meta;
+
+                let composite = getComposite();
+
+                let cashback_rate = cashback_params.rate;
+                let price_decreasing_coeff = cashback_params.price_decreasing_coeff;
+                let cashback_coeff = cashback_rate/price_decreasing_coeff;
+                
+                let rounded_total_price = round_to(*ride.price, fix.rounding_factor);
+                let rounded_base_price = (composite.enabled)
+                                    ? composite.paid_by_card
+                                    : rounded_total_price;
+
+                let cashback_price = rounded_base_price * cashback_rate;
+                let rounded_cashback_price = round_to(cashback_price, fix.rounding_factor);
+                let rounded_new_ride_price = rounded_total_price - rounded_cashback_price;
+                
+                let new_price_decreasing_coeff = (*ride.price >= 1)
+                  ? rounded_new_ride_price/(*ride.price)
+                  : price_decreasing_coeff;
+                
+                if (!fix.user_data.has_yaplus) {
+                  let meta2 = [
+                    "possible_cashback_rate": cashback_rate,
+                    "possible_cashback_fixed_price": rounded_cashback_price
+                  ];
+                  return {metadata = meta2 };
+                }
+                
+                // user hasn't accepted the new offer
+                if (!fix.user_data.has_cashback_plus) {
+                  return ride.price;
+                }
+
+                // we cannot have zero ride price and nonzero cashback price                    
+                if (rounded_new_ride_price <= 0 && rounded_cashback_price > 0) {
+                  let meta2 = [
+                    "cashback_fixed_price": 0,
+                    "cashback_fixed_price_for_driver": 0,
+                    "unite_total_price_enabled": 1
+                  ];
+                  return {metadata = meta2 };
+                }
+
+                // moved to cash case
+                let payment_type_is_cash = ("payment_type_is_cash" in ride.ride.user_options);
+                if (payment_type_is_cash) {
+                  let meta2 = [
+                    "cashback_fixed_price": 0
+                  ];
+                  return concat({metadata = meta1 + meta2}, ride.price * new_price_decreasing_coeff);
+                }
+
+                let meta2 = [
+                  "unite_total_price_enabled": 1,
+                  "plus_cashback_rate": cashback_rate,
+                  "cashback_calc_coeff": 0,
+                  "cashback_fixed_price": rounded_cashback_price,
+                  "user_ride_price": rounded_new_ride_price,
+                  "user_total_price": rounded_total_price
+                ];
+                return {metadata = meta1 + composite.meta + meta2 };
+              }
+            }
+            return ride.price;
+        policy: both_side
+        author: aliev-r
+        approvals_id: 209581
+        ast: FUNC(getAvailableCashback,ARGS(),B(IF(U(?,B(B(fix,.,F(category_data)),.,F(yaplus_coeff))),CR(enabled=true,price_decreasing_coeff=U(*,B(B(fix,.,F(category_data)),.,F(yaplus_coeff))),rate=B(1.000000,-,U(*,B(B(fix,.,F(category_data)),.,F(yaplus_coeff))))));CR(enabled=false,price_decreasing_coeff=1.000000,rate=0.000000)));FUNC(getMinimalPrimaryPayment,ARGS(),B(SV(minimal_primary_sum_exp,B("composite_payment_minimal_primary_sum",in,B(fix,.,F(exps))));IF(U(!,VA(minimal_primary_sum_exp)),CR(res=0.000000));CR(res=B(fix,.,F(rounding_factor)))));FUNC(max,ARGS((a,double),(b,double)),B(CR(res=T(B(FA(a,double),>,FA(b,double)),FA(a,double),FA(b,double)))));FUNC(getComposite,ARGS(),B(SV(cashback_for_composite_enabled,B("cashback_for_composite_enabled",in,B(fix,.,F(exps))));IF(U(!,VA(cashback_for_composite_enabled)),CR(enabled=false,meta=MAP(),paid_by_card=0.000000));IF(U(?,B(fix,.,F(complements))),IF(U(?,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),SV(min_primary_payment,B(FC(getMinimalPrimaryPayment,NT(),R(res=double)),.,F(res)));SV(display_price,T(B(U(*,B(ride,.,F(price))),>,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),B(U(*,B(ride,.,F(price))),-,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),0.000000));SV(display_price_rounded,B(VA(display_price),round_to,B(fix,.,F(rounding_factor))));SV(display_price_rounded_checked,B(FC(max,NT(a=VA(display_price_rounded),b=VA(min_primary_payment)),R(res=double)),.,F(res)));SV(display_min_price,T(B(B(B(fix,.,F(tariff)),.,F(minimum_price)),>,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),B(B(B(fix,.,F(tariff)),.,F(minimum_price)),-,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),0.000000));SV(display_min_price_rounded,B(VA(display_min_price),round_to,B(fix,.,F(rounding_factor))));SV(composite_meta,MAP("cashback_for_composite"=1.000000,"display_price"=VA(display_price_rounded_checked),"display_min_price"=VA(display_min_price_rounded),"wallet_balance"=B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))));CR(enabled=true,meta=VA(composite_meta),paid_by_card=VA(display_price_rounded_checked))));CR(enabled=false,meta=MAP(),paid_by_card=0.000000)));FUNC(makeCouponMeta,ARGS(),B(IF(U(?,B(fix,.,F(coupon))),IF(B(U(*,B(fix,.,F(coupon))),.,F(valid)),SV(using_user_meta_enabled,B("using_user_meta_enabled",in,B(fix,.,F(exps))));IF(VA(using_user_meta_enabled),CR(meta=MAP("cashback_with_coupon"=1.000000),ret=false),CR(meta=MAP(),ret=true))));CR(meta=MAP(),ret=false)));SV(unite_total_price_enabled,B("cashback_unite_total_price",in,B(fix,.,F(exps))));IF(U(!,VA(unite_total_price_enabled)),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(U(?,B(fix,.,F(payment_type))),SV(corp_type,B(U(*,B(fix,.,F(payment_type))),==,"corp"));SV(wallet_type,B(U(*,B(fix,.,F(payment_type))),==,"personal_wallet"));SV(corp_acc_type,B(U(*,B(fix,.,F(payment_type))),==,"coop_account"));SV(bad_type,B(B(VA(corp_type),||,VA(wallet_type)),||,VA(corp_acc_type)));IF(VA(bad_type),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(cashback_params,FC(getAvailableCashback,NT(),R(enabled=bool,price_decreasing_coeff=double,rate=double)));IF(B(VA(cashback_params),.,F(enabled)),IF(B(U(*,B(fix,.,F(payment_type))),==,"cash"),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(B(B(VA(cashback_params),.,F(price_decreasing_coeff)),<,0.010000),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(B(B(VA(cashback_params),.,F(rate)),<,0.010000),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(cashback_for_plus_available,B("cashback_for_plus_availability",in,B(fix,.,F(exps))));IF(U(!,VA(cashback_for_plus_available)),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(meta_return,FC(makeCouponMeta,NT(),R(meta=std::unordered_map<std::string,double>,ret=bool)));IF(B(VA(meta_return),.,F(ret)),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(meta1,B(VA(meta_return),.,F(meta)));SV(composite,FC(getComposite,NT(),R(enabled=bool,meta=std::unordered_map<std::string,double>,paid_by_card=double)));SV(cashback_rate,B(VA(cashback_params),.,F(rate)));SV(price_decreasing_coeff,B(VA(cashback_params),.,F(price_decreasing_coeff)));SV(cashback_coeff,B(VA(cashback_rate),/,VA(price_decreasing_coeff)));SV(rounded_total_price,B(U(*,B(ride,.,F(price))),round_to,B(fix,.,F(rounding_factor))));SV(rounded_base_price,T(B(VA(composite),.,F(enabled)),B(VA(composite),.,F(paid_by_card)),VA(rounded_total_price)));SV(cashback_price,B(VA(rounded_base_price),*,VA(cashback_rate)));SV(rounded_cashback_price,B(VA(cashback_price),round_to,B(fix,.,F(rounding_factor))));SV(rounded_new_ride_price,B(VA(rounded_total_price),-,VA(rounded_cashback_price)));SV(new_price_decreasing_coeff,T(B(U(*,B(ride,.,F(price))),>=,1.000000),B(VA(rounded_new_ride_price),/,U(*,B(ride,.,F(price)))),VA(price_decreasing_coeff)));IF(U(!,B(B(fix,.,F(user_data)),.,F(has_yaplus))),SV(meta2,MAP("possible_cashback_rate"=VA(cashback_rate),"possible_cashback_fixed_price"=VA(rounded_cashback_price)));CR(metadata=VA(meta2)));IF(U(!,B(B(fix,.,F(user_data)),.,F(has_cashback_plus))),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(B(B(VA(rounded_new_ride_price),<=,0.000000),&&,B(VA(rounded_cashback_price),>,0.000000)),SV(meta2,MAP("cashback_fixed_price"=0.000000,"cashback_fixed_price_for_driver"=0.000000,"unite_total_price_enabled"=1.000000));CR(metadata=VA(meta2)));SV(payment_type_is_cash,B("payment_type_is_cash",in,B(B(ride,.,F(ride)),.,F(user_options))));IF(VA(payment_type_is_cash),SV(meta2,MAP("cashback_fixed_price"=0.000000));CR(boarding=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(boarding)),destination_waiting=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(destination_waiting)),distance=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(distance)),metadata=B(VA(meta1),+,VA(meta2)),requirements=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(requirements)),time=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(time)),transit_waiting=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(transit_waiting)),waiting=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(waiting))));SV(meta2,MAP("unite_total_price_enabled"=1.000000,"plus_cashback_rate"=VA(cashback_rate),"cashback_calc_coeff"=0.000000,"cashback_fixed_price"=VA(rounded_cashback_price),"user_ride_price"=VA(rounded_new_ride_price),"user_total_price"=VA(rounded_total_price)));CR(metadata=B(B(VA(meta1),+,B(VA(composite),.,F(meta))),+,VA(meta2)))));CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting)))
+        updated:
+            $a:
+                raw_type: datetime
+            $v: '2021-08-03T11:40:10.420769+00:00'
+        pmv_task_id: 20
+        deleted: true
+        extra_return: []
+        previous_version_id: 2339
+        startrek_ticket: example_string
+    expected:
+      - rule_id: 2384
+        name: prod_yaplus_cashback_user
+        description: ''
+        source_code: |-
+            function getAvailableCashback() {
+              if (fix.category_data.yaplus_coeff as yaplus_coeff) {
+                return {enabled=true, rate=1-yaplus_coeff, price_decreasing_coeff=yaplus_coeff};
+              }
+
+              return {enabled=false, rate=0.0, price_decreasing_coeff=1.0};
+            }
+
+            function getMinimalPrimaryPayment() {
+              let minimal_primary_sum_exp = "composite_payment_minimal_primary_sum" in fix.exps;
+              if (!minimal_primary_sum_exp) {
+                  return {res = 0};
+              }
+
+              return {res = fix.rounding_factor};
+            }
+
+            function max(a : double, b : double) {
+              return {res = (a > b) ? a : b};
+            }
+
+            function getComposite() {
+                // only under exp
+                let cashback_for_composite_enabled = "cashback_for_composite_enabled" in fix.exps;
+                if (!cashback_for_composite_enabled) {
+                    return {enabled=false,
+                            paid_by_card=0,
+                            meta=[]};
+                }
+
+                if (fix.complements as complements) {
+                    if (complements.personal_wallet as personal_wallet) {
+                        let min_primary_payment = getMinimalPrimaryPayment().res;
+
+                        let display_price = (*ride.price > personal_wallet.balance)
+                                            ? (*ride.price - personal_wallet.balance)
+                                            : 0;
+
+                        let display_price_rounded = round_to(display_price, fix.rounding_factor);
+                        let display_price_rounded_checked = max(a = display_price_rounded, b = min_primary_payment).res;
+
+
+                        let display_min_price = (fix.tariff.minimum_price > personal_wallet.balance)
+                                                ? (fix.tariff.minimum_price - personal_wallet.balance)
+                                                : 0;
+
+                        let display_min_price_rounded = round_to(display_min_price, fix.rounding_factor);
+                        let composite_meta = [
+                          "cashback_for_composite": 1,
+                          "display_price": display_price_rounded_checked,
+                          "display_min_price": display_min_price_rounded,
+                          "wallet_balance": personal_wallet.balance
+                        ];
+                        return {enabled=true,
+                                paid_by_card=display_price_rounded_checked,
+                                meta=composite_meta};
+                    }
+                }
+                return {enabled=false,
+                        paid_by_card=0,
+                        meta=[]};
+            }
+
+            function makeCouponMeta() {
+              if (fix.coupon as coupon) {
+                  if (coupon.valid) {
+                    let using_user_meta_enabled = "using_user_meta_enabled" in fix.exps;
+                    if (using_user_meta_enabled) {
+                      return { meta=["cashback_with_coupon": 1], ret=false };
+                    } else {
+                      return { meta=[], ret=true };
+                    }
+                  }
+                }
+              return { meta=[], ret=false };
+            }
+
+            // we need all this only for unite price case
+            let unite_total_price_enabled = "cashback_unite_total_price" in fix.exps;
+            if (!unite_total_price_enabled) {
+              return ride.price;
+            }
+
+            if(fix.payment_type as payment_type) {
+              let corp_type = payment_type == "corp";
+              let wallet_type = payment_type == "personal_wallet";
+              let corp_acc_type = payment_type == "coop_account";
+              let bad_type = corp_type || wallet_type || corp_acc_type;
+              
+              if (bad_type) {
+                return ride.price;
+              }
+              
+              let cashback_params = getAvailableCashback();
+              if (cashback_params.enabled) {
+
+                // no cashback for cash
+                if (payment_type == "cash") {
+                  return ride.price;
+                }
+                // no cashback when spending cashback
+                //if (fix.complements as complements) {
+                  //return ride.price;
+                //}
+
+                // avoiding nan_test
+                if (cashback_params.price_decreasing_coeff < 0.01) {
+                  return ride.price;
+                }
+                
+                // это контрольная группа эксперимента Логистики
+                if (cashback_params.rate < 0.01) {
+                  return ride.price;
+                }
+                
+                let cashback_for_plus_available = "cashback_for_plus_availability" in fix.exps;
+                if (!cashback_for_plus_available) {
+                  return ride.price;
+                }
+                
+                // allow coupon only by exp
+                let meta_return = makeCouponMeta();
+                if (meta_return.ret) {
+                  return ride.price;
+                }
+                let meta1 = meta_return.meta;
+
+                let composite = getComposite();
+
+                let cashback_rate = cashback_params.rate;
+                let price_decreasing_coeff = cashback_params.price_decreasing_coeff;
+                let cashback_coeff = cashback_rate/price_decreasing_coeff;
+                
+                let rounded_total_price = round_to(*ride.price, fix.rounding_factor);
+                let rounded_base_price = (composite.enabled)
+                                    ? composite.paid_by_card
+                                    : rounded_total_price;
+
+                let cashback_price = rounded_base_price * cashback_rate;
+                let rounded_cashback_price = round_to(cashback_price, fix.rounding_factor);
+                let rounded_new_ride_price = rounded_total_price - rounded_cashback_price;
+                
+                let new_price_decreasing_coeff = (*ride.price >= 1)
+                  ? rounded_new_ride_price/(*ride.price)
+                  : price_decreasing_coeff;
+                
+                if (!fix.user_data.has_yaplus) {
+                  let meta2 = [
+                    "possible_cashback_rate": cashback_rate,
+                    "possible_cashback_fixed_price": rounded_cashback_price
+                  ];
+                  return {metadata = meta2 };
+                }
+                
+                // user hasn't accepted the new offer
+                if (!fix.user_data.has_cashback_plus) {
+                  return ride.price;
+                }
+
+                // we cannot have zero ride price and nonzero cashback price                    
+                if (rounded_new_ride_price <= 0 && rounded_cashback_price > 0) {
+                  let meta2 = [
+                    "cashback_fixed_price": 0,
+                    "cashback_fixed_price_for_driver": 0,
+                    "unite_total_price_enabled": 1
+                  ];
+                  return {metadata = meta2 };
+                }
+
+                // moved to cash case
+                let payment_type_is_cash = ("payment_type_is_cash" in ride.ride.user_options);
+                if (payment_type_is_cash) {
+                  let meta2 = [
+                    "cashback_fixed_price": 0
+                  ];
+                  return concat({metadata = meta1 + meta2}, ride.price * new_price_decreasing_coeff);
+                }
+
+                let meta2 = [
+                  "unite_total_price_enabled": 1,
+                  "plus_cashback_rate": cashback_rate,
+                  "cashback_calc_coeff": 0,
+                  "cashback_fixed_price": rounded_cashback_price,
+                  "user_ride_price": rounded_new_ride_price,
+                  "user_total_price": rounded_total_price
+                ];
+                return {metadata = meta1 + composite.meta + meta2 };
+              }
+            }
+            return ride.price;
+        policy: both_side
+        author: aliev-r
+        approvals_id: 209581
+        ast: FUNC(getAvailableCashback,ARGS(),B(IF(U(?,B(B(fix,.,F(category_data)),.,F(yaplus_coeff))),CR(enabled=true,price_decreasing_coeff=U(*,B(B(fix,.,F(category_data)),.,F(yaplus_coeff))),rate=B(1.000000,-,U(*,B(B(fix,.,F(category_data)),.,F(yaplus_coeff))))));CR(enabled=false,price_decreasing_coeff=1.000000,rate=0.000000)));FUNC(getMinimalPrimaryPayment,ARGS(),B(SV(minimal_primary_sum_exp,B("composite_payment_minimal_primary_sum",in,B(fix,.,F(exps))));IF(U(!,VA(minimal_primary_sum_exp)),CR(res=0.000000));CR(res=B(fix,.,F(rounding_factor)))));FUNC(max,ARGS((a,double),(b,double)),B(CR(res=T(B(FA(a,double),>,FA(b,double)),FA(a,double),FA(b,double)))));FUNC(getComposite,ARGS(),B(SV(cashback_for_composite_enabled,B("cashback_for_composite_enabled",in,B(fix,.,F(exps))));IF(U(!,VA(cashback_for_composite_enabled)),CR(enabled=false,meta=MAP(),paid_by_card=0.000000));IF(U(?,B(fix,.,F(complements))),IF(U(?,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),SV(min_primary_payment,B(FC(getMinimalPrimaryPayment,NT(),R(res=double)),.,F(res)));SV(display_price,T(B(U(*,B(ride,.,F(price))),>,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),B(U(*,B(ride,.,F(price))),-,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),0.000000));SV(display_price_rounded,B(VA(display_price),round_to,B(fix,.,F(rounding_factor))));SV(display_price_rounded_checked,B(FC(max,NT(a=VA(display_price_rounded),b=VA(min_primary_payment)),R(res=double)),.,F(res)));SV(display_min_price,T(B(B(B(fix,.,F(tariff)),.,F(minimum_price)),>,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),B(B(B(fix,.,F(tariff)),.,F(minimum_price)),-,B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))),0.000000));SV(display_min_price_rounded,B(VA(display_min_price),round_to,B(fix,.,F(rounding_factor))));SV(composite_meta,MAP("cashback_for_composite"=1.000000,"display_price"=VA(display_price_rounded_checked),"display_min_price"=VA(display_min_price_rounded),"wallet_balance"=B(U(*,B(U(*,B(fix,.,F(complements))),.,F(personal_wallet))),.,F(balance))));CR(enabled=true,meta=VA(composite_meta),paid_by_card=VA(display_price_rounded_checked))));CR(enabled=false,meta=MAP(),paid_by_card=0.000000)));FUNC(makeCouponMeta,ARGS(),B(IF(U(?,B(fix,.,F(coupon))),IF(B(U(*,B(fix,.,F(coupon))),.,F(valid)),SV(using_user_meta_enabled,B("using_user_meta_enabled",in,B(fix,.,F(exps))));IF(VA(using_user_meta_enabled),CR(meta=MAP("cashback_with_coupon"=1.000000),ret=false),CR(meta=MAP(),ret=true))));CR(meta=MAP(),ret=false)));SV(unite_total_price_enabled,B("cashback_unite_total_price",in,B(fix,.,F(exps))));IF(U(!,VA(unite_total_price_enabled)),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(U(?,B(fix,.,F(payment_type))),SV(corp_type,B(U(*,B(fix,.,F(payment_type))),==,"corp"));SV(wallet_type,B(U(*,B(fix,.,F(payment_type))),==,"personal_wallet"));SV(corp_acc_type,B(U(*,B(fix,.,F(payment_type))),==,"coop_account"));SV(bad_type,B(B(VA(corp_type),||,VA(wallet_type)),||,VA(corp_acc_type)));IF(VA(bad_type),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(cashback_params,FC(getAvailableCashback,NT(),R(enabled=bool,price_decreasing_coeff=double,rate=double)));IF(B(VA(cashback_params),.,F(enabled)),IF(B(U(*,B(fix,.,F(payment_type))),==,"cash"),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(B(B(VA(cashback_params),.,F(price_decreasing_coeff)),<,0.010000),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(B(B(VA(cashback_params),.,F(rate)),<,0.010000),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(cashback_for_plus_available,B("cashback_for_plus_availability",in,B(fix,.,F(exps))));IF(U(!,VA(cashback_for_plus_available)),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(meta_return,FC(makeCouponMeta,NT(),R(meta=std::unordered_map<std::string,double>,ret=bool)));IF(B(VA(meta_return),.,F(ret)),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));SV(meta1,B(VA(meta_return),.,F(meta)));SV(composite,FC(getComposite,NT(),R(enabled=bool,meta=std::unordered_map<std::string,double>,paid_by_card=double)));SV(cashback_rate,B(VA(cashback_params),.,F(rate)));SV(price_decreasing_coeff,B(VA(cashback_params),.,F(price_decreasing_coeff)));SV(cashback_coeff,B(VA(cashback_rate),/,VA(price_decreasing_coeff)));SV(rounded_total_price,B(U(*,B(ride,.,F(price))),round_to,B(fix,.,F(rounding_factor))));SV(rounded_base_price,T(B(VA(composite),.,F(enabled)),B(VA(composite),.,F(paid_by_card)),VA(rounded_total_price)));SV(cashback_price,B(VA(rounded_base_price),*,VA(cashback_rate)));SV(rounded_cashback_price,B(VA(cashback_price),round_to,B(fix,.,F(rounding_factor))));SV(rounded_new_ride_price,B(VA(rounded_total_price),-,VA(rounded_cashback_price)));SV(new_price_decreasing_coeff,T(B(U(*,B(ride,.,F(price))),>=,1.000000),B(VA(rounded_new_ride_price),/,U(*,B(ride,.,F(price)))),VA(price_decreasing_coeff)));IF(U(!,B(B(fix,.,F(user_data)),.,F(has_yaplus))),SV(meta2,MAP("possible_cashback_rate"=VA(cashback_rate),"possible_cashback_fixed_price"=VA(rounded_cashback_price)));CR(metadata=VA(meta2)));IF(U(!,B(B(fix,.,F(user_data)),.,F(has_cashback_plus))),CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting))));IF(B(B(VA(rounded_new_ride_price),<=,0.000000),&&,B(VA(rounded_cashback_price),>,0.000000)),SV(meta2,MAP("cashback_fixed_price"=0.000000,"cashback_fixed_price_for_driver"=0.000000,"unite_total_price_enabled"=1.000000));CR(metadata=VA(meta2)));SV(payment_type_is_cash,B("payment_type_is_cash",in,B(B(ride,.,F(ride)),.,F(user_options))));IF(VA(payment_type_is_cash),SV(meta2,MAP("cashback_fixed_price"=0.000000));CR(boarding=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(boarding)),destination_waiting=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(destination_waiting)),distance=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(distance)),metadata=B(VA(meta1),+,VA(meta2)),requirements=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(requirements)),time=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(time)),transit_waiting=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(transit_waiting)),waiting=B(B(B(ride,.,F(price)),*,VA(new_price_decreasing_coeff)),.,F(waiting))));SV(meta2,MAP("unite_total_price_enabled"=1.000000,"plus_cashback_rate"=VA(cashback_rate),"cashback_calc_coeff"=0.000000,"cashback_fixed_price"=VA(rounded_cashback_price),"user_ride_price"=VA(rounded_new_ride_price),"user_total_price"=VA(rounded_total_price)));CR(metadata=B(B(VA(meta1),+,B(VA(composite),.,F(meta))),+,VA(meta2)))));CR(boarding=B(B(ride,.,F(price)),.,F(boarding)),destination_waiting=B(B(ride,.,F(price)),.,F(destination_waiting)),distance=B(B(ride,.,F(price)),.,F(distance)),requirements=B(B(ride,.,F(price)),.,F(requirements)),time=B(B(ride,.,F(price)),.,F(time)),transit_waiting=B(B(ride,.,F(price)),.,F(transit_waiting)),waiting=B(B(ride,.,F(price)),.,F(waiting)))
+        updated: '2021-08-03T11:40:10.420769+00:00'
+        pmv_task_id: 20
+        deleted: true
+        extra_return: []
+        previous_version_id: 2339
+        startrek_ticket: example_string
+  - input:
+        rule_id: 2924
+        name: marketing_cashback_business
+        description: example_string
+        source_code: |
+            function getMainValueFromExperiment(exp: std::unordered_map<std::string, lang::variables::ExperimentSubValue>) {
+              return {val = ("main" in exp) ? (exp["main"].val as val) ? val : 0 : 0};
+            }
+
+            function calcCashbackPrice(cashback_rate: double) {
+              let cashback_price = *ride.price * cashback_rate;
+              let round_cashback_price = round_to(cashback_price, fix.rounding_factor);
+              return {res = round_cashback_price};
+            }
+
+            function getPersonalGoalsRate() {
+              let prefix = "cashback_boost_for_" + fix.category + "_percent_";
+              let user_tags = fix.user_tags;
+
+              if ((prefix + "0") in user_tags) { return {enabled=true, rate=0.00}; }
+              if ((prefix + "1") in user_tags) { return {enabled=true, rate=0.01}; }
+              if ((prefix + "2") in user_tags) { return {enabled=true, rate=0.02}; }
+              if ((prefix + "3") in user_tags) { return {enabled=true, rate=0.03}; }
+              if ((prefix + "4") in user_tags) { return {enabled=true, rate=0.04}; }
+              if ((prefix + "5") in user_tags) { return {enabled=true, rate=0.05}; }
+              if ((prefix + "6") in user_tags) { return {enabled=true, rate=0.06}; }
+              if ((prefix + "7") in user_tags) { return {enabled=true, rate=0.07}; }
+              if ((prefix + "8") in user_tags) { return {enabled=true, rate=0.08}; }
+              if ((prefix + "9") in user_tags) { return {enabled=true, rate=0.09}; }
+              if ((prefix + "10") in user_tags) { return {enabled=true, rate=0.1}; }
+              if ((prefix + "15") in user_tags) { return {enabled=true, rate=0.15}; }
+              if ((prefix + "20") in user_tags) { return {enabled=true, rate=0.2}; }
+              if ((prefix + "25") in user_tags) { return {enabled=true, rate=0.25}; }
+              if ((prefix + "30") in user_tags) { return {enabled=true, rate=0.3}; }
+              if ((prefix + "40") in user_tags) { return {enabled=true, rate=0.4}; }
+              if ((prefix + "50") in user_tags) { return {enabled=true, rate=0.5}; }
+              return {enabled=false, rate=0.0};
+            }
+
+            function getPersonalGoalsCashbackRate() {
+              let rate = getPersonalGoalsRate();
+              // fix cashback TAXIBACKEND-38591
+              if (fix.user_data.has_yaplus && fix.user_data.has_cashback_plus) {
+                return {enabled=rate.enabled, rate=rate.rate / 0.9};
+              }
+              return {enabled=rate.enabled, rate=rate.rate};
+            }
+
+            function getMarketingCashbackRate() {
+              // эксперимент, он и рубильник и значение
+              let marketing_cashback_business = "marketing_cashback_business" in fix.exps;
+              if (!marketing_cashback_business) {
+                return {rate=0.0};
+              }
+
+              // кэшбек только на комфорт и комфорт+
+              if (fix.category != "business" && fix.category != "comfortplus") {
+                return {rate=0.0};
+              }
+
+              // только НЕплюсовикам
+              if (fix.user_data.has_yaplus) {
+                return {rate=0.0};
+              }
+
+              let rate = getMainValueFromExperiment(exp=fix.exps["marketing_cashback_business"]).val;
+              return {rate=rate};
+            }
+
+            // только в России
+            if (fix.country_code2 != "RU") {
+              return ride.price;
+            }
+
+            // если при этом не тратить ранее накопленный кешбек
+            if (fix.complements as complements) {
+              return ride.price;
+            }
+
+            // проверка на отсутствие типа оплаты
+            if(fix.payment_type as payment_type) {
+
+              // на безналичную и наличную оплату
+              if (payment_type != "card" &&
+                payment_type != "applepay" &&
+                payment_type != "googlepay") {
+                  return ride.price;
+              }
+            }
+
+
+            let personalGoalsCashback = getPersonalGoalsCashbackRate();
+            let marketingCashback = getMarketingCashbackRate();
+            let rate = marketingCashback.rate + personalGoalsCashback.rate;
+            let price = calcCashbackPrice(cashback_rate=rate).res;
+            if (rate > 0.000001 && price > 0.000001) {  // эпсилон-окрестность
+                let meta = [
+                  "cashback_rate": rate,
+                  "cashback_discount_fixed_value": price
+                ];
+                let meta2 = (personalGoalsCashback.rate > 0.000001) ?
+                  ["-debug--personal-goals-rate": personalGoalsCashback.rate] : [];
+                let meta3 = (marketingCashback.rate > 0.000001) ?
+                  ["marketing_cashback_business_rate": marketingCashback.rate] : [];
+                
+                return { metadata=meta + meta2 + meta3 };
+            }
+
+            return ride.price;
+        policy: both_side
+        author: shchesnyak
+        approvals_id: 481513
+        ast: FUNC(getMainValueFromExperiment,ARGS((exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>)),B(CR(val=SL(2,16,2,72,T(SL(2,17,2,30,B("main",in,FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>))),SL(2,34,2,69,T(U(?,SL(2,35,2,51,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(val)))),SL(2,61,2,65,U(*,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(val)))),SL(2,67,2,69,0.000000))),SL(2,71,2,72,0.000000))))));FUNC(calcCashbackPrice,ARGS((cashback_rate,double)),B(SV(cashback_price,SL(6,23,6,50,B(U(*,B(ride,.,F(price))),*,FA(cashback_rate,double))));SV(round_cashback_price,SL(7,29,7,74,B(VA(cashback_price),round_to,B(fix,.,F(rounding_factor)))));CR(res=SL(8,16,8,36,VA(round_cashback_price)))));FUNC(getPersonalGoalsRate,ARGS(),B(SV(prefix,SL(12,15,12,65,B(B("cashback_boost_for_",+,B(fix,.,F(category))),+,"_percent_")));SV(user_tags,SL(13,18,13,31,B(fix,.,F(user_tags))));IF(SL(15,6,15,33,B(SL(15,7,15,19,B(VA(prefix),+,"0")),in,VA(user_tags))),CR(enabled=SL(15,53,15,57,true),rate=SL(15,64,15,68,0.000000)));IF(SL(16,6,16,33,B(SL(16,7,16,19,B(VA(prefix),+,"1")),in,VA(user_tags))),CR(enabled=SL(16,53,16,57,true),rate=SL(16,64,16,68,0.010000)));IF(SL(17,6,17,33,B(SL(17,7,17,19,B(VA(prefix),+,"2")),in,VA(user_tags))),CR(enabled=SL(17,53,17,57,true),rate=SL(17,64,17,68,0.020000)));IF(SL(18,6,18,33,B(SL(18,7,18,19,B(VA(prefix),+,"3")),in,VA(user_tags))),CR(enabled=SL(18,53,18,57,true),rate=SL(18,64,18,68,0.030000)));IF(SL(19,6,19,33,B(SL(19,7,19,19,B(VA(prefix),+,"4")),in,VA(user_tags))),CR(enabled=SL(19,53,19,57,true),rate=SL(19,64,19,68,0.040000)));IF(SL(20,6,20,33,B(SL(20,7,20,19,B(VA(prefix),+,"5")),in,VA(user_tags))),CR(enabled=SL(20,53,20,57,true),rate=SL(20,64,20,68,0.050000)));IF(SL(21,6,21,33,B(SL(21,7,21,19,B(VA(prefix),+,"6")),in,VA(user_tags))),CR(enabled=SL(21,53,21,57,true),rate=SL(21,64,21,68,0.060000)));IF(SL(22,6,22,33,B(SL(22,7,22,19,B(VA(prefix),+,"7")),in,VA(user_tags))),CR(enabled=SL(22,53,22,57,true),rate=SL(22,64,22,68,0.070000)));IF(SL(23,6,23,33,B(SL(23,7,23,19,B(VA(prefix),+,"8")),in,VA(user_tags))),CR(enabled=SL(23,53,23,57,true),rate=SL(23,64,23,68,0.080000)));IF(SL(24,6,24,33,B(SL(24,7,24,19,B(VA(prefix),+,"9")),in,VA(user_tags))),CR(enabled=SL(24,53,24,57,true),rate=SL(24,64,24,68,0.090000)));IF(SL(25,6,25,34,B(SL(25,7,25,20,B(VA(prefix),+,"10")),in,VA(user_tags))),CR(enabled=SL(25,54,25,58,true),rate=SL(25,65,25,68,0.100000)));IF(SL(26,6,26,34,B(SL(26,7,26,20,B(VA(prefix),+,"15")),in,VA(user_tags))),CR(enabled=SL(26,54,26,58,true),rate=SL(26,65,26,69,0.150000)));IF(SL(27,6,27,34,B(SL(27,7,27,20,B(VA(prefix),+,"20")),in,VA(user_tags))),CR(enabled=SL(27,54,27,58,true),rate=SL(27,65,27,68,0.200000)));IF(SL(28,6,28,34,B(SL(28,7,28,20,B(VA(prefix),+,"25")),in,VA(user_tags))),CR(enabled=SL(28,54,28,58,true),rate=SL(28,65,28,69,0.250000)));IF(SL(29,6,29,34,B(SL(29,7,29,20,B(VA(prefix),+,"30")),in,VA(user_tags))),CR(enabled=SL(29,54,29,58,true),rate=SL(29,65,29,68,0.300000)));IF(SL(30,6,30,34,B(SL(30,7,30,20,B(VA(prefix),+,"40")),in,VA(user_tags))),CR(enabled=SL(30,54,30,58,true),rate=SL(30,65,30,68,0.400000)));IF(SL(31,6,31,34,B(SL(31,7,31,20,B(VA(prefix),+,"50")),in,VA(user_tags))),CR(enabled=SL(31,54,31,58,true),rate=SL(31,65,31,68,0.500000)));CR(enabled=SL(32,18,32,23,false),rate=SL(32,30,32,33,0.000000))));FUNC(getPersonalGoalsCashbackRate,ARGS(),B(SV(rate,SL(36,13,36,35,FC(getPersonalGoalsRate,NT(),R(enabled=bool,rate=double))));IF(SL(38,6,38,65,B(B(B(fix,.,F(user_data)),.,F(has_yaplus)),&&,B(B(fix,.,F(user_data)),.,F(has_cashback_plus)))),CR(enabled=SL(39,20,39,32,B(VA(rate),.,F(enabled))),rate=SL(39,39,39,54,B(B(VA(rate),.,F(rate)),/,0.900000))));CR(enabled=SL(41,18,41,30,B(VA(rate),.,F(enabled))),rate=SL(41,37,41,46,B(VA(rate),.,F(rate))))));FUNC(getMarketingCashbackRate,ARGS(),B(SV(marketing_cashback_business,SL(46,36,46,77,B("marketing_cashback_business",in,B(fix,.,F(exps)))));IF(SL(47,6,47,34,U(!,VA(marketing_cashback_business))),CR(rate=SL(48,17,48,20,0.000000)));IF(SL(52,6,52,65,B(B(B(fix,.,F(category)),!=,"business"),&&,B(B(fix,.,F(category)),!=,"comfortplus"))),CR(rate=SL(53,17,53,20,0.000000)));IF(SL(57,6,57,30,B(B(fix,.,F(user_data)),.,F(has_yaplus))),CR(rate=SL(58,17,58,20,0.000000)));SV(rate,SL(61,13,61,88,B(FC(getMainValueFromExperiment,NT(exp=SL(61,44,61,83,B(B(fix,.,F(exps)),.,SL(61,53,61,82,"marketing_cashback_business")))),R(val=double)),.,F(val))));CR(rate=SL(62,15,62,19,VA(rate)))));IF(SL(66,4,66,29,B(B(fix,.,F(country_code2)),!=,"RU")),CR(boarding=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(requirements)),time=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(waiting))));IF(U(?,SL(71,4,71,20,B(fix,.,F(complements)))),CR(boarding=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(requirements)),time=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(waiting))));IF(U(?,SL(76,3,76,20,B(fix,.,F(payment_type)))),IF(SL(79,6,81,31,B(B(B(U(*,B(fix,.,F(payment_type))),!=,"card"),&&,B(U(*,B(fix,.,F(payment_type))),!=,"applepay")),&&,B(U(*,B(fix,.,F(payment_type))),!=,"googlepay"))),CR(boarding=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(requirements)),time=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(waiting)))));SV(personalGoalsCashback,SL(87,28,87,58,FC(getPersonalGoalsCashbackRate,NT(),R(enabled=bool,rate=double))));SV(marketingCashback,SL(88,24,88,50,FC(getMarketingCashbackRate,NT(),R(rate=double))));SV(rate,SL(89,11,89,62,B(B(VA(marketingCashback),.,F(rate)),+,B(VA(personalGoalsCashback),.,F(rate)))));SV(price,SL(90,12,90,53,B(FC(calcCashbackPrice,NT(cashback_rate=SL(90,44,90,48,VA(rate))),R(res=double)),.,F(res))));IF(SL(91,4,91,39,B(B(VA(rate),>,0.000001),&&,B(VA(price),>,0.000001))),SV(meta,SL(92,15,95,5,MAP("cashback_rate"=VA(rate),"cashback_discount_fixed_value"=VA(price))));SV(meta2,SL(96,16,97,70,T(SL(96,17,96,54,B(B(VA(personalGoalsCashback),.,F(rate)),>,0.000001)),SL(97,6,97,65,MAP("-debug--personal-goals-rate"=B(VA(personalGoalsCashback),.,F(rate)))),SL(97,68,97,70,MAP()))));SV(meta3,SL(98,16,99,71,T(SL(98,17,98,50,B(B(VA(marketingCashback),.,F(rate)),>,0.000001)),SL(99,6,99,66,MAP("marketing_cashback_business_rate"=B(VA(marketingCashback),.,F(rate)))),SL(99,69,99,71,MAP()))));CR(metadata=SL(101,22,101,43,B(B(VA(meta),+,VA(meta2)),+,VA(meta3)))));CR(boarding=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(requirements)),time=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(waiting)))
+        updated:
+            $a:
+                raw_type: datetime
+            $v: '2021-11-25T15:54:42.088551+00:00'
+        pmv_task_id: 20
+        deleted: true
+        extra_return: []
+        previous_version_id: 2912
+        startrek_ticket: example_string
+    expected:
+      - rule_id: 2924
+        name: marketing_cashback_business
+        description: example_string
+        source_code: |
+            function getMainValueFromExperiment(exp: std::unordered_map<std::string, lang::variables::ExperimentSubValue>) {
+              return {val = ("main" in exp) ? (exp["main"].val as val) ? val : 0 : 0};
+            }
+
+            function calcCashbackPrice(cashback_rate: double) {
+              let cashback_price = *ride.price * cashback_rate;
+              let round_cashback_price = round_to(cashback_price, fix.rounding_factor);
+              return {res = round_cashback_price};
+            }
+
+            function getPersonalGoalsRate() {
+              let prefix = "cashback_boost_for_" + fix.category + "_percent_";
+              let user_tags = fix.user_tags;
+
+              if ((prefix + "0") in user_tags) { return {enabled=true, rate=0.00}; }
+              if ((prefix + "1") in user_tags) { return {enabled=true, rate=0.01}; }
+              if ((prefix + "2") in user_tags) { return {enabled=true, rate=0.02}; }
+              if ((prefix + "3") in user_tags) { return {enabled=true, rate=0.03}; }
+              if ((prefix + "4") in user_tags) { return {enabled=true, rate=0.04}; }
+              if ((prefix + "5") in user_tags) { return {enabled=true, rate=0.05}; }
+              if ((prefix + "6") in user_tags) { return {enabled=true, rate=0.06}; }
+              if ((prefix + "7") in user_tags) { return {enabled=true, rate=0.07}; }
+              if ((prefix + "8") in user_tags) { return {enabled=true, rate=0.08}; }
+              if ((prefix + "9") in user_tags) { return {enabled=true, rate=0.09}; }
+              if ((prefix + "10") in user_tags) { return {enabled=true, rate=0.1}; }
+              if ((prefix + "15") in user_tags) { return {enabled=true, rate=0.15}; }
+              if ((prefix + "20") in user_tags) { return {enabled=true, rate=0.2}; }
+              if ((prefix + "25") in user_tags) { return {enabled=true, rate=0.25}; }
+              if ((prefix + "30") in user_tags) { return {enabled=true, rate=0.3}; }
+              if ((prefix + "40") in user_tags) { return {enabled=true, rate=0.4}; }
+              if ((prefix + "50") in user_tags) { return {enabled=true, rate=0.5}; }
+              return {enabled=false, rate=0.0};
+            }
+
+            function getPersonalGoalsCashbackRate() {
+              let rate = getPersonalGoalsRate();
+              // fix cashback TAXIBACKEND-38591
+              if (fix.user_data.has_yaplus && fix.user_data.has_cashback_plus) {
+                return {enabled=rate.enabled, rate=rate.rate / 0.9};
+              }
+              return {enabled=rate.enabled, rate=rate.rate};
+            }
+
+            function getMarketingCashbackRate() {
+              // эксперимент, он и рубильник и значение
+              let marketing_cashback_business = "marketing_cashback_business" in fix.exps;
+              if (!marketing_cashback_business) {
+                return {rate=0.0};
+              }
+
+              // кэшбек только на комфорт и комфорт+
+              if (fix.category != "business" && fix.category != "comfortplus") {
+                return {rate=0.0};
+              }
+
+              // только НЕплюсовикам
+              if (fix.user_data.has_yaplus) {
+                return {rate=0.0};
+              }
+
+              let rate = getMainValueFromExperiment(exp=fix.exps["marketing_cashback_business"]).val;
+              return {rate=rate};
+            }
+
+            // только в России
+            if (fix.country_code2 != "RU") {
+              return ride.price;
+            }
+
+            // если при этом не тратить ранее накопленный кешбек
+            if (fix.complements as complements) {
+              return ride.price;
+            }
+
+            // проверка на отсутствие типа оплаты
+            if(fix.payment_type as payment_type) {
+
+              // на безналичную и наличную оплату
+              if (payment_type != "card" &&
+                payment_type != "applepay" &&
+                payment_type != "googlepay") {
+                  return ride.price;
+              }
+            }
+
+
+            let personalGoalsCashback = getPersonalGoalsCashbackRate();
+            let marketingCashback = getMarketingCashbackRate();
+            let rate = marketingCashback.rate + personalGoalsCashback.rate;
+            let price = calcCashbackPrice(cashback_rate=rate).res;
+            if (rate > 0.000001 && price > 0.000001) {  // эпсилон-окрестность
+                let meta = [
+                  "cashback_rate": rate,
+                  "cashback_discount_fixed_value": price
+                ];
+                let meta2 = (personalGoalsCashback.rate > 0.000001) ?
+                  ["-debug--personal-goals-rate": personalGoalsCashback.rate] : [];
+                let meta3 = (marketingCashback.rate > 0.000001) ?
+                  ["marketing_cashback_business_rate": marketingCashback.rate] : [];
+                
+                return { metadata=meta + meta2 + meta3 };
+            }
+
+            return ride.price;
+        policy: both_side
+        author: shchesnyak
+        approvals_id: 481513
+        ast: FUNC(getMainValueFromExperiment,ARGS((exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>)),B(CR(val=SL(2,16,2,72,T(SL(2,17,2,30,B("main",in,FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>))),SL(2,34,2,69,T(U(?,SL(2,35,2,51,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(val)))),SL(2,61,2,65,U(*,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(val)))),SL(2,67,2,69,0.000000))),SL(2,71,2,72,0.000000))))));FUNC(calcCashbackPrice,ARGS((cashback_rate,double)),B(SV(cashback_price,SL(6,23,6,50,B(U(*,B(ride,.,F(price))),*,FA(cashback_rate,double))));SV(round_cashback_price,SL(7,29,7,74,B(VA(cashback_price),round_to,B(fix,.,F(rounding_factor)))));CR(res=SL(8,16,8,36,VA(round_cashback_price)))));FUNC(getPersonalGoalsRate,ARGS(),B(SV(prefix,SL(12,15,12,65,B(B("cashback_boost_for_",+,B(fix,.,F(category))),+,"_percent_")));SV(user_tags,SL(13,18,13,31,B(fix,.,F(user_tags))));IF(SL(15,6,15,33,B(SL(15,7,15,19,B(VA(prefix),+,"0")),in,VA(user_tags))),CR(enabled=SL(15,53,15,57,true),rate=SL(15,64,15,68,0.000000)));IF(SL(16,6,16,33,B(SL(16,7,16,19,B(VA(prefix),+,"1")),in,VA(user_tags))),CR(enabled=SL(16,53,16,57,true),rate=SL(16,64,16,68,0.010000)));IF(SL(17,6,17,33,B(SL(17,7,17,19,B(VA(prefix),+,"2")),in,VA(user_tags))),CR(enabled=SL(17,53,17,57,true),rate=SL(17,64,17,68,0.020000)));IF(SL(18,6,18,33,B(SL(18,7,18,19,B(VA(prefix),+,"3")),in,VA(user_tags))),CR(enabled=SL(18,53,18,57,true),rate=SL(18,64,18,68,0.030000)));IF(SL(19,6,19,33,B(SL(19,7,19,19,B(VA(prefix),+,"4")),in,VA(user_tags))),CR(enabled=SL(19,53,19,57,true),rate=SL(19,64,19,68,0.040000)));IF(SL(20,6,20,33,B(SL(20,7,20,19,B(VA(prefix),+,"5")),in,VA(user_tags))),CR(enabled=SL(20,53,20,57,true),rate=SL(20,64,20,68,0.050000)));IF(SL(21,6,21,33,B(SL(21,7,21,19,B(VA(prefix),+,"6")),in,VA(user_tags))),CR(enabled=SL(21,53,21,57,true),rate=SL(21,64,21,68,0.060000)));IF(SL(22,6,22,33,B(SL(22,7,22,19,B(VA(prefix),+,"7")),in,VA(user_tags))),CR(enabled=SL(22,53,22,57,true),rate=SL(22,64,22,68,0.070000)));IF(SL(23,6,23,33,B(SL(23,7,23,19,B(VA(prefix),+,"8")),in,VA(user_tags))),CR(enabled=SL(23,53,23,57,true),rate=SL(23,64,23,68,0.080000)));IF(SL(24,6,24,33,B(SL(24,7,24,19,B(VA(prefix),+,"9")),in,VA(user_tags))),CR(enabled=SL(24,53,24,57,true),rate=SL(24,64,24,68,0.090000)));IF(SL(25,6,25,34,B(SL(25,7,25,20,B(VA(prefix),+,"10")),in,VA(user_tags))),CR(enabled=SL(25,54,25,58,true),rate=SL(25,65,25,68,0.100000)));IF(SL(26,6,26,34,B(SL(26,7,26,20,B(VA(prefix),+,"15")),in,VA(user_tags))),CR(enabled=SL(26,54,26,58,true),rate=SL(26,65,26,69,0.150000)));IF(SL(27,6,27,34,B(SL(27,7,27,20,B(VA(prefix),+,"20")),in,VA(user_tags))),CR(enabled=SL(27,54,27,58,true),rate=SL(27,65,27,68,0.200000)));IF(SL(28,6,28,34,B(SL(28,7,28,20,B(VA(prefix),+,"25")),in,VA(user_tags))),CR(enabled=SL(28,54,28,58,true),rate=SL(28,65,28,69,0.250000)));IF(SL(29,6,29,34,B(SL(29,7,29,20,B(VA(prefix),+,"30")),in,VA(user_tags))),CR(enabled=SL(29,54,29,58,true),rate=SL(29,65,29,68,0.300000)));IF(SL(30,6,30,34,B(SL(30,7,30,20,B(VA(prefix),+,"40")),in,VA(user_tags))),CR(enabled=SL(30,54,30,58,true),rate=SL(30,65,30,68,0.400000)));IF(SL(31,6,31,34,B(SL(31,7,31,20,B(VA(prefix),+,"50")),in,VA(user_tags))),CR(enabled=SL(31,54,31,58,true),rate=SL(31,65,31,68,0.500000)));CR(enabled=SL(32,18,32,23,false),rate=SL(32,30,32,33,0.000000))));FUNC(getPersonalGoalsCashbackRate,ARGS(),B(SV(rate,SL(36,13,36,35,FC(getPersonalGoalsRate,NT(),R(enabled=bool,rate=double))));IF(SL(38,6,38,65,B(B(B(fix,.,F(user_data)),.,F(has_yaplus)),&&,B(B(fix,.,F(user_data)),.,F(has_cashback_plus)))),CR(enabled=SL(39,20,39,32,B(VA(rate),.,F(enabled))),rate=SL(39,39,39,54,B(B(VA(rate),.,F(rate)),/,0.900000))));CR(enabled=SL(41,18,41,30,B(VA(rate),.,F(enabled))),rate=SL(41,37,41,46,B(VA(rate),.,F(rate))))));FUNC(getMarketingCashbackRate,ARGS(),B(SV(marketing_cashback_business,SL(46,36,46,77,B("marketing_cashback_business",in,B(fix,.,F(exps)))));IF(SL(47,6,47,34,U(!,VA(marketing_cashback_business))),CR(rate=SL(48,17,48,20,0.000000)));IF(SL(52,6,52,65,B(B(B(fix,.,F(category)),!=,"business"),&&,B(B(fix,.,F(category)),!=,"comfortplus"))),CR(rate=SL(53,17,53,20,0.000000)));IF(SL(57,6,57,30,B(B(fix,.,F(user_data)),.,F(has_yaplus))),CR(rate=SL(58,17,58,20,0.000000)));SV(rate,SL(61,13,61,88,B(FC(getMainValueFromExperiment,NT(exp=SL(61,44,61,83,B(B(fix,.,F(exps)),.,SL(61,53,61,82,"marketing_cashback_business")))),R(val=double)),.,F(val))));CR(rate=SL(62,15,62,19,VA(rate)))));IF(SL(66,4,66,29,B(B(fix,.,F(country_code2)),!=,"RU")),CR(boarding=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(requirements)),time=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(67,9,67,19,B(ride,.,F(price))),.,F(waiting))));IF(U(?,SL(71,4,71,20,B(fix,.,F(complements)))),CR(boarding=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(requirements)),time=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(72,9,72,19,B(ride,.,F(price))),.,F(waiting))));IF(U(?,SL(76,3,76,20,B(fix,.,F(payment_type)))),IF(SL(79,6,81,31,B(B(B(U(*,B(fix,.,F(payment_type))),!=,"card"),&&,B(U(*,B(fix,.,F(payment_type))),!=,"applepay")),&&,B(U(*,B(fix,.,F(payment_type))),!=,"googlepay"))),CR(boarding=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(requirements)),time=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(82,13,82,23,B(ride,.,F(price))),.,F(waiting)))));SV(personalGoalsCashback,SL(87,28,87,58,FC(getPersonalGoalsCashbackRate,NT(),R(enabled=bool,rate=double))));SV(marketingCashback,SL(88,24,88,50,FC(getMarketingCashbackRate,NT(),R(rate=double))));SV(rate,SL(89,11,89,62,B(B(VA(marketingCashback),.,F(rate)),+,B(VA(personalGoalsCashback),.,F(rate)))));SV(price,SL(90,12,90,53,B(FC(calcCashbackPrice,NT(cashback_rate=SL(90,44,90,48,VA(rate))),R(res=double)),.,F(res))));IF(SL(91,4,91,39,B(B(VA(rate),>,0.000001),&&,B(VA(price),>,0.000001))),SV(meta,SL(92,15,95,5,MAP("cashback_rate"=VA(rate),"cashback_discount_fixed_value"=VA(price))));SV(meta2,SL(96,16,97,70,T(SL(96,17,96,54,B(B(VA(personalGoalsCashback),.,F(rate)),>,0.000001)),SL(97,6,97,65,MAP("-debug--personal-goals-rate"=B(VA(personalGoalsCashback),.,F(rate)))),SL(97,68,97,70,MAP()))));SV(meta3,SL(98,16,99,71,T(SL(98,17,98,50,B(B(VA(marketingCashback),.,F(rate)),>,0.000001)),SL(99,6,99,66,MAP("marketing_cashback_business_rate"=B(VA(marketingCashback),.,F(rate)))),SL(99,69,99,71,MAP()))));CR(metadata=SL(101,22,101,43,B(B(VA(meta),+,VA(meta2)),+,VA(meta3)))));CR(boarding=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(boarding)),destination_waiting=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(destination_waiting)),distance=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(distance)),requirements=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(requirements)),time=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(time)),transit_waiting=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(transit_waiting)),waiting=B(SL(104,7,104,17,B(ride,.,F(price))),.,F(waiting)))
+        updated: '2021-11-25T15:54:42.088551+00:00'
+        pmv_task_id: 20
+        deleted: true
+        extra_return: []
+        previous_version_id: 2912
+        startrek_ticket: example_string
+  - input:
+        rule_id: 2923
+        name: implicit_discount
+        description: Неявная скидка (гипербола или таблица)
+        source_code: |-
+            function getMainStrFromExperiment(exp: std::unordered_map<std::string, lang::variables::ExperimentSubValue>) {
+              return {str = ("main" in exp) ? (exp["main"].str as str) ? str : "" : ""};
+            }
+
+            function abs(val : double) {
+                return {res = (val < 0) ? -val : val};
+            }
+
+            function min(a : double, b : double) {
+              return {res = (a < b) ? a : b};
+            }
+
+            function max(a : double, b : double) {
+              return {res = (a > b) ? a : b};
+            }
+
+            function minBetweenOptionals(a: std::optional<double>, b_value:double, b_is_set: bool) {
+              if (a as a_value) {
+                if (b_is_set) {
+                  return {value=min(a=a_value, b=b_value).res, is_set=true};
+                }
+                return {value=a_value, is_set=true};
+              }
+              return {value=b_value, is_set=b_is_set};
+            }
+
+            function calculateHyperbolaDiscountPercent(hyperbolas : clients::discounts::HyperbolasData, price : double) {
+                // выбираем гиперболу по порогу
+                let hyperbola = (price < hyperbolas.threshold)
+                    ? hyperbolas.hyperbola_lower
+                    : hyperbolas.hyperbola_upper;
+
+                // избегаем деления на 0
+                if (abs(val=price + hyperbola.c).res < 0.0001) {
+                    return {res = 0};
+                }
+
+                // считаем по формуле гиперболы
+                return {res = (hyperbola.p + hyperbola.a / (price + hyperbola.c))};
+            }
+
+            function processTableElement(elem : clients::discounts::TableDataA,
+                                         has_result: bool,
+                                         result : double,
+                                         price : double,
+                                         first_iteration : bool,
+                                         prev_elem_price : double,
+                                         prev_elem_coeff : double) {
+                // если результат уже получен, то сразу отдаём его обратно
+                if (has_result) {
+                    return {
+                        has_result = true,
+                        result = result,
+                        // следующие 4 строчки одинаковые во всех return
+                        price = price,
+                        first_iteration = false,
+                        prev_elem_price = elem.price,
+                        prev_elem_coeff = elem.coeff
+                    };
+                }
+
+                // если цена меньше первой цены в таблице, то используем первый элемент
+                if (first_iteration && price < elem.price) {
+                    return {
+                        has_result = true,
+                        result = elem.coeff,
+                        price = price,
+                        first_iteration = false,
+                        prev_elem_price = elem.price,
+                        prev_elem_coeff = elem.coeff
+                    };
+                }
+
+                // если цена между предыдущим элементом таблицы и текущим
+                if (!first_iteration && prev_elem_price <= price && price < elem.price) {
+                    // избегаем деления на 0
+                    if (abs(val=elem.price - prev_elem_price).res < 0.0001) {
+                        return {
+                            has_result = true,
+                            result = 0,
+                            price = price,
+                            first_iteration = false,
+                            prev_elem_price = elem.price,
+                            prev_elem_coeff = elem.coeff
+                        };
+                    }
+                    // делаем линейную интерполяцию
+                    return {
+                        has_result = true,
+                        result = prev_elem_coeff
+                            + (elem.coeff - prev_elem_coeff) * (price - prev_elem_price)
+                                / (elem.price - prev_elem_price),
+                        price = price,
+                        first_iteration = false,
+                        prev_elem_price = elem.price,
+                        prev_elem_coeff = elem.coeff
+                    };
+                }
+
+                // результат ещё не получен
+                return {
+                    has_result = false,
+                    result = result,
+                    price = price,
+                    first_iteration = false,
+                    prev_elem_price = elem.price,
+                    prev_elem_coeff = elem.coeff
+                };
+            }
+
+            function calculateTableDiscountPercent(table : std::vector<clients::discounts::TableDataA>, price : double) {
+                // проходим по элементам таблицы функцией processTableElement
+                let process_table_result = fold(table as elem, processTableElement, {
+                    has_result = false,
+                    result = 0,
+                    price = price,
+                    first_iteration = true,
+                    prev_elem_price = 0,
+                    prev_elem_coeff = 0
+                });
+
+                // если результат получен, то отдаём его
+                if (process_table_result.has_result) {
+                    return {res = process_table_result.result};
+                }
+
+                // если пришли сюда, то значит цена больше или равна последней цене в таблице, используем последний элемент
+                return {res = process_table_result.prev_elem_coeff};
+            }
+
+            function applyNewbieCoefficients(coeff : double, restrictions : clients::discounts::DiscountRestrictions) {
+                let newbie_max_coeff = (restrictions.newbie_max_coeff as max_coeff) ? max_coeff : 1;
+                let newbie_num_coeff = (restrictions.newbie_num_coeff as num_coeff) ? num_coeff : 0;
+                let completed_count = (restrictions.completed_on_special_conditions_count as count) ? count : 0;
+                return {
+                    res = coeff * (newbie_max_coeff - newbie_num_coeff * completed_count)
+                };
+            }
+
+            function normalizeToMinMax(coeff : double, restrictions : clients::discounts::DiscountRestrictions,
+                                       ml_discount_restriction : double) {
+                // ограничение сверху максимально допустимым значением и лимитом от ML
+                let coeff_limited_to_max = min(a = min(a = coeff, b = restrictions.max_discount_coeff).res,
+                                               b = ml_discount_restriction).res;
+                // если коэффициент меньше минимально допустимого, то сбрасываем в 0 (иначе скидка слишком мелкая)
+                return {
+                    res = (coeff_limited_to_max < restrictions.min_discount_coeff) ? 0 : coeff_limited_to_max
+                };
+            }
+
+            function normalizeByMaxAbsoluteValue(coeff : double, price: double,
+                                                 max_absolute_value : double) {
+                if (price * coeff > max_absolute_value && price > 0.0001) {
+                    return {
+                        res = min(a = max(a = max_absolute_value / price, b = 0).res,
+                                  b = 1).res
+                    };
+                }
+                return {res = coeff};
+            }
+
+            function getPreviousCategory() {
+              if (fix.category == "business") {
+                return {res="econom"};
+              } else if (fix.category == "uberselect") {
+                return {res="uberx"};
+              }
+              return {res=""};
+            }
+
+            // Получаем под экспериментом ограничение максимального значения скидки
+            // из значения расчитанного для категории эконом (unberx для uberselect)
+            // Добавляется в рамках EFFICIENCYDEV-12250
+            function fetchDiscountRestrictionFromPrevCategory(discount_class: std::string) {
+              if ("restrict_absolute_discount" in fix.exps && discount_class == "discounts-calculator") {
+                let previous_category = getPreviousCategory().res;
+                if (previous_category != "") {
+                  let discount_type = getMainStrFromExperiment(exp=fix.exps["restrict_absolute_discount"]).str;
+                  if (discount_type == "no_discount") {
+                    return {value=0, is_set=true};
+                  }
+                  if (discount_type == "from_previous_category") {
+                    if (fix.previously_calculated_categories as previously_calculated_categories) {
+                      if (previous_category in previously_calculated_categories) {
+                        let econom_meta = previously_calculated_categories[previous_category].user.final_prices["main"].meta;
+                        if ("discount_delta_raw" in econom_meta) {
+                          let discount_delta_raw = econom_meta["discount_delta_raw"];
+                          return {value=-discount_delta_raw, is_set=true};
+                        }
+                      }
+                    }
+                    // Сюда попадём в том случае, когда не считали предыдущую категорию (например, пересчёт отложки).
+                    // При этом убираем скидку.
+                    return {value=0, is_set=true};
+                  }
+                }
+              }
+              return {value=0, is_set=false};
+            }
+
+            // Получаем под экспериментом ограничение максимального значения скидки из значения, расчитанного ML-моделью
+            function fetchDiscountRestrictionFromML(discount_class: std::string) {
+              if ("ml_model_restriction" in fix.exps && discount_class == "discounts-calculator") {
+                let discount_type = getMainStrFromExperiment(exp=fix.exps["ml_model_restriction"]).str;
+                if (discount_type == "with_ml_restriction") {
+                  if (fix.offer_statistics as offer_statistics) {
+                    if ("discount" in offer_statistics) {
+                      let ml_discount = offer_statistics["discount"];
+                      return {value = (ml_discount < 0) ? 1 : ml_discount};
+                    }
+                  }
+                }
+              }
+              return {value=1};
+            }
+
+            if (fix.discount as discount) {
+                // не применять эту скидку, если она должна добавлять себя
+                // в разницу между между зачёркнутой ценой и обычной
+                if (discount.is_price_strikethrough as is_price_strikethrough) {
+                    if (is_price_strikethrough) {
+                        return {};
+                    }
+                } else {
+                    return {};
+                }
+
+                // можно будет удалить эту проверку после того, как кэшбек окончательно уедет в cashback_discount
+                if (discount.is_cashback) {
+                    return {};
+                }
+
+                let restrictions = discount.restrictions;
+                if (restrictions.recalc_type == clients::discounts::RecalcType::kSurgePrice) {
+                    // такой тип скидок умышленно не поддержан
+                    return {};
+                }
+
+                // скидка действует на все компоненты цены, кроме ожиданий
+                let affected_price = *ride.price - ride.price.waiting
+                                                 - ride.price.transit_waiting
+                                                 - ride.price.destination_waiting;
+
+                let percent = (discount.calc_data_hyperbolas as hyp)                                   // если заданы гиперболы
+                    ? calculateHyperbolaDiscountPercent(hyperbolas = hyp, price = affected_price).res  // считаем скидку по формуле гиперболы
+                    : (discount.calc_data_table_data as tbl)                                           // если задана таблица
+                        ? calculateTableDiscountPercent(table = tbl, price = affected_price).res       // считаем скидку по таблице
+                        : 0;                                                                           // иначе нет скидки
+
+                // Под экспериментом ограничиваем скидку максимальным значением как в экономе
+                let discount_class = (discount.discount_class as discount_class) ? discount_class : "";
+                let econom_discount_restriction = fetchDiscountRestrictionFromPrevCategory(discount_class = discount_class);
+
+                let max_absolute_value_opt = minBetweenOptionals(a = restrictions.max_absolute_value,
+                                                                 b_value = econom_discount_restriction.value,
+                                                                 b_is_set = econom_discount_restriction.is_set);
+
+                let ml_discount_restriction = fetchDiscountRestrictionFromML(discount_class = discount_class).value;
+
+                let coeff_initial = percent * 0.01;
+                let coeff1 = applyNewbieCoefficients(coeff = coeff_initial, restrictions = restrictions).res;
+                let coeff2 = normalizeToMinMax(coeff = coeff1,
+                                               restrictions = restrictions,
+                                               ml_discount_restriction = ml_discount_restriction).res;
+                let coeff3 = (max_absolute_value_opt.is_set)
+                    ? normalizeByMaxAbsoluteValue(coeff = coeff2,
+                                                  price = affected_price,
+                                                  max_absolute_value = max_absolute_value_opt.value).res
+                    : coeff2;
+                if (coeff3 <= 0) {
+                    return {};
+                }
+                let coeff_final = min(a = coeff3, b = 1).res;
+
+                let delta = -affected_price * coeff_final;
+
+                let mult = 1 - coeff_final;
+                return {
+                    boarding = ride.price.boarding * mult,
+                    distance = ride.price.distance * mult,
+                    time = ride.price.time * mult,
+                    requirements = ride.price.requirements * mult,
+                    waiting = ride.price.waiting,
+                    transit_waiting = ride.price.transit_waiting,
+                    destination_waiting = ride.price.destination_waiting,
+                    metadata = [
+                        "discount_price": *ride.price,  // цена ДО применения скидки, на неподходящее название уже заложился DWH :(
+                        "discount_value": coeff_final,
+                        "discount_delta_raw": delta
+                    ]
+                };
+            }
+
+            return {};
+        policy: both_side
+        author: ioann-v
+        approvals_id: 481381
+        ast: FUNC(getMainStrFromExperiment,ARGS((exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>)),B(CR(str=SL(2,16,2,74,T(SL(2,17,2,30,B("main",in,FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>))),SL(2,34,2,70,T(U(?,SL(2,35,2,51,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(str)))),SL(2,61,2,65,U(*,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(str)))),SL(2,67,2,70,""))),SL(2,72,2,74,""))))));FUNC(abs,ARGS((val,double)),B(CR(res=SL(6,18,6,40,T(SL(6,19,6,26,B(FA(val,double),<,0.000000)),SL(6,30,6,35,U(-,FA(val,double))),SL(6,37,6,40,FA(val,double)))))));FUNC(min,ARGS((a,double),(b,double)),B(CR(res=SL(10,16,10,31,T(SL(10,17,10,22,B(FA(a,double),<,FA(b,double))),SL(10,26,10,28,FA(a,double)),SL(10,30,10,31,FA(b,double)))))));FUNC(max,ARGS((a,double),(b,double)),B(CR(res=SL(14,16,14,31,T(SL(14,17,14,22,B(FA(a,double),>,FA(b,double))),SL(14,26,14,28,FA(a,double)),SL(14,30,14,31,FA(b,double)))))));FUNC(minBetweenOptionals,ARGS((a,std::optional<double>),(b_is_set,bool),(b_value,double)),B(IF(U(?,SL(18,6,18,8,FA(a,std::optional<double>))),IF(SL(19,8,19,16,FA(b_is_set,bool)),CR(is_set=SL(20,58,20,62,true),value=SL(20,20,20,49,B(FC(min,NT(a=SL(20,26,20,33,U(*,SL(18,6,18,8,FA(a,std::optional<double>)))),b=SL(20,37,20,44,FA(b_value,double))),R(res=double)),.,F(res)))));CR(is_set=SL(22,34,22,38,true),value=SL(22,18,22,25,U(*,SL(18,6,18,8,FA(a,std::optional<double>))))));CR(is_set=SL(24,32,24,40,FA(b_is_set,bool)),value=SL(24,16,24,23,FA(b_value,double)))));FUNC(calculateHyperbolaDiscountPercent,ARGS((hyperbolas,clients::discounts::HyperbolasData),(price,double)),B(SV(hyperbola,SL(29,20,31,36,T(SL(29,21,29,49,B(FA(price,double),<,B(FA(hyperbolas,clients::discounts::HyperbolasData),.,F(threshold)))),SL(30,10,31,8,B(FA(hyperbolas,clients::discounts::HyperbolasData),.,F(hyperbola_lower))),SL(31,10,31,36,B(FA(hyperbolas,clients::discounts::HyperbolasData),.,F(hyperbola_upper))))));IF(SL(34,8,34,49,B(B(FC(abs,NT(val=SL(34,16,34,35,B(FA(price,double),+,B(VA(hyperbola),.,F(c))))),R(res=double)),.,F(res)),<,0.000100)),CR(res=SL(35,22,35,23,0.000000)));CR(res=SL(39,18,39,69,B(B(VA(hyperbola),.,F(p)),+,B(B(VA(hyperbola),.,F(a)),/,SL(39,48,39,67,B(FA(price,double),+,B(VA(hyperbola),.,F(c))))))))));FUNC(processTableElement,ARGS((elem,clients::discounts::TableDataA),(first_iteration,bool),(has_result,bool),(prev_elem_coeff,double),(prev_elem_price,double),(price,double),(result,double)),B(IF(SL(50,8,50,18,FA(has_result,bool)),CR(first_iteration=SL(56,30,56,35,false),has_result=SL(52,25,52,29,true),prev_elem_coeff=SL(58,30,59,8,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(57,30,57,40,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(55,20,55,25,FA(price,double)),result=SL(53,21,53,27,FA(result,double))));IF(SL(63,8,63,45,B(FA(first_iteration,bool),&&,B(FA(price,double),<,B(FA(elem,clients::discounts::TableDataA),.,F(price))))),CR(first_iteration=SL(68,30,68,35,false),has_result=SL(65,25,65,29,true),prev_elem_coeff=SL(70,30,71,8,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(69,30,69,40,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(67,20,67,25,FA(price,double)),result=SL(66,21,66,31,B(FA(elem,clients::discounts::TableDataA),.,F(coeff)))));IF(SL(75,8,75,74,B(B(U(!,FA(first_iteration,bool)),&&,B(FA(prev_elem_price,double),<=,FA(price,double))),&&,B(FA(price,double),<,B(FA(elem,clients::discounts::TableDataA),.,F(price))))),IF(SL(77,12,77,62,B(B(FC(abs,NT(val=SL(77,20,77,48,B(B(FA(elem,clients::discounts::TableDataA),.,F(price)),-,FA(prev_elem_price,double)))),R(res=double)),.,F(res)),<,0.000100)),CR(first_iteration=SL(82,34,82,39,false),has_result=SL(79,29,79,33,true),prev_elem_coeff=SL(84,34,85,12,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(83,34,83,44,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(81,24,81,29,FA(price,double)),result=SL(80,25,80,26,0.000000)));CR(first_iteration=SL(94,30,94,35,false),has_result=SL(89,25,89,29,true),prev_elem_coeff=SL(96,30,97,8,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(95,30,95,40,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(93,20,93,25,FA(price,double)),result=SL(90,21,92,52,B(FA(prev_elem_coeff,double),+,B(B(SL(91,19,91,47,B(B(FA(elem,clients::discounts::TableDataA),.,F(coeff)),-,FA(prev_elem_coeff,double))),*,SL(91,52,91,75,B(FA(price,double),-,FA(prev_elem_price,double)))),/,SL(92,23,92,51,B(B(FA(elem,clients::discounts::TableDataA),.,F(price)),-,FA(prev_elem_price,double))))))));CR(first_iteration=SL(105,26,105,31,false),has_result=SL(102,21,102,26,false),prev_elem_coeff=SL(107,26,108,4,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(106,26,106,36,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(104,16,104,21,FA(price,double)),result=SL(103,17,103,23,FA(result,double)))));FUNC(calculateTableDiscountPercent,ARGS((price,double),(table,std::vector<clients::discounts::TableDataA>)),B(SV(process_table_result,SL(113,31,120,6,FL(SL(113,36,113,42,FA(table,std::vector<clients::discounts::TableDataA>)),elem,NT(first_iteration=SL(117,26,117,30,true),has_result=SL(114,21,114,26,false),prev_elem_coeff=SL(119,26,120,4,0.000000),prev_elem_price=SL(118,26,118,27,0.000000),price=SL(116,16,116,21,FA(price,double)),result=SL(115,17,115,18,0.000000)),FC(processTableElement,NT(elem=VA(elem),first_iteration=VA(first_iteration),has_result=VA(has_result),prev_elem_coeff=VA(prev_elem_coeff),prev_elem_price=VA(prev_elem_price),price=VA(price),result=VA(result)),R(first_iteration=bool,has_result=bool,prev_elem_coeff=double,prev_elem_price=double,price=double,result=double)))));IF(SL(123,8,123,39,B(VA(process_table_result),.,F(has_result))),CR(res=SL(124,22,124,49,B(VA(process_table_result),.,F(result)))));CR(res=SL(128,18,128,54,B(VA(process_table_result),.,F(prev_elem_coeff))))));FUNC(applyNewbieCoefficients,ARGS((coeff,double),(restrictions,clients::discounts::DiscountRestrictions)),B(SV(newbie_max_coeff,SL(132,27,132,87,T(U(?,SL(132,28,132,58,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_max_coeff)))),SL(132,74,132,84,U(*,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_max_coeff)))),SL(132,86,132,87,1.000000))));SV(newbie_num_coeff,SL(133,27,133,87,T(U(?,SL(133,28,133,58,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_num_coeff)))),SL(133,74,133,84,U(*,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_num_coeff)))),SL(133,86,133,87,0.000000))));SV(completed_count,SL(134,26,134,99,T(U(?,SL(134,27,134,78,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(completed_on_special_conditions_count)))),SL(134,90,134,96,U(*,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(completed_on_special_conditions_count)))),SL(134,98,134,99,0.000000))));CR(res=SL(136,14,137,4,B(FA(coeff,double),*,SL(136,23,136,76,B(VA(newbie_max_coeff),-,B(VA(newbie_num_coeff),*,VA(completed_count)))))))));FUNC(normalizeToMinMax,ARGS((coeff,double),(ml_discount_restriction,double),(restrictions,clients::discounts::DiscountRestrictions)),B(SV(coeff_limited_to_max,SL(143,31,144,67,B(FC(min,NT(a=SL(143,39,143,94,B(FC(min,NT(a=SL(143,47,143,52,FA(coeff,double)),b=SL(143,58,143,89,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(max_discount_coeff)))),R(res=double)),.,F(res))),b=SL(144,39,144,62,FA(ml_discount_restriction,double))),R(res=double)),.,F(res))));CR(res=SL(147,14,148,4,T(SL(147,15,147,69,B(VA(coeff_limited_to_max),<,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(min_discount_coeff)))),SL(147,73,147,75,0.000000),SL(147,77,148,4,VA(coeff_limited_to_max)))))));FUNC(normalizeByMaxAbsoluteValue,ARGS((coeff,double),(max_absolute_value,double),(price,double)),B(IF(SL(153,8,153,60,B(B(B(FA(price,double),*,FA(coeff,double)),>,FA(max_absolute_value,double)),&&,B(FA(price,double),>,0.000100))),CR(res=SL(155,18,157,8,B(FC(min,NT(a=SL(155,26,155,72,B(FC(max,NT(a=SL(155,34,155,60,B(FA(max_absolute_value,double),/,FA(price,double))),b=SL(155,66,155,67,0.000000)),R(res=double)),.,F(res))),b=SL(156,26,156,27,1.000000)),R(res=double)),.,F(res)))));CR(res=SL(159,18,159,23,FA(coeff,double)))));FUNC(getPreviousCategory,ARGS(),B(IF(SL(163,6,163,32,B(B(fix,.,F(category)),==,"business")),CR(res=SL(164,16,164,24,"econom")),IF(SL(165,13,165,41,B(B(fix,.,F(category)),==,"uberselect")),CR(res=SL(166,16,166,23,"uberx"))));CR(res=SL(168,14,168,16,""))));FUNC(fetchDiscountRestrictionFromPrevCategory,ARGS((discount_class,std::string)),B(IF(SL(175,6,175,90,B(B("restrict_absolute_discount",in,B(fix,.,F(exps))),&&,B(FA(discount_class,std::string),==,"discounts-calculator"))),SV(previous_category,SL(176,28,176,53,B(FC(getPreviousCategory,NT(),R(res=std::string)),.,F(res))));IF(SL(177,8,177,31,B(VA(previous_category),!=,"")),SV(discount_type,SL(178,26,178,98,B(FC(getMainStrFromExperiment,NT(exp=SL(178,55,178,93,B(B(fix,.,F(exps)),.,SL(178,64,178,92,"restrict_absolute_discount")))),R(str=std::string)),.,F(str))));IF(SL(179,10,179,40,B(VA(discount_type),==,"no_discount")),CR(is_set=SL(180,32,180,36,true),value=SL(180,22,180,23,0.000000)));IF(SL(182,10,182,51,B(VA(discount_type),==,"from_previous_category")),IF(U(?,SL(183,12,183,49,B(fix,.,F(previously_calculated_categories)))),IF(SL(184,14,184,67,B(VA(previous_category),in,U(*,B(fix,.,F(previously_calculated_categories))))),SV(econom_meta,SL(185,30,185,112,B(B(B(B(B(U(*,B(fix,.,F(previously_calculated_categories))),.,SL(185,63,185,80,VA(previous_category))),.,F(user)),.,F(final_prices)),.,SL(185,100,185,106,"main")),.,F(meta))));IF(SL(186,16,186,51,B("discount_delta_raw",in,VA(econom_meta))),SV(discount_delta_raw,SL(187,39,187,72,B(VA(econom_meta),.,SL(187,51,187,71,"discount_delta_raw"))));CR(is_set=SL(188,56,188,60,true),value=SL(188,28,188,47,U(-,VA(discount_delta_raw)))))));CR(is_set=SL(194,32,194,36,true),value=SL(194,22,194,23,0.000000)))));CR(is_set=SL(198,26,198,31,false),value=SL(198,16,198,17,0.000000))));FUNC(fetchDiscountRestrictionFromML,ARGS((discount_class,std::string)),B(IF(SL(203,6,203,84,B(B("ml_model_restriction",in,B(fix,.,F(exps))),&&,B(FA(discount_class,std::string),==,"discounts-calculator"))),SV(discount_type,SL(204,24,204,90,B(FC(getMainStrFromExperiment,NT(exp=SL(204,53,204,85,B(B(fix,.,F(exps)),.,SL(204,62,204,84,"ml_model_restriction")))),R(str=std::string)),.,F(str))));IF(SL(205,8,205,46,B(VA(discount_type),==,"with_ml_restriction")),IF(U(?,SL(206,10,206,31,B(fix,.,F(offer_statistics)))),IF(SL(207,12,207,42,B("discount",in,U(*,B(fix,.,F(offer_statistics))))),SV(ml_discount,SL(208,28,208,56,B(U(*,B(fix,.,F(offer_statistics))),.,SL(208,45,208,55,"discount"))));CR(value=SL(209,26,209,61,T(SL(209,27,209,42,B(VA(ml_discount),<,0.000000)),SL(209,46,209,48,1.000000),SL(209,50,209,61,VA(ml_discount)))))))));CR(value=SL(214,16,214,17,1.000000))));IF(U(?,SL(217,4,217,17,B(fix,.,F(discount)))),IF(U(?,SL(220,8,220,40,B(U(*,B(fix,.,F(discount))),.,F(is_price_strikethrough)))),IF(SL(221,12,221,34,U(*,B(U(*,B(fix,.,F(discount))),.,F(is_price_strikethrough)))),CR()),CR());IF(SL(229,8,229,28,B(U(*,B(fix,.,F(discount))),.,F(is_cashback))),CR());SV(restrictions,SL(233,23,233,44,B(U(*,B(fix,.,F(discount))),.,F(restrictions))));IF(SL(234,8,234,79,B(B(VA(restrictions),.,F(recalc_type)),==,clients::discounts::RecalcType::kSurgePrice)),CR());SV(affected_price,SL(240,25,242,69,B(B(B(U(*,B(ride,.,F(price))),-,B(B(ride,.,F(price)),.,F(waiting))),-,B(B(ride,.,F(price)),.,F(transit_waiting))),-,B(B(ride,.,F(price)),.,F(destination_waiting)))));SV(percent,SL(244,18,248,15,T(U(?,SL(244,19,244,49,B(U(*,B(fix,.,F(discount))),.,F(calc_data_hyperbolas)))),SL(245,10,246,8,B(FC(calculateHyperbolaDiscountPercent,NT(hyperbolas=SL(245,57,245,60,U(*,B(U(*,B(fix,.,F(discount))),.,F(calc_data_hyperbolas)))),price=SL(245,70,245,84,VA(affected_price))),R(res=double)),.,F(res))),SL(246,10,248,15,T(U(?,SL(246,11,246,41,B(U(*,B(fix,.,F(discount))),.,F(calc_data_table_data)))),SL(247,14,248,12,B(FC(calculateTableDiscountPercent,NT(price=SL(247,65,247,79,VA(affected_price)),table=SL(247,52,247,55,U(*,B(U(*,B(fix,.,F(discount))),.,F(calc_data_table_data))))),R(res=double)),.,F(res))),SL(248,14,248,15,0.000000))))));SV(discount_class,SL(251,25,251,90,T(U(?,SL(251,26,251,50,B(U(*,B(fix,.,F(discount))),.,F(discount_class)))),SL(251,71,251,86,U(*,B(U(*,B(fix,.,F(discount))),.,F(discount_class)))),SL(251,88,251,90,""))));SV(econom_discount_restriction,SL(252,38,252,111,FC(fetchDiscountRestrictionFromPrevCategory,NT(discount_class=SL(252,96,252,110,VA(discount_class))),R(is_set=bool,value=double))));SV(max_absolute_value_opt,SL(254,33,256,99,FC(minBetweenOptionals,NT(a=SL(254,57,254,88,B(VA(restrictions),.,F(max_absolute_value))),b_is_set=SL(256,64,256,98,B(VA(econom_discount_restriction),.,F(is_set))),b_value=SL(255,63,255,96,B(VA(econom_discount_restriction),.,F(value)))),R(is_set=bool,value=double))));SV(ml_discount_restriction,SL(258,34,258,103,B(FC(fetchDiscountRestrictionFromML,NT(discount_class=SL(258,82,258,96,VA(discount_class))),R(value=double)),.,F(value))));SV(coeff_initial,SL(260,24,260,38,B(VA(percent),*,0.010000)));SV(coeff1,SL(261,17,261,96,B(FC(applyNewbieCoefficients,NT(coeff=SL(261,49,261,62,VA(coeff_initial)),restrictions=SL(261,79,261,91,VA(restrictions))),R(res=double)),.,F(res))));SV(coeff2,SL(262,17,264,89,B(FC(normalizeToMinMax,NT(coeff=SL(262,43,262,49,VA(coeff1)),ml_discount_restriction=SL(264,61,264,84,VA(ml_discount_restriction)),restrictions=SL(263,50,263,62,VA(restrictions))),R(res=double)),.,F(res))));SV(coeff3,SL(265,17,269,16,T(SL(265,18,265,47,B(VA(max_absolute_value_opt),.,F(is_set))),SL(266,10,269,8,B(FC(normalizeByMaxAbsoluteValue,NT(coeff=SL(266,46,266,52,VA(coeff2)),max_absolute_value=SL(268,59,268,87,B(VA(max_absolute_value_opt),.,F(value))),price=SL(267,46,267,60,VA(affected_price))),R(res=double)),.,F(res))),SL(269,10,269,16,VA(coeff2)))));IF(SL(270,8,270,19,B(VA(coeff3),<=,0.000000)),CR());SV(coeff_final,SL(273,22,273,48,B(FC(min,NT(a=SL(273,30,273,36,VA(coeff3)),b=SL(273,42,273,43,1.000000)),R(res=double)),.,F(res))));SV(delta,SL(275,16,275,45,B(U(-,VA(affected_price)),*,VA(coeff_final))));SV(mult,SL(277,15,277,30,B(1.000000,-,VA(coeff_final))));CR(boarding=SL(279,19,279,45,B(B(B(ride,.,F(price)),.,F(boarding)),*,VA(mult))),destination_waiting=SL(285,30,285,60,B(B(ride,.,F(price)),.,F(destination_waiting))),distance=SL(280,19,280,45,B(B(B(ride,.,F(price)),.,F(distance)),*,VA(mult))),metadata=SL(286,19,290,9,MAP("discount_price"=U(*,B(ride,.,F(price))),"discount_value"=VA(coeff_final),"discount_delta_raw"=VA(delta))),requirements=SL(282,23,282,53,B(B(B(ride,.,F(price)),.,F(requirements)),*,VA(mult))),time=SL(281,15,281,37,B(B(B(ride,.,F(price)),.,F(time)),*,VA(mult))),transit_waiting=SL(284,26,284,52,B(B(ride,.,F(price)),.,F(transit_waiting))),waiting=SL(283,18,283,36,B(B(ride,.,F(price)),.,F(waiting)))));CR()
+        updated:
+            $a:
+                raw_type: datetime
+            $v: '2021-11-25T14:33:34.486904+00:00'
+        pmv_task_id: 20
+        deleted: true
+        extra_return: []
+        previous_version_id: 2779
+        startrek_ticket: example_string
+    expected:
+      - rule_id: 2923
+        name: implicit_discount
+        description: Неявная скидка (гипербола или таблица)
+        source_code: |-
+            function getMainStrFromExperiment(exp: std::unordered_map<std::string, lang::variables::ExperimentSubValue>) {
+              return {str = ("main" in exp) ? (exp["main"].str as str) ? str : "" : ""};
+            }
+
+            function abs(val : double) {
+                return {res = (val < 0) ? -val : val};
+            }
+
+            function min(a : double, b : double) {
+              return {res = (a < b) ? a : b};
+            }
+
+            function max(a : double, b : double) {
+              return {res = (a > b) ? a : b};
+            }
+
+            function minBetweenOptionals(a: std::optional<double>, b_value:double, b_is_set: bool) {
+              if (a as a_value) {
+                if (b_is_set) {
+                  return {value=min(a=a_value, b=b_value).res, is_set=true};
+                }
+                return {value=a_value, is_set=true};
+              }
+              return {value=b_value, is_set=b_is_set};
+            }
+
+            function calculateHyperbolaDiscountPercent(hyperbolas : clients::discounts::HyperbolasData, price : double) {
+                // выбираем гиперболу по порогу
+                let hyperbola = (price < hyperbolas.threshold)
+                    ? hyperbolas.hyperbola_lower
+                    : hyperbolas.hyperbola_upper;
+
+                // избегаем деления на 0
+                if (abs(val=price + hyperbola.c).res < 0.0001) {
+                    return {res = 0};
+                }
+
+                // считаем по формуле гиперболы
+                return {res = (hyperbola.p + hyperbola.a / (price + hyperbola.c))};
+            }
+
+            function processTableElement(elem : clients::discounts::TableDataA,
+                                         has_result: bool,
+                                         result : double,
+                                         price : double,
+                                         first_iteration : bool,
+                                         prev_elem_price : double,
+                                         prev_elem_coeff : double) {
+                // если результат уже получен, то сразу отдаём его обратно
+                if (has_result) {
+                    return {
+                        has_result = true,
+                        result = result,
+                        // следующие 4 строчки одинаковые во всех return
+                        price = price,
+                        first_iteration = false,
+                        prev_elem_price = elem.price,
+                        prev_elem_coeff = elem.coeff
+                    };
+                }
+
+                // если цена меньше первой цены в таблице, то используем первый элемент
+                if (first_iteration && price < elem.price) {
+                    return {
+                        has_result = true,
+                        result = elem.coeff,
+                        price = price,
+                        first_iteration = false,
+                        prev_elem_price = elem.price,
+                        prev_elem_coeff = elem.coeff
+                    };
+                }
+
+                // если цена между предыдущим элементом таблицы и текущим
+                if (!first_iteration && prev_elem_price <= price && price < elem.price) {
+                    // избегаем деления на 0
+                    if (abs(val=elem.price - prev_elem_price).res < 0.0001) {
+                        return {
+                            has_result = true,
+                            result = 0,
+                            price = price,
+                            first_iteration = false,
+                            prev_elem_price = elem.price,
+                            prev_elem_coeff = elem.coeff
+                        };
+                    }
+                    // делаем линейную интерполяцию
+                    return {
+                        has_result = true,
+                        result = prev_elem_coeff
+                            + (elem.coeff - prev_elem_coeff) * (price - prev_elem_price)
+                                / (elem.price - prev_elem_price),
+                        price = price,
+                        first_iteration = false,
+                        prev_elem_price = elem.price,
+                        prev_elem_coeff = elem.coeff
+                    };
+                }
+
+                // результат ещё не получен
+                return {
+                    has_result = false,
+                    result = result,
+                    price = price,
+                    first_iteration = false,
+                    prev_elem_price = elem.price,
+                    prev_elem_coeff = elem.coeff
+                };
+            }
+
+            function calculateTableDiscountPercent(table : std::vector<clients::discounts::TableDataA>, price : double) {
+                // проходим по элементам таблицы функцией processTableElement
+                let process_table_result = fold(table as elem, processTableElement, {
+                    has_result = false,
+                    result = 0,
+                    price = price,
+                    first_iteration = true,
+                    prev_elem_price = 0,
+                    prev_elem_coeff = 0
+                });
+
+                // если результат получен, то отдаём его
+                if (process_table_result.has_result) {
+                    return {res = process_table_result.result};
+                }
+
+                // если пришли сюда, то значит цена больше или равна последней цене в таблице, используем последний элемент
+                return {res = process_table_result.prev_elem_coeff};
+            }
+
+            function applyNewbieCoefficients(coeff : double, restrictions : clients::discounts::DiscountRestrictions) {
+                let newbie_max_coeff = (restrictions.newbie_max_coeff as max_coeff) ? max_coeff : 1;
+                let newbie_num_coeff = (restrictions.newbie_num_coeff as num_coeff) ? num_coeff : 0;
+                let completed_count = (restrictions.completed_on_special_conditions_count as count) ? count : 0;
+                return {
+                    res = coeff * (newbie_max_coeff - newbie_num_coeff * completed_count)
+                };
+            }
+
+            function normalizeToMinMax(coeff : double, restrictions : clients::discounts::DiscountRestrictions,
+                                       ml_discount_restriction : double) {
+                // ограничение сверху максимально допустимым значением и лимитом от ML
+                let coeff_limited_to_max = min(a = min(a = coeff, b = restrictions.max_discount_coeff).res,
+                                               b = ml_discount_restriction).res;
+                // если коэффициент меньше минимально допустимого, то сбрасываем в 0 (иначе скидка слишком мелкая)
+                return {
+                    res = (coeff_limited_to_max < restrictions.min_discount_coeff) ? 0 : coeff_limited_to_max
+                };
+            }
+
+            function normalizeByMaxAbsoluteValue(coeff : double, price: double,
+                                                 max_absolute_value : double) {
+                if (price * coeff > max_absolute_value && price > 0.0001) {
+                    return {
+                        res = min(a = max(a = max_absolute_value / price, b = 0).res,
+                                  b = 1).res
+                    };
+                }
+                return {res = coeff};
+            }
+
+            function getPreviousCategory() {
+              if (fix.category == "business") {
+                return {res="econom"};
+              } else if (fix.category == "uberselect") {
+                return {res="uberx"};
+              }
+              return {res=""};
+            }
+
+            // Получаем под экспериментом ограничение максимального значения скидки
+            // из значения расчитанного для категории эконом (unberx для uberselect)
+            // Добавляется в рамках EFFICIENCYDEV-12250
+            function fetchDiscountRestrictionFromPrevCategory(discount_class: std::string) {
+              if ("restrict_absolute_discount" in fix.exps && discount_class == "discounts-calculator") {
+                let previous_category = getPreviousCategory().res;
+                if (previous_category != "") {
+                  let discount_type = getMainStrFromExperiment(exp=fix.exps["restrict_absolute_discount"]).str;
+                  if (discount_type == "no_discount") {
+                    return {value=0, is_set=true};
+                  }
+                  if (discount_type == "from_previous_category") {
+                    if (fix.previously_calculated_categories as previously_calculated_categories) {
+                      if (previous_category in previously_calculated_categories) {
+                        let econom_meta = previously_calculated_categories[previous_category].user.final_prices["main"].meta;
+                        if ("discount_delta_raw" in econom_meta) {
+                          let discount_delta_raw = econom_meta["discount_delta_raw"];
+                          return {value=-discount_delta_raw, is_set=true};
+                        }
+                      }
+                    }
+                    // Сюда попадём в том случае, когда не считали предыдущую категорию (например, пересчёт отложки).
+                    // При этом убираем скидку.
+                    return {value=0, is_set=true};
+                  }
+                }
+              }
+              return {value=0, is_set=false};
+            }
+
+            // Получаем под экспериментом ограничение максимального значения скидки из значения, расчитанного ML-моделью
+            function fetchDiscountRestrictionFromML(discount_class: std::string) {
+              if ("ml_model_restriction" in fix.exps && discount_class == "discounts-calculator") {
+                let discount_type = getMainStrFromExperiment(exp=fix.exps["ml_model_restriction"]).str;
+                if (discount_type == "with_ml_restriction") {
+                  if (fix.offer_statistics as offer_statistics) {
+                    if ("discount" in offer_statistics) {
+                      let ml_discount = offer_statistics["discount"];
+                      return {value = (ml_discount < 0) ? 1 : ml_discount};
+                    }
+                  }
+                }
+              }
+              return {value=1};
+            }
+
+            if (fix.discount as discount) {
+                // не применять эту скидку, если она должна добавлять себя
+                // в разницу между между зачёркнутой ценой и обычной
+                if (discount.is_price_strikethrough as is_price_strikethrough) {
+                    if (is_price_strikethrough) {
+                        return {};
+                    }
+                } else {
+                    return {};
+                }
+
+                // можно будет удалить эту проверку после того, как кэшбек окончательно уедет в cashback_discount
+                if (discount.is_cashback) {
+                    return {};
+                }
+
+                let restrictions = discount.restrictions;
+                if (restrictions.recalc_type == clients::discounts::RecalcType::kSurgePrice) {
+                    // такой тип скидок умышленно не поддержан
+                    return {};
+                }
+
+                // скидка действует на все компоненты цены, кроме ожиданий
+                let affected_price = *ride.price - ride.price.waiting
+                                                 - ride.price.transit_waiting
+                                                 - ride.price.destination_waiting;
+
+                let percent = (discount.calc_data_hyperbolas as hyp)                                   // если заданы гиперболы
+                    ? calculateHyperbolaDiscountPercent(hyperbolas = hyp, price = affected_price).res  // считаем скидку по формуле гиперболы
+                    : (discount.calc_data_table_data as tbl)                                           // если задана таблица
+                        ? calculateTableDiscountPercent(table = tbl, price = affected_price).res       // считаем скидку по таблице
+                        : 0;                                                                           // иначе нет скидки
+
+                // Под экспериментом ограничиваем скидку максимальным значением как в экономе
+                let discount_class = (discount.discount_class as discount_class) ? discount_class : "";
+                let econom_discount_restriction = fetchDiscountRestrictionFromPrevCategory(discount_class = discount_class);
+
+                let max_absolute_value_opt = minBetweenOptionals(a = restrictions.max_absolute_value,
+                                                                 b_value = econom_discount_restriction.value,
+                                                                 b_is_set = econom_discount_restriction.is_set);
+
+                let ml_discount_restriction = fetchDiscountRestrictionFromML(discount_class = discount_class).value;
+
+                let coeff_initial = percent * 0.01;
+                let coeff1 = applyNewbieCoefficients(coeff = coeff_initial, restrictions = restrictions).res;
+                let coeff2 = normalizeToMinMax(coeff = coeff1,
+                                               restrictions = restrictions,
+                                               ml_discount_restriction = ml_discount_restriction).res;
+                let coeff3 = (max_absolute_value_opt.is_set)
+                    ? normalizeByMaxAbsoluteValue(coeff = coeff2,
+                                                  price = affected_price,
+                                                  max_absolute_value = max_absolute_value_opt.value).res
+                    : coeff2;
+                if (coeff3 <= 0) {
+                    return {};
+                }
+                let coeff_final = min(a = coeff3, b = 1).res;
+
+                let delta = -affected_price * coeff_final;
+
+                let mult = 1 - coeff_final;
+                return {
+                    boarding = ride.price.boarding * mult,
+                    distance = ride.price.distance * mult,
+                    time = ride.price.time * mult,
+                    requirements = ride.price.requirements * mult,
+                    waiting = ride.price.waiting,
+                    transit_waiting = ride.price.transit_waiting,
+                    destination_waiting = ride.price.destination_waiting,
+                    metadata = [
+                        "discount_price": *ride.price,  // цена ДО применения скидки, на неподходящее название уже заложился DWH :(
+                        "discount_value": coeff_final,
+                        "discount_delta_raw": delta
+                    ]
+                };
+            }
+
+            return {};
+        policy: both_side
+        author: ioann-v
+        approvals_id: 481381
+        ast: FUNC(getMainStrFromExperiment,ARGS((exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>)),B(CR(str=SL(2,16,2,74,T(SL(2,17,2,30,B("main",in,FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>))),SL(2,34,2,70,T(U(?,SL(2,35,2,51,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(str)))),SL(2,61,2,65,U(*,B(B(FA(exp,std::unordered_map<std::string,lang::variables::ExperimentSubValue>),.,SL(2,39,2,45,"main")),.,F(str)))),SL(2,67,2,70,""))),SL(2,72,2,74,""))))));FUNC(abs,ARGS((val,double)),B(CR(res=SL(6,18,6,40,T(SL(6,19,6,26,B(FA(val,double),<,0.000000)),SL(6,30,6,35,U(-,FA(val,double))),SL(6,37,6,40,FA(val,double)))))));FUNC(min,ARGS((a,double),(b,double)),B(CR(res=SL(10,16,10,31,T(SL(10,17,10,22,B(FA(a,double),<,FA(b,double))),SL(10,26,10,28,FA(a,double)),SL(10,30,10,31,FA(b,double)))))));FUNC(max,ARGS((a,double),(b,double)),B(CR(res=SL(14,16,14,31,T(SL(14,17,14,22,B(FA(a,double),>,FA(b,double))),SL(14,26,14,28,FA(a,double)),SL(14,30,14,31,FA(b,double)))))));FUNC(minBetweenOptionals,ARGS((a,std::optional<double>),(b_is_set,bool),(b_value,double)),B(IF(U(?,SL(18,6,18,8,FA(a,std::optional<double>))),IF(SL(19,8,19,16,FA(b_is_set,bool)),CR(is_set=SL(20,58,20,62,true),value=SL(20,20,20,49,B(FC(min,NT(a=SL(20,26,20,33,U(*,SL(18,6,18,8,FA(a,std::optional<double>)))),b=SL(20,37,20,44,FA(b_value,double))),R(res=double)),.,F(res)))));CR(is_set=SL(22,34,22,38,true),value=SL(22,18,22,25,U(*,SL(18,6,18,8,FA(a,std::optional<double>))))));CR(is_set=SL(24,32,24,40,FA(b_is_set,bool)),value=SL(24,16,24,23,FA(b_value,double)))));FUNC(calculateHyperbolaDiscountPercent,ARGS((hyperbolas,clients::discounts::HyperbolasData),(price,double)),B(SV(hyperbola,SL(29,20,31,36,T(SL(29,21,29,49,B(FA(price,double),<,B(FA(hyperbolas,clients::discounts::HyperbolasData),.,F(threshold)))),SL(30,10,31,8,B(FA(hyperbolas,clients::discounts::HyperbolasData),.,F(hyperbola_lower))),SL(31,10,31,36,B(FA(hyperbolas,clients::discounts::HyperbolasData),.,F(hyperbola_upper))))));IF(SL(34,8,34,49,B(B(FC(abs,NT(val=SL(34,16,34,35,B(FA(price,double),+,B(VA(hyperbola),.,F(c))))),R(res=double)),.,F(res)),<,0.000100)),CR(res=SL(35,22,35,23,0.000000)));CR(res=SL(39,18,39,69,B(B(VA(hyperbola),.,F(p)),+,B(B(VA(hyperbola),.,F(a)),/,SL(39,48,39,67,B(FA(price,double),+,B(VA(hyperbola),.,F(c))))))))));FUNC(processTableElement,ARGS((elem,clients::discounts::TableDataA),(first_iteration,bool),(has_result,bool),(prev_elem_coeff,double),(prev_elem_price,double),(price,double),(result,double)),B(IF(SL(50,8,50,18,FA(has_result,bool)),CR(first_iteration=SL(56,30,56,35,false),has_result=SL(52,25,52,29,true),prev_elem_coeff=SL(58,30,59,8,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(57,30,57,40,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(55,20,55,25,FA(price,double)),result=SL(53,21,53,27,FA(result,double))));IF(SL(63,8,63,45,B(FA(first_iteration,bool),&&,B(FA(price,double),<,B(FA(elem,clients::discounts::TableDataA),.,F(price))))),CR(first_iteration=SL(68,30,68,35,false),has_result=SL(65,25,65,29,true),prev_elem_coeff=SL(70,30,71,8,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(69,30,69,40,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(67,20,67,25,FA(price,double)),result=SL(66,21,66,31,B(FA(elem,clients::discounts::TableDataA),.,F(coeff)))));IF(SL(75,8,75,74,B(B(U(!,FA(first_iteration,bool)),&&,B(FA(prev_elem_price,double),<=,FA(price,double))),&&,B(FA(price,double),<,B(FA(elem,clients::discounts::TableDataA),.,F(price))))),IF(SL(77,12,77,62,B(B(FC(abs,NT(val=SL(77,20,77,48,B(B(FA(elem,clients::discounts::TableDataA),.,F(price)),-,FA(prev_elem_price,double)))),R(res=double)),.,F(res)),<,0.000100)),CR(first_iteration=SL(82,34,82,39,false),has_result=SL(79,29,79,33,true),prev_elem_coeff=SL(84,34,85,12,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(83,34,83,44,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(81,24,81,29,FA(price,double)),result=SL(80,25,80,26,0.000000)));CR(first_iteration=SL(94,30,94,35,false),has_result=SL(89,25,89,29,true),prev_elem_coeff=SL(96,30,97,8,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(95,30,95,40,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(93,20,93,25,FA(price,double)),result=SL(90,21,92,52,B(FA(prev_elem_coeff,double),+,B(B(SL(91,19,91,47,B(B(FA(elem,clients::discounts::TableDataA),.,F(coeff)),-,FA(prev_elem_coeff,double))),*,SL(91,52,91,75,B(FA(price,double),-,FA(prev_elem_price,double)))),/,SL(92,23,92,51,B(B(FA(elem,clients::discounts::TableDataA),.,F(price)),-,FA(prev_elem_price,double))))))));CR(first_iteration=SL(105,26,105,31,false),has_result=SL(102,21,102,26,false),prev_elem_coeff=SL(107,26,108,4,B(FA(elem,clients::discounts::TableDataA),.,F(coeff))),prev_elem_price=SL(106,26,106,36,B(FA(elem,clients::discounts::TableDataA),.,F(price))),price=SL(104,16,104,21,FA(price,double)),result=SL(103,17,103,23,FA(result,double)))));FUNC(calculateTableDiscountPercent,ARGS((price,double),(table,std::vector<clients::discounts::TableDataA>)),B(SV(process_table_result,SL(113,31,120,6,FL(SL(113,36,113,42,FA(table,std::vector<clients::discounts::TableDataA>)),elem,NT(first_iteration=SL(117,26,117,30,true),has_result=SL(114,21,114,26,false),prev_elem_coeff=SL(119,26,120,4,0.000000),prev_elem_price=SL(118,26,118,27,0.000000),price=SL(116,16,116,21,FA(price,double)),result=SL(115,17,115,18,0.000000)),FC(processTableElement,NT(elem=VA(elem),first_iteration=VA(first_iteration),has_result=VA(has_result),prev_elem_coeff=VA(prev_elem_coeff),prev_elem_price=VA(prev_elem_price),price=VA(price),result=VA(result)),R(first_iteration=bool,has_result=bool,prev_elem_coeff=double,prev_elem_price=double,price=double,result=double)))));IF(SL(123,8,123,39,B(VA(process_table_result),.,F(has_result))),CR(res=SL(124,22,124,49,B(VA(process_table_result),.,F(result)))));CR(res=SL(128,18,128,54,B(VA(process_table_result),.,F(prev_elem_coeff))))));FUNC(applyNewbieCoefficients,ARGS((coeff,double),(restrictions,clients::discounts::DiscountRestrictions)),B(SV(newbie_max_coeff,SL(132,27,132,87,T(U(?,SL(132,28,132,58,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_max_coeff)))),SL(132,74,132,84,U(*,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_max_coeff)))),SL(132,86,132,87,1.000000))));SV(newbie_num_coeff,SL(133,27,133,87,T(U(?,SL(133,28,133,58,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_num_coeff)))),SL(133,74,133,84,U(*,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(newbie_num_coeff)))),SL(133,86,133,87,0.000000))));SV(completed_count,SL(134,26,134,99,T(U(?,SL(134,27,134,78,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(completed_on_special_conditions_count)))),SL(134,90,134,96,U(*,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(completed_on_special_conditions_count)))),SL(134,98,134,99,0.000000))));CR(res=SL(136,14,137,4,B(FA(coeff,double),*,SL(136,23,136,76,B(VA(newbie_max_coeff),-,B(VA(newbie_num_coeff),*,VA(completed_count)))))))));FUNC(normalizeToMinMax,ARGS((coeff,double),(ml_discount_restriction,double),(restrictions,clients::discounts::DiscountRestrictions)),B(SV(coeff_limited_to_max,SL(143,31,144,67,B(FC(min,NT(a=SL(143,39,143,94,B(FC(min,NT(a=SL(143,47,143,52,FA(coeff,double)),b=SL(143,58,143,89,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(max_discount_coeff)))),R(res=double)),.,F(res))),b=SL(144,39,144,62,FA(ml_discount_restriction,double))),R(res=double)),.,F(res))));CR(res=SL(147,14,148,4,T(SL(147,15,147,69,B(VA(coeff_limited_to_max),<,B(FA(restrictions,clients::discounts::DiscountRestrictions),.,F(min_discount_coeff)))),SL(147,73,147,75,0.000000),SL(147,77,148,4,VA(coeff_limited_to_max)))))));FUNC(normalizeByMaxAbsoluteValue,ARGS((coeff,double),(max_absolute_value,double),(price,double)),B(IF(SL(153,8,153,60,B(B(B(FA(price,double),*,FA(coeff,double)),>,FA(max_absolute_value,double)),&&,B(FA(price,double),>,0.000100))),CR(res=SL(155,18,157,8,B(FC(min,NT(a=SL(155,26,155,72,B(FC(max,NT(a=SL(155,34,155,60,B(FA(max_absolute_value,double),/,FA(price,double))),b=SL(155,66,155,67,0.000000)),R(res=double)),.,F(res))),b=SL(156,26,156,27,1.000000)),R(res=double)),.,F(res)))));CR(res=SL(159,18,159,23,FA(coeff,double)))));FUNC(getPreviousCategory,ARGS(),B(IF(SL(163,6,163,32,B(B(fix,.,F(category)),==,"business")),CR(res=SL(164,16,164,24,"econom")),IF(SL(165,13,165,41,B(B(fix,.,F(category)),==,"uberselect")),CR(res=SL(166,16,166,23,"uberx"))));CR(res=SL(168,14,168,16,""))));FUNC(fetchDiscountRestrictionFromPrevCategory,ARGS((discount_class,std::string)),B(IF(SL(175,6,175,90,B(B("restrict_absolute_discount",in,B(fix,.,F(exps))),&&,B(FA(discount_class,std::string),==,"discounts-calculator"))),SV(previous_category,SL(176,28,176,53,B(FC(getPreviousCategory,NT(),R(res=std::string)),.,F(res))));IF(SL(177,8,177,31,B(VA(previous_category),!=,"")),SV(discount_type,SL(178,26,178,98,B(FC(getMainStrFromExperiment,NT(exp=SL(178,55,178,93,B(B(fix,.,F(exps)),.,SL(178,64,178,92,"restrict_absolute_discount")))),R(str=std::string)),.,F(str))));IF(SL(179,10,179,40,B(VA(discount_type),==,"no_discount")),CR(is_set=SL(180,32,180,36,true),value=SL(180,22,180,23,0.000000)));IF(SL(182,10,182,51,B(VA(discount_type),==,"from_previous_category")),IF(U(?,SL(183,12,183,49,B(fix,.,F(previously_calculated_categories)))),IF(SL(184,14,184,67,B(VA(previous_category),in,U(*,B(fix,.,F(previously_calculated_categories))))),SV(econom_meta,SL(185,30,185,112,B(B(B(B(B(U(*,B(fix,.,F(previously_calculated_categories))),.,SL(185,63,185,80,VA(previous_category))),.,F(user)),.,F(final_prices)),.,SL(185,100,185,106,"main")),.,F(meta))));IF(SL(186,16,186,51,B("discount_delta_raw",in,VA(econom_meta))),SV(discount_delta_raw,SL(187,39,187,72,B(VA(econom_meta),.,SL(187,51,187,71,"discount_delta_raw"))));CR(is_set=SL(188,56,188,60,true),value=SL(188,28,188,47,U(-,VA(discount_delta_raw)))))));CR(is_set=SL(194,32,194,36,true),value=SL(194,22,194,23,0.000000)))));CR(is_set=SL(198,26,198,31,false),value=SL(198,16,198,17,0.000000))));FUNC(fetchDiscountRestrictionFromML,ARGS((discount_class,std::string)),B(IF(SL(203,6,203,84,B(B("ml_model_restriction",in,B(fix,.,F(exps))),&&,B(FA(discount_class,std::string),==,"discounts-calculator"))),SV(discount_type,SL(204,24,204,90,B(FC(getMainStrFromExperiment,NT(exp=SL(204,53,204,85,B(B(fix,.,F(exps)),.,SL(204,62,204,84,"ml_model_restriction")))),R(str=std::string)),.,F(str))));IF(SL(205,8,205,46,B(VA(discount_type),==,"with_ml_restriction")),IF(U(?,SL(206,10,206,31,B(fix,.,F(offer_statistics)))),IF(SL(207,12,207,42,B("discount",in,U(*,B(fix,.,F(offer_statistics))))),SV(ml_discount,SL(208,28,208,56,B(U(*,B(fix,.,F(offer_statistics))),.,SL(208,45,208,55,"discount"))));CR(value=SL(209,26,209,61,T(SL(209,27,209,42,B(VA(ml_discount),<,0.000000)),SL(209,46,209,48,1.000000),SL(209,50,209,61,VA(ml_discount)))))))));CR(value=SL(214,16,214,17,1.000000))));IF(U(?,SL(217,4,217,17,B(fix,.,F(discount)))),IF(U(?,SL(220,8,220,40,B(U(*,B(fix,.,F(discount))),.,F(is_price_strikethrough)))),IF(SL(221,12,221,34,U(*,B(U(*,B(fix,.,F(discount))),.,F(is_price_strikethrough)))),CR()),CR());IF(SL(229,8,229,28,B(U(*,B(fix,.,F(discount))),.,F(is_cashback))),CR());SV(restrictions,SL(233,23,233,44,B(U(*,B(fix,.,F(discount))),.,F(restrictions))));IF(SL(234,8,234,79,B(B(VA(restrictions),.,F(recalc_type)),==,clients::discounts::RecalcType::kSurgePrice)),CR());SV(affected_price,SL(240,25,242,69,B(B(B(U(*,B(ride,.,F(price))),-,B(B(ride,.,F(price)),.,F(waiting))),-,B(B(ride,.,F(price)),.,F(transit_waiting))),-,B(B(ride,.,F(price)),.,F(destination_waiting)))));SV(percent,SL(244,18,248,15,T(U(?,SL(244,19,244,49,B(U(*,B(fix,.,F(discount))),.,F(calc_data_hyperbolas)))),SL(245,10,246,8,B(FC(calculateHyperbolaDiscountPercent,NT(hyperbolas=SL(245,57,245,60,U(*,B(U(*,B(fix,.,F(discount))),.,F(calc_data_hyperbolas)))),price=SL(245,70,245,84,VA(affected_price))),R(res=double)),.,F(res))),SL(246,10,248,15,T(U(?,SL(246,11,246,41,B(U(*,B(fix,.,F(discount))),.,F(calc_data_table_data)))),SL(247,14,248,12,B(FC(calculateTableDiscountPercent,NT(price=SL(247,65,247,79,VA(affected_price)),table=SL(247,52,247,55,U(*,B(U(*,B(fix,.,F(discount))),.,F(calc_data_table_data))))),R(res=double)),.,F(res))),SL(248,14,248,15,0.000000))))));SV(discount_class,SL(251,25,251,90,T(U(?,SL(251,26,251,50,B(U(*,B(fix,.,F(discount))),.,F(discount_class)))),SL(251,71,251,86,U(*,B(U(*,B(fix,.,F(discount))),.,F(discount_class)))),SL(251,88,251,90,""))));SV(econom_discount_restriction,SL(252,38,252,111,FC(fetchDiscountRestrictionFromPrevCategory,NT(discount_class=SL(252,96,252,110,VA(discount_class))),R(is_set=bool,value=double))));SV(max_absolute_value_opt,SL(254,33,256,99,FC(minBetweenOptionals,NT(a=SL(254,57,254,88,B(VA(restrictions),.,F(max_absolute_value))),b_is_set=SL(256,64,256,98,B(VA(econom_discount_restriction),.,F(is_set))),b_value=SL(255,63,255,96,B(VA(econom_discount_restriction),.,F(value)))),R(is_set=bool,value=double))));SV(ml_discount_restriction,SL(258,34,258,103,B(FC(fetchDiscountRestrictionFromML,NT(discount_class=SL(258,82,258,96,VA(discount_class))),R(value=double)),.,F(value))));SV(coeff_initial,SL(260,24,260,38,B(VA(percent),*,0.010000)));SV(coeff1,SL(261,17,261,96,B(FC(applyNewbieCoefficients,NT(coeff=SL(261,49,261,62,VA(coeff_initial)),restrictions=SL(261,79,261,91,VA(restrictions))),R(res=double)),.,F(res))));SV(coeff2,SL(262,17,264,89,B(FC(normalizeToMinMax,NT(coeff=SL(262,43,262,49,VA(coeff1)),ml_discount_restriction=SL(264,61,264,84,VA(ml_discount_restriction)),restrictions=SL(263,50,263,62,VA(restrictions))),R(res=double)),.,F(res))));SV(coeff3,SL(265,17,269,16,T(SL(265,18,265,47,B(VA(max_absolute_value_opt),.,F(is_set))),SL(266,10,269,8,B(FC(normalizeByMaxAbsoluteValue,NT(coeff=SL(266,46,266,52,VA(coeff2)),max_absolute_value=SL(268,59,268,87,B(VA(max_absolute_value_opt),.,F(value))),price=SL(267,46,267,60,VA(affected_price))),R(res=double)),.,F(res))),SL(269,10,269,16,VA(coeff2)))));IF(SL(270,8,270,19,B(VA(coeff3),<=,0.000000)),CR());SV(coeff_final,SL(273,22,273,48,B(FC(min,NT(a=SL(273,30,273,36,VA(coeff3)),b=SL(273,42,273,43,1.000000)),R(res=double)),.,F(res))));SV(delta,SL(275,16,275,45,B(U(-,VA(affected_price)),*,VA(coeff_final))));SV(mult,SL(277,15,277,30,B(1.000000,-,VA(coeff_final))));CR(boarding=SL(279,19,279,45,B(B(B(ride,.,F(price)),.,F(boarding)),*,VA(mult))),destination_waiting=SL(285,30,285,60,B(B(ride,.,F(price)),.,F(destination_waiting))),distance=SL(280,19,280,45,B(B(B(ride,.,F(price)),.,F(distance)),*,VA(mult))),metadata=SL(286,19,290,9,MAP("discount_price"=U(*,B(ride,.,F(price))),"discount_value"=VA(coeff_final),"discount_delta_raw"=VA(delta))),requirements=SL(282,23,282,53,B(B(B(ride,.,F(price)),.,F(requirements)),*,VA(mult))),time=SL(281,15,281,37,B(B(B(ride,.,F(price)),.,F(time)),*,VA(mult))),transit_waiting=SL(284,26,284,52,B(B(ride,.,F(price)),.,F(transit_waiting))),waiting=SL(283,18,283,36,B(B(ride,.,F(price)),.,F(waiting)))));CR()
+        updated: '2021-11-25T14:33:34.486904+00:00'
+        pmv_task_id: 20
+        deleted: true
+        extra_return: []
+        previous_version_id: 2779
+        startrek_ticket: example_string

@@ -1,0 +1,83 @@
+id: test_exp3_optional_kwargs
+title: Test exp3 optional kwargs
+source:
+    request:
+        method: get
+        query:
+            block_id: some_block_id
+            revision: abc
+            device_id: some_device_id
+            id: some_user_id
+            uuid: some_uuid
+        headers:
+            X-Remote-IP: 77.220.136.217
+
+    expectations:
+        response:
+            status-code: 200
+            body:
+                ok: false
+                should_update_revision: false
+
+configs:
+    values#object:
+      - key: proxy_url_groups
+        value: {"revision": "abc"}
+
+mocks:
+  - resource: exp3-matcher-configs
+    response:
+        status-code: 200
+        body:
+            version: 1045729
+            items#array:
+              - value:
+                    name: api_proxy_protocol_startup
+                    value#object:
+                      - key: ok
+                        value: false
+              - value:
+                    name: proxy_url_groups
+                    value#object:
+                      - key: revision
+                        value: 'abc'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                consumer: 'api-proxy-critical/3-0-startup'
+                config_name: api_proxy_protocol_startup
+                kwargs_transformations#array:
+                  - value#object:
+                      - key: type
+                        value: country_by_ip
+                      - key: dst_kwarg
+                        value: country_code
+                      - key: preserve_src_kwargs
+                        value: false
+                      - key: src_kwargs
+                        value#array: ['remote_ip']
+                args#array:
+                  - value:
+                        name: remote_ip
+                        type: string
+                        value#string: '77.220.136.217'
+                  - value:
+                        name: block_id
+                        type: string
+                        value#string: some_block_id
+                  - value:
+                        name: device_id
+                        type: string
+                        value#string: some_device_id
+                  - value:
+                        name: user_id
+                        type: string
+                        value#string: some_user_id
+                  - value:
+                        name: uuid
+                        type: string
+                        value#string: some_uuid

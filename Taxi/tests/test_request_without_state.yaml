@@ -1,0 +1,438 @@
+id: test_request_without_state
+title: проверка работы ручки, если в запросе не пришло state
+source:
+    request:
+        method: post
+        headers:
+            X-Ya-User-Ticket: UserTicket
+            X-Yandex-UID#string: '51342'
+            X-Request-Application#xget: /test-params/suggestions/x-app-header
+        body:
+            media_size_info:
+                scale: 1.5
+                width: 1024
+                height: 768
+            shortcuts:
+                grids_support: [{"width": 6, "unit_width": 61}]
+                supported_sections:
+                  - type: horizontal_stack_section
+                  - type: items_horizontal_scrollable_grid
+                supported_features:
+                  - {"type": "taxi:route-input", "services": [], "prefetch_strategies": []}
+                  - {"type": "media-stories", "services": [], "prefetch_strategies": []}
+                supported_actions:
+                  - type: deeplink
+                  - {"destination_support": true, "type": "taxi:summary-redirect"}
+                  - type: taxi:route-input
+                  - {"modes": ["drive", "masstransit"], "type": "discovery"}
+                ndash_width: 9
+                mdash_width: 14
+            position: [1, 2]
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                screen:
+                    suggest_mode: shop
+                    sections#concat-arrays:
+                      - value:
+                          - type: items_linear_grid
+                            shortcut_ids#array: []
+                      - value:
+                          - type: horizontal_stack_section
+                            header:
+                                title:
+                                    items#array:
+                                      - type: text
+                                        text: Suggestions
+                                        font_size: 25
+                            stack_item_ids#xget: /test-params/suggestions/section-ids
+                        enabled#xhas: /test-params/suggestions/section-ids/0
+                    layout: {"width": 6, "type": "linear_grid", "grid_id": "some_grid_id"}
+                    offers#object:
+                      - key: items
+                        value#array: []
+                typed_experiments: {"items": []}
+                modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}},
+                    {"mode": "eats", "parameters": {"product_tag": "eats", "available": true}},
+                    {"mode": "grocery", "parameters": {"product_tag": "grocery", "available": false}}]
+                products: [{"tag": "taxi", "service": "taxi", "title": "Такси"}, {
+                        "tag": "eats", "service": "eats", "title": "Еда"}, {"tag": "grocery",
+                        "service": "grocery", "title": "Лавка"}]
+
+mocks:
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            geobase_city_id: 213
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}},
+                {"mode": "eats", "parameters": {"product_tag": "eats", "available": true}},
+                {"mode": "grocery", "parameters": {"product_tag": "grocery", "available": false}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Такси"}, {"tag": "eats",
+                    "service": "eats", "title": "Еда"}, {"tag": "grocery", "service": "grocery",
+                    "title": "Лавка"}]
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+
+  - resource: eda-shortcuts-v1-shops
+    response:
+        status-code: 200
+        body: {"shop_format": "shortcut", "user_context": {"show_at": "2020-01-01T00:00:00+00:00",
+                "pin_position": [1, 2]}, "services_availability": [{"parameters": {
+                        "available": true, "product_tag": "taxi"}, "mode": "taxi"},
+                {"parameters": {"available": true, "product_tag": "eats"}, "mode": "eats"},
+                {"parameters": {"available": false, "product_tag": "grocery"}, "mode": "grocery"}]}
+    expectations:
+        call-count: 1
+
+  - resource: eda-shortcuts-v1-market-shortcuts
+    response:
+        status-code: 200
+        body:
+            shortcuts: []
+    expectations:
+        call-count: 1
+
+  - resource: shortcuts-v1-screen-supermarket
+    response:
+        status-code: 200
+        body:
+            offers: {"items": []}
+            sections#array:
+              - value: {"type": "items_linear_grid", "shortcut_ids": []}
+              - value:
+                    type: horizontal_stack_section
+                    header:
+                        title:
+                            items#array:
+                              - type: text
+                                text: Suggestions
+                                font_size: 25
+                    stack_item_ids#xget: /test-params/suggestions/section-ids
+                enabled#xhas: /test-params/suggestions/section-ids/0
+            layout: {"grid_id": "some_grid_id", "width": 6, "type": "linear_grid"}
+            screen_settings: {"suggest_mode": "shop", "header": {"lead": {"type": "default",
+                        "title": {"text": "Продукты"}, "icon_tag": "shortcuts_goods_header_icon"}}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#concat-objects:
+              - value:
+                    media_size_info:
+                        scale: 1.5
+                        width: 1024
+                        height: 768
+                    zone_name: "moscow"
+                    grid: {"id": 123, "width": 6, "blocks": ["id": 1, "id": 2], "cells": []}
+                    services_availability:
+                        modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi",
+                                    "available": true}}, {"mode": "eats", "parameters": {
+                                    "product_tag": "eats", "available": true}}, {
+                                "mode": "grocery", "parameters": {"product_tag": "grocery",
+                                    "available": false}}]
+                        products: [{"tag": "taxi", "service": "taxi", "title": "Такси"},
+                            {"tag": "eats", "service": "eats", "title": "Еда"}, {
+                                "tag": "grocery", "service": "grocery", "title": "Лавка"}]
+                    shortcuts:
+                        grids_support: [{"width": 6, "unit_width": 61}]
+                        supported_sections:
+                          - type: horizontal_stack_section
+                          - type: items_horizontal_scrollable_grid
+                        supported_features:
+                          - {"type": "taxi:route-input", "services": [], "prefetch_strategies": []}
+                          - {"type": "media-stories", "services": [], "prefetch_strategies": []}
+                        supported_actions:
+                          - type: deeplink
+                          - {"destination_support": true, "type": "taxi:summary-redirect"}
+                          - type: taxi:route-input
+                          - {"modes": ["drive", "masstransit"], "type": "discovery"}
+                        ndash_width: 9
+                        mdash_width: 14
+                    position#array: [1, 2]
+                    geobase_city_id: 213
+                    tags: ["tag1"]
+              - value#xget: /test-params/cart/expected
+              - value:
+                    market_suggestions:
+                        title: Suggestions
+                        collections:
+                          - id: suggestions
+                            title: Suggestions
+                            items#xget: /test-params/suggestions/section-ids
+                        suggestions#xget: /test-params/suggestions/suggestions
+                enabled#xhas: /test-params/suggestions/section-ids/0
+
+  - resource: blender-v1-supermarket-screen-grid
+    response:
+        status-code: 200
+        body: {"grid": {"id": "123", "width": 6, "cells": [], "blocks": ["id": "1",
+                    "id": "2"]}}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                grid_restriction:
+                    media_size_info:
+                        scale: 1.5
+                        width: 1024
+                        height: 768
+                    ndash_width: 9
+                    mdash_width: 14
+                    unit_width: 61
+                    grid_width: 6
+                    cell_widths: [2, 3, 4]
+                scenario_tops: []
+                user_context:
+                    pin_position#array: [1, 2]
+                    show_at: "2020-01-01T00:00:00+00:00"
+                showcases: []
+                state:
+                    nz: "moscow"
+                    services_availability: [{"mode": "taxi", "parameters": {"product_tag": "taxi",
+                                "available": true}}, {"mode": "eats", "parameters": {
+                                "product_tag": "eats", "available": true}}, {"mode": "grocery",
+                            "parameters": {"product_tag": "grocery", "available": false}}]
+
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body:
+            shortcuts: []
+    expectations:
+        call-count: 1
+        request:
+            body:
+                screen: 'supermarket'
+                user_context: {"show_at": "2020-01-01T00:00:00+00:00", "zone_name": "moscow",
+                    "pin_position": [1, 2]}
+                services_availability:
+                    geobase_city_id: 213
+                    products: [{"tag": "taxi", "service": "taxi", "title": "Такси"},
+                        {"tag": "eats", "service": "eats", "title": "Еда"}, {"tag": "grocery",
+                            "service": "grocery", "title": "Лавка"}]
+                    typed_experiments: {"items": []}
+                    modes: [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}, {"parameters": {"available": true, "product_tag": "eats"},
+                            "mode": "eats"}, {"parameters": {"available": false, "product_tag": "grocery"},
+                            "mode": "grocery"}]
+                    zone_name: "moscow"
+                tags: ["tag1"]
+
+  - resource: passenger-tags-v2-match-single
+    response:
+        status-code: 200
+        body:
+            tags: ["tag1"]
+    expectations:
+        call-count: 1
+        request:
+            body:
+                match#array:
+                  - value:
+                        value#string: "51342"
+                        type: "yandex_uid"
+                  - value: {"value": "", "type": "user_id"}
+                  - value: {"value": "", "type": "user_phone_id"}
+
+  - resource: eda-shortcuts-v1-market-suggestions
+    response:
+        status-code: 200
+        body:
+            title: 'Suggestions'
+            collections:
+              - id: suggestions
+                title: 'Suggestions'
+                items#xget: /test-params/suggestions/section-ids
+            suggestions#xget: /test-params/suggestions/suggestions
+    expectations:
+        request:
+            body#concat-objects:
+              - value:
+                    region_id: 213
+                    api_platform#xget: /test-params/suggestions/api-platform
+                    limit#xget: /test-params/suggestions/limit
+                    media_size_info:
+                        scale: 1.5
+                        width: 1024
+                        height: 768
+                    image_size: 144
+              - value:
+                    collections#xget: /test-params/suggestions/collections-prepared
+                enabled#xhas: /test-params/suggestions/collections-prepared
+              - value:
+                    tags: ["tag1"]
+                    zone_name: "moscow"
+                    point_a: [1, 2]
+                    screen_type: "supermarket"
+
+  - resource: market-fapi
+    response:
+        status-code: 200
+        body#xget: /test-params/cart/fapi-response
+    expectations:
+        request:
+            headers:
+                X-Ya-User-Ticket: UserTicket
+            query:
+                name: resolveGoCart
+            body:
+                params:
+                  - {}
+
+parameters:
+  - cart:
+      - experiment: {}
+        fapi-response: {}
+        expected: {}
+      - experiment:
+            enabled: true
+        fapi-response: {}  # emulate a failure
+        expected: {}
+      - experiment:
+            enabled: true
+        fapi-response:
+            results:
+              - result:
+                    count: 4
+        expected:
+            market_cart_size: 4
+  - suggestions:
+      - limit#integer: 1
+        enabled: false
+        x-app-header: ''
+        api-platform:
+        suggestions: []
+        section-ids: []
+      - limit#integer: 1
+        enabled: true
+        x-app-header: app_brand=yataxi,app_ver3=9,device_make=apple,app_name=iphone,app_build=release
+        api-platform: IOS
+        suggestions: []
+
+        section-ids: []
+        collections:
+          - id: ca
+            name: namea
+            param:
+                a: A
+          - id: cb
+            name: nameb
+            puid: true
+            param:
+                b: B
+        collections-prepared:
+          - id: ca
+            name: namea
+            param:
+                a: A
+          - id: cb
+            name: nameb
+            param:
+                b: B
+                puid#string: '51342'
+      - limit#integer: 3
+        enabled: true
+        x-app-header: app_brand=yataxi,app_build=release,app_ver3=0,device_make=asus,app_name=android,device_model=zb602kl
+        api-platform: ANDROID
+        suggestions:
+          - id: s0
+            title: Suggestion 0
+            image_url: 'ns/gr/k0.jspeg/8hq'
+            price:
+                formatted: '100 ₽'
+                value#string: '100'
+                currency: 'RUB'
+            price_before_discount:
+                formatted: '200 ₽'
+                value#string: '200'
+                currency: 'RUB'
+            product:
+                id: 5247
+                slug: slukom
+          - id: s1
+            title: Suggestion 1
+            image_url: 'ns/gr/k1.jspeg/orig'
+            price:
+                formatted: '101 ₽'
+                value#string: '101'
+                currency: 'RUB'
+            product:
+                id: 124
+        section-ids:
+          - s0
+          - s1
+
+experiments:
+    values#object:
+      - key: supermarket_screen_shops
+        value:
+            enabled: true
+        enabled: true
+      - key: supermarket_suggestions
+        value:
+            limit#xget: /test-params/suggestions/limit
+            enabled#xget: /test-params/suggestions/enabled
+            collections#xget:
+                path: /test-params/suggestions/collections
+                default-value#array: []
+            section:
+                title:
+                    font_size: 25
+            item:
+                background_color: '#FFFFFF'
+            thumb:
+                url:
+                    prefix: https://avatars.mds.yandex.net/get-
+                discount:
+                  - type: round_label
+                item:
+                    multiply_color: '#F5F4F2'
+            title:
+                attributed:
+                    color: '#000000'
+                    type: txt
+            price:
+                current:
+                    type: text
+                    color: '#000000'
+                    font_size: 16
+                currency:
+                    type: text
+                    text: ' ₽ '
+                    color: '#000000'
+                    font_size: 13
+                discounted:
+                    current:
+                        type: text
+                        color: '#FC5230'
+                        font_size: 16
+                    currency:
+                        type: text
+                        text: ' ₽ '
+                        color: '#FC5230'
+                        font_size: 13
+                    original:
+                        type: text
+                        color: '#8A8784'
+                        font_size: 13
+                        text_decoration:
+                          - line_through
+                        detailed_text_decoration:
+                          - type: line_through
+                            style: dioganaly
+                            color: '#FC5230'
+                          - type: underline
+            button:
+                base:
+                    background_color: '#fcdf00'
+                prefix: apfx--
+      - key: supermarket_cart_fapi
+        value#xget: /test-params/cart/experiment
+        enabled: true
+      - key: mlutp_v1_products_screen_supermarket_passenger_tags
+        value:
+            enabled: true

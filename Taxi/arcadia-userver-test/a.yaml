@@ -1,0 +1,27 @@
+service: automation_group_backend_mlu
+title: arcadia-userver-test
+
+ci:
+    secret: sec-01fvera5z43mzf7m3yeb7ftec6
+    runtime:
+        sandbox-owner: TAXI-AUTOMATIZATION
+    releases:
+        release:
+            title: Deploy arcadia-userver-test
+            flow: main-flow
+    flows:
+        main-flow:
+            jobs:
+                build-docker-ya-package:
+                    task: projects/taxi/tplatform/build_docker_ya_package
+                    input:
+                        config:
+                            project:
+                                arc_branch: ${context.launch_pull_request_info.vcs_info.feature_branch}
+                            docker:
+                                image_repo_prefix: taxi
+                                registry_service_name: tplatform-test-service
+                                environment_type: testing # (default=testing)
+                                build_number: '42' # ${context.version_info.full}
+                            run_long_tests: true # (default=false)
+                            # dry_run: true # (default=false)

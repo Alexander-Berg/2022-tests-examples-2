@@ -1,0 +1,26 @@
+description: order balance changes for Taximeter that weren't delivered in time
+settings:
+    collection: missing_taximeter_balance_changes
+    connection: driver_payments
+    database: dbdriver_payments
+indexes:
+  - expireAfterSeconds: 5184000
+    key: created
+  - key:
+      - name: created
+        type: ascending
+      - name: _id
+        type: ascending
+  - key:
+      - name: trust_payment_id
+        type: ascending
+      - name: payment_type
+        type: ascending
+      - name: sequence_number
+        type: descending
+    unique: true
+wiki_info: |
+    #### missing_taximeter_balance_changes
+    *Назначение:* Коллекция, хранящая платежи из ``taximeter_balance_changes``, которые не доехали в Таксометр
+
+    Коллекция полностью повторяет схему `taximeter_balance_changes`, но имеет более высокий TTL (записи живут 2 месяца). Коллекция обновляется еженощно при сверках платежей в Такси и в Таксометре.

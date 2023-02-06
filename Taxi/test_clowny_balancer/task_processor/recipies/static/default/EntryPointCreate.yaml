@@ -1,0 +1,162 @@
+data:
+    name: EntryPointCreate
+    provider_name: clowny-balancer
+    job_vars:
+      - namespace_id
+      - fqdn
+      - protocol
+      - env
+      - clown_branch_id
+      - awacs_backend_id
+      - awacs_upstream_id
+      - awacs_domain_id
+      - clown_service_id
+      - lock_name
+      - author
+      - st_ticket
+    stages:
+      - name: InternalGetLock
+        input:
+            lock_name: lock_name
+        provider_name: clownductor
+
+      - name: InternalCollectForEPCreate
+        output:
+            nanny_endpoint_set_id: nanny_endpoint_set_id
+        input:
+            branch_id: clown_branch_id
+        provider_name: clowny-balancer
+
+      - name: InternalCreateEntryPoint
+        output:
+            entry_point_id: entry_point_id
+            awacs_namespace_id: awacs_namespace_id
+        input:
+            env: env
+            fqdn: fqdn
+            protocol: protocol
+            domain_id: awacs_domain_id
+            namespace_id: namespace_id
+        provider_name: clowny-balancer
+
+      - name: NannyCubeGetActiveDatacenters
+        provider_name: clownductor
+        input:
+            env: env
+            service_id: clown_service_id
+        output:
+            active_datacenters: active_datacenters
+
+      - name: InternalFoldActiveDatacenters
+        provider_name: clowny-balancer
+        input:
+            clown_branch_id: clown_branch_id
+            active_datacenters: active_datacenters
+        output:
+            active_datacenters: active_datacenters
+
+      - name: AwacsBackendCreate
+        output:
+            upstream_id: upstream_id
+        input:
+            datacenters: active_datacenters
+            branch_id: clown_branch_id
+            backend_id: awacs_backend_id
+            namespace_id: awacs_namespace_id
+            endpoint_set_id: nanny_endpoint_set_id
+        provider_name: clowny-balancer
+
+      - name: InternalCreateEPULink
+        input:
+            upstream_id: upstream_id
+            entry_point_id: entry_point_id
+        provider_name: clowny-balancer
+
+      - name: AwacsBackendWaitFor
+        input:
+            backend_id: awacs_backend_id
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsUpstreamCreate
+        input:
+            fqdn: fqdn
+            backend_id: awacs_backend_id
+            upstream_id: awacs_upstream_id
+            namespace_id: awacs_namespace_id
+            entry_point_id: entry_point_id
+        provider_name: clowny-balancer
+
+      - name: AwacsUpstreamWaitFor
+        input:
+            upstream_id: awacs_upstream_id
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsL3GetBalancer
+        output:
+            l3_balancer_id: l3_balancer_id
+            l3mgr_service_id: l3mgr_service_id
+        input:
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsL3AddBackend
+        input:
+            backend_id: awacs_backend_id
+            balancer_id: l3_balancer_id
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsWaitForL3
+        input:
+            fqdn: l3_balancer_id
+        provider_name: clowny-balancer
+
+      - name: L3MGRFetchIpv6
+        output:
+            ipv6: ipv6
+        input:
+            l3mgrServiceId: l3mgr_service_id
+        provider_name: clowny-balancer
+
+      - name: DNSCreateRecord
+        input:
+            fqdn: fqdn
+            ipv6: ipv6
+        provider_name: clowny-balancer
+
+      - name: AwacsDomainCreate
+        input:
+            domain_id: awacs_domain_id
+            entry_point_id: entry_point_id
+        provider_name: clowny-balancer
+
+      - name: AwacsDomainWaitFor
+        input:
+            domain_id: awacs_domain_id
+            entry_point_id: entry_point_id
+            namespace_id:
+        provider_name: clowny-balancer
+
+      - name: MetaStartEntryPointEnableSsl
+        input:
+            entry_point_id: entry_point_id
+            awacs_namespace_id: awacs_namespace_id
+            awacs_domain_id: awacs_domain_id
+            protocol: protocol
+            author: author
+            st_ticket: st_ticket
+        output:
+            job_id: job_id
+        provider_name: clowny-balancer
+
+      - name: MetaCubeWaitForJobCommon
+        input:
+            job_id: job_id
+        provider_name: clowny-balancer
+
+      - name: InternalReleaseLock
+        input:
+            lock_name: lock_name
+        provider_name: clownductor

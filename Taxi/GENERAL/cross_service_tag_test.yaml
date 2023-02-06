@@ -1,0 +1,22 @@
+name: yandex_form_cross_service_tag_test
+replication_type: queue
+source:
+    type: api
+    replicate_by_empty_reason: load by snapshot
+destinations:
+  - yandex_form_cross_service_tag_test_raw_snp:
+        type: yt
+        mapper: $raw
+        target:
+            cluster_groups:
+              - map_reduce
+            prefix: dwh-rules
+            path: raw/yandex_form/cross_service_tag_test/cross_service_tag_test
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: int64
+                    sort_order: ascending
+                    description: Идентификатор
+queue_data:
+    db_cluster: replication_queue_mdb_0

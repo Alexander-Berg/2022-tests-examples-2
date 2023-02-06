@@ -1,0 +1,21 @@
+insert into
+    leaderboard.developers
+(
+    login,
+    rating,
+    rank_place,
+    additions,
+    deletions,
+    commits,
+    date_of_top
+)
+values
+(
+    'noname',
+    0.0,
+    3,
+    0,
+    0,
+    0,
+    '2018-01-01'
+)

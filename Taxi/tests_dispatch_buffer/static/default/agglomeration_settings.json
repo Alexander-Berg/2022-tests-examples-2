@@ -1,0 +1,66 @@
+{
+  "configs": [
+    {
+      "clauses": [
+        {
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "is_tech_group": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "agglomeration",
+                    "arg_type": "string",
+                    "value": "example_agglomeration"
+                  },
+                  "type": "eq"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "example_agglomeration",
+          "value": {
+            "APPLY_ALGORITHM": "hungarian",
+            "APPLY_RESULTS": true,
+            "DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS": 0,
+            "ENABLED": true,
+            "OLD_LOOKUP_FALLBACK_WAIT_SECONDS": 60,
+            "ORDERS_LIMIT": 0,
+            "RUNNING_INTERVAL": 60
+          }
+        }
+      ],
+      "default_value": {
+        "APPLY_ALGORITHM": "hungarian",
+        "APPLY_RESULTS": false,
+        "DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS": 0,
+        "ENABLED": false,
+        "OLD_LOOKUP_FALLBACK_WAIT_SECONDS": 0,
+        "ORDERS_LIMIT": 0,
+        "RUNNING_INTERVAL": 0
+      },
+      "match": {
+        "consumers": [
+          {
+            "name": "lookup_dispatch/agglomeration_settings"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "init": {},
+          "type": "true"
+        },
+        "schema": "name: dispatch_buffer_agglomeration_settings\ntype: config\nvalue:\n    schema:\n        type: object\n        additionalProperties: false\n\n        properties:\n            APPLY_ALGORITHM:\n                description: Какой алгоритм использовать\n                $ref: '#/definitions/AlgorithmType'\n            TEST_ALGORITHMS:\n                description: |\n                    Какие алгоритмы запускать дополнительно для сверки\n                    с используемым\n                type: array\n                items:\n                    $ref: '#/definitions/AlgorithmType'\n            APPLY_RESULTS:\n                description: |\n                    Применять ли разыгранных водителей или\n                    сфолбечиться на прямое назначение\n                type: boolean\n            DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS:\n                description: Минимальное время пребывания заказа в буфере\n                type: integer\n                x-taxi-cpp-type: std::chrono::seconds\n                minimum: 0\n            ENABLED:\n                description: Включение буферного диспатча\n                type: boolean\n            OLD_LOOKUP_FALLBACK_WAIT_SECONDS:\n                description: |\n                    Максимальное время нахождения заказа в буфере, после которого\n                    заказ фолбечится на прямое назначение\n                type: integer\n                x-taxi-cpp-type: std::chrono::seconds\n                minimum: 0\n            ORDERS_LIMIT:\n                description: Ограничение на количество заказов в одном розыгрыше\n                type: integer\n                x-taxi-cpp-type: std::uint32_t\n                minimum: 0\n            RUNNING_INTERVAL:\n                description: Период запуска таски розыгрыша\n                type: integer\n                x-taxi-cpp-type: std::chrono::seconds\n                minimum: 0\n            TERMINALS:\n                description: Id терминалов для check-in заказов\n                type: array\n                items:\n                    type: string\n\n        required:\n          - APPLY_ALGORITHM\n          - APPLY_RESULTS\n          - DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS\n          - ENABLED\n          - OLD_LOOKUP_FALLBACK_WAIT_SECONDS\n          - ORDERS_LIMIT\n          - RUNNING_INTERVAL\n\n        definitions:\n            AlgorithmType:\n                description: |\n                    Вид алгоритма: жадный (greedy), венгерский (hungarian) или\n                    венгерский для разреженных графов (hungarian_sparse)\n                type: string\n                enum:\n                  - greedy\n                  - hungarian\n                  - hungarian_sparse\n"
+      },
+      "name": "dispatch_buffer_agglomeration_settings",
+      "owners": [
+        "artemrox"
+      ]
+    }
+  ]
+}

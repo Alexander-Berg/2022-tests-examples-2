@@ -1,0 +1,35 @@
+{{#> base}}
+{{#*inline "title"}}
+    yandex search test
+{{/inline}}
+{{#*inline "defHeadCounterScripts"}}
+    <script type="text/javascript" src="{{ buildPath }}/e2e/tag.js"></script>
+{{/inline}}
+{{#*inline "head"}}
+<script type="text/javascript">
+    var yaCookie = 'yandexCookie' + Math.random().toString().slice(2);
+    var matchInfo = location.search.match(/c=([^&]+)/);
+    if (matchInfo) {
+        yaCookie = matchInfo[1];
+    }
+    var domain = 'yandex.com.tr';
+    if (location.host.match(/some/)) {
+        domain = 'example.com';
+    }
+    setForceSessionCookie(domain, '/', yaCookie);
+</script>
+{{/inline}}
+
+{{#*inline "defBodyScripts"}}
+        <script type="text/javascript">
+            window._socket = io('{{ protocol }}://{{ host }}{{ portInfo }}?sessionid='+ yaCookie);
+            window.dispatchEvent(new Event('socket'));
+            document.cookie = 'gdpr=0';
+        </script>
+{{/inline}}
+
+{{#*inline "content"}}
+    <span class="content">yandex search test</span>
+    <a id="next" onclick="this.href += '?c='+ yaCookie" href="https://example.com/test/searchTld/searchPage.hbs">next page</a>
+{{/inline}}
+{{/base}}

@@ -1,0 +1,64 @@
+default:
+    __default__: '+79666660435'
+    sources:
+      - phone: '+79666660435'
+        conditions: {}
+
+description: Телефоны, с которых происходят звоноки из chatterbox
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        __default__:
+            description: Будет выбран в случае, если ни одно из условий (conditions)
+                в списке phones не выполнилось
+            $ref: "#/definitions/PhoneNumber"
+        sources:
+            description: Список номеров с правилами их назначения
+            $ref: "#/definitions/PhonesList"
+    required:
+      - __default__
+      - sources
+
+    definitions:
+        PhonesList:
+            type: array
+            minItems: 1
+            items:
+                type: object
+                additionalProperties: false
+                properties:
+                    phone:
+                        $ref: "#/definitions/PhoneNumber"
+                    conditions:
+                        description: Mongo conditions (матчит таску)
+                        $ref: "#/definitions/PhoneCondition"
+                required:
+                  - phone
+                  - conditions
+
+        PhoneNumber:
+            type: string
+            pattern: ^\+?[0-9]+$
+
+        PhoneCondition:
+            type: object
+            additionalProperties: false
+            properties:
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/PhoneCondition"
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/PhoneCondition"
+                "#not":
+                    $ref: "#/definitions/PhoneCondition"
+
+            patternProperties:
+                ^\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                ^meta_info\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'

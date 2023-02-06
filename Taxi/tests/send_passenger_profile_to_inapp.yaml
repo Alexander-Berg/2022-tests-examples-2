@@ -1,0 +1,102 @@
+id: send_passenger_profile_to_inapp
+title: send_passenger_profile_to_inapp
+source:
+    request:
+        method: post
+        headers:
+            X-Yandex-Uid: "yandex_uid"
+            X-Request-Application: "app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2"
+        body: {"state": {}, "shortcuts": {"grids_support": [{"width": 6, "unit_width": 54.5}],
+                "supported_features": [{"type": "media-stories", "services": [], "prefetch_strategies": []}],
+                "ndash_width": 9, "mdash_width": 14}, "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+            body: {"modes": [], "typed_experiments": {"version": -1, "items": []},
+                "products": []}
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            modes: []
+            products: []
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+        request:
+            body:
+                user_context:
+                    passenger_profile: {"first_name": "User", "rating": "4.90"}
+                    show_at: "2020-01-01T00:00:00+00:00"
+                    state: {}
+                    pin_position: [1, 2]
+                services_availability:
+                    products: []
+                    modes: []
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: passenger-profile-v1-profile
+    response:
+        status-code: 200
+        body: {"first_name": "User", "rating": "4.90"}
+    expectations:
+        call-count: 1
+experiments:
+    values#object:
+      - key: api_proxy_products_send_passenger_profile
+        value: {}
+        enabled: true

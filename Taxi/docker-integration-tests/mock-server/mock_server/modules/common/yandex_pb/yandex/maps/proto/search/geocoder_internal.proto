@@ -1,0 +1,60 @@
+syntax = "proto2";
+package yandex.maps.proto.search.geocoder_internal;
+
+import "yandex/maps/proto/search/geocoder.proto";
+import "yandex/maps/proto/search/kind.proto";
+import "yandex/maps/proto/common2/geometry.proto";
+
+message House
+{
+    required string name = 1;
+    required common2.geometry.Point point = 2;
+}
+
+enum Mode
+{
+    GEOCODE = 1;
+    REVERSE = 2;
+}
+
+message ResponseInfo
+{
+    optional double accuracy = 1;
+    required Mode mode = 2;
+    required string version = 3;
+}
+
+message MatchedComponent
+{
+    optional kind.Kind kind = 1;
+}
+
+message ToponymInfo
+{
+    required int32 geoid = 1;                           // geobase id
+    optional uint32 house_count = 3;                    // house count of the toponym
+    // balloon point for the toponym
+    // mode == GEOCODE: toponym center
+    // mode == REVERSE: toponym nearest point
+    required common2.geometry.Point point = 4;
+    repeated MatchedComponent matched_component = 8;
+    optional string seoname = 9;
+    repeated string tag = 10;                           // supported tags: across
+
+    repeated House house = 6;   // FIXME(grok): REMOVE
+    // Obsolete field, isn't used by geocoder and its clients.
+    // Surprisingly, still used by offline search, which should be rewrited
+    // before this field can be safely removed.
+
+    reserved 2,5,7;
+}
+
+extend yandex.maps.proto.search.geocoder.GeoObjectMetadata
+{
+    optional ToponymInfo TOPONYM_INFO = 100;
+}
+
+extend yandex.maps.proto.search.geocoder.ResponseMetadata
+{
+    optional ResponseInfo RESPONSE_INFO = 100;
+}

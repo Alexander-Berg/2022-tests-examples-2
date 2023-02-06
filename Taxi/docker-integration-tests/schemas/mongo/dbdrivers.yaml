@@ -1,0 +1,170 @@
+description: driver profiles
+settings:
+    collection: drivers
+    connection: drivers
+    database: dbdrivers
+indexes:
+  - key: car_id
+  - key: created_ts
+    sparse: true
+    unique: true
+  - key: driver_id
+  - key: driver_license_pd_id
+  - key: last_name
+  - key: license
+  - key: license_normalized
+  - key: modified_date
+  - key:
+      - name: modified_date
+        type: ascending
+      - name: _id
+        type: ascending
+  - key: park_id
+    sparse: true
+  - key:
+      - name: park_id
+        type: ascending
+      - name: driver_id
+        type: ascending
+    unique: true
+  - key:
+      - name: park_id
+        type: ascending
+      - name: idempotency_token
+        type: ascending
+    partialFilterExpression:
+        idempotency_token:
+            $exists: true
+        park_id:
+            $exists: true
+    unique: true
+  - key: phone_pd_ids
+  - key: phones
+  - key: rule_id
+  - key: uber_driver_id
+    sparse: true
+  - key: updated_ts
+    sparse: true
+    unique: true
+  - key: work_status
+wiki_info: |
+    ####dbdrivers.drivers - Профили водителей
+
+    Прямой доступ в эту коллекцию - deprecated! Инкапсулируем её за микросервисами. Для доступа к ней используй API:
+    - [driver-profiles](https://github.yandex-team.ru/taxi/uservices/tree/develop/services/driver-profiles) -
+      для поиска анкетных данных по id и построения кешей
+    - [parks](https://github.yandex-team.ru/taxi/backend-cpp/tree/develop/parks/docs/yaml/driver_profiles) -
+      для редактирования и создания, а также для поиска по сложным составным условиям
+    - [qc-cpp](https://github.yandex-team.ru/taxi/uservices/tree/develop/services/quality-control-cpp/docs/yaml/api) -
+      для получения состояния фотоконтроля
+    - [billing-reports](https://github.yandex-team.ru/taxi/backend-py3/tree/develop/taxi-billing-accounts) -
+      для получения баланса
+    - driver-app-profiles (to be done) - для обновления и получения данных о клиенте, на котором работает водитель
+
+    ```python
+    driver = {
+      # системные поля
+      '_id' : ObjectId('5982ed434c3ea12646072c08'),          # суррогатный id
+      'driver_id' : '0be96feb569f46208f8ca7877cc65c20',      # id профиля водителя
+      'park_id' : '7ad36bc7560449998acbe2c57a75c293',        # id парка
+      'updated_ts' : Timestamp(1566402582, 1),               # дата обновления. Должна обновляться при любом обновлении документа.
+      'modified_date' : ISODate('2019-08-21T15:49:42.823Z'), # дата обновления. Должна обновляться при любом обновлении документа. При чтении предпочтительнее использовать updated_ts
+      'idempotency_token': '907ed2f476984713940ce78bdf521c39',   # токен идемпотентности. используется при создании водителя
+
+      # Анкетные данные водителей. Уезжают в driver-profiles
+      'created_date' : ISODate('2017-08-03T09:30:42.965Z'),  # дата создания. Обязательно должна проставляться для новых документов. У старых может отсутствовать
+      'providers' : ['park', 'yandex'], # park|yandex|formula - список провайдеров заказов, с которыми работает водитель
+      'first_name' : 'Тестов',
+      'last_name' : 'Тест'
+      'rule_id' : 'e7c1e19d8bff4114ae3cb3bcf09817d5', # id условия работы
+      'middle_name' : 'Тестович',
+      'phone_pd_ids' : ['d0d5bd9da0ae471ba9b7da303ec2a963'], # id телефонов водителя в сервисе перс данных
+      'email_pd_id' : 'd61f7e2bc9174e4fad446c76768ccdd7',
+      'address' : 'Москва',
+      'tax_identification_number_pd_id' : 'b4c9360fe1c24363baa46e0b2c37729d',  # id ИНН в сервисе перс данных
+      'bank_accounts' : [{              # банковские реквизиты
+        'russian_central_bank_identifier_code' : '11',
+        'correspondent_account' : '33',
+        'client_account' : '22'
+      }],
+      'driver_license_pd_id' : 'aefc53c083234d5bb8786fabc60d3afc', # id ВУ в сервисе персональных данных. обязательное для всех новых документах. Может отсутствовать в старых
+      'license_country' : 'rus',          # страна выдачи ВУ, необязательное
+      'license_expire_date' : ISODate('2026-12-29T21:00:00Z'), # дата окончания действия ВУ, необязательное
+      'license_issue_date' : ISODate('2017-12-07T21:00:00Z'),  # дата выдачи ВУ, необязательное
+      'license_driver_birth_date' : ISODate('1969-12-29T21:00:00Z'), # дата рождения водителя, указанная в ВУ, необязательная
+      'pos_teminal' : false,            # наличие собственного терминала для оплаты картой. Используется только для парковых заказов
+      'comment' : "неструктурированный комментарий. Используется только внутри парка",
+      'deaf' : false,                   # признак глухонемого водителя
+      'primary_state_registration_number' : '123',
+      'balance_limit' : 0.0,            # предел отключения водителя от заказов по балансу. 0 означает, что отключение не будет происходить
+      'balance_deny_onlycard' : false,  # запретить взятие безналичных заказов при низком балансе
+      'work_status' : 'working',         # working|not_working|fired - статус трудоустроенности водителя
+
+      # связка с ТС. Уезжает в driver-profiles в отдельную ручку
+      'car_id' : '38abf7606e9b49f3b7f7236d63e6e568',  # id ТС, на которой работает водитель
+
+      # дата принятия GDPR. Уезжает в driver-profiles в отдельную ручку
+      'gdpr_accept_date' : ISODate('2019-08-06T15:05:18.427Z'),
+
+      # детали найма - требуют редизайна и дедупликации
+      'hire_date' : ISODate('2017-08-01T00:00:00Z'),  # дата приёма водителя на работу
+      'fire_date' : null,                             # дата увольнения
+      'hiring_details':
+       'hiring_date' : ISODate('2017-10-26T00:00:00Z'),
+       'hiring_type' : 'commercial',    # undefined|"commercial"|"commercial_with_rent"
+       'default_rule_work_date': ISODate('2017-10-26T00:00:00Z'),   # дата перевода водителя на штатные условия работы с условий платного найма
+      },
+      'hiring_source': 'yandex',        # undefined|"yandex"|"selfreg" - источник найма
+
+      # информация о клиенте. Уезжает в driver-app-profiles, т. к. поток изменений этих данных - полностью отдельный от анкетных данных.
+      'locale' : 'ru',    # локаль, в которой работает водитель. влияет на язык приложения, коммуникаций и т д
+      'client_info' : {
+        'taximeter' : { # разбивка по приложениям (taximeter, uberdriver и т д)
+           'driver_app_profile_id' : 'ca57fa914473456d2f1da0e21ea9b773',
+           'device_model' : 'LGE LG-D852',
+           'imei" : '354608065233779',
+           'metrica_device_id" : 'a6a7b2c40ba096e12230308b07f42f1d',
+           'metrica_uuid" : '5e19bbdff56845f2a36b855d347dca3b',
+           'network_operator" : '',
+           'taximeter_version" : '9.11 (1802)',
+           'taximeter_version_type" : ''
+         }
+       },
+      'last_login_at_ts' : ISODate('2017-10-26T00:00:00Z'), # дата последней авторизации в таксометре
+      'taximeter_version' : '9.5 (1073779675)', # deprecated
+      'taximeter_version_type' : 'dev', # deprecated
+      'imei' : '866790036635893', # deprecated
+      'device_model' : 'ONEPLUS ONEPLUS A5000', # deprecated
+      'device_rooted' : false, # deprecated
+      'fake_gps' : true, # deprecated
+      'network_operator' : 'Beeline', # deprecatred
+      'metrica_uuid' : '17a957ac1af842aea4454e3b039c3cb6', # deprecated
+      'metrica_device_id' : '9523207379cdfc256a8ce1996c5a7252', # deprecated
+
+      # баланс. Уехал в billing-reports. использование на чтение - deprecated.
+      'balance' : 85215.809141000005,   # текущий баланс водителя в парке. Исчисляется в валюте страны парка
+      'last_payment_number' : NumberLong(142741),  #номер последнего учтённого в балансе платежа
+
+      # Состояние фотоконтроля. уезжает в сервис qc
+      'qc_sync' : {
+       'dkvu' : ISODate('2019-07-26T08:32:45.601Z'),
+       'dkk' : ISODate('2019-07-26T08:32:45.573Z')
+      },
+      'dkk_counter' : 0,
+      'license_verification': true,
+
+      # теги для фотоконтроля. должны уехать в сервис тегов. пока что в случае необходимости можно сделать в driver-profiles отдельной ручкой
+      'tags' : ['newbie'],
+
+      # deprecated
+      'phones' : ['+70006546367'],
+      'email' : 'someone@example.com',
+      'license_series' : 'ААВВ',          # серия ВУ deprecated(используй driver_license_pd_id)
+      'license_number' : '001009',        # номер ВУ deprecated(используй driver_license_pd_id)
+      'license' : 'ААВВ001009',           # серия и номер ВУ deprecated(используй driver_license_pd_id)
+      'license_normalized' : 'AABB001009',# нормализованные серия и номер ВУ deprecated(используй driver_license_pd_id)
+      'password': '12345',                # id для платёжных систем (deprecated)
+      'check_message' : 'мяу мяу13213',   # информация о водителе для других парков в интерфейсе проверки благонадежности водителя в диспетчерской
+      'identification_pd_ids' : ['2a95b0bb093c4e5282012a6a203db6ef'],  # id удостоверений личности в сервисе перс данных
+    }
+    ```

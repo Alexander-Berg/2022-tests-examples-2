@@ -1,0 +1,47 @@
+id: proxy_personalstate_response
+title: Тест проверяет проксирование ответа ресурса personalstate-post
+source:
+    request:
+        method: post
+        body:
+            id#string: 'user_id'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                requirements#object:
+                revision_id#integer: 22022
+                selected_class#string: 'uberselect'
+                tariffs#array:
+                  - value:
+                      - class#string: 'uberx'
+                      - payments_methods_extra#array:
+                      - requirements#object:
+                  - value:
+                      - class#string: 'uberselect'
+                      - payments_methods_extra#array:
+                      - requirements#object:
+
+mocks:
+  - resource: personalstate-post
+    response:
+        status-code: 200
+        body:
+            requirements#object:
+            revision_id#integer: 22022
+            selected_class#string: 'uberselect'
+            tariffs#array:
+              - value:
+                  - class#string: 'uberx'
+                  - payments_methods_extra#array:
+                  - requirements#object:
+              - value:
+                  - class#string: 'uberselect'
+                  - payments_methods_extra#array:
+                  - requirements#object:
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                id: 'user_id'

@@ -1,0 +1,122 @@
+default:
+    __default__:
+        __default__:
+            enabled: true
+            execution_count: 1
+            wait_time: 60
+            limit: 2048
+            execute_timeout: 1000
+            statement_timeout: 1000
+description: Настройки параметров запросов для крон-таски garbage-collector для каждого
+    инстанса сервиса тегов.
+tags: [notfallback]
+maintainers: [mordeth, kokhanov, andrewchen]
+schema:
+    type: object
+    definitions:
+        query_settings:
+            type: object
+            description: Настройки SQL запроса
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                    description: Включение крон-таски
+                execution_count:
+                    type: integer
+                    description: Количество запусков SQL запроса
+                    minimum: 1
+                wait_time:
+                    type: integer
+                    description: Ограничение на время выполнения всех запусков, seconds
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 1
+                limit:
+                    type: integer
+                    description: Ограничение на количество удаляемых объектов
+                    minimum: 1
+                execute_timeout:
+                    type: integer
+                    description: Ограничение на время выполнения SQL запроса на стороне
+                        клиента, ms
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 100
+                statement_timeout:
+                    type: integer
+                    description: Ограничение на время выполнения SQL запроса на стороне
+                        сервера, ms
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 100
+            required:
+              - enabled
+              - execution_count
+              - wait_time
+              - limit
+              - execute_timeout
+              - statement_timeout
+
+        settings:
+            type: object
+            description: Настройки параметров для каждого запроса
+            additionalProperties:
+                $ref: '#/definitions/query_settings'
+            properties:
+                __default__:
+                    $ref: '#/definitions/query_settings'
+            required:
+              - __default__
+
+    properties:
+        __default__:
+            $ref: '#/definitions/settings'
+    required:
+      - __default__
+    additionalProperties:
+        $ref: '#/definitions/settings'
+
+samples:
+  - __default__:
+        __default__:
+            enabled: true
+            execution_count: 1
+            wait_time: 60
+            limit: 2048
+            execute_timeout: 1000
+            statement_timeout: 940
+        cleanup_tokens:
+            enabled: false
+            execution_count: 1
+            wait_time: 30
+            limit: 4096
+            execute_timeout: 4000
+            statement_timeout: 3940
+    tags:
+        __default__:
+            enabled: true
+            execution_count: 2
+            wait_time: 30
+            limit: 2048
+            execute_timeout: 1000
+            statement_timeout: 940
+    passenger_tags:
+        __default__:
+            enabled: true
+            execution_count: 1
+            wait_time: 60
+            limit: 2048
+            execute_timeout: 1000
+            statement_timeout: 940
+        cleanup_tags:
+            enabled: true
+            execution_count: 3
+            wait_time: 60
+            limit: 1000
+            execute_timeout: 1137
+            statement_timeout: 1000
+        cleanup_tokens:
+            enabled: true
+            execution_count: 1
+            wait_time: 45
+            limit: 1
+            execute_timeout: 2000
+            statement_timeout: 2020

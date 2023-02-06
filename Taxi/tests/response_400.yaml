@@ -1,0 +1,31 @@
+id: response_400
+title: Тест с проксированием 400
+
+source:
+    request:
+        method: post
+        body:
+            client_id: client_id
+            client_dttm: 2019-01-10T22:39:50+03:00
+            status: shown
+    expectations:
+        response:
+            status-code: 400
+            body:
+                code: 400
+                message: "Missing required parameter 'notification_id'"
+
+mocks:
+  - resource: eats-notifications-client-notify-acknowledge
+    response:
+        status-code: 400
+        body:
+            code: 400
+            message: "Missing required parameter 'notification_id'"
+    expectations:
+        request:
+            body:
+                client_id: client_id
+                client_dttm: 2019-01-10T22:39:50+03:00
+                status: shown
+        call-count: 1

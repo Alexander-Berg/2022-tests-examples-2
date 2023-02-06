@@ -1,0 +1,67 @@
+use_native_runner: True
+
+lbc:
+  base:
+    client_id: passport/lbc-passport-challenge-pushes
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    partitions: 2
+    max_count: 1
+    handler_class: passport.backend.logbroker_client.challenge_pushes.handler.ChallengePushesHandler
+    handler_args:
+      with_test_subscriptions: True
+      log_metrics: False
+      push_metrics_to_xunistater: True
+      message_class: passport.backend.core.protobuf.challenge_pushes.challenge_pushes_pb2.ChallengePushRequest
+      subscription_rating:
+        app:
+          # Android
+          - 'ru.yandex.auth.client.passport'    # семпл АМа)
+          - 'ru.yandex.searchplugin.passport'   # ПП
+          - 'ru.yandex.mail.passport'           # Почта
+          - 'com.yandex.browser.passport'       # Бро
+          - 'ru.yandex.taxi.passport'           # Такси
+          - 'ru.yandex.disk.passport'           # Диск
+          - 'ru.yandex.music.passport'          # Музыка
+          - 'ru.foodfox.client.passport'        # Еда
+
+          # iOS
+          - 'ru.yandex.mobile.auth.sample'      # семпл АМа
+          - 'ru.yandex.mobile'                  # ПП
+          - 'ru.yandex.mail'                    # Почта
+          - 'ru.yandex.mobile.search'           # Бро
+          - 'ru.yandex.ytaxi'                   # Такси
+          - 'ru.yandex.disk'                    # Диск
+          - 'ru.yandex.mobile.music'            # Музыка
+          - 'com.appkode.foodfox'               # Еда
+
+  per_host:
+    .*?:
+      targets:
+        - host: myt.logbroker.yandex.net
+          topic: passport/passport-challenge-pushes-testing
+        - host: man.logbroker.yandex.net
+          topic: passport/passport-challenge-pushes-testing
+        - host: sas.logbroker.yandex.net
+          topic: passport/passport-challenge-pushes-testing
+        - host: vla.logbroker.yandex.net
+          topic: passport/passport-challenge-pushes-testing
+        - host: iva.logbroker.yandex.net
+          topic: passport/passport-challenge-pushes-testing
+        - host: lbkx.logbroker.yandex.net
+          data_port: 2136
+          ca_cert_file: /etc/ssl/certs/ca-certificates.crt
+          topic: passport/passport-challenge-pushes-testing
+
+logpath: /var/log/yandex/logbroker-client/challenge-pushes/
+
+blackbox:
+  url: https://pass-test.yandex.ru/
+  timeout: 1
+  retries: 2
+  use_tvm: false
+  get_hidden_aliases: false
+push_api:
+  url: https://push-sandbox.yandex.ru

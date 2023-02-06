@@ -1,0 +1,23 @@
+---
+- service: eda-surge-calculator-testing-cache_age-couriers-destinations
+  description: |-
+    Возраст кеша couriers-destinations (количество милисекунд с последнего обновления).
+    Ответственные enz0jke@, art-of-war@.
+  alert_type: threshold
+  selectors: |
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eda-surge-calculator",
+      sensor="cache.any.time.time-from-last-update-start-ms",
+      cache_name="couriers-destinations-cache",
+      group="eda_eda-surge-calculator_testing",
+      host!="cluster|Man|Sas|Vla|Myt|Iva" 
+    }
+  period: 120
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GTE
+    threshold: 600000
+    targetStatus: ALARM

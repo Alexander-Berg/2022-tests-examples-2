@@ -1,0 +1,39 @@
+  # Alerts indicating any problems with filters in candidates
+  - service: filters-blocked
+    description: |
+        {{#isAlarm}}There are blocked filters on {{labels.host}}{{/isAlarm}}
+        {{^isAlarm}}Filters are ok on {{labels.host}}{{/isAlarm}}
+    alert_type: expression
+    program: |
+        let data = sum({
+            project='taxi', 
+            cluster='testing_candidates', 
+            service='candidates', 
+            application='candidates', 
+            sensor='filters.*.blocked', 
+            host!='cluster|Man|Sas|Vla|Myt|Iva'
+        }) by host;
+        let value = count(data);
+        ok_if(value == 0);
+        alarm_if(value > 0);
+    checkExpression: 'false'
+    period: 180
+  - service: efficiency_driver_metrics-blocked
+    description: |
+        {{#isAlarm}}efficiency/driver_metrics on is blocked on {{labels.host}}{{/isAlarm}}
+        {{^isAlarm}}efficiency/driver_metrics is ok on {{labels.host}}{{/isAlarm}}
+    alert_type: expression
+    program: |
+        let data = {
+            project='taxi', 
+            cluster='testing_candidates', 
+            service='candidates', 
+            application='candidates', 
+            sensor='filters.efficiency/driver_metrics.blocked', 
+            host!='cluster|Man|Sas|Vla|Myt|Iva'
+        };
+        let value = count(data);
+        ok_if(value == 0);
+        alarm_if(value > 0);
+    checkExpression: 'false'
+    period: 180

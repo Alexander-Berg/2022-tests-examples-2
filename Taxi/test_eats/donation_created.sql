@@ -1,0 +1,20 @@
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        yandex_uid,
+        sum,
+        status,
+        ride_subs_id,
+        brand,
+        order_id
+    )
+VALUES
+    (
+        'friends',
+        'phonish_uid',
+        '4',
+        'started',
+        1,
+        'eats',
+        '777'
+    );

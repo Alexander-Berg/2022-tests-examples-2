@@ -1,0 +1,88 @@
+if (fix.discount as discount) {
+  let restrictions = discount.restrictions;
+
+  if (discount.calc_data_hyperbolas as hyperbolas) {
+    let price = *ride.price - ride.price.waiting
+                            - ride.price.transit_waiting
+                            - ride.price.destination_waiting;
+    let hyperbola = (price < hyperbolas.threshold)
+        ? hyperbolas.hyperbola_lower
+        : hyperbolas.hyperbola_upper;
+    // exclude division by 0
+    if (!(   (price + hyperbola.c > 0)
+          || (price + hyperbola.c < 0))) {
+      return ride.price;
+    }
+
+    let coeff = (hyperbola.p
+        + hyperbola.a / (price + hyperbola.c)) * 0.01;  // from percents to fraction
+
+    let coeff_newbie = coeff;
+
+    // TODO: check & apply other restrictions: driver_less_coeff, limited_rides
+
+    // normalize to [min, max]
+    let tmp_coeff_normalized = (coeff_newbie > restrictions.max_discount_coeff)
+        ? restrictions.max_discount_coeff
+        : coeff_newbie;
+    let coeff_normalized = (tmp_coeff_normalized < restrictions.min_discount_coeff)
+        ? 0
+        : tmp_coeff_normalized;
+
+    if (restrictions.max_absolute_value as max_absolute_value) {
+      // normalize by absolute value
+      let price1 = *ride.price - ride.price.waiting
+                              - ride.price.transit_waiting
+                              - ride.price.destination_waiting;
+      if (   (price1 > 0.0001)  // check division by 0
+          && (price1 * coeff_normalized > max_absolute_value)) {
+        let tmp_max_coeff = (max_absolute_value / price1 < 0)
+            ? 0
+            : max_absolute_value / price;
+        let max_coeff = (tmp_max_coeff > 1)
+            ? 1
+            : tmp_max_coeff;
+        let mult = 1 - max_coeff;
+        return {
+            boarding = ride.price.boarding * mult,
+            distance = ride.price.distance * mult,
+            time = ride.price.time * mult,
+            requirements = ride.price.requirements * mult,
+            waiting = ride.price.waiting,
+            transit_waiting = ride.price.transit_waiting,
+            destination_waiting = ride.price.destination_waiting
+        };
+      }
+    }
+
+    if (coeff_normalized <= 0) {
+      // mult == 1, then price will be not changed
+      return ride.price;
+    }
+    if (coeff_normalized >= 1) {
+      // mult == 0, then price components will be equal 0, except for waitings
+      return {
+          boarding = 0,
+          distance = 0,
+          time = 0,
+          requirements = 0,
+          waiting = ride.price.waiting,
+          transit_waiting = ride.price.transit_waiting,
+          destination_waiting = ride.price.destination_waiting
+      };
+    }
+
+    let mult = 1 - coeff_normalized;
+    return {
+        boarding = ride.price.boarding * mult,
+        distance = ride.price.distance * mult,
+        time = ride.price.time * mult,
+        requirements = ride.price.requirements * mult,
+        waiting = ride.price.waiting,
+        transit_waiting = ride.price.transit_waiting,
+        destination_waiting = ride.price.destination_waiting
+    };
+  }
+}
+
+return ride.price;

@@ -1,0 +1,75 @@
+logging:
+    type: file
+    level: debug
+    path: cctv-mvp.log
+
+streams:
+  - name: default_camera
+    description: Камера ноутбука
+    type: camera
+
+  - name: single_image
+    description: Поток, состоящий из одного и того же кадра
+    type: image
+    path: ../tests/data/comedy.jpg
+
+  - name: sync_video_file
+    description: Видеофайл с доступом к текущему кадру в момент обращения
+    type: sync_video_file
+    path: ../tests/data/people_walking.mp4
+
+  - name: consecutive_video_file
+    description: Видеофайл с последовательным доступом к кадрам
+    type: video_file
+    path: ../tests/data/people_walking.mp4
+
+signature_index:
+    path: ../tests/data/signatures_stub.json
+    threshold: 0.5
+    insertion_threshold: 0.15
+    find_limit: 1
+
+storage:
+    path: /tmp/yandex/cctv-mvp
+    store_detected_box: true
+
+handlers:
+  - name: show_whats_going_on
+    description: Вывод обрабатываемого кадра на экран
+    type: display
+
+  - name: progress_logger
+    description: Пишет в лог прогресс обработки
+    type: dumb
+    report_rate: 100
+
+  - name: find_signature
+    description: Обнаружение объектов в кадре
+    type: find_signature
+    detection_model_path: engine-models/face-detection/scrfd_10g_bnkps_shape480x640.onnx
+    signature_model_path: engine-models/face-identification/r50webface_shape112x112.onnx
+
+  - name: identify_person
+    description: Обнаружение и индентифицация объектов в кадре
+    type: identify_person
+    detection_model_path: engine-models/face-detection/scrfd_10g_bnkps_shape480x640.onnx
+    signature_model_path: engine-models/face-identification/r50webface_shape112x112.onnx
+
+  - name: store_to_disk
+    description: Сохранение потока на диск
+    type: store_to_disk
+    path: /tmp/yandex/cctv-mvp/stored_videos
+    rotation_period_min: 1
+    fps: 30
+
+processors:
+  - name: demo
+    description: Демонстрационный стенд
+    streams:
+      - default_camera
+      - sync_video_file
+    handlers:
+      - show_whats_going_on
+      - find_signature
+      - identify_person
+      - store_to_disk

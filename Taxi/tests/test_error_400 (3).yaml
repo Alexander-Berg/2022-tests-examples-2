@@ -1,0 +1,32 @@
+id: test_error_400
+title: Проверка, что 400 нормально пробрасывается потребителю
+
+source:
+    request:
+        method: post
+        body:
+            logins#array:
+              - value: not_tarasenkoaa
+            some_field_body: some_field_body_value
+        headers:
+            X-Yandex-Login: tarasenkoaa
+    expectations:
+        response:
+            status-code: 400
+            body:
+                some_field: some_info_about_error
+
+mocks:
+  - resource: piecework-calculation-v1-reserve-current
+    response:
+        status-code: 400
+        body:
+            some_field: some_info_about_error
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                logins#array:
+                  - value: tarasenkoaa
+                some_field_body: some_field_body_value

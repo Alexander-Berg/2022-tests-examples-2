@@ -1,0 +1,57 @@
+id: test_simple
+title: Просто проверка проксирования
+
+parameters:
+  - resource-mocks:
+      - source-status-code#integer: 200
+        source-body:
+            type: 'FeatureCollection'
+            features: [{'geometry': {'coordinates': [[37.0, 55.001], [37.0, 55.002],
+                            [37.0, 55.003]]}, 'properties': {'color': '#AAABBB'}},
+                {'geometry': {'coordinates': [[37.0, 55.003], [37.0, 55.004], [37.0,
+                                55.005]]}, 'properties': {}}]
+        resp-body:
+            use_mapkit: false
+            paths: [{'color': '#AAABBB', 'polyline': [[37.0, 55.001], [37.0, 55.002],
+                        [37.0, 55.003]]}, {'color': '#ABCABC', 'polyline': [[37.0,
+                            55.003], [37.0, 55.004], [37.0, 55.005]]}]
+        resp-status-code#integer: 200
+      - source-status-code#integer: 400
+        source-body: {}
+        resp-body:
+            use_mapkit: true
+            paths: [{'color': '#ABCABC', 'polyline': [[37.0, 55.0], [37.01, 55.01]]}]
+        resp-status-code#integer: 200
+      - source-status-code#integer: 500
+        source-body: {}
+        resp-body:
+            use_mapkit: true
+            paths: [{'color': '#ABCABC', 'polyline': [[37.0, 55.0], [37.01, 55.01]]}]
+        resp-status-code#integer: 200
+
+source:
+    request:
+        method: post
+        body:
+            route: [[37.0, 55.0], [37.01, 55.01]]
+        headers:
+            User-Agent: some_agent
+    expectations:
+        response:
+            status-code#xget: /test-params/resource-mocks/resp-status-code
+            body#xget: /test-params/resource-mocks/resp-body
+configs:
+    values#object:
+      - key: selfdriving_route_settings
+        value: {'use_mapkit': false, 'default_color': '#ABCABC'}
+
+mocks:
+  - resource: lanes-routing-sdc
+    response:
+        status-code#xget: /test-params/resource-mocks/source-status-code
+        body#xget: /test-params/resource-mocks/source-body
+    expectations:
+        call-count: 1
+        request:
+            body:
+                waypoints: [[37.0, 55.0], [37.01, 55.01]]

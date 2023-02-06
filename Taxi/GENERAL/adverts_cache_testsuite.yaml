@@ -1,0 +1,75 @@
+components:
+    schemas:
+        AdvertsCacheTestpointValue:
+            description: |
+                Модель контента adverts-cache, проверяемая через testsuite
+            type: object
+            additionalProperties: false
+            required:
+              - restaurant_promos
+              - retail_promos
+            properties:
+                restaurant_promos:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Promotion"
+                retail_promos:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Promotion"
+
+        Promotion:
+            type: object
+            additionalProperties: false
+            description: Промо товары в рамках одной промо компании
+            required:
+              - promotion_name
+              - promo_places
+            properties:
+                promotion_name:
+                    type: string
+                table_path:
+                    type: string
+                promo_places:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        required:
+                          - place_id
+                          - promo_items
+                        properties:
+                            place_id:
+                                type: integer
+                                format: int64
+                            promo_items:
+                                type: array
+                                items:
+                                    oneOf:
+                                      - $ref: "#/components/schemas/RetailPromoItem"
+                                      - $ref: "#/components/schemas/RestaurantPromoItem"
+
+        RestaurantPromoItem:
+            type: object
+            additionalProperties: false
+            required:
+              - core_id
+            properties:
+                core_id:
+                    type: integer
+                    format: int64
+
+        RetailPromoItem:
+            type: object
+            additionalProperties: false
+            required:
+              - public_id
+              - suitable_categories
+            properties:
+                public_id:
+                    type: string
+                suitable_categories:
+                    type: array
+                    description: Id категорий, необходимых для показа промо товара
+                    items:
+                        type: string

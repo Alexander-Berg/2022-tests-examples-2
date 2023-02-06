@@ -1,0 +1,44 @@
+id: empty counters
+title: |
+    В ответе user-statistics пустой массив counters
+
+experiments:
+    values#object:
+      - key: api_proxy_integration_newbie_switch
+        value:
+            enabled: true
+        enabled: true
+
+source:
+    request:
+        method: post
+        body: {}
+        headers:
+            X-Yandex-UID#string: 43214321
+    expectations:
+        response:
+            status-code: 200
+            body:
+                is_new_user: true
+
+mocks:
+  - resource: user-statistics-v1-orders
+    response:
+        status-code: 200
+        body:
+            data:
+              - identity:
+                    type: yandex_uid
+                    value#string: 43214321
+                counters: []
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                group_by: []
+                identities:
+                  - value#object_simple:
+                        type: yandex_uid
+                        value#string: 43214321
+            content-type: application/json

@@ -1,0 +1,76 @@
+description: price offers
+settings:
+    collection: order_offers
+    connection: noncritical
+    database: dbprocessing
+indexes:
+  - expireAfterSeconds: 1800
+    key: created
+  - key:
+      - name: user_id
+        type: ascending
+      - name: created
+        type: descending
+wiki_info: |
+    #### order_offers
+    *Назначение:* Коллекция используется для хранения предложений, сделанных
+    пользователю в routestats.
+
+    *Структура документа:*
+    ```python
+    order_offers = {
+        '_id': '889f3cfcd4da4d9caba8e6298fe76770',
+        # id пользователя из dbtaxi.users
+        'user_id': '...',
+        # Время создания записи
+        'created': datetime.datetime(),
+        # due
+        'due': datetime.datetime(),
+        # маршрут
+        'route': [
+            [37.590533, 55.733863],
+            [37.59168308907641, 55.75268250261382]
+        ],
+        # Информация о стоимости заказа и сурже
+        'prices': [
+             {
+                 # класс
+                 'cls': 'econom',
+                 # цена с учетом суржа
+                 'price': 247.5,
+                 # коэффициет суржа
+                 'sp': 2.5,
+                 # Необязательное поле: цена платной подачи. Наличие означает,
+                 # что предлагаем пользователю сделать заказ с платной подачей
+                 'paid_supply_price': 73.0,
+                 # Необязательное поле: заказ при "нет машин". Отсутствие поля
+                 # эквивалентно значению false
+                 'no_cars_order': false
+             },
+             # Для каждого класса отдельная запись
+             {'cls': 'business', 'price': 199}
+        ],
+        # Время и расстояние, расчитанные калькулятором
+        'time': 123,
+        'distance': 5000,
+        'requirements': {
+            'animaltransport': True,
+            'childchair_moscow': 3
+        },
+        # Предложение было показано как fixed price
+        'is_fixed_price': true,
+        # Скидка пользователю (см. описание поля order_proc.order.discount)
+        'discount': {},
+        # точка назначения в аэропорту
+        'destination_is_airport': False,
+        # дополнительные данные, которые пишут плагины для routestats
+        # формат: имя плагина - произвольный объект, нужный плагину
+        # например, плагин декаплинга
+        'extra_data': {
+            'plugin_name': {},
+            'decoupling': {'driver': {'prices': []},
+                          'user': {'prices': []},
+                          'success': True}
+        },
+    }
+    ```

@@ -1,0 +1,34 @@
+---
+host: taxi_integration-api_testing
+telegram: warn_default
+type: rtc
+services:
+- service: taxi-integration-api-smart-fallback-surger
+  # Проверка того, что умный fallback не включен
+  # Если включен, значит с сервисом, до которого
+  # пытались достучаться проблемы
+  # Обращаться к skogorev, iehrlich, rmnleb
+  methods: phone_escalation
+  telegram: warn_default
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 100%
+    crit: 101%
+  - days: Sat-Sun
+    time: 12-20
+    warn: 100%
+    crit: 101%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 100%
+    crit: 101%
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+- template: test_yt-upload-logs-pool
+
+- template: rtc-atop-warning

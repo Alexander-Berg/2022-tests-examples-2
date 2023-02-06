@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<config>
+    <http_daemon>
+        <listen_address>localhost</listen_address>
+        <port>10280</port>
+        <threads>1</threads>
+        <max_connections>4</max_connections>
+        <max_queue_size>4</max_queue_size>
+        <max_delay>1000</max_delay>
+    </http_daemon>
+    <component>
+        <logger>
+            <file>/logs/tus-stat.log</file>
+            <level>DEBUG</level>
+            <print-level>yes</print-level>
+            <time-format>_DEFAULT_</time-format>
+        </logger>
+        <tskv_parser id="stat_parser" file_name="/logs/tus-stat.log" missingok="1">
+            <http_path>/metrics</http_path>
+            <ignore_parsing_errors>yes</ignore_parsing_errors>
+            <ignore_processing_errors>yes</ignore_processing_errors>
+            <condition_set id="tus_api">
+                <signals>
+                    <signal id="tus_consumer" type="rps">
+                        <key>tus_consumer</key>
+                        <name>tus_consumer</name>
+                    </signal>
+                    <signal id="client_login" type="rps">
+                        <key>client_login</key>
+                        <name>client_login</name>
+                    </signal>
+                    <signal id="tus_consumer" type="rps">
+                        <key>tus_consumer</key>
+                        <name>tus_consumer</name>
+                    </signal>
+                    <signal type="rps">
+                        <key>endpoint</key>
+                        <name>endpoint</name>
+                    </signal>
+                    <signal type="rps">
+                        <key>http</key>
+                        <name>http_status</name>
+                    </signal>
+                </signals>
+            </condition_set>
+        </tskv_parser>
+        <mem_storage>
+            <http_path>/push</http_path>
+        </mem_storage>
+    </component>
+</config>

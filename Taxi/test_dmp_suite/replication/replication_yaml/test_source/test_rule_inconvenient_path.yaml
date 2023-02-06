@@ -1,0 +1,108 @@
+name: test_rule_inconvenient_path
+source: {}
+replication_type: queue
+destinations:
+  - test_rule_inconvenient_path_destination:
+      mapper: $raw
+      type: yt
+      config:
+        default_raw_layer_settings:
+          yt_attributes:
+            compression_codec: zlib_9
+            enable_dynamic_store_read: true
+      target:
+        client_names:
+          - hahn
+        prefix: eda-dwh
+        path: test_layer/test_group/nested_folder/one_more_folder/dynamic
+        raw_settings:
+          description: Тестовая динамическая YT таблица
+          yt_columns_info:
+            - name: id
+              type: int64
+              description: id
+              sort_order: ascending
+            - name: id2
+              type: int64
+              description: id2
+              sort_order: ascending
+            - name: utc_created_dttm
+              input_column: created_at
+              type: string
+              description: Дата создания в UTC
+              cast: msk_datetime_to_utc_string
+          partitioning:
+            rotate_policy: eternal
+            type: by_years
+            cast_to_date: utc_from_isostring
+            field_name: utc_created_dttm
+  - test_rule_inconvenient_path_no_patition_destination:
+      mapper: $raw
+      type: yt
+      config:
+        default_raw_layer_settings:
+          yt_attributes:
+            compression_codec: zlib_9
+            enable_dynamic_store_read: true
+      target:
+        client_names:
+          - hahn
+        prefix: eda-dwh
+        path: test_layer/test_group/nested_folder/more/dynamic
+        raw_settings:
+          description: Тестовая динамическая YT таблица
+          yt_columns_info:
+            - name: id
+              type: int64
+              description: id
+              sort_order: ascending
+          partitioning:
+            rotate_policy: eternal
+            type: by_years
+            cast_to_date: utc_from_isostring
+            field_name: utc_created_dttm
+  - test_rule_inconvenient_path_raw_hist_destination:
+      mapper: $raw
+      type: yt
+      config:
+        default_raw_layer_settings:
+          yt_attributes:
+            compression_codec: zlib_9
+            enable_dynamic_store_read: true
+      target:
+        client_names:
+          - hahn
+        prefix: eda-dwh
+        path: etl/raw_history/test_group/nested_folder/one_more_folder/dynamic
+        raw_settings:
+          description: Тестовая динамическая YT таблица
+          yt_columns_info:
+            - name: id
+              type: int64
+              description: id
+              sort_order: ascending
+          partitioning:
+            rotate_policy: eternal
+            type: by_years
+            cast_to_date: utc_from_isostring
+            field_name: utc_created_dttm
+  - test_rule_inconvenient_path_raw_hist_no_partition_destination:
+      mapper: $raw
+      type: yt
+      config:
+        default_raw_layer_settings:
+          yt_attributes:
+            compression_codec: zlib_9
+            enable_dynamic_store_read: true
+      target:
+        client_names:
+          - hahn
+        prefix: eda-dwh
+        path: etl/raw_history/test_group/nested_folder/another_folder/dynamic/dynamic
+        raw_settings:
+          description: Тестовая динамическая YT таблица
+          yt_columns_info:
+            - name: id
+              type: int64
+              description: id
+              sort_order: ascending

@@ -1,0 +1,63 @@
+INSERT INTO contractor_mentorship.mentorships 
+(
+    id, 
+    newbie_unique_driver_id, 
+    country_id, 
+    created_at, 
+    mentor_full_name,
+    mentor_last_read_at,
+    mentor_park_driver_profile_id,
+    mentor_phone_pd_id,
+    mentor_unique_driver_id,
+    newbie_last_read_at,
+    newbie_park_driver_profile_id,
+    original_connected_dttm,
+    "status"
+)
+VALUES 
+(
+    '275477b7-96bc-5ac9-8af8-cd2fbcc1a142'::uuid,
+    '620b5440f03452205a848432',
+    'rus', '2022-05-12T08:53:26.114836Z',
+    'ТестовыйТестТестович',
+    '2022-06-28T09:20:38.466026Z',
+    '068ed9d642424e1f80942b1d7f3e75de_74aa82d9d199436d8ac00ea108f30696',
+    '94393ac6c83b430296cf7a35444d0c59',
+    '5c4abc19e301b6012f9da829',
+    '2022-06-16T10:21:31.579806Z',
+    '0467cef7e27c42d1a62223984ef27753_187dbd532179956a7bbb4f73f5cf4dc4',
+    '2022-06-12T09:01:08.000000Z',
+    'failed'
+);
+
+
+INSERT INTO contractor_mentorship.mentors 
+(
+    id,
+    city,
+    country_id,
+    country_name_ru,
+    db_id,
+    driver_uuid,
+    first_name,
+    last_name,
+    phone,
+    unique_driver_id,
+    updated_at,
+    "status"
+)
+VALUES 
+(
+    0,
+    'Аккра',
+    'gha',
+    'Гана',
+    '95e091c97677489daa395b605213f75b',
+    '733d2ec6a0de4c5285a6b2dc5a0184bf',
+    'Test',
+    'Testington',
+    '1659b583604742a2b8dcd3a3182bc3dd',
+    '5c4abc19e301b6012f9da829',
+    '2022-07-12T13:06:24.000000Z',
+    'failed'
+);

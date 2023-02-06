@@ -1,0 +1,643 @@
+[
+  {
+    "name": "default",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "start",
+        "out_bindings": [
+          {
+            "alias": "places",
+            "query": "places"
+          }
+        ],
+        "source_code": "return {places: []};"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "place_ids.*{:place_id}"
+          },
+          {
+            "domain": "input",
+            "query": "places_settings[place_id]{place_settings}"
+          },
+          {
+            "domain": "input",
+            "query": "coeff"
+          }
+        ],
+        "name": "initialization",
+        "out_bindings": [
+          {
+            "alias": "place_data",
+            "query": "places[?(@.id==place_id)]"
+          }
+        ],
+        "source_code": "return {place_data: {id: place_id, settings: place_settings, coeff: coeff}};"
+      },
+      {
+        "conditions": [
+          {
+            "stage_name": "initialization",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [],
+        "name": "sample_resource_fetch",
+        "optional": true,
+        "resources": [
+          {
+            "name": "sample_resource"
+          }
+        ],
+        "source_code": "return {sample_resource: {fetch_arg_1: 1, fetch_arg_2: 'str'}};"
+      },
+      {
+        "conditions": [
+          {
+            "stage_name": "sample_resource_fetch",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "sample_resource.params"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.string_field"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.number_field"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.integer_field"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.object_field.string_field{inner_string_field}"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.object_field.number_field{inner_number_field}"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.object_field.integer_field{inner_integer_field}"
+          },
+          {
+            "domain": "input",
+            "query": "place_ids.*{:place_id}"
+          }
+        ],
+        "name": "use_resource",
+        "optional": true,
+        "out_bindings": [
+          {
+            "alias": "data",
+            "query": "places[?(@.id==place_id)].data_from_resource"
+          }
+        ],
+        "source_code": "return {data: {params: params, string_field: string_field, number_field: number_field, integer_field: integer_field, inner_string_field: inner_string_field, inner_number_field: inner_number_field, inner_integer_field: inner_integer_field }};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "non_blocking",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "start",
+        "out_bindings": [
+          {
+            "alias": "places",
+            "query": "places"
+          }
+        ],
+        "source_code": "return {places: []};"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "place_ids.*{:place_id}"
+          },
+          {
+            "domain": "input",
+            "query": "places_settings[place_id]{place_settings}"
+          },
+          {
+            "domain": "input",
+            "query": "coeff"
+          }
+        ],
+        "name": "initialization",
+        "out_bindings": [
+          {
+            "alias": "place_data",
+            "query": "places[?(@.id==place_id)]"
+          }
+        ],
+        "source_code": "return {place_data: {id: place_id, settings: place_settings, coeff: coeff}};"
+      },
+      {
+        "conditions": [
+          {
+            "stage_name": "initialization",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [],
+        "name": "sample_resource_fetch_non_blocking",
+        "optional": true,
+        "resources": [
+          {
+            "name": "sample_resource_non_blocking"
+          }
+        ],
+        "source_code": "return {sample_resource_non_blocking: {fetch_arg_1: 1, fetch_arg_2: 'str'}};"
+      },
+      {
+        "conditions": [
+          {
+            "stage_name": "sample_resource_fetch_non_blocking",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.params"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.string_field"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.number_field"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.integer_field"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.object_field.string_field{inner_string_field}"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.object_field.number_field{inner_number_field}"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.object_field.integer_field{inner_integer_field}"
+          },
+          {
+            "domain": "input",
+            "query": "place_ids.*{:place_id}"
+          }
+        ],
+        "name": "use_resource_non_blocking",
+        "optional": true,
+        "out_bindings": [
+          {
+            "alias": "data",
+            "query": "places[?(@.id==place_id)].data_from_resource"
+          }
+        ],
+        "source_code": "return {data: {params: params, string_field: string_field, number_field: number_field, integer_field: integer_field, inner_string_field: inner_string_field, inner_number_field: inner_number_field, inner_integer_field: inner_integer_field }};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "use_cache",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "fetch_cachable_resource",
+        "resources": [
+          {
+            "name": "cachable_resource"
+          }
+        ],
+        "source_code": "return {cachable_resource: {}};"
+      },
+      {
+        "conditions": [
+          {
+            "stage_name": "fetch_cachable_resource",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "cachable_resource{cached_value}"
+          }
+        ],
+        "name": "use_cachable_resource",
+        "optional": true,
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          }
+        ],
+        "source_code": "return {value: cached_value};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "bad_script_0",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "fetch_cachable_resource",
+        "resources": [
+          {
+            "name": "cachable_resource"
+          }
+        ],
+        "source_code": "return {cachable_resource: {}};"
+      },
+      {
+        "conditions": [
+          {
+            "stage_name": "fetch_cachable_resource",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "cachable_resource.value{cached_value}"
+          }
+        ],
+        "name": "wrong_use_cachable_resource",
+        "optional": true,
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          }
+        ],
+        "source_code": "return {value: cached_value};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "bad_script_1",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "bad_script_return_function",
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          }
+        ],
+        "source_code": "return {value: log.info};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "bad_script_2",
+    "stages": [
+      {
+        "conditions": [
+          {
+            "stage_name": "fetch_cachable_resource",
+            "stage_statuses": [
+              "passed"
+            ],
+            "type": "stage_status"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "cachable_resource{cached_value}"
+          }
+        ],
+        "name": "use_cachable_resource",
+        "optional": true,
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          }
+        ],
+        "source_code": "return {value: cached_value};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "bad_script_3",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "bad_script_return_NaN",
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          }
+        ],
+        "source_code": "return {value: NaN};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "bad_script_4",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "bad_script_compute_with_undefined",
+        "out_bindings": [
+          {
+            "alias": "value",
+            "query": "value"
+          }
+        ],
+        "source_code": "return {value: undefined_variable + 1};"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "resource_aliases",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "values{args}"
+          }
+        ],
+        "name": "resource_aliases0",
+        "resources": [
+          {
+            "field": "r0",
+            "name": "sample_resource_non_blocking"
+          }
+        ],
+        "source_code": "return {r0: args[0]};",
+        "state": "active",
+        "type": "resource_aliases0"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "values{args}"
+          }
+        ],
+        "name": "resource_aliases1",
+        "resources": [
+          {
+            "field": "r1",
+            "name": "sample_resource_non_blocking"
+          },
+          {
+            "name": "sample_resource_non_blocking"
+          },
+          {
+            "field": "r2",
+            "name": "sample_resource_non_blocking"
+          }
+        ],
+        "source_code": "return {r1: args[1], r2: args[2], sample_resource_non_blocking: 'non-field params non-blocking'};",
+        "state": "active",
+        "type": "resource_aliases1"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "values{args}"
+          }
+        ],
+        "name": "resource_aliases2",
+        "resources": [
+          {
+            "field": "r3",
+            "name": "sample_resource_non_blocking"
+          },
+          {
+            "name": "sample_resource"
+          },
+          {
+            "field": "r4",
+            "name": "sample_resource_non_blocking"
+          }
+        ],
+        "source_code": "return {r3: args[3], r4: args[4], sample_resource: 'non-field params blocking'};",
+        "state": "active",
+        "type": "resource_aliases2"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "r0.params{v0}"
+          },
+          {
+            "domain": "resource",
+            "query": "r1.params{v1}"
+          },
+          {
+            "domain": "resource",
+            "query": "r2.params{v2}"
+          },
+          {
+            "domain": "resource",
+            "query": "r3.params{v3}"
+          },
+          {
+            "domain": "resource",
+            "query": "r4.params{v4}"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource_non_blocking.params{v5}"
+          },
+          {
+            "domain": "resource",
+            "query": "sample_resource.params{v6}"
+          }
+        ],
+        "name": "resource_aliases3",
+        "out_bindings": [
+          {
+            "alias": "res",
+            "query": "result"
+          }
+        ],
+        "source_code": "return {res: {'r0': v0, 'r1': v1, 'r2': v2, 'r3': v3, 'r4': v4, 'r5': v5, 'r6': v6}};",
+        "state": "active",
+        "type": "resource_aliases3"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "resource_metrics",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "resource_metrics0",
+        "resources": [
+          {
+            "name": "sample_resource"
+          }
+        ],
+        "source_code": "return {sample_resource: ''};",
+        "state": "active",
+        "type": "resource_metrics0"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [],
+        "name": "resource_metrics1",
+        "out_bindings": [],
+        "source_code": "return {};",
+        "state": "active",
+        "type": "resource_metrics1"
+      }
+    ],
+    "state": "active"
+  },
+  {
+    "name": "conditions_and_predicates",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "user_id"
+          }
+        ],
+        "name": "fetch_experiments",
+        "resources": [
+          {
+            "name": "experiments3"
+          }
+        ],
+        "source_code": "return {experiments3: {check_is_even: {user_id: user_id}}};",
+        "state": "active"
+      },
+      {
+        "args": [
+          {
+            "description": "ID of user to test",
+            "name": "user"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "resource",
+            "query": "experiments3.check_is_even.enabled"
+          }
+        ],
+        "name": "need_check_predicate",
+        "source_code": "return enabled && (user > 0);",
+        "state": "active"
+      },
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "user_id"
+          }
+        ],
+        "name": "start",
+        "out_bindings": [
+          {
+            "alias": "user",
+            "query": "user"
+          }
+        ],
+        "source_code": "return {user: {id: user_id}};"
+      },
+      {
+        "conditions": [
+          {
+            "args": [
+              {
+                "name": "user",
+                "value": "user_id"
+              }
+            ],
+            "predicate": "need_check_predicate",
+            "type": "predicate"
+          }
+        ],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "query": "user_id"
+          }
+        ],
+        "name": "check_user",
+        "optional": true,
+        "out_bindings": [
+          {
+            "alias": "is_even",
+            "query": "user.is_even_test_result"
+          }
+        ],
+        "source_code": "return {is_even: user_id % 2 != 0}",
+        "state": "active"
+      }
+    ],
+    "state": "active"
+  }
+]

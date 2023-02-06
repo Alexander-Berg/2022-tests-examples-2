@@ -1,0 +1,81 @@
+{
+    "HttpServer": {
+        "Port": 30056
+    },
+    "Logs": {
+        "Rules": [
+            {
+                "FilePath": "./caesar_lib.log",
+                "MinLevel": "Warning",
+                "ExcludeCategories": ["Main"]
+            },
+            {
+                "FilePath": "./caesar_main.log",
+                "MinLevel": "Warning",
+                "IncludeCategories": ["Main"]
+            }
+        ]
+    },
+    "FaviconWorkerConfig": {
+        "StateTable": "//home/robot-dev/ovknp/favicon_wannabe/caesar/dev/state/Favicons",
+        "Suppliers": [
+            {
+                "Alias": "resharded_favicons_links",
+                "YtSupplier": {
+                    "ChunkSize": 1000,
+                    "MaxOutChunkSize": 500,
+                    "CommitPeriodMs": 100,
+                    "DelayAfterEmptyReadMs": 0,
+                    "FlushChunkIntervalMs": 0,
+                    "QueueConsumer": "caesar-worker-dev",
+                    "QueuePath": "//home/robot-dev/ovknp/favicon_wannabe/FaviconsLinks",
+                    "Cluster": "arnold"
+                }
+            }
+        ],
+        "ConsumingSystem": {
+            "Cluster": "arnold",
+            "MainPath": "//home/robot-dev/ovknp/favicon_wannabe/caesar/dev/events/main",
+            "Shards": {
+                "AutoResolve": {}
+            },
+            "MaxShards": 25,
+            "MaxShardsToCheck": 2,
+            "MaxShardsAutoResolveRatio": 25,
+            "WorkerMinorName": "favicon_worker_minor_name"
+        },
+        "StatefulShardProcessorConfig": {
+            "CommitPeriodMs": 100,
+            "ParsingThreads": 2,
+            "MaxEpochsInFlight": 3
+        },
+        "MaxInflightBytes": 10000000,
+        "SubShards": 1,
+        "MaxTasksInQueue": 20
+    },
+    "FaviconGraphConfig": {
+        "OutputTablePath": "//home/robot-dev/ovknp/favicon_wannabe/caesar/dev/output",
+        "ImagesTablePath": "//home/favicon-robot/Images",
+        "RemovedUrlsTablePath": "//home/robot-dev/ovknp/favicon_wannabe/ManuallyRemovedUrls",
+        "ProfileLogTablePath": "//home/robot-dev/ovknp/favicon_wannabe/worker/ProfileLog",
+        "MaxLinksCount": 100,
+        "AggregateBestIconConfigs": [
+            {
+                "Size": 16 
+            },
+            {
+                "Size": 32
+            },
+            {
+                "Size": 120
+            }
+        ],
+        "SelectedTimeout": 1,
+        "LinkUpdateTimeout": 1,
+        "LinkExpirationTimeout": 14400,
+        "Cluster": "arnold"
+    },
+    "LogWriterConfig": {},
+    "HttpPollerThreads": 1,
+    "ProcessingThreads": 1
+}

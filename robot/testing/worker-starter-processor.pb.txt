@@ -1,0 +1,92 @@
+WorkerProcessorGraphConfig {
+    SupplierConfigs {
+        Alias: "resharded-smelter-rthub-export-from-testing"
+        YtSupplier: {
+            QueueConsumer: "worker"
+            QueuePath: "//home/samovar-dev/smelter/testing/queues/worker_input_resharded"
+            Cluster: "freud"
+            ChunkSize: 50
+            MaxOutChunkSize: 200
+        }
+    }
+    ConsumingSystemConfigs: {
+        Cluster: "freud"
+        MainPath: "//home/samovar-dev/smelter/testing/workers/worker/processor_starter/cs"
+        MaxShards: 16
+    }
+    MaxInflightBytes: 33554432 # 32mb
+    StateTablePath: "//home/samovar-dev/smelter/testing/workers/worker/processor_starter/state"
+}
+
+CountersProcessorGraphConfig {
+    SupplierConfigs {
+        Alias: "counters-queue"
+        YtSupplier: {
+            QueueConsumer: "worker"
+            QueuePath: "//home/samovar-dev/smelter/testing/queues/counters"
+            Cluster: "freud"
+            ChunkSize: 100
+        }
+    },
+    ConsumingSystemConfigs: {
+        Cluster: "freud"
+        MainPath: "//home/samovar-dev/smelter/testing/workers/worker/counters/cs"
+        MaxShards: 16
+    }
+    MaxInflightBytes: 33554432 # 32mb
+    StateTablePath: "//home/samovar-dev/smelter/testing/workers/worker/counters/state"
+}
+
+
+StarterProcessorConfig {
+    SupplierConfigs {
+        Alias: "starter-queue"
+        YtSupplier: {
+            QueueConsumer: "worker"
+            QueuePath: "//home/samovar-dev/smelter/testing/queues/starter"
+            Cluster: "freud"
+            ChunkSize: 100
+        }
+    },
+    ConsumingSystemConfigs: {
+        Cluster: "freud"
+        MainPath: "//home/samovar-dev/smelter/testing/workers/worker/starter/cs"
+        MaxShards: 16
+    }
+    MaxInflightBytes: 33554432 # 32mb
+    StarterQueuePath: "//home/samovar-dev/smelter/testing/queues/starter"
+    WorkerQueuePath: "//home/samovar-dev/smelter/testing/queues/worker_input_resharded"
+}
+
+
+YtCluster: "freud"
+ChannelQueryTablePath: "//home/samovar-dev/smelter/testing/backend/channel_query"
+FeedTablePath: "//home/samovar-dev/smelter/testing/backend/feed"
+
+ContentTablePath: "//home/samovar-dev/smelter/testing/backend/content"
+ContentTablePathFromProduction: "//home/smelter/backend/content"
+YtClusterFromProduction: "arnold"
+
+UrlChannelTablePath: "//home/samovar-dev/smelter/testing/backend/url_channel"
+FetchCacheTablePath: "//home/samovar-dev/smelter/testing/caches/fetch_cache"
+ProcessingThreads: 10
+UpdateChannelsPeriodSeconds: 60
+TolokaQueuePath: "//home/samovar-dev/smelter/testing/queues/toloka_input"
+MLWorkerInputQueuePath: "//home/samovar-dev/smelter/testing/queues/ml_worker_input"
+CountersQueuePath: "//home/samovar-dev/smelter/testing/queues/counters"
+LogConfigPath: "yt_logging.yson"
+FreshnessDays: 7
+SaasSearchClientConfig {
+    EnableTvm: true
+    TvmSrcId: 2035225
+    Port: 17000
+}
+RecognizerConfig {
+    Enabled: true
+}
+TermFrequencyCalculationConfig {
+    Enabled: true
+    MaximumSize: 1000
+    MinimumIDF: 8
+    MinimumTermLength: 3
+}

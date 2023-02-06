@@ -1,0 +1,24 @@
+# нужно использовать минимум вызовов RUN, на каждый RUN создаётся слой
+# в итоге финальный размер образа распухает
+# https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+# builder stage
+FROM registry.yandex.net/metrika/frontend/node:12.19.0-bionic-4137df1
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm run bootstrap:hermione-testing && \
+    # удаляем лишнее в корне
+    find . -maxdepth 1 -not \( -name services -o -name packages -o -name package.json -o -name .. -o -name . \) -exec rm -rf {} + && \
+    # чистим ./services
+    (cd ./services && find . -maxdepth 1 -not \( -name hermione-testing -o -name .. -o -name . \) -exec rm -rf {} +) && \
+    # чистим ./packages
+    (cd ./packages && find . -maxdepth 1 -not \( -name contrib -o -name .. -o -name . \) -exec rm -rf {} +) && \
+    mkdir -p /usr/local/share/ca-certificates/Yandex && \
+    wget "https://crls.yandex.net/allCAs.pem" -O /usr/local/share/ca-certificates/Yandex/YandexInternalRootCA.crt
+
+# для запуска в Docker требуется передавать BISHOP_OAUTH_TOKEN и YAV_OAUTH_TOKEN
+# в то время как при локальной разработке они берутся из файла
+CMD npm --prefix=./services/hermione-testing run hermione:gui:metrika

@@ -1,0 +1,200 @@
+default: []
+description: |
+    Группы и категории транзакций, доступных в сервисе fleet-transactions-api
+    Порядок элементов в массивах групп и категорий задаёт порядок их отображения
+tags: [notfallback]
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/Group'
+    definitions:
+        NameTankerKey:
+            type: string
+            minLength: 1
+            description: |
+                Танкерный ключ для локализации названия категории или группы
+                Проект: taximetre
+                Кейсет: taximeter.api.controllers
+
+        TransactionDescriptionTankerKey:
+            type: string
+            minLength: 1
+            description: |
+                Танкерный ключ для локализации описания транзакции
+                Проект: taximetre
+                Кейсет: taximeter.api.controllers
+                Допустимые параметры:
+                  - date
+                  - hours_free
+                  - minutes_free
+                  - minutes_sum
+                  - hours_sum
+                  - number
+                  - payment_batch_id
+                  - bank_order_id
+                  - invited_driver
+
+        StringSet:
+            type: array
+            description: Простое множество строк
+            x-taxi-cpp-type: std::unordered_set
+            items:
+                type: string
+
+        StringSetInclude:
+            type: object
+            required:
+              - include
+            properties:
+                include:
+                    $ref: '#/definitions/StringSet'
+            additionalProperties: false
+
+        StringSetExclude:
+            type: object
+            required:
+              - exclude
+            properties:
+                exclude:
+                    $ref: '#/definitions/StringSet'
+            additionalProperties: false
+
+        SmartStringSet:
+            description: |
+                Умное множество строк, допускающее или
+                только заданные строки (include) или
+                все строки, кроме заданных (exclude)
+            oneOf:
+              - $ref: '#/definitions/StringSetInclude'
+              - $ref: '#/definitions/StringSetExclude'
+
+        IsCreatableBy:
+            type: object
+            description: |
+                Допустимые источники создания транзакции
+                Для создания из accounts берётся первый элемент
+            properties:
+                dispatcher:
+                    type: object
+                    description: Пользователь Оптеума (yandex passport)
+                    properties: {}
+                    additionalProperties: false
+                tech_support:
+                    type: object
+                    description: Сотрудник Яндекса (yandex-team passport)
+                    properties: {}
+                    additionalProperties: false
+                fleet_api:
+                    type: object
+                    description: Внешнее API 7
+                    required:
+                      - client_ids
+                    properties:
+                        client_ids:
+                            $ref: '#/definitions/SmartStringSet'
+                    additionalProperties: false
+                platform:
+                    type: object
+                    description: Внутренний сервис
+                    required:
+                      - tvm_service_names
+                    properties:
+                        tvm_service_names:
+                            $ref: '#/definitions/SmartStringSet'
+                    additionalProperties: false
+            additionalProperties: false
+
+        Account:
+            type: object
+            required:
+              - agreement_id
+              - sub_account
+            properties:
+                agreement_id:
+                    type: string
+                    description: См. сервис billing-reports
+                    minLength: 1
+                sub_account:
+                    type: string
+                    description: См. сервис billing-reports
+                    minLength: 1
+                transaction_description_tanker_key:
+                    $ref: '#/definitions/TransactionDescriptionTankerKey'
+            additionalProperties: false
+
+        Accounts:
+            type: array
+            minItems: 1
+            items:
+                $ref: '#/definitions/Account'
+
+        CategoryId:
+            type: string
+            description: Идентификатор категории транзакции для API
+            minLength: 1
+
+        IsAffectingDriverBalance:
+            type: boolean
+            description: Влияет ли транзакция в категории на баланс водителя
+
+        Category:
+            type: object
+            description: Категория транзакции
+            required:
+              - accounts
+              - category_id
+              - category_name_tanker_key
+              - is_affecting_driver_balance
+            properties:
+                accounts:
+                    $ref: '#/definitions/Accounts'
+                category_id:
+                    $ref: '#/definitions/CategoryId'
+                category_name_tanker_key:
+                    $ref: '#/definitions/NameTankerKey'
+                is_affecting_driver_balance:
+                    $ref: '#/definitions/IsAffectingDriverBalance'
+                is_creatable_by:
+                    $ref: '#/definitions/IsCreatableBy'
+                transaction_description_tanker_key:
+                    $ref: '#/definitions/TransactionDescriptionTankerKey'
+            additionalProperties: false
+
+        Categories:
+            type: array
+            description: Категории транзакций в группе
+            items:
+                $ref: '#/definitions/Category'
+
+        GroupId:
+            type: string
+            description: Идентификатор группы категорий транзакций для API
+            enum:
+              - account_balance
+              - cash_collected
+              - platform_card
+              - platform_corporate
+              - platform_promotion
+              - platform_bonus
+              - platform_tip
+              - platform_fees
+              - partner_fees
+              - partner_other
+              - platform_other
+              - partner_rides
+
+        Group:
+            type: object
+            description: Группа категорий транзакций
+            required:
+              - categories
+              - group_id
+              - group_name_tanker_key
+            properties:
+                categories:
+                    $ref: '#/definitions/Categories'
+                group_id:
+                    $ref: '#/definitions/GroupId'
+                group_name_tanker_key:
+                    $ref: '#/definitions/NameTankerKey'
+            additionalProperties: false

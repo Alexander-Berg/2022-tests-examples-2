@@ -1,0 +1,11 @@
+INSERT INTO logistic_supply_conductor.workshift_metadata (rule_id, is_visible, visibility_end_date, visibility_duration, alias, visibility_courier_requirements, "state", transport_types)
+VALUES
+(1, True, '2033-04-09T00:00:00Z', interval '90 days', 'moscow', '{}', 'pending', '{}'),
+(
+    2, True, '2033-04-09T00:00:00Z', interval '90 days', 'kazan',
+    ARRAY[
+        ROW(
+        ARRAY['bar']
+        )::logistic_supply_conductor.handlers__courier_requirement_ref_set__v1
+    ], 'active', '{car}'
+);

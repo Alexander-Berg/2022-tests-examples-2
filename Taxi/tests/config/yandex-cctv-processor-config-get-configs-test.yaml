@@ -1,0 +1,57 @@
+logging:
+    type: file
+    level: debug
+    path: /tmp/yandex/cctv/processor/cctv-processor.log
+
+streams:
+  - name: ffmpeg_picture
+    description: none
+    type: ffmpeg_file
+    filename: tests/data/empty.jpg
+    segment_length_minutes: 1
+    segment_base_path: /tmp/yandex/cctv/processor/stored_videos
+    segmenting_accuracy_secs: 8
+    failures_to_reset: 2
+
+storages:
+  - path: /tmp/yandex/cctv/processor/stored_videos
+    max_size_gb: 1
+    min_free_space_gb: 20
+    max_days_store: 31
+    paths:
+
+event_sender:
+    url: http://localhost:8080/cctv-processor-api/v1/events
+    max_batch_size: 10
+    max_batch_age_ms: 10000
+    transfer_timeout_ms: 100
+    queue_size: 10
+    logs:
+        path: /tmp/yandex/cctv/processor/events-log
+
+config_updater:
+    url: http://localhost:8080/cctv-processor-api/v1/configs
+    poll_interval_secs: 4
+
+general:
+    processor_id: processor1
+
+http_client:
+    ticket: INVALID
+
+handlers:
+  - name: find_signature
+    description: Обнаружение объектов в кадре
+    type: ffmpeg_find_signature
+    models_folder_path: build/engine-models/yandex-face-tflite
+    model_id: faceEmbedderBiometry_v5
+    runtime: CPU
+
+processors:
+  - name: demo
+    is_ffmpeg: true
+    description: Демонстрационный стенд
+    streams:
+      - ffmpeg_picture
+    handlers:
+      - find_signature

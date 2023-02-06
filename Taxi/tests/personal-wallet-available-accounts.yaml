@@ -1,0 +1,136 @@
+id: personal-wallet-available-accounts
+title: Проверяем запрос в personal-v1-available-accounts
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 37.6
+              - 55.7
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+            X-Remote-IP: 77.220.136.217
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods:
+                  - type: applepay
+                  - type: googlepay
+                  - type: cash
+                  - currency_rules:
+                        text: руб.
+                        sign: ₽
+                        template: $VALUE$ $SIGN$$CURRENCY$
+                        code: RUB
+                    description: _306
+                    type: personal_wallet
+                    complement_attributes:
+                        payment_types:
+                          - card
+                          - applepay
+                          - googlepay
+                        name: Активировать 306 баллов
+                        compatibility_description: Работает с картой или ApplePay
+                    id: w/e313481a-f32d-5d2b-9fd9-4e60c4709efd
+                    name: Плюс
+                    availability:
+                        disabled_reason: нужна подписка на Плюс
+                        available: false
+                    money_left: 306
+                    money_left_as_decimal: 306
+                merchant_id_list:
+                  - id1
+            content-type: application/json
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payments:
+                applepay:
+                    type: applepay
+                googlepay:
+                    type: googlepay
+                cash:
+                    type: cash
+                personal_wallet:
+                    type: personal_wallet
+            merchant_ids:
+              - id1
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                location: [37.6, 55.7]
+                destination_point: [37.6, 55.7]
+            content-type: application/json
+  - resource: personal-v1-available-accounts
+    response:
+        status-code: 200
+        body:
+            available_accounts:
+              - id: w/e313481a-f32d-5d2b-9fd9-4e60c4709efd
+                name_menu: Подключить кэшбэк
+                details_screen_properties:
+                    title: 306
+                    subtitle: ваши баллы в Плюсе
+                    glyph_type: default_plus
+                money_left_as_str: _306
+                money_left_as_decimal: 306
+                currency_rules:
+                    code: RUB
+                    template: $VALUE$ $SIGN$$CURRENCY$
+                    text: руб.
+                    sign: ₽
+                payment_available: false
+                deposit_available: false
+                deposit_payment_methods: []
+                payment_orders: []
+                name: Плюс
+                is_new: false
+                availability:
+                    available: false
+                    disabled_reason: нужна подписка на Плюс
+                    action:
+                        type: buy_plus
+                        text: Подключить Яндекс.Плюс
+                        discounts: []
+                        notification_counter: 1
+                complement_attributes:
+                    payment_types:
+                      - card
+                      - applepay
+                      - googlepay
+                    name: Активировать 306 баллов
+                    compatibility_description: Работает с картой или ApplePay
+
+    expectations:
+        call-count: 1
+
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: true
+
+experiments:
+    values:
+        use_available_payment_types_superapp_misc:
+            enabled: true
+        superapp_personal_wallet:
+            enabled: true

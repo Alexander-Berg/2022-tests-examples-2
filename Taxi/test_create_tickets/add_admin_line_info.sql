@@ -1,0 +1,39 @@
+INSERT INTO line
+(
+  line_name
+)
+VALUES
+(
+ 'a'
+),
+(
+ 'b'
+);
+
+INSERT INTO line_bind_place
+(
+  place_id,
+  line_id,
+  has_ticket
+)
+VALUES
+(
+ 123,
+ 1,
+ FALSE
+),
+(
+ 1234,
+ 1,
+ FALSE
+),
+(
+ 321,
+ 2,
+ FALSE
+),
+(
+ 4321,
+ 2,
+ FALSE
+);

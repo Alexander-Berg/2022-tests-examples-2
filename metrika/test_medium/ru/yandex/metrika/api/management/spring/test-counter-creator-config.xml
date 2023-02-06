@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!--<bean id="atomikosTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
+    <!--<property name="dataSource" ref="mysql_counters"/>-->
+    <!--</bean>-->
+    <!--<tx:annotation-driven transaction-manager="atomikosTxManager" proxy-target-class="true" />-->
+
+    <bean class="ru.yandex.metrika.api.management.client.label.LabelsService" id="labelsService">
+        <property name="convMain" ref="countersTemplate"/>
+        <property name="rbac" ref="counterLabelsRbac"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.label.CounterLinksService" id="linksService">
+        <property name="convMain" ref="countersTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.UidService" id="uidService">
+        <property name="rbac" ref="metrikaRbac"/>
+        <property name="roleUtils" ref="metrikaRoleUtils"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.counter.CounterChecker" id="counterChecker">
+        <property name="timeZones" ref="timeZones"/>
+        <property name="smsUtils" ref="smsUtils"/>
+        <property name="currencyService" ref="currencyService"/>
+        <property name="webmasterLinkService" ref="webmasterLinkService"/>
+        <property name="convMain" ref="countersTemplate"/>
+        <property name="counterFlagsService" ref="counterFlagsService"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.counter.CodeOptionsDao" id="codeOptionsDao">
+        <constructor-arg name="template" ref="countersTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.counter.InformerDao" id="informerDao">
+        <property name="jdbcTemplate" ref="countersTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.counter.CodeOptionsService" id="codeOptionsService">
+        <constructor-arg name="codeOptionsDao" ref="codeOptionsDao"/>
+        <constructor-arg name="informerDao" ref="informerDao"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.counter.CounterCreator" id="counterCreator">
+        <property name="jdbcTemplate" ref="countersTemplate"/>
+        <property name="layersService" ref="layersService"/>
+        <property name="nanoLayersService" ref="nanoLayersService"/>
+        <property name="webvisorService" ref="webvisorService"/>
+        <property name="codeChecker" ref="codeChecker"/>
+        <property name="counterChecker" ref="counterChecker"/>
+        <property name="filtersService" ref="filtersService"/>
+        <property name="goalsService" ref="goalsService"/>
+        <property name="grantsService" ref="grantsService"/>
+        <property name="operationsService" ref="operationsService"/>
+        <property name="rbac" ref="countersRbac"/>
+        <property name="roleUtils" ref="metrikaRoleUtils"/>
+        <property name="timeZones" ref="timeZones"/>
+        <property name="validator" ref="apiInputValidator"/>
+        <property name="currencyService" ref="currencyService"/>
+        <property name="offlineOptionsService" ref="offlineOptionsService"/>
+        <property name="spravAltayService" ref="spravAltayService"/>
+        <property name="featureService" ref="featureService"/>
+        <property name="publisherOptionsService" ref="publisherOptionsService"/>
+        <property name="subscriptionsService" ref="subscriptionsService"/>
+        <property name="autogoalsService" ref="autogoalsService"/>
+        <property name="codeOptionsService" ref="codeOptionsService"/>
+        <property name="counterOptionsService" ref="counterOptionsService"/>
+    </bean>
+
+    <bean id="subscriptionsService" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="ru.yandex.metrika.api.management.client.subscriptions.SubscriptionsService"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.LayersTableConfig" id="layersTableConfig">
+        <constructor-arg name="tableName" value="LayersConfig"/>
+        <constructor-arg name="idColumnName" value="LayerID"/>
+        <constructor-arg name="weightColumnName" value="Weight"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.LayersService" id="layersService">
+        <constructor-arg name="layersDb" ref="countersTemplate"/>
+        <constructor-arg name="config" ref="layersTableConfig"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.util.LayersTableConfig" id="nanoLayersTableConfig">
+        <constructor-arg name="tableName" value="NanoLayersConfig"/>
+        <constructor-arg name="idColumnName" value="LayerID"/>
+        <constructor-arg name="weightColumnName" value="Weight"/>
+    </bean>
+    <bean class="ru.yandex.metrika.util.LayersService" id="nanoLayersService">
+        <constructor-arg name="layersDb" ref="countersTemplate"/>
+        <constructor-arg name="config" ref="nanoLayersTableConfig"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.geopoint.GeoPointService" id="geoPointsService">
+        <property name="geoPointDao" ref="geoPointsDao"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.OperationsService" id="operationsService">
+        <property name="jdbcTemplate" ref="countersTemplate"/>
+        <property name="validator" ref="apiInputValidator"/>
+        <property name="limitsService" ref="counterLimitsService"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.FiltersService" id="filtersService">
+        <property name="jdbcTemplate" ref="countersTemplate"/>
+        <property name="validator" ref="apiInputValidator"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.AccountsService" id="accountsService">
+        <property name="authUtils" ref="authUtils"/>
+        <property name="rbac" ref="metrikaRbac"/>
+    </bean>
+    <bean class="ru.yandex.metrika.util.jmx.CacheStat" id="accountsService.accountsCache">
+        <property name="supplier" value="#{accountsService.getAccountsCacheF()}"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.DelegatesService" id="delegatesService">
+        <property name="authUtils" ref="authUtils"/>
+        <property name="rbac" ref="metrikaRbac"/>
+<!--        <property name="mailGenerator" ref="mailGenerator"/>-->
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.webmaster.WebmasterLinkService" id="webmasterLinkService">
+        <property name="webmasterLinkDao" ref="webmasterLinkDao"/>
+        <property name="webmasterClient" ref="webmasterIntapiClient"/>
+        <property name="countersTemplate" ref="countersTemplate"/>
+        <property name="ownerProvider" ref="countersOwnerProvider"/>
+<!--        <property name="mailGenerator" ref="mailGenerator"/>-->
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.webmaster.WebmasterLinkDao" id="webmasterLinkDao">
+        <property name="convMain" ref="countersTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.webmaster.WebmasterIntapiClient" id="webmasterIntapiClient">
+        <property name="httpClientFactory" ref="httpClientFactory"/>
+        <property name="tvmHolder" ref="tvmHolder"/>
+        <property name="tvmServices" ref="tvmServices"/>
+    </bean>
+    <bean class="ru.yandex.metrika.util.HttpClientFactory" id="httpClientFactory"/>
+
+    <bean class="ru.yandex.metrika.api.management.client.pvl.PvlDictsService" id="pvlDictsService">
+        <property name="countersTemplate" ref="countersTemplate"/>
+        <property name="spravAltayService" ref="spravAltayService"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.geopoint.SpravAltayService" id="spravAltayService">
+        <property name="convMain" ref="countersTemplate"/>
+        <property name="countersRbac" ref="countersRbac"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.GrantsService" id="grantsService">
+        <property name="authUtils" ref="authUtils"/>
+        <property name="roleUtils" ref="metrikaRoleUtils"/>
+        <property name="rbac" ref="countersRbac"/>
+        <property name="validator" ref="apiInputValidator"/>
+        <property name="linksService" ref="linksService"/>
+        <property name="listeners">
+            <list>
+                <ref bean="partnerGrantsService"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean class="ru.yandex.metrika.spring.quota.GrantsQuota.GrantQuotaDao" id="grantQuotaDao">
+        <property name="countersTemplate" ref="mainTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.spring.quota.DelegatesQuota.DelegateQuotaDao" id="delegateQuotaDao">
+        <property name="countersTemplate" ref="mainTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.QuotaMultiplierService" id="quotaMultiplierService">
+        <property name="grantQuotaDao" ref="grantQuotaDao"/>
+        <property name="delegateQuotaDao" ref="delegateQuotaDao"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.InternalGrantsService" id="internalGrantsService">
+        <constructor-arg name="rbac" ref="countersRbac"/>
+        <constructor-arg name="authUtils" ref="authUtils"/>
+        <property name="listeners">
+            <list>
+                <ref bean="partnerGrantsService"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.PartnerGrantsService" id="partnerGrantsService">
+        <property name="authUtils" ref="authUtils"/>
+        <property name="rbac" ref="countersRbac"/>
+        <property name="featureService" ref="featureService"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.check.CodeCheckService" id="codeChecker">
+        <property name="dictionaries" ref="localeDictionaries"/>
+        <property name="counterStatDaoYdb" ref="counterStatDaoYDB"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.check.DomainCheckService" id="domainCheckService">
+        <property name="pickingClusters" ref="webMetrikaClusters"/>
+        <property name="countersTemplate" ref="countersTemplate"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.WebvisorService" id="webvisorService">
+        <constructor-arg name="webvisorOptionsService" ref="webvisorOptionsService"/>
+        <constructor-arg name="validator" ref="apiInputValidator"/>
+        <constructor-arg name="codeOptionsDao" ref="codeOptionsDao"/>
+        <constructor-arg name="propertyUtils" ref="propertyUtils"/>
+    </bean>
+
+    <bean class="ru.yandex.metrika.api.management.client.ClientService" id="clientService">
+        <property name="rbac" ref="rbacTemplate"/>
+        <property name="authUtils" ref="authUtils"/>
+    </bean>
+
+    <bean id="timezonesService" class="ru.yandex.metrika.api.management.client.TimezonesService">
+        <property name="template" ref="countersTemplate"/>
+        <property name="localeDictionaries" ref="localeDictionaries"/>
+    </bean>
+
+    <bean id="directDictYtRootPath" class="ru.yandex.metrika.dbclients.ytrpc.YtPath">
+        <property name="path" value="/test/direct"/>
+    </bean>
+
+</beans>

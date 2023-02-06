@@ -1,0 +1,103 @@
+default:
+    __default__:
+        chunk-size: 1000
+        full-update-delay-ms: 0
+        interval-ms: 1000
+        mode: disabled
+        updated-ts-allowed-lag: 1
+        updated-allowed-lag: 1
+        pg-timeout-ms: 1000
+description: |
+    Параметры работы процедур сверок;
+    Хранится в формате {Имя_процедуры : Параметры};
+    log-level-updated-too-old - уровень логирования ситуаций когда updated отстает от updated_ts, может быть none, warning, error;
+    check-updated-too-old - если установлен в dryrun или enabled, то проверяется отставание updated 
+      от updated_ts, в enabled дополнительно происходит обновление updated на основе updated_ts;
+    chunk-size - максимальное число документов обработанных main курсором за одну итерацию процедуры;
+    full-update-delay-ms - тротлинг обработки группы документов для full-update;
+    full-updates-limit-per-iteration - максимальное число итераций full-update в рамках итерации процедуры (используется в тестах); 
+    interval-ms - период работы процедуры в миллисекундах;
+    updated-from - документы с updated меньше указанного игнорируются, 
+      в формате %Y-%m-%dT%H:%M:%E*S%Ez, пример 2019-09-01T00:00:00+00
+    max-writes-per-iteration - максимальное число операций записи в базу за время итерации;
+    mode - режим работы процедуры:
+      - disabled - процедура выключена;
+      - dryrun - немодифицирующем режим работы процедуры;
+      - enabled - модифицирующий режим работы процедуры.
+    pg-timeout-ms - разрешенный таймаут запросов к pg в миллисекундах;
+    updated-ts-allowed-lag - на сколько секунд updated_ts может отставать от updated;
+    updated-allowed-lag - на сколько секунд updated может отстатвать от updated_ts;
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: "#/definitions/SettingsByWorker"
+    properties:
+        __default__:
+            $ref: "#/definitions/SettingsByWorker"
+    required:
+      - __default__
+    definitions:
+        Mode:
+            type: string
+            enum:
+              - disabled
+              - dryrun
+              - enabled
+        LogLevel:
+            type: string
+            enum:
+              - none
+              - warning
+              - error
+        SettingsByWorker:
+            type: object
+            additionalProperties: false
+            properties:
+                check-updated-too-old:
+                    $ref: "#/definitions/Mode"
+                chunk-size:
+                    type: integer
+                    x-taxi-cpp-type: unsigned
+                    minimum: 1
+                full-update-delay-ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 0
+                interval-ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                log-level-updated-too-old:
+                    $ref: "#/definitions/LogLevel"
+                max-writes-per-iteration:
+                    type: integer
+                    x-taxi-cpp-type: unsigned
+                    minimum: 0
+                mode:
+                    $ref: "#/definitions/Mode"
+                pg-timeout-ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                updated-ts-allowed-lag:
+                    type: integer
+                    x-taxi-cpp-type: unsigned
+                    minimum: 0
+                updated-allowed-lag:
+                    type: integer
+                    x-taxi-cpp-type: unsigned
+                    minimum: 0
+                full-updates-limit-per-iteration:
+                    type: integer
+                    x-taxi-cpp-type: unsigned
+                    minimum: 0
+                updated-from:
+                    type: string
+                    description: RFC-3339 Format
+            required:
+              - interval-ms
+              - chunk-size
+              - mode
+              - pg-timeout-ms
+              - updated-ts-allowed-lag
+              - updated-allowed-lag

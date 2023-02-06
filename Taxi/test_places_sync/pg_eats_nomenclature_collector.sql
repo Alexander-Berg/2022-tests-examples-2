@@ -1,0 +1,156 @@
+insert into eats_nomenclature_collector.brands(
+    id,
+    slug
+)
+values (
+    '1',
+    'brand1'
+),
+(
+    '2',
+    'brand2'
+),
+(
+    '3',
+    'brand3'
+);
+
+insert into eats_nomenclature_collector.place_groups(
+    id,
+    name,
+    parser_days_of_week,
+    parser_hours,
+    stop_list_enabled,
+    is_vendor
+)
+values (
+    '1',
+    'place_group1',
+    '1111111',
+    '0:00',
+    true,
+    false
+),
+(
+    '2',
+    'place_group2',
+    '1111111',
+    '0:00',
+    true,
+    false
+),
+(
+    '3',
+    'place_group3',
+    '1111111',
+    '0:00',
+    true,
+    false
+),
+(
+    '4',
+    'place_group4',
+    '1111111',
+    '0:00',
+    true,
+    false
+);
+
+insert into eats_nomenclature_collector.brands_place_groups(
+    brand_id,
+    place_group_id,
+    is_enabled
+)
+values (
+   '1',
+   '1',
+   true
+),
+(
+   '1',
+   '2',
+   true
+),
+(
+   '2',
+   '3',
+   true
+),
+(
+   '3',
+   '4',
+   true
+);
+
+insert into eats_nomenclature_collector.places(
+    id,
+    slug,
+    brand_id,
+    place_group_id,
+    is_enabled,
+    is_parser_enabled,
+    stop_list_enabled
+)
+values (
+   '1',
+   'place1',
+   '1',
+   '1',
+   true,
+   true,
+   true
+),
+(
+   '2',
+   'place2',
+   '2',
+   '3',
+   false,
+   true,
+   true
+),
+(
+   '3',
+   'place3',
+   '3',
+   '4',
+   true,
+   true,
+   true
+),
+(
+   '4',
+   'place4',
+   '1',
+   '1',
+   true,
+   true,
+   true
+),
+(
+   '5',
+   'place5',
+   '1',
+   '1',
+   true,
+   false,
+   true
+),
+(
+   '6',
+   'place6',
+   '2',
+   '3',
+   true,
+   false,
+   true
+),
+(
+   '7',
+   'place7',
+   '2',
+   '3',
+   false,
+   false,
+   true
+);

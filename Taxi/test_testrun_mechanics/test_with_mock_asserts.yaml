@@ -1,0 +1,41 @@
+  - id: test_with_mock_asserts
+    title: Тест с проверками запроса внутри мока ресурса
+    source:
+        request:
+            method: post
+            body:
+                code: 200
+        expectations:
+            response:
+                status-code: 200
+                body:
+                    value1: 1234
+                    value2: 5678
+    mocks:
+      - resource: resource1
+        response:
+            status-code: 200
+            body:
+                value1: 1234
+        expectations:
+            call-count: 1
+            request:
+                method: get
+                query:
+                    arg1: test-arg
+                headers:
+                    X-Test-Header: test-header
+      - resource: resource2
+        response:
+            status-code: 200
+            body:
+                value2: 5678
+        expectations:
+            call-count: 1
+            request:
+                method: post
+                headers:
+                    X-Test-Header: test-header
+                content-type: application/json
+                body:
+                    request: 5678

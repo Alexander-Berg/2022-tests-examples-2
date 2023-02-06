@@ -1,0 +1,231 @@
+id: basic_flow
+title: проверка работы ручки в обычном режиме
+source:
+    request:
+        method: post
+        body:
+            state: {}
+            shortcuts: {"grids_support": [{"width": 6, "unit_width": 61}], "ndash_width": 9,
+                "mdash_width": 14}
+            position: [1, 2]
+            media_size_info: {}
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                screen:
+                    sections: [{"type": "items_linear_grid", "typed_header": {"type": "list_item",
+                                "lead": {"type": "app_title", "icon_tag": "shortcuts_button_scooters:7d1d49",
+                                    "title": {"text": "Самокаты"}}}, "shortcut_ids": [
+                                "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                                "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                                "23b39a792ab942dc951840d5ec0b8828"]}]
+                    offers:
+                        items: [{"shortcut_id": "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                                "title": "Сканировать", "subtitle": "QR-код на руле\
+                                    \ самоката", "type": "action-driven", "width": 3,
+                                "height": 2, "background": {"color": "#F1F0ED"}, "action": {
+                                    "type": "scooters_qr_scan"}, "overlays": [{"shape": "bottom_right",
+                                        "image_tag": "app_shortcut_poi_airport"}]},
+                            {"shortcut_id": "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                                "title": "Поддержка", "type": "action-driven", "width": 3,
+                                "height": 2, "background": {"color": "#F1F0ED"}, "action": {
+                                    "type": "support"}, "overlays": [{"shape": "bottom_right",
+                                        "image_tag": "app_shortcut_poi_airport"}]},
+                            {"shortcut_id": "23b39a792ab942dc951840d5ec0b8828", "title": "Go\
+                                    \ кататься", "type": "media-stories", "width": 3,
+                                "height": 2, "background": {"color": "#F1F0ED"}, "action": {
+                                    "type": "media"}}]
+                    layout: {"width": 6, "type": "linear_grid", "grid_id": "8ac5a10df9584cee94f1ddd86b3e3d4e"}
+                typed_experiments: {"items": []}
+                shortcuts_separators_height: {"height": 0.2, "enabled": true, "separator_ids": [
+                        "separator_organic_after_empty", "separator_eats_after_empty",
+                        "separator_grocery_after_empty", "separator_stories_before_empty",
+                        "separator_eats_before_empty"]}
+                shortcuts_background_framing: {"frames": [{"anchor": [0.5, 0.5], "h": 2,
+                            "w": 2}, {"anchor": [0.5, 0.5], "h": 2, "w": 4}, {"anchor": [
+                                0.5, 0.45], "h": 2, "w": 3}]}
+                products: [{"tag": "taxi", "service": "taxi", "title": "Такси"}, {
+                        "tag": "scooters", "service": "scooters", "title": "Самокаты"}]
+                modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}},
+                    {"mode": "scooters", "parameters": {"product_tag": "scooters",
+                            "available": true}}]
+
+experiments:
+    values#object:
+      - key: shortcuts_background_framing
+        value: {"frames": [{"anchor": [0.5, 0.5], "h": 2, "w": 2}, {"anchor": [0.5,
+                        0.5], "h": 2, "w": 4}, {"anchor": [0.5, 0.45], "h": 2, "w": 3}]}
+        enabled: true
+      - key: shortcuts_separators_height
+        value: {"height": 0.2, "enabled": true, "separator_ids": ["separator_organic_after_empty",
+                "separator_eats_after_empty", "separator_grocery_after_empty", "separator_stories_before_empty",
+                "separator_eats_before_empty"]}
+        enabled: true
+
+mocks:
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}},
+                {"mode": "scooters", "parameters": {"product_tag": "scooters", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Такси"}, {"tag": "scooters",
+                    "service": "scooters", "title": "Самокаты"}]
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+
+  - resource: scooters-misc-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: [{"scenario": "scooters_qr_scan", "shortcuts": [{"content": {
+                                "color": "#F1F0ED", "overlays": [{"image_tag": "app_shortcut_poi_airport",
+                                        "shape": "bottom_right"}], "subtitle": "QR-код\
+                                    \ на руле самокат", "title": "Сканировать"}, "id": "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                            "scenario": "scooters_qr_scan", "scenario_params": {"scooters_qr_scan_params": {
+                                    "action_type": "scooters_qr_scan"}}}]}, {"scenario": "support",
+                    "shortcuts": [{"content": {"color": "#F1F0ED", "overlays": [{
+                                        "image_tag": "app_shortcut_poi_airport", "shape": "bottom_right"}],
+                                "title": "Поддержка"}, "id": "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                            "scenario": "support", "scenario_params": {"support_params": {
+                                    "action_type": "support", "mode": "scooters"}}}]}]
+    expectations:
+        call-count: 1
+
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body:
+            scenario_tops: [{"scenario": "media_story", "shortcuts": [{"content": {
+                                "color": "#F1F0ED", "title": "Go кататься"}, "id": "23b39a792ab942dc951840d5ec0b8828",
+                            "scenario": "edia-stories", "scenario_params": {"media_story_params": {
+                                    "action_type": "media"}}}]}]
+    expectations:
+        call-count: 1
+        request:
+            body:
+                screen: "scooters"
+                user_context: {"show_at": "2020-01-01T00:00:00+00:00", "state": {},
+                    "zone_name": "moscow", "pin_position": [1, 2]}
+                services_availability: {"products": [{"tag": "taxi", "service": "taxi",
+                            "title": "Такси"}, {"tag": "scooters", "service": "scooters",
+                            "title": "Самокаты"}], "typed_experiments": {"items": []},
+                    "modes": [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}, {"mode": "scooters", "parameters": {
+                                "product_tag": "scooters", "available": true}}], "zone_name": "moscow"}
+
+  - resource: blender-v1-scooters-screen-grid
+    response:
+        status-code: 200
+        body:
+            grid:
+                id: "7b26a5c04a7b4e2daeef5f1dc4cecd94"
+                width: 6
+                blocks: [{"id": "5469b72d780f43c596e45242a0e9d410", "shortcut_ids": [
+                            "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                            "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                            "23b39a792ab942dc951840d5ec0b8828"], "slug": "scooters_shortcuts"}]
+                cells: [{"height": 2, "shortcut": {"content": {"color": "#F1F0ED",
+                                "overlays": [{"image_tag": "app_shortcut_poi_airport",
+                                        "shape": "bottom_right"}], "subtitle": "QR-код\
+                                    \ на руле самоката", "title": "Сканировать"},
+                            "id": "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                            "scenario": "scooters_qr_scan", "scenario_params": {"scooters_qr_scan_params": {
+                                    "action_type": "scooters_qr_scan"}}}, "width": 3},
+                    {"height": 2, "shortcut": {"content": {"color": "#F1F0ED", "overlays": [
+                                    {"image_tag": "app_shortcut_poi_airport", "shape": "bottom_right"}],
+                                "title": "Поддержка"}, "id": "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                            "scenario": "support", "scenario_params": {"support_params": {
+                                    "action_type": "support", "mode": "scooters"}}},
+                        "width": 3}, {"height": 2, "shortcut": {"content": {"color": "#F1F0ED",
+                                "title": "Go кататься"}, "id": "23b39a792ab942dc951840d5ec0b8828",
+                            "scenario": "media_story", "scenario_params": {"media_story_params": {
+                                    "action_type": "media"}}}, "width": 3}]
+    expectations:
+        call-count: 1
+        request:
+            body:
+                grid_restriction: {"ndash_width": 9, "mdash_width": 14, "unit_width": 61,
+                    "grid_width": 6, "cell_widths": [2, 3, 4], "media_size_info": {}}
+                scenario_tops: [{"scenario": "scooters_qr_scan", "shortcuts": [{"content": {
+                                    "color": "#F1F0ED", "overlays": [{"image_tag": "app_shortcut_poi_airport",
+                                            "shape": "bottom_right"}], "subtitle": "QR-код\
+                                        \ на руле самокат", "title": "Сканировать"},
+                                "id": "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                                "scenario": "scooters_qr_scan", "scenario_params": {
+                                    "scooters_qr_scan_params": {"action_type": "scooters_qr_scan"}}}]},
+                    {"scenario": "support", "shortcuts": [{"content": {"color": "#F1F0ED",
+                                    "overlays": [{"image_tag": "app_shortcut_poi_airport",
+                                            "shape": "bottom_right"}], "title": "Поддержка"},
+                                "id": "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                                "scenario": "support", "scenario_params": {"support_params": {
+                                        "action_type": "support", "mode": "scooters"}}}]},
+                    {"scenario": "media_story", "shortcuts": [{"content": {"color": "#F1F0ED",
+                                    "title": "Go кататься"}, "id": "23b39a792ab942dc951840d5ec0b8828",
+                                "scenario": "edia-stories", "scenario_params": {"media_story_params": {
+                                        "action_type": "media"}}}]}]
+                showcases: []
+                user_context: {"show_at": "2020-01-01T00:00:00+00:00", "state": {},
+                    "zone_name": "moscow", "pin_position": [1, 2]}
+                state: {}
+
+  - resource: shortcuts-v1-screen-scooters
+    response:
+        status-code: 200
+        body:
+            sections: [{"type": "items_linear_grid", "typed_header": {"type": "list_item",
+                        "lead": {"type": "app_title", "icon_tag": "shortcuts_button_scooters:7d1d49",
+                            "title": {"text": "Самокаты"}}}, "shortcut_ids": ["discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                        "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                        "23b39a792ab942dc951840d5ec0b8828"]}]
+            offers: {"items": [{"shortcut_id": "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                        "title": "Сканировать", "subtitle": "QR-код на руле самоката",
+                        "type": "action-driven", "width": 3, "height": 2, "background": {
+                            "color": "#F1F0ED"}, "action": {"type": "scooters_qr_scan"},
+                        "overlays": [{"shape": "bottom_right", "image_tag": "app_shortcut_poi_airport"}]},
+                    {"shortcut_id": "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                        "title": "Поддержка", "type": "action-driven", "width": 3,
+                        "height": 2, "background": {"color": "#F1F0ED"}, "action": {
+                            "type": "support"}, "overlays": [{"shape": "bottom_right",
+                                "image_tag": "app_shortcut_poi_airport"}]}, {"shortcut_id": "23b39a792ab942dc951840d5ec0b8828",
+                        "title": "Go кататься", "type": "media-stories", "width": 3,
+                        "height": 2, "background": {"color": "#F1F0ED"}, "action": {
+                            "type": "media"}}]}
+            layout: {"width": 6, "type": "linear_grid", "grid_id": "8ac5a10df9584cee94f1ddd86b3e3d4e"}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                state: {}
+                grid:
+                    id: "7b26a5c04a7b4e2daeef5f1dc4cecd94"
+                    width: 6
+                    blocks: [{"id": "5469b72d780f43c596e45242a0e9d410", "shortcut_ids": [
+                                "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                                "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                                "23b39a792ab942dc951840d5ec0b8828"], "slug": "scooters_shortcuts"}]
+                    cells: [{"height": 2, "shortcut": {"content": {"color": "#F1F0ED",
+                                    "overlays": [{"image_tag": "app_shortcut_poi_airport",
+                                            "shape": "bottom_right"}], "subtitle": "QR-код\
+                                        \ на руле самоката", "title": "Сканировать"},
+                                "id": "discovery_scooters_qr:d26f9aaaf42b4072bee15742c199c5a7",
+                                "scenario": "scooters_qr_scan", "scenario_params": {
+                                    "scooters_qr_scan_params": {"action_type": "scooters_qr_scan"}}},
+                            "width": 3}, {"height": 2, "shortcut": {"content": {"color": "#F1F0ED",
+                                    "overlays": [{"image_tag": "app_shortcut_poi_airport",
+                                            "shape": "bottom_right"}], "title": "Поддержка"},
+                                "id": "discovery_scooters_support:712517dc9afe4e339c16ba0eb8e78bce",
+                                "scenario": "support", "scenario_params": {"support_params": {
+                                        "action_type": "support", "mode": "scooters"}}},
+                            "width": 3}, {"height": 2, "shortcut": {"content": {"color": "#F1F0ED",
+                                    "title": "Go кататься"}, "id": "23b39a792ab942dc951840d5ec0b8828",
+                                "scenario": "media_story", "scenario_params": {"media_story_params": {
+                                        "action_type": "media"}}}, "width": 3}]
+                shortcuts: {"grids_support": [{"width": 6, "unit_width": 61}], "ndash_width": 9,
+                    "mdash_width": 14}
+                position#array: [1, 2]
+                media_size_info: {}

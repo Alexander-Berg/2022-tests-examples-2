@@ -1,0 +1,43 @@
+default:
+    __default__:
+        period: 3600
+        max_age: 86400
+description: Настройки удаления данных, помеченных как удаленные, для таблиц driver-categories-api.
+    Настраивается глобально и per-table. 0 = выключено. Настройка period (периодичность
+    запуска задачи) применяется только при перезапуске сервиса
+tags: []
+schema:
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+    required:
+      - __default__
+    type: object
+    definitions:
+        Settings:
+            type: object
+            additionalProperties: false
+            properties:
+                period:
+                    minimum: 0
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                max_age:
+                    minimum: 0
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+            required:
+              - period
+              - max_age
+samples:
+  - __default__:
+        period: 3600
+        max_age: 86400
+    categories_car_categories:
+        period: 900
+        max_age: 10800
+    categories_driver_restrictions:
+        period: 7200
+        max_age: 172800

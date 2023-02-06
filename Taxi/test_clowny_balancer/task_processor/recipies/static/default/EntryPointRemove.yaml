@@ -1,0 +1,171 @@
+data:
+    name: EntryPointRemove
+    provider_name: clowny-balancer
+    job_vars:
+      - entry_point_id
+      - lock_name
+    stages:
+      - name: InternalGetLock
+        input:
+            lock_name: lock_name
+        provider_name: clownductor
+
+      - name: InternalGetEntrypointInfo
+        input:
+            entry_point_id: entry_point_id
+        output:
+            awacs_namespace_id: awacs_namespace_id
+            dns_name: dns_name
+            awacs_domain_ids: awacs_domain_ids
+            awacs_upstream_ids: awacs_upstream_ids
+            entry_point_ids: entry_point_ids
+            upstream_ids: upstream_ids
+            awacs_backend_ids: awacs_backend_ids
+        provider_name: clowny-balancer
+
+      - name: InternalDeleteUpstreams
+        input:
+            upstream_ids: upstream_ids
+        provider_name: clowny-balancer
+
+      - name: InternalDeleteEntryPoints
+        input:
+            entry_point_ids: entry_point_ids
+        provider_name: clowny-balancer
+
+      - name: AwacsL3GetBalancer
+        input:
+            namespace_id: awacs_namespace_id
+        output:
+            l3mgr_service_id: l3mgr_service_id
+        provider_name: clowny-balancer
+
+      - name: L3MGRFetchIpv6
+        input:
+            l3mgrServiceId: l3mgr_service_id
+        output:
+            ipv6: ipv6
+        provider_name: clowny-balancer
+
+      - name: DNSDeleteRecord
+        input:
+            fqdn: dns_name
+            ipv6: ipv6
+        provider_name: clowny-balancer
+
+      - name: AwacsCertificatesGetMany
+        input:
+            domain_ids: awacs_domain_ids
+            namespace_id: awacs_namespace_id
+        output:
+            awacs_certificate_ids: certificate_ids
+        provider_name: clowny-balancer
+
+      - name: AwacsDomainsDelete
+        input:
+            domain_ids: awacs_domain_ids
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsDomainsWaitFor
+        input:
+            domain_ids: awacs_domain_ids
+            namespace_id: awacs_namespace_id
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsCertificatesManyDelete
+        input:
+            namespace_id: awacs_namespace_id
+            certificate_ids: awacs_certificate_ids
+        output:
+            awacs_deleting_certificate_ids: deleting_certificate_ids
+        provider_name: clowny-balancer
+
+      - name: AwacsCertificatesManyWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            certificate_ids: awacs_deleting_certificate_ids
+            for_deleted: true
+        provider_name: clowny-balancer
+
+      - name: AwacsUpstreamsDelete
+        input:
+            namespace_id: awacs_namespace_id
+            upstream_ids: awacs_upstream_ids
+        output:
+            deleted_awacs_upstream_ids: upstream_ids
+        provider_name: clowny-balancer
+
+      - name: AwacsUpstreamsWaitFor
+        input:
+            awacs_namespace_id: awacs_namespace_id
+            deleted_awacs_upstream_ids: deleted_awacs_upstream_ids
+            for_deleted: true
+        provider_name: clowny-balancer
+
+    # перед удалением бекенда, проверить
+    # не использует ли другой апстрим данный бекенд
+    # (если использует, то варнинг и пропускаем), при удалении последнего ентрипоинта удалится бекенд
+      - name: AwacsBackendsDelete
+        input:
+            namespace_id: awacs_namespace_id
+            backend_ids: awacs_backend_ids
+        output:
+            deleted_awacs_backend_ids: backend_ids
+        provider_name: clowny-balancer
+
+      - name: AwacsBackendWaitFor
+        input:
+            for_delete: true
+            backend_ids: deleted_awacs_backend_ids
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerGetBalancerIds
+        input:
+            awacs_namespace_id: awacs_namespace_id
+        output:
+            balancer_sas: balancer_sas
+            balancer_vla: balancer_vla
+            balancer_man: balancer_man
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_sas
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_vla
+        provider_name: clowny-balancer
+
+      - name: AwacsBalancerWaitFor
+        input:
+            namespace_id: awacs_namespace_id
+            balancer_id: balancer_man
+        provider_name: clowny-balancer
+
+      - name: AwacsNamespaceCanBeDeleted
+        input:
+            awacs_namespace_id: awacs_namespace_id
+        output:
+            namespace_can_be_deleted: namespace_can_be_deleted
+        provider_name: clowny-balancer
+
+      - name: AwacsNamespaceDelete
+        input:
+            namespace_id: awacs_namespace_id
+            delete_empty: true
+            checked_and_ready_to_delete: namespace_can_be_deleted
+        output:
+            deleted_namespace: namespace_id
+        provider_name: clowny-balancer
+
+      - name: InternalReleaseLock
+        input:
+            lock_name: lock_name
+        provider_name: clownductor

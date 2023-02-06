@@ -1,0 +1,31 @@
+[TAXI-TRUNK-0](!)
+transport=transport-udp-ipv6
+context=from-TAXI-SBC
+disallow=all
+allow=alaw
+allow=ulaw
+direct_media=no
+
+
+;---------------------------------------------------
+{% for item in trunk_test %}
+;{{ item.name }}
+;AORS
+[{{ item.name }}-aor]
+type=aor
+contact=sip:[{{ item.dstip }}]
+qualify_frequency=30
+
+;IDENTITIES
+[{{ item.name }}-id]
+type=identify
+endpoint={{ item.endpoint }}
+match=[{{ item.dstip }}]
+
+;ENDPOINTS
+[{{ item.endpoint }}](TAXI-TRUNK-0)
+type=endpoint
+aors={{ item.name }}-aor
+;---------------------------------------------------
+
+{%endfor%}

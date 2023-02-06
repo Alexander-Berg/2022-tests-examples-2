@@ -1,0 +1,40 @@
+id: test-productoffers-flow-no-offers
+title: Проверяем, что при походе в place=productoffers запроса в сервис market-shops
+    не случится, если репорт не вернул ни одного документа.
+
+parameters:
+  - case:
+      - report_mocked_body:
+            search#object:
+              - key: total
+                value: 0
+              - key: results
+                value: []
+
+source:
+    request:
+        method: get
+        query:
+            place: productoffers
+        headers:
+            content-type: application/json
+    expectations:
+        response:
+            status-code: 200
+            body:
+                search#object:
+                  - key: results
+                    value: []
+
+mocks:
+  - resource: report-rw-balancer
+    response:
+        status-code: 200
+        body#xget: /test-params/case/report_mocked_body
+    expectations:
+        call-count: 1
+        request:
+            method: get
+  - resource: market-shops-v2-shop
+    expectations:
+        call-count: 0

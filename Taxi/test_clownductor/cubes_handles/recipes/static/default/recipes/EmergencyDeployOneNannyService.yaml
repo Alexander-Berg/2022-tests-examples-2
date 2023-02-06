@@ -1,0 +1,44 @@
+data:
+    name: EmergencyDeployOneNannyService
+    provider_name: clownductor
+    job_vars:
+      - nanny_name
+      - image
+      - comment
+      - link_to_changelog
+      - sandbox_resources
+      - emergency_deploy
+    stages:
+      - name: UpdateHosts
+        provider_name: clownductor
+        input:
+            direct_name: nanny_name
+      - name: NannyCubeCreateSnapshot
+        provider_name: clownductor
+        input:
+            image: image
+            sandbox_resources: sandbox_resources
+            name: nanny_name
+            link_to_changelog: link_to_changelog
+        output:
+            snapshot_id: snapshot_id
+      - name: NannySetEmergencyRecipeInfoAttrs
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            comment: comment
+            name: nanny_name
+            snapshot_id: snapshot_id
+            emergency_deploy: emergency_deploy
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: nanny_name
+            snapshot_id: snapshot_id
+      - name: NannyDeleteEmergencyRecipeInfoAttrs
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name

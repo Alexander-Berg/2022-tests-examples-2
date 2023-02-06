@@ -1,0 +1,2459 @@
+<test>
+    <![CDATA[
+
+    mysql> select * from userinfo_safe where uid in (70495,70496);
+    +--------+-------+-------+------------------------------------+-------------+
+    | uid    | hintq | hinta | cryptpasswd                        | rescue_code |
+    +--------+-------+-------+------------------------------------+-------------+
+    |  70495 | NULL  | NULL  | $1$sty74Xzk$Eh5Q5g.FNdDS7Ra7YEv8N1 |             |
+    |  70496 | NULL  | NULL  | $1$sty74Xzk$Eh5Q5g.FNdDS7Ra7YEv8N1 |             |
+    +--------+-------+-------+------------------------------------+-------------+
+    2 rows in set (0.00 sec)
+
+    mysql> select fio from userinfo where uid in (70495, 70496);
+    +-----------------+
+    | fio             |
+    +-----------------+
+    | Bartolome Denis |
+    | Malice None     |
+    +-----------------+
+    2 rows in set (0.00 sec)
+
+    mysql> select * from subscription where login in ('malice', 'malice2') or uid in (70495,70496) order by uid, sid;
+    +----------+-----+--------+---------+--------+---------+------------+------------+
+    | suid     | sid | uid    | login   | passwd | host_id | login_rule | born_date  |
+    +----------+-----+--------+---------+--------+---------+------------+------------+
+    |    85052 |   2 | 70495 | malice1 | *      |     306 |          1 | 2003-08-21 |
+    |    85052 |   4 | 70495 | malice  | *      |      20 |          1 | 2000-06-20 |
+    |    85052 |  16 | 70495 | malice  | *      |     306 |          1 | 2003-10-10 |
+    | 23362080 | 800 | 70495 | malice  | *      |      12 |          1 | 2007-10-30 |
+    |   281986 |   2 | 70496 | malice  | *      |      80 |          1 | 2000-08-02 |
+    |   281986 |  16 | 70496 | Malice2 | *      |      80 |          1 | 2003-10-10 |
+    | 23390350 | 800 | 70496 | Malice2 | *      |      12 |          1 | 2007-10-30 |
+    +----------+-----+--------+---------+--------+---------+------------+------------+
+    7 rows in set (0.01 sec)
+
+    mysql> select * from aliases where uid in (70495,70496,71001,71002,71003,71004,71005,71006,71007);
+    +-------+------+---------------------------+----------------+
+    | uid   | type | value                     | surrogate_type |
+    +-------+------+---------------------------+----------------+
+    | 70495 |    1 | malice                    | 1              |
+    | 70495 |   11 | 79161112233               | 11             |
+    | 70495 |    2 | malice1                   | 2              |
+    | 70495 |    3 | malice                    | 3              |
+    | 70495 |    9 | 1/malice-gs               | 9              |
+    | 70496 |    1 | malice2                   | 1              |
+    | 70496 |    2 | malice                    | 2              |
+    | 70496 |    3 | malice2                   | 3              |
+    | 71001 |    1 | addr-master               | 1              |
+    | 71001 |   11 | 79032426488               | 11             |
+    | 71002 |    1 | addr-default              | 1              |
+    | 71003 |    1 | addr-default-native       | 1              |
+    | 71004 |    1 | addr-external-default     | 1              |
+    | 71005 |    1 | addr-broken-default       | 1              |
+    | 71006 |    1 | addr-default-phone        | 1              |
+    | 71006 |   11 | 76661112233               | 11             |
+    | 71007 |    1 | addr-default-phone-denorm | 1              |
+    | 71007 |   11 | 79637778899               | 11             |
+    +-------+------+---------------------------+----------------+
+    18 rows in set (0.00 sec)
+
+    mysql> select * from attributes where uid in(70495,70496,71001,71002,71003,71004,71005,71006,71007) and type=14;
+    +-------+------+-----------------------------------+
+    | uid   | type | value                             |
+    +-------+------+-----------------------------------+
+    | 71001 |   14 | addr.master@yandex.com.tr         |
+    | 71002 |   14 | cerevra@yandex-team.ru            |
+    | 71003 |   14 | addr.default.native@yandex.com.tr |
+    | 71004 |   14 | cerevra@yandex-team.ru            |
+    | 71005 |   14 | cerevra@yandex-team.ru            |
+    | 71006 |   14 | 76661112233@yandex.by             |
+    | 71007 |   14 | 89637778899@yandex.ru             |
+    +-------+------+-----------------------------------+
+    7 rows in set (0.00 sec)
+
+    mysql> select uid,address,status from users where uid in(70495,70496,71001,71002,71003,71004,71005,71006,71007);
+    +-------+------------------------+--------+
+    | uid   | address                | status |
+    +-------+------------------------+--------+
+    | 71001 | cerevra@yandex-team.ru |      1 |
+    | 71001 | cerevra@gmail.com      |      0 |
+    | 71002 | cerevra@yandex-team.ru |      1 |
+    | 71004 | cerevra@yandex-team.ru |      0 |
+    +-------+------------------------+--------+
+    4 rows in set (0.00 sec)
+
+    Default summary:
+    71001 - native visible tr (= attr 31) - OK
+    71002 - external confirmed - OK
+    71003 - native invisible tr - OK
+    71004 - external unconfirmed - fallback to yandex.ru
+    71005 - external not existing - fallback to yandex.ru
+    71006 - default phone - OK
+
+    !!!SWITCHED OFF!!!
+    71007 - default phone in nonorthodoxal - OK
+
+    ]]>
+
+    <!-- We assume that correct account selection based on login and sid
+    shall be as follows -->
+    <![CDATA[
+                       !   2         16,2      smtp       pop      mail      -
+    -------------------!----------------------------------------------------------
+    malice             !  70496      70495      70495     70495    70495   70495
+    malice@yandex.ru   !   -           -        70496     70496    70495     -
+    malice@narod.ru    !   -           -        70495     70495    70495     -
+    -------------------!----------------------------------------------------------
+    malice2            !   -         70496      70496     70496    70496   70496
+    malice2@yandex.ru  !   -           -          -         -      70496     -
+    malice2@narod.ru   !   -           -        70496     70496    70496     -
+    -------------------!----------------------------------------------------------
+    malice1            ! 70495       70495      70495     70495      -       -
+    malice1@yandex.ru  !   -           -        70495     70495      -       -
+    malice1@narod.ru   !   -           -          -         -        -       -
+    ]]>
+
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="method">
+            <instance id="login">login</instance>
+            <instance id="sessionid">sessionid</instance>
+            <instance id="userinfo">userinfo</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="localhost">127.0.0.1</instance>
+            <instance id="internal">95.108.132.35</instance>
+        </cgi>
+
+        <cgi name="host">
+            <instance id="ru">yandex.ru</instance>
+        </cgi>
+
+        <cgi name="uid">
+            <instance id="70488">70488</instance>
+            <instance id="70495">70495</instance>
+            <instance id="70496">70496</instance>
+            <instance id="hybrid">70509</instance>
+            <instance id="71001">71001</instance>
+            <instance id="71002">71002</instance>
+            <instance id="71003">71003</instance>
+            <instance id="71004">71004</instance>
+            <instance id="71005">71005</instance>
+            <instance id="71006">71006</instance>
+            <instance id="4003116159">4003116159</instance>
+
+            <!-- pdd -->
+            <instance id="pdd_with_user_defined_name">1130000000035661</instance>
+            <instance id="pdd_without_user_defined_name">1130000000165441</instance>
+            <instance id="pdd_a_lot_of_aliases">1130000000010830</instance>
+
+            <instance id="frozen_mail">70490</instance>
+            <instance id="frozen_pdd">1130000000000003</instance>
+        </cgi>
+
+        <cgi name="login">
+            <instance id="malice1">malice1</instance>
+            <instance id="malice1_yandex">malice1@yandex.ru</instance>
+            <instance id="malice1_narod">malice1@narod.ru</instance>
+            <instance id="malice">malice</instance>
+            <instance id="malice_yandex">malice@yandex.ru</instance>
+            <instance id="malice_narod">malice@narod.ru</instance>
+            <instance id="malice2">malice2</instance>
+            <instance id="malice2_yandex">malice2@yandex.ru</instance>
+            <instance id="malice2_narod">malice2@narod.ru</instance>
+            <instance id="gs_test_1">bb-test-gs</instance>
+            <instance id="gs_test_2">bb.test.gs@yandex.ru</instance>
+            <instance id="gs_test_3">bb-test-gs@narod.ru</instance>
+            <instance id="gs_test_4">test.gs@galatasaray.net</instance>
+            <instance id="malice-gs">malice-gs@galatasaray.net</instance>
+            <instance id="master">addr.master</instance>
+            <instance id="master_yandex">addr.master@yandex.com</instance>
+            <instance id="master_narod">addr.master@narod.ru</instance>
+            <instance id="master_phone">79032426488</instance>
+            <instance id="master_phone_yandex">79032426488@yandex.com</instance>
+            <instance id="master_phone_narod">79032426488@narod.ru</instance>
+
+            <instance id="hybrid_portal">Centaur</instance>
+            <instance id="hybrid_email">Centaur@ya.ru</instance>
+            <instance id="hybrid_narod">Centaur@narod.ru</instance>
+            <instance id="hybrid_pddmaster">Horse-ass@yaaa.ru</instance>
+            <instance id="hybrid_pddalias">Horse-tail@imap1.yandex.ru</instance>
+            <instance id="hybrid_pdd_denorm">horse.ass@imap1.yandex.ru</instance>
+            <instance id="hybrid_broken">Horse-ass</instance>
+         </cgi>
+
+        <cgi name="password">
+            <instance id="valid">qwerty</instance>
+         </cgi>
+
+        <cgi name="captcha">
+            <instance id="no">no</instance>
+        </cgi>
+
+        <cgi name="sid">
+            <instance id="2">2</instance>
+            <instance id="16,2">16,2</instance>
+            <instance id="mail">mail</instance>
+            <instance id="pop">pop</instance>
+            <instance id="smtp">smtp</instance>
+            <instance id="passport">passport</instance>
+        </cgi>
+
+        <cgi name="dbfields">
+            <instance id="empty"/>
+            <instance id="accounts_and_fio">accounts.login.uid,account_info.fio.uid</instance>
+            <instance id="plus_subscription_sid2">accounts.login.uid,account_info.fio.uid,accounts.ena.uid,subscription.login.2</instance>
+            <instance id="plus_all_sid2_plus_all_sid16">accounts.login.uid,account_info.fio.uid,accounts.ena.uid,subscription.login.2,subscription.login.16</instance>
+            <instance id="everything_plus_pseudo">accounts.login.uid,account_info.fio.uid,accounts.ena.uid,subscription.login.2,subscription.login.16,hosts.db_id.2,hosts.db_id.16,subscription.login.-,hosts.db_id.-</instance>
+            <instance id="just_pseudo">subscription.login.-,hosts.db_id.-</instance>
+        </cgi>
+
+        <cgi name="sessionid" func="gensessid">
+            <arg name="host">yandex.ru</arg>
+            <arg name="type">valid</arg>
+            <arg name="time">-10</arg>
+            <instance id="ru_valid">
+                <arg name="uid">9019906</arg>
+            </instance>
+            <instance id="70495_valid">
+                <arg name="uid">70495</arg>
+            </instance>
+            <instance id="70496_valid">
+                <arg name="uid">70496</arg>
+            </instance>
+            <instance id="71001_valid">
+                <arg name="uid">71001</arg>
+            </instance>
+            <instance id="70488_valid">
+                <arg name="uid">70488</arg>
+            </instance>
+            <instance id="frozen_mail_valid">
+                <arg name="uid">70490</arg>
+            </instance>
+            <instance id="frozen_pdd_valid">
+                <arg name="uid">1130000000000003</arg>
+            </instance>
+        </cgi>
+
+        <cgi name="emails">
+            <instance id="getall">getall</instance>
+            <instance id="getyandex">getyandex</instance>
+            <instance id="getdefault">getdefault</instance>
+            <instance id="testone">testone</instance>
+        </cgi>
+
+        <cgi name="addrtotest">
+            <instance id="malice_yandex">malice@yandex.ru</instance>
+            <instance id="malice_narod">malice@narod.ru</instance>
+            <instance id="malice1_yandex">malice1@yandex.ru</instance>
+            <instance id="malice1_narod">malice1@narod.ru</instance>
+            <instance id="malice2_yandex">malice2@yandex.ru</instance>
+            <instance id="malice2_narod">malice2@narod.ru</instance>
+            <instance id="malicegs_galatasaray">malice-gs@galatasaray.net</instance>
+            <instance id="normalized70495_narod">79161112233@narod.ru</instance>
+            <instance id="denormalized70495_narod">89161112233@narod.ru</instance>
+            <instance id="normalized70495_ya">79161112233@ya.ru</instance>
+            <instance id="denormalized70495_ya">8-916-111 22 33@ya.ru</instance>
+            <instance id="normalized70495_galatasaray">79161112233@galatasaray.net</instance>
+            <instance id="denormalized70495_galatasaray">8(916)111-22-33@galatasaray.net</instance>
+            <instance id="normalized71001_narod">79032426488@narod.ru</instance>
+            <instance id="denormalized71001_narod">89032426488@narod.ru</instance>
+            <instance id="normalized71001_ya">79032426488@yandex.com</instance>
+            <instance id="denormalized71001_ya">+8 903 242-64-88@yandex.com</instance>
+            <instance id="normalized71001_galatasaray">79032426488@galatasaray.net</instance>
+            <instance id="denormalized71001_galatasaray">89032426488@galatasaray.net</instance>
+            <instance id="validated_external">cerevra@yandex-team.ru</instance>
+            <instance id="to_validate_external">cerevra@gmail.com</instance>
+
+            <instance id="frozen_mail_default">bbtst_mail_frozen@yandex.ru</instance>
+            <instance id="frozen_mail_other">bbtst_mail_frozen@narod.ru</instance>
+            <instance id="frozen_pdd_default">frozen@imap1.yandex.ru</instance>
+            <instance id="frozen_pdd_other">frozen@yaaa.ru</instance>
+        </cgi>
+
+        <cgi name="force_show_mail_subscription">
+            <instance id="yes">yes</instance>
+        </cgi>
+
+        <result name="exception_addrtotest">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with">BlackBox error: Missing addrtotest argument</arg>
+                <arg name="/doc/ttl">dontmatch</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="empty_maillist_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+            </body>
+        </result>
+        <result name="empty_maillist_70496">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+            </body>
+        </result>
+        <result name="empty_maillist_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+            </body>
+        </result>
+
+        <result name="getall_maillist_70488">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70488</arg>
+                <arg name="/doc/login">bb-test-gs</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2012-12-24 16:22:17']">test-gs@galatasaray.net</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice-gs@galatasaray.net</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_70496">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/address-list/address)">5</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_hybrid">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70509</arg>
+                <arg name="/doc/login">centaur</arg>
+                <arg name="count(/doc/address-list/address)">17</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">centaur@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">centaur@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">centaur@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">centaur@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">centaur@yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-ass@imap1.yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 7][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-legs@imap1.yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 8][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-tail@imap1.yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 9][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-ass@yaaa.ru</arg>
+                <arg name="/doc/address-list/address[10][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-legs@yaaa.ru</arg>
+                <arg name="/doc/address-list/address[11][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-tail@yaaa.ru</arg>
+                <arg name="/doc/address-list/address[12][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-ass@zinbistroamericana.com</arg>
+                <arg name="/doc/address-list/address[13][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-legs@zinbistroamericana.com</arg>
+                <arg name="/doc/address-list/address[14][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-tail@zinbistroamericana.com</arg>
+                <arg name="/doc/address-list/address[15][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-ass@potapov.com</arg>
+                <arg name="/doc/address-list/address[16][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-legs@potapov.com</arg>
+                <arg name="/doc/address-list/address[17][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">horse-tail@potapov.com</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">addr.master@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">addr.master@yandex.com.tr</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">79032426488@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">79032426488@yandex.com.tr</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='0'][@rpop='0'][@silent='1'][@unsafe='0'][@native='0'][@born-date='2016-03-01 19:00:18']">cerevra@yandex-team.ru</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='0'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='0'][@born-date='2015-08-17 18:08:53']">cerevra@gmail.com</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_71002">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71002</arg>
+                <arg name="/doc/login">addr.default</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='1'][@native='0'][@born-date='2016-04-04 17:55:41']">Cerevra@Yandex-Team.ru</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_71003">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71003</arg>
+                <arg name="/doc/login">addr.default.native</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@yandex.com.tr</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_71004">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71004</arg>
+                <arg name="/doc/login">addr.external.default</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='0'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='0'][@born-date='2015-09-08 18:19:51']">cerevra@yandex-team.ru</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_71005">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71005</arg>
+                <arg name="/doc/login">addr.broken.default</arg>
+                <arg name="count(/doc/address-list/address)">5</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 12:50:41']">addr.broken.default@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 12:50:41']">addr.broken.default@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 12:50:41']">addr.broken.default@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 12:50:41']">addr.broken.default@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 12:50:41']">addr.broken.default@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getall_maillist_71006">
+            <body func="matchxpath">
+                <arg name="/doc/uid">71006</arg>
+                <arg name="/doc/login">addr.default.phone</arg>
+                <arg name="count(/doc/address-list/address)">5</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 13:19:59']">addr.default.phone@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 13:19:59']">addr.default.phone@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 13:19:59']">addr.default.phone@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 13:19:59']">addr.default.phone@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 13:19:59']">addr.default.phone@yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="getyandex_maillist_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice-gs@galatasaray.net</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 6][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getyandex_maillist_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">4</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">addr.master@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">addr.master@yandex.com.tr</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">79032426488@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">79032426488@yandex.com.tr</arg>
+            </body>
+        </result>
+        <result name="getyandex_maillist_71002">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71002</arg>
+                <arg name="/doc/login">addr.default</arg>
+                <arg name="count(/doc/address-list/address)">5</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 13:06:13']">addr.default@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getyandex_maillist_71004">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71004</arg>
+                <arg name="/doc/login">addr.external.default</arg>
+                <arg name="count(/doc/address-list/address)">5</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="getdefault_maillist_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice-gs@galatasaray.net</arg>
+            </body>
+        </result>
+        <result name="getdefault_maillist_70496">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getdefault_maillist_hybrid">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70509</arg>
+                <arg name="/doc/login">centaur</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-12-10 11:14:40']">centaur@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="getdefault_maillist_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42']">addr.master@yandex.com.tr</arg>
+           </body>
+        </result>
+        <result name="getdefault_maillist_71002">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71002</arg>
+                <arg name="/doc/login">addr.default</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='1'][@native='0'][@born-date='2016-04-04 17:55:41']">Cerevra@Yandex-Team.ru</arg>
+           </body>
+        </result>
+        <result name="getdefault_maillist_71003">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71003</arg>
+                <arg name="/doc/login">addr.default.native</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-26 14:42:33']">addr.default.native@yandex.com.tr</arg>
+           </body>
+        </result>
+        <result name="getdefault_maillist_71004">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71004</arg>
+                <arg name="/doc/login">addr.external.default</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-08 18:19:51']">addr.external.default@yandex.ru</arg>
+           </body>
+        </result>
+        <result name="getdefault_maillist_71005">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71005</arg>
+                <arg name="/doc/login">addr.broken.default</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 12:50:41']">addr.broken.default@yandex.ru</arg>
+           </body>
+        </result>
+        <result name="getdefault_maillist_71006">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71006</arg>
+                <arg name="/doc/login">addr.default.phone</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-09-09 13:19:59']">addr.default.phone@yandex.ru</arg>
+           </body>
+        </result>
+
+        <result name="testone_malice_narod_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice@narod.ru</arg>
+            </body>
+        </result>
+        <result name="testone_malice1_yandex_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice1@yandex.ru</arg>
+            </body>
+        </result>
+        <result name="testone_malicegs_galatasaray_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">malice-gs@galatasaray.net</arg>
+            </body>
+        </result>
+        <result name="testone_phone_70495">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+           </body>
+        </result>
+
+        <result name="testone_malice2_narod_70496">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice2@narod.ru</arg>
+            </body>
+        </result>
+        <result name="testone_malice_yandex_70496">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2020-09-13 15:28:20']">malice@yandex.ru</arg>
+            </body>
+        </result>
+
+        <result name="testone_validated_external_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='1'][@unsafe='0'][@native='0'][@born-date='2016-03-01 19:00:18']">cerevra@yandex-team.ru</arg>
+           </body>
+        </result>
+        <result name="testone_to_validate_external_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='0'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='0'][@born-date='2015-08-17 18:08:53']">cerevra@gmail.com</arg>
+           </body>
+        </result>
+        <result name="testone_phone_71001">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">71001</arg>
+                <arg name="/doc/login">addr.master</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="contains(translate(/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2015-08-17 10:35:42'], '()+-= ', ''), '9032426488')">1</arg>
+           </body>
+        </result>
+
+        <!--       -->
+        <!-- 70495 -->
+        <!--       -->
+
+        <result name="malice_and_fio">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Bartolome Denis</arg>
+            </body>
+        </result>
+        <result name="malice_subscription_sid2">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">4</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Bartolome Denis</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice1</arg>
+            </body>
+        </result>
+        <result name="malice_all_sid2_plus_all_sid16">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">5</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Bartolome Denis</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice1</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice</arg>
+            </body>
+        </result>
+        <result name="malice_plus_pseudo_sid16">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">9</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Bartolome Denis</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice1</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.16']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice1</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice_plus_pseudo_no_sid">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">9</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Bartolome Denis</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice1</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.16']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice1</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice_plus_pseudo_sid_malice1">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">9</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Bartolome Denis</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice1</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.16']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice1</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice_just_pseudo_no_sid">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice1</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice_just_pseudo_sid16">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice1</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice_just_pseudo_malice1">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice1</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice_nodata">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="/doc/login">malice</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+            </body>
+        </result>
+
+
+        <!--        -->
+        <!-- 70496 -->
+        <!--        -->
+
+        <result name="malice2_and_fio">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice2</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Malice None Нет</arg>
+            </body>
+        </result>
+        <result name="malice2_subscription_sid2">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">4</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice2</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Malice None Нет</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice</arg>
+            </body>
+        </result>
+        <result name="malice2_all_sid2_plus_all_sid16">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">5</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice2</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Malice None Нет</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice2</arg>
+            </body>
+        </result>
+        <result name="malice2_plus_pseudo_sid2">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">9</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice2</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Malice None Нет</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice2</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.16']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice2_just_pseudo_sid2">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice2_plus_pseudo_sid16">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">9</arg>
+                <arg name="/doc/dbfield[@id='accounts.ena.uid']">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice2</arg>
+                <arg name="/doc/dbfield[@id='account_info.fio.uid']">Malice None Нет</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.2']">malice</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.16']">malice2</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.2']">pg</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.16']">pg</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice2_just_pseudo_no_sid">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+        <result name="malice2_just_pseudo_sid16">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">2</arg>
+                <arg name="/doc/dbfield[@id='subscription.login.-']">malice</arg>
+                <arg name="/doc/dbfield[@id='hosts.db_id.-']">pg</arg>
+            </body>
+        </result>
+
+        <result name="malice2_nodata">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="/doc/login">Malice2</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+            </body>
+        </result>
+
+        <!-- PDD -->
+
+        <result name="pdd_without_user_defined_name_all">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='95119'][@domain='fans_of_cerevra.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000165441</arg>
+                <arg name="/doc/login">pdd_stranger@fans_of_cerevra.ru</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='1'][@native='0'][@born-date='2015-11-06 16:34:26']">sales@newts2domain.net</arg>
+            </body>
+        </result>
+        <result name="pdd_without_user_defined_name_yandex">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='95119'][@domain='fans_of_cerevra.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000165441</arg>
+                <arg name="/doc/login">pdd_stranger@fans_of_cerevra.ru</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+            </body>
+        </result>
+        <result name="pdd_without_user_defined_name_default">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='95119'][@domain='fans_of_cerevra.ru'][@mx='1'][@domain_ena='1'][@catch_all='0']">1130000000165441</arg>
+                <arg name="/doc/login">pdd_stranger@fans_of_cerevra.ru</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='1'][@native='0'][@born-date='2015-11-06 16:34:26']">sales@newts2domain.net</arg>
+            </body>
+        </result>
+
+        <result name="pdd_with_user_defined_name_all">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='4'][@domain='mellior.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000035661</arg>
+                <arg name="/doc/login">RobbITter-1343380562@mellior.ru</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='2014-01-13 17:53:36']">RobbITter-1343380562@mellior.ru</arg>
+            </body>
+        </result>
+
+        <result name="pdd_a_lot_of_aliases_all">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="count(/doc/address-list/address)">12016</arg>
+                <arg name="/doc/address-list/address[@default='1']">test43@imap1.yandex.ru</arg>
+            </body>
+        </result>
+        <result name="pdd_a_lot_of_aliases_default">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']">1130000000010830</arg>
+                <arg name="count(/doc/address-list)">1</arg>
+                <arg name="/doc/address-list/address[@default='1']">test43@imap1.yandex.ru</arg>
+            </body>
+        </result>
+
+        <!-- Common -->
+
+        <result name="not_found">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']"></arg>
+            </body>
+        </result>
+        <result name="not_found_imap_domain">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1'][@domid='2'][@domain='imap1.yandex.ru'][@mx='0'][@domain_ena='1'][@catch_all='0']"></arg>
+            </body>
+        </result>
+
+        <result name="unknown_login">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error">Login not found</arg>
+            </body>
+        </result>
+
+        <result name="getall_maillist_4003116159">
+            <body func="matchxpath">
+                <arg name="/doc/uid">4003116159</arg>
+                <arg name="/doc/login">domenniy.kirill</arg>
+                <arg name="count(/doc/address-list/address)">6</arg>
+                <arg name="/doc/address-list/address[6][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='1'][@native='0'][@born-date='2016-04-04 17:55:41']">яблочбко@xn--80aall0bie.xn--p1ag</arg>
+            </body>
+        </result>
+
+        <!-- frozen mail accounts -->
+
+        <result name="frozen_mail_empty">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70490</arg>
+                <arg name="/doc/login">bbtst_mail_frozen</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+           </body>
+        </result>
+        <result name="frozen_pdd_empty">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="count(/doc/address-list/address)">0</arg>
+           </body>
+        </result>
+
+        <result name="frozen_mail_default">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70490</arg>
+                <arg name="/doc/login">bbtst_mail_frozen</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@yandex.ru</arg>
+           </body>
+        </result>
+        <result name="frozen_pdd_default">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">frozen@imap1.yandex.ru</arg>
+           </body>
+        </result>
+
+        <result name="frozen_mail_other">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70490</arg>
+                <arg name="/doc/login">bbtst_mail_frozen</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@narod.ru</arg>
+           </body>
+        </result>
+        <result name="frozen_pdd_other">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="count(/doc/address-list/address)">1</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">frozen@yaaa.ru</arg>
+           </body>
+        </result>
+
+        <result name="frozen_mail_all">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='0']">70490</arg>
+                <arg name="/doc/login">bbtst_mail_frozen</arg>
+                <arg name="count(/doc/address-list/address)">5</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@ya.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@yandex.by</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@yandex.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@yandex.kz</arg>
+                <arg name="/doc/address-list/address[ 5][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">bbtst_mail_frozen@yandex.ru</arg>
+           </body>
+        </result>
+        <result name="frozen_pdd_all">
+            <body func="matchxpath">
+                <arg name="/doc/uid[@hosted='1']">1130000000000003</arg>
+                <arg name="/doc/login">frozen@imap1.yandex.ru</arg>
+                <arg name="count(/doc/address-list/address)">4</arg>
+                <arg name="/doc/address-list/address[ 1][@validated='1'][@default='1'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">frozen@imap1.yandex.ru</arg>
+                <arg name="/doc/address-list/address[ 2][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">frozen@yaaa.ru</arg>
+                <arg name="/doc/address-list/address[ 3][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">frozen@zinbistroamericana.com</arg>
+                <arg name="/doc/address-list/address[ 4][@validated='1'][@default='0'][@rpop='0'][@silent='0'][@unsafe='0'][@native='1'][@born-date='']">frozen@potapov.com</arg>
+           </body>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>BlackBox</description>
+        <url>http://passdev2.yandex.ru</url>
+
+        <case>
+            <description>method=login</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">localhost</cgi>
+            <cgi name="login">
+                malice1; malice1_yandex; malice1_narod;
+                malice; malice_yandex; malice_narod;
+                malice2; malice2_yandex; malice2_narod
+            </cgi>
+            <cgi name="password">valid</cgi>
+            <cgi name="sid" withnull="1">*</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+            <cgi name="captcha">no</cgi>
+
+            <!-- not found -->
+
+            <check>
+                <cgi name="sid">2; 16,2;</cgi>
+                <cgi name="login">malice_yandex; malice_narod; malice2_yandex; malice2_narod</cgi>
+                <result>unknown_login</result>
+            </check>
+            <check>
+                <cgi name="sid">2</cgi>
+                <cgi name="login">malice2</cgi>
+                <result>unknown_login</result>
+            </check>
+            <check>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="login">malice2_yandex</cgi>
+                <result>unknown_login</result>
+            </check>
+            <check>
+                <cgi name="sid">2; 16,2; mail</cgi>
+                <cgi name="login">malice1_yandex</cgi>
+                <result>unknown_login</result>
+            </check>
+            <check>
+                <cgi name="login">malice1_narod</cgi>
+                <result>unknown_login</result>
+            </check>
+            <check>
+                <cgi name="sid" withnull="1">mail; pop; smtp; passport</cgi>
+                <cgi name="login">malice1</cgi>
+                <result>unknown_login</result>
+            </check>
+
+            <!-- Select uid=70495 -->
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_malice1</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_malice1</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid_malice1</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid_malice1</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <result>malice_nodata</result>
+            </check>
+
+            <!--  select 70496 -->
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice2_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice2_and_fio</result>
+            </check>
+            <check>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice2_and_fio</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice2_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice2_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice2_subscription_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice2_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice2_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice2_all_sid2_plus_all_sid16</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid"> mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid2</result>
+            </check>
+            <check>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <result>malice2_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <result>malice2_nodata</result>
+            </check>
+            <check>
+                <result>malice2_nodata</result>
+            </check>
+
+        </case>
+
+        <case>
+            <description>method=userinfo (by login)</description>
+            <path>blackbox</path>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="userip">localhost</cgi>
+            <cgi name="login">
+                malice1; malice1_yandex; malice1_narod;
+                malice; malice_yandex; malice_narod;
+                malice2; malice2_yandex; malice2_narod
+            </cgi>
+            <cgi name="sid" withnull="1">*</cgi>
+            <cgi name="dbfields" withnull="1">*</cgi>
+
+            <!-- not found -->
+
+            <check>
+                <cgi name="sid">2; 16,2;</cgi>
+                <cgi name="login">malice_yandex; malice_narod; malice2_yandex; malice2_narod</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="sid">2</cgi>
+                <cgi name="login">malice2</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="sid" withnull="1">smtp; passport; pop</cgi>
+                <cgi name="login">malice2_yandex</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="sid">2; 16,2; mail</cgi>
+                <cgi name="login">malice1_yandex</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="login">malice1_narod</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="sid" withnull="1">mail; pop; smtp; passport</cgi>
+                <cgi name="login">malice1</cgi>
+                <result>not_found</result>
+            </check>
+
+            <!-- Select uid=70495 -->
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice_and_fio</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice_subscription_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice_all_sid2_plus_all_sid16</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_malice1</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice_just_pseudo_malice1</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid_malice1</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice_plus_pseudo_sid_malice1</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice_yandex</cgi>
+                <cgi name="sid">mail</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice1; malice1_yandex</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <result>malice_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice1</cgi>
+                <cgi name="sid">2; 16,2</cgi>
+                <result>malice_nodata</result>
+            </check>
+
+            <!--  select 70496 -->
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice2_and_fio</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice2_and_fio</result>
+            </check>
+            <check>
+                <cgi name="dbfields">accounts_and_fio</cgi>
+                <result>malice2_and_fio</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice2_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice2_subscription_sid2</result>
+            </check>
+            <check>
+                <cgi name="dbfields">plus_subscription_sid2</cgi>
+                <result>malice2_subscription_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice2_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice2_all_sid2_plus_all_sid16</result>
+            </check>
+            <check>
+                <cgi name="dbfields">plus_all_sid2_plus_all_sid16</cgi>
+                <result>malice2_all_sid2_plus_all_sid16</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid">mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_no_sid</result>
+            </check>
+            <check>
+                <cgi name="dbfields">just_pseudo</cgi>
+                <result>malice2_just_pseudo_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid"> mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid2</result>
+            </check>
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid">16,2</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid16</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid2</result>
+            </check>
+            <check>
+                <cgi name="dbfields">everything_plus_pseudo</cgi>
+                <result>malice2_plus_pseudo_sid2</result>
+            </check>
+
+            <check>
+                <cgi name="login">malice2_narod</cgi>
+                <cgi name="sid" withnull="1">pop; smtp; passport; mail</cgi>
+                <result>malice2_nodata</result>
+            </check>
+            <check>
+                <cgi name="login">malice2</cgi>
+                <cgi name="sid" withnull="1">16,2; pop; smtp; passport; mail</cgi>
+                <result>malice2_nodata</result>
+            </check>
+            <check>
+                <result>malice2_nodata</result>
+            </check>
+
+        </case>
+
+        <case lastid="phone_sessid_testone">
+            <description>Emails for users with phone alias (method=sessionid, testone)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="method">sessionid</cgi>
+            <cgi name="sessionid">70495_valid; 70496_valid; 71001_valid</cgi>
+            <cgi name="emails">testone</cgi>
+            <cgi name="addrtotest" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="addrtotest" withnull="1"></cgi>
+                <result>exception_addrtotest</result>
+            </check>
+
+            <check>
+                <cgi name="addrtotest">malice_narod</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>testone_malice_narod_70495</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">malice1_yandex</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>testone_malice1_yandex_70495</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">malicegs_galatasaray</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>testone_malicegs_galatasaray_70495</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">normalized70495_ya; denormalized70495_ya;
+                                    normalized70495_narod; denormalized70495_narod;
+                                    normalized70495_galatasaray; denormalized70495_galatasaray</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>testone_phone_70495</result>
+            </check>
+
+            <check>
+                <cgi name="addrtotest">malice_yandex</cgi>
+                <cgi name="sessionid">70496_valid</cgi>
+                <result>testone_malice_yandex_70496</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">malice2_narod</cgi>
+                <cgi name="sessionid">70496_valid</cgi>
+                <result>testone_malice2_narod_70496</result>
+            </check>
+
+            <check>
+                <cgi name="addrtotest">validated_external</cgi>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>testone_validated_external_71001</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">to_validate_external</cgi>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>testone_to_validate_external_71001</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">normalized71001_ya; denormalized71001_ya;
+                                    normalized71001_narod; denormalized71001_narod</cgi>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>testone_phone_71001</result>
+            </check>
+
+            <check>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>empty_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="sessionid">70496_valid</cgi>
+                <result>empty_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>empty_maillist_71001</result>
+            </check>
+
+        </case>
+
+        <case lastid="phone_sessid">
+            <description>Emails for users with phone alias (method=sessionid)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="method">sessionid</cgi>
+            <cgi name="sessionid">70495_valid; 70496_valid; 71001_valid; 70488_valid</cgi>
+            <cgi name="emails">getall;getyandex;getdefault</cgi>
+
+            <check>
+                <cgi name="sessionid">70488_valid</cgi>
+                <result>getall_maillist_70488</result>
+            </check>
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>getall_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>getyandex_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="sessionid">70496_valid</cgi>
+                <result>getall_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>getall_maillist_71001</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>getyandex_maillist_71001</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="sessionid">70495_valid</cgi>
+                <result>getdefault_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="sessionid">70496_valid</cgi>
+                <result>getdefault_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="sessionid">71001_valid</cgi>
+                <result>getdefault_maillist_71001</result>
+            </check>
+
+        </case>
+
+        <case lastid="phone_uinfo_testone">
+            <description>Emails for users with phone alias (method=userinfo, testone)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="uid">70495;70496;71001</cgi>
+            <cgi name="emails">testone</cgi>
+            <cgi name="addrtotest" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="addrtotest" withnull="1"></cgi>
+                <result>exception_addrtotest</result>
+            </check>
+
+            <check>
+                <cgi name="addrtotest">malice_narod</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>testone_malice_narod_70495</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">malice1_yandex</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>testone_malice1_yandex_70495</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">malicegs_galatasaray</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>testone_malicegs_galatasaray_70495</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">normalized70495_ya; denormalized70495_ya;
+                                    normalized70495_narod; denormalized70495_narod;
+                                    normalized70495_galatasaray; denormalized70495_galatasaray</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>testone_phone_70495</result>
+            </check>
+
+            <check>
+                <cgi name="addrtotest">malice_yandex</cgi>
+                <cgi name="uid">70496</cgi>
+                <result>testone_malice_yandex_70496</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">malice2_narod</cgi>
+                <cgi name="uid">70496</cgi>
+                <result>testone_malice2_narod_70496</result>
+            </check>
+
+            <check>
+                <cgi name="addrtotest">validated_external</cgi>
+                <cgi name="uid">71001</cgi>
+                <result>testone_validated_external_71001</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">to_validate_external</cgi>
+                <cgi name="uid">71001</cgi>
+                <result>testone_to_validate_external_71001</result>
+            </check>
+            <check>
+                <cgi name="addrtotest">normalized71001_ya; denormalized71001_ya;
+                                    normalized71001_narod; denormalized71001_narod</cgi>
+                <cgi name="uid">71001</cgi>
+                <result>testone_phone_71001</result>
+            </check>
+
+            <check>
+                <cgi name="uid">70495</cgi>
+                <result>empty_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="uid">70496</cgi>
+                <result>empty_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="uid">71001</cgi>
+                <result>empty_maillist_71001</result>
+            </check>
+        </case>
+
+        <case lastid="phone_uinfo">
+            <description>Emails for users with phone alias (method=userinfo)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="uid">70495;70496;71001;70488</cgi>
+            <cgi name="emails">getall;getyandex;getdefault</cgi>
+
+            <check>
+                <cgi name="uid">70488</cgi>
+                <result>getall_maillist_70488</result>
+            </check>
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>getall_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>getyandex_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="uid">70496</cgi>
+                <result>getall_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="uid">71001</cgi>
+                <result>getall_maillist_71001</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="uid">71001</cgi>
+                <result>getyandex_maillist_71001</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">70495</cgi>
+                <result>getdefault_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">70496</cgi>
+                <result>getdefault_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">71001</cgi>
+                <result>getdefault_maillist_71001</result>
+            </check>
+        </case>
+
+        <case lastid="userinfo_login">
+            <description>Emails for users search by email (method=userinfo)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">*</cgi>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="login">
+                gs_test_1; gs_test_2; gs_test_3; gs_test_4;
+                malice; malice1_yandex; malice_narod; malice-gs;
+                malice2; malice_yandex; malice2_narod;
+                master; master_yandex; master_narod; master_phone; master_phone_yandex; master_phone_narod;
+                hybrid_portal; hybrid_email; hybrid_narod; hybrid_pddmaster; hybrid_pddalias; hybrid_pdd_denorm; hybrid_broken
+            </cgi>
+            <cgi name="emails">getall; getyandex; getdefault</cgi>
+
+            <check>
+                <cgi name="login">gs_test_1; gs_test_2; gs_test_3; gs_test_4</cgi>
+                <result>getall_maillist_70488</result>
+            </check>
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="login">malice; malice1_yandex; malice_narod; malice-gs</cgi>
+                <result>getall_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="login">malice; malice1_yandex; malice_narod; malice-gs</cgi>
+                <result>getyandex_maillist_70495</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="login">malice; malice1_yandex; malice_narod; malice-gs</cgi>
+                <result>getdefault_maillist_70495</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="login">malice2; malice_yandex; malice2_narod</cgi>
+                <result>getall_maillist_70496</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="login">malice2; malice_yandex; malice2_narod</cgi>
+                <result>getdefault_maillist_70496</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="login">master; master_yandex; master_narod; master_phone; master_phone_yandex; master_phone_narod</cgi>
+                <result>getall_maillist_71001</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="login">master; master_yandex; master_narod; master_phone; master_phone_yandex; master_phone_narod</cgi>
+                <result>getyandex_maillist_71001</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="login">master; master_yandex; master_narod; master_phone; master_phone_yandex; master_phone_narod</cgi>
+                <result>getdefault_maillist_71001</result>
+            </check>
+
+            <check>
+                <cgi name="login">hybrid_broken</cgi>
+                <result>not_found</result>
+            </check>
+            <check>
+                <cgi name="login">hybrid_pdd_denorm</cgi>
+                <result>not_found_imap_domain</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="login">hybrid_portal; hybrid_email; hybrid_narod; hybrid_pddmaster; hybrid_pddalias</cgi>
+                <result>getall_maillist_hybrid</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="login">hybrid_portal; hybrid_email; hybrid_narod; hybrid_pddmaster; hybrid_pddalias</cgi>
+                <result>getdefault_maillist_hybrid</result>
+            </check>
+
+        </case>
+
+       <case lastid="default">
+            <description>Check default email (method=userinfo)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="uid">71002; 71003; 71004; 71005; 71006; hybrid </cgi>
+            <cgi name="emails">getall;getyandex;getdefault</cgi>
+
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="uid">71002</cgi>
+                <result>getall_maillist_71002</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="uid">71002</cgi>
+                <result>getyandex_maillist_71002</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">71002</cgi>
+                <result>getdefault_maillist_71002</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="uid">71003</cgi>
+                <result>getall_maillist_71003</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">71003</cgi>
+                <result>getdefault_maillist_71003</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="uid">71004</cgi>
+                <result>getall_maillist_71004</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="uid">71004</cgi>
+                <result>getyandex_maillist_71004</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">71004</cgi>
+                <result>getdefault_maillist_71004</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="uid">71005</cgi>
+                <result>getall_maillist_71005</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">71005</cgi>
+                <result>getdefault_maillist_71005</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="uid">71006</cgi>
+                <result>getall_maillist_71006</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">71006</cgi>
+                <result>getdefault_maillist_71006</result>
+            </check>
+
+            <check>
+                <cgi name="emails">getall; getyandex</cgi>
+                <cgi name="uid">hybrid</cgi>
+                <result>getall_maillist_hybrid</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">hybrid</cgi>
+                <result>getdefault_maillist_hybrid</result>
+            </check>
+        </case>
+
+       <case lastid="pdd">
+            <description>method=userinfo (for pdd)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="uid">
+                pdd_with_user_defined_name; pdd_without_user_defined_name; pdd_a_lot_of_aliases
+            </cgi>
+            <cgi name="emails">getall;getyandex;getdefault</cgi>
+
+            <!-- pdd_with_user_defined_name -->
+            <check>
+                <cgi name="uid">pdd_with_user_defined_name</cgi>
+                <result>pdd_with_user_defined_name_all</result>
+            </check>
+
+            <!-- pdd_without_user_defined_name -->
+            <check>
+                <cgi name="emails">getall</cgi>
+                <cgi name="uid">pdd_without_user_defined_name</cgi>
+                <result>pdd_without_user_defined_name_all</result>
+            </check>
+            <check>
+                <cgi name="emails">getyandex</cgi>
+                <cgi name="uid">pdd_without_user_defined_name</cgi>
+                <result>pdd_without_user_defined_name_yandex</result>
+            </check>
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">pdd_without_user_defined_name</cgi>
+                <result>pdd_without_user_defined_name_default</result>
+            </check>
+
+            <!-- pdd_a_lot_of_aliases -->
+            <check>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="uid">pdd_a_lot_of_aliases</cgi>
+                <result>pdd_a_lot_of_aliases_default</result>
+            </check>
+            <check>
+                <cgi name="uid">pdd_a_lot_of_aliases</cgi>
+                <result>pdd_a_lot_of_aliases_all</result>
+            </check>
+        </case>
+
+        <case lastid="cyrilic">
+            <description>Cyrilic emails for users (method=userinfo)</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="method">userinfo</cgi>
+            <cgi name="uid">4003116159</cgi>
+            <cgi name="emails">getall</cgi>
+
+            <check>
+                <cgi name="emails">getall</cgi>
+                <result>getall_maillist_4003116159</result>
+            </check>
+        </case>
+
+        <case lastid="frozen">
+            <description>Emails for frozen mailboxes</description>
+            <path>blackbox</path>
+            <cgi name="userip">internal</cgi>
+            <cgi name="host">ru</cgi>
+            <cgi name="method">userinfo;sessionid</cgi>
+            <cgi name="uid">frozen_mail; frozen_pdd</cgi>
+            <cgi name="sessionid">frozen_mail_valid; frozen_pdd_valid</cgi>
+            <cgi name="emails">*</cgi>
+            <cgi name="addrtotest">
+                malice_yandex; validated_external;
+                frozen_mail_default; frozen_pdd_default;
+                frozen_mail_other; frozen_pdd_other
+            </cgi>
+            <cgi name="force_show_mail_subscription" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_mail</cgi>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_default</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_pdd</cgi>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_default</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_mail_valid</cgi>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_default</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_pdd_valid</cgi>
+                <cgi name="emails">getdefault</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_default</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_mail</cgi>
+                <cgi name="emails">getall;getyandex</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_all</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_pdd</cgi>
+                <cgi name="emails">getall;getyandex</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_all</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_mail_valid</cgi>
+                <cgi name="emails">getall;getyandex</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_all</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_pdd_valid</cgi>
+                <cgi name="emails">getall;getyandex</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_all</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_mail</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_mail_default</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_default</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_pdd</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_pdd_default</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_default</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_mail_valid</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_mail_default</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_default</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_pdd_valid</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_pdd_default</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_default</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_mail</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_mail_other</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_other</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_pdd</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_pdd_other</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_other</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_mail_valid</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_mail_other</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_mail_other</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_pdd_valid</cgi>
+                <cgi name="emails">testone</cgi>
+                <cgi name="addrtotest">frozen_pdd_other</cgi>
+                <cgi name="force_show_mail_subscription">yes</cgi>
+                <result>frozen_pdd_other</result>
+            </check>
+
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_mail</cgi>
+                <result>frozen_mail_empty</result>
+            </check>
+            <check>
+                <cgi name="method">userinfo</cgi>
+                <cgi name="uid">frozen_pdd</cgi>
+                <result>frozen_pdd_empty</result>
+            </check>
+
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_mail_valid</cgi>
+                <result>frozen_mail_empty</result>
+            </check>
+            <check>
+                <cgi name="method">sessionid</cgi>
+                <cgi name="sessionid">frozen_pdd_valid</cgi>
+                <result>frozen_pdd_empty</result>
+            </check>
+
+        </case>
+    </node>
+
+</test>

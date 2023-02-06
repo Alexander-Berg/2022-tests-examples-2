@@ -1,0 +1,261 @@
+service: home
+title: Test ui project
+
+shared:
+  config: &config
+    arc_mount_config:
+      enabled: true
+
+    logs_config:
+      stdout_ci_badge: true
+      redirect_stderr_to_stdout: true
+
+  sandbox: &sandbox
+    client_tags: GENERIC & LINUX & SSD & LXC
+    container_resource: 2972645712
+    dns: dns64
+
+  requirements: &requirements
+    ram: 4 GB
+    disk: 5GB
+    sandbox: *sandbox
+
+  secretEnvVars: &secretEnvVars
+    secret_environment_variables:
+      - key: ARCANUM_API_OAUTH_TOKEN
+        secret_spec:
+          # robot-morda-releaser
+          key: ci.token
+
+      - key: STARTREK_TOKEN
+        secret_spec:
+          # robot-morda-dev
+          uuid: sec-01f1556ednmftm1bjrwty9x9vj
+          key: STARTREK_OAUTH_TOKEN
+
+      - key: AWS_ACCESS_KEY_ID
+        secret_spec:
+          # robot-morda-releaser
+          uuid: sec-01fzdb2ps0d6re0qrqfsmn9pn7
+          key: s3AccessKeyId
+
+      - key: AWS_SECRET_ACCESS_KEY
+        secret_spec:
+          # robot-morda-releaser
+          uuid: sec-01fzdb2ps0d6re0qrqfsmn9pn7
+          key: s3AccessSecretKey
+
+arcanum:
+  auto_merge:
+    requirements:
+      - system: arcanum
+        type: st_issue_linked
+        data:
+          in_commit_message: true
+
+      - system: portal/frontend/testproject
+        type: changed # отдельные проверки из tkit
+        disabling_policy: need_reason
+
+      - system: portal/frontend/testproject
+        type: reported
+        disabling_policy: denied
+
+ci:
+  secret: sec-01fxctddc9qp8pjjsh9k4hc6pw
+  runtime:
+    sandbox-owner: HOME
+
+  triggers:
+    - on: pr
+      flow: checks
+      into: trunk
+
+    - on: pr
+      flow: e2e-checks
+      into: trunk
+
+  releases:
+    test_release:
+      title: Test release with urelease
+      flow: do_release
+      branches:
+        pattern: releases/mordafrontend/testproject/${version}
+
+  flows:
+    checks:
+      title: Checks
+      jobs:
+        run:
+          title: run checks
+          task: common/misc/run_command
+          requirements: *requirements
+
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+                cd ${context.config_info.dir}
+
+                npm ci
+                node ./ci/checks.js
+
+        create_release:
+          title: create release
+          task: common/misc/run_command
+          requirements: *requirements
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+
+                cd ${context.config_info.dir}
+
+                npm ci
+                DEBUG=urelease* node ./ci/release.js \
+                  --ref="${context.target_revision.hash}" \
+                  --version="${context.version_info.full}"
+
+                ls $RESULT_EXTERNAL_RESOURCES_PATH
+                echo "done" $PWD
+
+              result_external_resources_from_files: true
+              result_badges:
+                - path: badges
+              result_output:
+                - path: key
+
+        release_dummy:
+          title: Release some resource
+          task: projects/portal/nanny_release_many_resources
+          needs: create_release
+          input:
+            description: 'teeest haha'
+            release_resources:
+              - ${tasks.create_release.resources[?type == 'TASK_LOGS'] | [0].id}
+              - ${tasks.create_release.resources[?type == 'TRENDBOX_CI_REPORT_RESOURCE_BETA'] | [0].id}
+            auto_release: unstable
+
+        await_nanny:
+          title: ждём няню unstable
+          task: projects/portal/await_nanny_release
+          needs:
+            - release_dummy
+          input:
+            config:
+              nannyReleaseId: ${tasks.release_dummy.output_params.unstable}
+              timeout: 600
+              nanny_token:
+                uuid: sec-01fzdb2ps0d6re0qrqfsmn9pn7
+                key: NANNY_TOKEN
+
+    e2e-checks:
+      title: e2e checks
+      jobs:
+        beta:
+          title: Create beta
+          task: common/misc/run_command
+          requirements: *requirements
+
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+                cd ${context.config_info.dir}
+
+    do_release:
+      title: Test release with urelease
+      jobs:
+        start:
+          title: Start
+          task: dummy # Не делает ничего
+
+        create_release:
+          title: create release
+          task: common/misc/run_command
+          needs:
+            - start
+          requirements: *requirements
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+
+                cd ${context.config_info.dir}
+
+                npm ci
+                DEBUG=urelease* node ./ci/release.js \
+                  --ref="${context.target_revision.hash}" \
+                  --version="${context.version_info.full}" \
+                  --prevRef="${not_null(context.previous_revision.hash, '')}"
+
+                echo "done" $PWD
+
+              result_external_resources_from_files: true
+              result_badges:
+                - path: badges
+              result_output:
+                - path: key
+
+        release_dummy:
+          title: Release some resource
+          task: projects/portal/nanny_release_many_resources
+          needs: create_release
+          input:
+            description: 'teeest haha'
+            release_resources:
+              - ${tasks.create_release.resources[?type == 'TASK_LOGS'] | [0].id}
+              - ${tasks.create_release.resources[?type == 'TRENDBOX_CI_REPORT_RESOURCE_BETA'] | [0].id}
+            auto_release: unstable
+
+        await_nanny:
+          title: ждём няню unstable
+          task: projects/portal/await_nanny_release
+          needs:
+            - release_dummy
+          input:
+            config:
+              nannyReleaseId: ${tasks.release_dummy.output_params.unstable}
+              timeout: 600
+              nanny_token:
+                uuid: sec-01fzdb2ps0d6re0qrqfsmn9pn7
+                key: NANNY_TOKEN
+
+        e2e:
+          title: run e2e checks on RC
+          task: common/misc/run_command
+          needs:
+            - await_nanny
+          requirements: *requirements
+
+          input:
+            config:
+              <<: *config
+              <<: *secretEnvVars
+
+              cmd_line: |
+                set -e
+                set -x
+
+                cd ${context.config_info.dir}
+                echo "${tasks.create_release.result_output[?path=='key'] | [0].string[0]}"

@@ -1,0 +1,21 @@
+#
+# Regular cron jobs for the yandex-taxi taxi-corp package
+#
+# ТЫ БУДЕШЬ ОСТАВЛЯТЬ ПУСТУЮ СТРОКУ В КОНЦЕ ЭТОГО ФАЙЛА
+#
+
+PATH="/usr/lib/yandex/taxi-py3-2/bin:$PATH"
+PYTHONPATH="/usr/lib/yandex/taxi-corp-cron"
+LOG_IDENT = "yandex-taxi-corp-cron"
+MAILTO=taxi-cron@yandex-team.ru
+YT_LOG_LEVEL=WARNING
+MOTOR_MAX_WORKERS="32"
+
+*         *  * * *  root  python3.7 -m taxi.scripts.cron_run -p taxi-corp taxi.scripts.execute
+
+27        *  * * *  root  python3.7 -m taxi_corp.cron_run taxi_corp.stuff.cleanup_old_reports
+6       */4  * * *  root  python3.7 -m taxi_corp.cron_run taxi_corp.stuff.prepare_act_reports
+*/5       *  * * *  root  python3.7 -m taxi_corp.cron_run taxi_corp.stuff.process_notices_queue
+*         *  * * *  root  python3.7 -m taxi_corp.cron_run taxi_corp.stuff.send_solomon_data
+*/3       *  * * *  root  python3.7 -m taxi_corp.cron_run taxi_corp.stuff.update_experiments
+0        10  2 * *  root  python3.7 -m taxi_corp.cron_run taxi_corp.stuff.xml_report

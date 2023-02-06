@@ -1,0 +1,6 @@
+INSERT INTO cargo_performer_fines.cancellations
+(id, cancel_id, cargo_order_id, taxi_order_id, park_id, driver_id, cargo_cancel_reason, created_ts, updated_ts, completed, guilty, free_cancellations_limit_exceeded, payload)
+VALUES
+(1, 1, 'c8979166-e428-43be-8b37-5ea1c958debb', 'taxi', 'park_id_1', 'driver_id_1', 'cancel_reason', '2020-02-03 16:33:54.827958+03', '2020-02-03 16:34:54.827958+03', True,  True, True, '{"claim_status": "pickuped", "items_weight": 15.0, "special_requirements": ["cargo_eds"], "tags": ["test_tag_1"], "time_in_status_sec": 56329990, "waybill_ref": "waybill-ref", "zone_id": "moscow", "tariff_class": "cargo"}'::jsonb),
+(2, 2, 'ac1e3969-d41a-4f3c-8623-7bd8a0a429b7', 'c3a7c39ec87e143ca5b04b6c32779d63', 'f7426d8ee6ad4e938d346c27e6548ab2', 'dd271bdfece1456e9352f788d4a38148', 'order_cancel_reason_Pro_so_far', '2020-02-03 16:40:54.827958+03', '2020-02-03 16:40:54.827958+03', True,  True, True, '{}'::jsonb),
+(3, 3, 'e392916f-dad6-4a7a-9b1e-5b8c2644810d', 'ddb1af90b9e6c9e8974997086fd752e1', '11aed8d5c30740b0869f6534e1665ff5', '3e226ccd15e2895d5877ebe6612d80a2', 'order_cancel_reason_Pro_so_far', '2020-02-03 16:40:54.827958+03', '2020-02-03 16:40:54.827958+03', True,  True, False, '{}'::jsonb);

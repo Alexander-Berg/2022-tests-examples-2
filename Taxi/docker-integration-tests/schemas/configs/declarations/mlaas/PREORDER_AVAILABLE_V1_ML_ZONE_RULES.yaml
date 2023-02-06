@@ -1,0 +1,63 @@
+description: Настройка конфига для доступности предзаказа по правилам
+default:
+    rules: []
+tags: []
+schema:
+    properties:
+        rules:
+            type: array
+            items:
+                properties:
+                    action:
+                        type: string
+                        enum: ['permit', 'deny']
+                    rule_name:
+                        type: string
+                    affected_tariff_classes:
+                        items:
+                            type: string
+                        type: array
+                    schedule:
+                        items:
+                            properties:
+                                utc_time_begin:
+                                    type: string
+                                    pattern: ^[0-9]{2}:[0-9]{2}:[0-9]{2}$
+                                utc_time_end:
+                                    type: string
+                                    pattern: ^[0-9]{2}:[0-9]{2}:[0-9]{2}$
+                                schedule_type:
+                                    type: string
+                                    enum: ['daily']
+                            type: object
+                            required:
+                              - utc_time_begin
+                              - utc_time_end
+                              - schedule_type
+                        type: array
+                    zone_polygon:
+                        items:
+                            description: геокоординаты точки
+                            items:
+                              - description: долгота
+                                maximum: 180
+                                minimum: -180
+                                type: number
+                              - description: широта
+                                maximum: 90
+                                minimum: -90
+                                type: number
+                            minItems: 2
+                            type: array
+                        type: array
+                        minItems: 3
+                        maxItems: 100
+                type: object
+                required:
+                  - action
+                  - rule_name
+                  - schedule
+                  - zone_polygon
+    type: object
+    required:
+      - rules

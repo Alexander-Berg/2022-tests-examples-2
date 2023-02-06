@@ -1,0 +1,48 @@
+description: конфиг для ручного включения фолбеков различных сервисов
+full-description: |
+    Позволяет вручную пересилить фолбеки, считаемые на основе статистики.
+    Работает на уровне толстого клиента, поэтому не требует работоспособного
+    сервиса статистики. В случае, если для сервиса включено переопределение,
+    то сервис отправляет статистику, но не вычитывапет её из сервиса статистики
+
+default: []
+tags: [fallback]
+maintainers: [vicstepanov, lol4t0]
+turn-off-immediately: false
+schema:
+    type: array
+    items:
+        $ref: "#/definitions/ServiceConfig"
+
+    definitions:
+        ServiceConfig:
+            description: описание настроек для сервиса
+            type: object
+            additionalProperties: false
+            required:
+              - service
+              - enabled
+              - fallbacks
+            properties:
+                service:
+                    description: название сервиса
+                    type: string
+                    minLength: 1
+                enabled:
+                    description: включено ли переопределние фолбека для сервиса
+                    type: boolean
+                fallbacks:
+                    description: |
+                        Список фолбоеков, которые будут использованы, если enabled = true
+                    type: array
+                    items:
+                        type: string
+                        minLength: 1
+
+samples:
+  -   - service: cardstorage
+        enabled: false
+        fallbacks: [card.list-payment-methods, uber.list-payment-methods]
+      - service: buffer-dispatch
+        enabled: true
+        fallbacks: [buffer-disptach]

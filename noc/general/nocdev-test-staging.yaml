@@ -1,0 +1,36 @@
+# AUTHOR: skacheev@yandex-team.ru
+# JUGGLER_TAGS: notify_nocdev_teleg,nocdev_dashboard
+- name: nocdev-test-staging
+  description: Nocdev test Staging monitoring
+  juggler_namespace: nocdev-test
+  defaults:
+    juggler_host: nocdev-test-staging
+  hosts: cgroup:nocdev-test-staging
+  aggregates:
+    - templates:
+        - META
+        - autov6here
+        - cauth-cache
+        - coredump
+        - cron
+        - dns-local
+        - la
+        - la-per-core
+        - logrotate
+        - mtu-diff
+        - network_load
+        - ntp-stratum
+        - oom_killer
+        - pkgver
+        - rsyslog
+        - salt-state
+        - systemd-flaps
+        - telegraf
+        - unispace
+        - mysql-status
+  templates:
+    - system:
+        arguments:
+          diskio: true
+          disk_inode_ignore_path: &ignore_clones "/rt-zpool/rt/cvs-*|/rt-zpool/rt/mysql-*|/run/docker/*"
+          path_filter_exclude: *ignore_clones

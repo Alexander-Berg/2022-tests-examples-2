@@ -1,0 +1,67 @@
+insert into clownductor.namespaces (name) values ('taxi'), ('eda'), ('lavka'), ('market');
+
+insert into
+    clownductor.projects (
+        name,
+        network_testing,
+        network_stable,
+        service_abc,
+        yp_quota_abc,
+        tvm_root_abc,
+        namespace_id
+    )
+values (
+    'taxi',
+    '_TEST_NET_',
+    '_STABLE_NET_',
+    'taxiserviceabcslug',
+    'taxislugwithqouta',
+    'tvmtvmtvm',
+    1
+),
+(
+    'eda',
+    '_TEST_NET_',
+    '_STABLE_NET_',
+    'edaserviceabcslug',
+    'edaslugwithqouta',
+    'tvmtvmtvm',
+    2
+),
+(
+    'lavka_empty',
+    '_TEST_NET_',
+    '_STABLE_NET_',
+    'edaserviceabcslug',
+    'edaslugwithqouta',
+    'tvmtvmtvm',
+    3
+),
+(
+    'project_with_deleted_services',
+    '_TEST_NET_',
+    '_STABLE_NET_',
+    'edaserviceabcslug',
+    'edaslugwithqouta',
+    'tvmtvmtvm',
+    1
+),
+(
+    'market',
+    '_TEST_NET_',
+    '_STABLE_NET_',
+    'marketserviceabcslug',
+    'marketslugwithqouta',
+    'markettvm',
+    4
+),
+(
+    'new_market_project',
+    '_TEST_NET_',
+    '_STABLE_NET_',
+    'marketserviceabcslug',
+    'marketslugwithqouta',
+    'markettvm',
+    4
+)
+;

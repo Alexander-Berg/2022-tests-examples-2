@@ -1,0 +1,117 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+# overrides need to be after defaults. pay attention to last_modified_at
+# field - it must be greater in overrides
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_menu_global_config.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3-services_menu-empty.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+tests:
+  - name: webview_ok
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+          # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu_type: WEBVIEW
+            menu_webview:
+                url: "https://plus.yandex.ru/?message=myMessage"
+                need_authorization: true
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: webview_disabled_for_phonish
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "phonish,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu_type: NATIVE
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: webview_ok_replace_base_url_with_param_in_exp
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "222222"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu_type: WEBVIEW
+            menu_webview:
+                url: "https://new-url-plus.yandex.ru/?message=myMessage"
+                need_authorization: true
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []

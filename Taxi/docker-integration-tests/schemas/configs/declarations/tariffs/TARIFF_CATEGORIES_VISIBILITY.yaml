@@ -1,0 +1,43 @@
+default:
+    __default__: {}
+description: |
+    Настройки видимости тарифов.
+    Флаг use_legacy_experiments отвечает за то, где ищется эксперимент, указанный в поле show/hide_experiment.
+    Если флаг отсутствует или равен false, то эксперимент ищется среди конфигов 3.0 (это такой тип третьих экспериментов),
+    если равен true, то будет использоваться эксперимент на пользователя.
+    Руководство по третьим экспериментам: https://wiki.yandex-team.ru/taxi/backend/architecture/experiments3/Manual/
+tags: []
+validators:
+  - $default_dict:
+        value_validators:
+          - $dictionary_of:
+                key_validators:
+                  - $tariff
+                value_validators:
+                  - $dictionary:
+                        extra_ok: false
+                        missing_ok: false
+                        optional_keys:
+                          - hide_experiment
+                          - show_experiment
+                          - show_classes
+                          - show_payment_methods
+                          - show_approximate_price
+                          - use_legacy_experiments
+                        scheme:
+                            hide_experiment:
+                              - $string
+                            show_approximate_price:
+                              - $boolean
+                            show_classes:
+                              - $sequence_of:
+                                  - $tariff
+                            show_experiment:
+                              - $string
+                            show_payment_methods:
+                              - $sequence_of:
+                                  - $payment
+                            visible_by_default:
+                              - $boolean
+                            use_legacy_experiments:
+                              - $boolean

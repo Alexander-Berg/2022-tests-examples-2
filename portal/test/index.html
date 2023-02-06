@@ -1,0 +1,269 @@
+[% UNLESS InternalPage %]
+<html>
+<head>
+<title>Яндекс: Вивисектор Морды</title>
+<style type="text/css">
+    div.block {
+                float: left;
+                width: 25%;
+                max-width:25%;
+                font-size: 8pt;
+                font-family: Verdana, Arial;
+                padding-left: 1px;
+                padding-right: 1px;
+                padding-top: 1px;
+                padding-bottom: 1px;
+                margin: 1px;
+                overflow: auto;
+              }
+    td.label {
+                font-size: 8pt;
+                font-family: Verdana, Arial;
+    }
+
+</style>
+<script type="text/javascript">
+    function _addScript(c) {
+        var a=document.getElementsByTagName("head")[0] || document.documentElement;
+        var b=document.createElement("script");
+        b.src=c;
+        a.insertBefore(b,a.firstChild);
+    };
+    function drawwcookievals(wcookie){
+        document.getElementById('wcookieerr').innerHTML = wcookie.error;
+        document.getElementById('wcookiesql').innerHTML = '<b>SQL: </b>' + wcookie.sql;
+        document.forms['wcookie'].pid.value = wcookie.pid;
+        document.forms['wcookie'].hpid.value = wcookie.pid;
+        document.forms['wcookie'].block.value = wcookie.block;
+        document.forms['wcookie'].row.value = wcookie.row;
+        document.forms['wcookie'].ncrnd.value = wcookie.ncrnd;
+        if (wcookie.temp == 'yes'){
+            document.forms['wcookie'].temp.checked = true;
+        } else {
+            document.forms['wcookie'].temp.checked = false;
+        }
+    };
+    function updatewcooke(wcookie){
+        if (wcookie.state && (wcookie.state == '1')){
+            updatewcookievals();
+        } else {
+            document.getElementById('wcookieerr').innerHTML = wcookie.error;
+        }
+    };
+    function updatewcookievals(){
+        _addScript('/test/showwcookie/');
+    };
+
+    function drawsubscr(subscrvals){
+        document.getElementById('subscrcont').innerHTML = subscrvals.container;
+        if (subscrvals.logged == 1){
+            var i = subscrvals.subscription;
+            if ((i == 0) || (i == 1) || (i == 2)){} else {
+                subscrvals.error = 'Ошибка: недопустимое значение подписки';
+                for (i = 0; i < 3; i++){
+                    document.forms['subscription'].subscr[i].checked = false;
+                }
+            }
+            document.getElementById('subscrlogin').innerHTML = subscrvals.login;
+            document.getElementById('subscrerr').innerHTML = subscrvals.error;
+            document.forms['subscription'].subscr[i].checked = true;
+            document.getElementById('sdpid').innerHTML = subscrvals.pid;
+            document.getElementById('sdblock').innerHTML = subscrvals.block;
+            document.getElementById('sdrow').innerHTML = subscrvals.row;
+            document.getElementById('sdtemp').innerHTML = subscrvals.temp;
+            document.getElementById('sdsql').innerHTML = subscrvals.sql;
+        } else {
+            document.getElementById('subscrlogin').innerHTML = '<i>не залогинен</i>';
+            document.getElementById('subscrerr').innerHTML = '&nbsp;';
+            for (i = 0; i < 3; i++){
+                document.forms['subscription'].subscr[i].checked = false;
+            }
+            document.getElementById('sdpid').innerHTML = '-';
+            document.getElementById('sdblock').innerHTML = '-';
+            document.getElementById('sdrow').innerHTML = '-';
+            document.getElementById('sdtemp').innerHTML = '-';
+            document.getElementById('sdsql').innerHTML = '-';
+        }
+    };
+    function subscribe(subscrvals){
+        if (subscrvals.state && (subscrvals.state == '1')){
+            if (subscrvals.lastupdate){
+                document.getElementById('subscrlastupdate').innerHTML = 'Обновлено: ' + subscrvals.lastupdate;
+            }
+            updatesubscription();
+        } else {
+            document.getElementById('subscrerr').innerHTML = subscrvals.error;
+        }
+    };
+    function updatesubscription(){
+        _addScript('/test/subscription/');
+    };
+
+</script>
+
+
+</head>
+<body>
+<div>
+[<a href="/test/geo/">Geo detection</a>]
+ | [<a href="/test/hdr/">headers</a>]
+ | [<a href="/test/my_parse/">Парсилка куки my</a>]
+ | [<a href="/test/id_slot/">uuid->slot</a>]
+ | [<a href="/test/yandexuid/">Изменить yandexuid</a>]
+ | [<a href="/test/yandexuid/age/">Возраст yandexuid</a>]
+ | [<a href="/test/sessionid/">Изменить Session_id</a>]
+ | [<a href="/test/yandex_gid/">Изменить yandex_gid</a>]
+ | [<a href="/test/interests/">Тематики</a>]
+ | [<a href="/test/lang/">обновить переводы</a>]
+ | [<a href="/test/mega/">заголовки megafon</a>]
+ | [<a href="/test/ip/">IP-geo</a>]
+ | [<a href="/test/phone/">UaTraits</a>]
+ | [<a href="/test/display/">Display</a>]
+ | [<a href="/test/harlog/">распаковка логов HAR 1.2</a>]
+ | [<a href="/test/weather/">погода</a>]
+ | [<a href="/test/devs/">devservers</a>]
+ | [<a href="/test/stories/">stories</a>]
+ | [<a href="/test/xiva/">xiva</a>]
+ | [<a href="/test/st/">st</a>]
+ | [<a href="/test/scriptlog/">Script Log</a>]
+ | [ Personal:
+ <a href="/test/personal/traffic/">Traff</a> |
+ <a href="/test/personal/flights/">Flights</a> |
+ <a href="/test/personal/tickets/">Tickets</a>
+ ]
+ | [<a href="/test/abcheck">AB Cond checker</a>]
+ | [<a href="/test/flags_allowed">Flags Allowed</a>]
+ | [<a href="/test/inspect">Отладчик ноды</a>]
+ | [<a href="/test/antiaddblock">Anti Add-Block</a>]
+ | [<a href="/test/themes">Themes</a>]
+
+</div>
+
+<iframe name="bufferframe" style="display:none;" cols=1 rows=1></iframe>
+<!-- iframe name="bufferframe" cols=300 rows=3></iframe-->
+<div>
+<div class="block">
+    Сервер:&nbsp;[% MordaPage.ThisMachine %]<br/>
+    [% PROCESS InstanceMenu key='big-ru', left='www', right='.yandex.ru', descr => '(большая обычная)' %]
+    [% PROCESS InstanceMenu key='big-ua', left='www', right='.yandex.ua', descr => '(большая украинская)' %]
+    [% PROCESS InstanceMenu key='big-school', left='school', right='.yandex.ru', descr => '(школьная)' %]
+    [% PROCESS InstanceMenu key='big-family', left='family', right='.yandex.ru', descr => '(семейная)' %]
+    [% PROCESS InstanceMenu key='com', left='www', right='.yandex.com', descr => '(дотком)' %]
+    [% PROCESS InstanceMenu key='mob-ru', left='m', right='.yandex.ru', descr => '(смартфонная)' %]
+    [% PROCESS InstanceMenu key='tel-ru', left='tel', right='.yandex.ru', descr => '(телефонная)' %]
+    [% PROCESS InstanceMenu key='mobyaru', left='m', right='.ya.ru', descr => '(мобильная точка входа)' %]
+</div>
+<div class="block">
+        Куки:<br/>
+        [% FOREACH cookie IN Cookies %]
+        [% cookie.name | html %] = "[% cookie.value | html %]"<br/>
+        [% END %]
+        <hr>
+        <b>Yu</b>: "[% yu | html %]"
+        <hr>
+        <b>Sk</b><br>
+        [% IF sk_u_now %]<b>Uid/today: </b>"[% sk_u_now | html %]"<br>[% END %]
+        [% IF sk_u_yesterday %]<b>Uid/yesterday: </b>"[% sk_u_yesterday | html %]"<br>[% END %]
+        [% IF sk___now %]<b>Fuid/today: </b>"[% sk___now | html %]"<br>[% END %]
+        [% IF sk___yesterday %]<b>Fuid/yesterday: </b>"[% sk___yesterday | html %]"<br>[% END %]
+        [% IF sk_y_now %]<b>Yuid/today: </b>"[% sk_y_now | html %]"<br>[% END %]
+        [% IF sk_y_yesterday %]<b>Yuid/yesterday: </b>"[% sk_y_yesterday | html %]"<br>[% END %]
+</div>
+
+<div class="block">
+    <p>Кука&nbsp;<b>w</b></p>
+    <div id="wcookieerr"></div>
+    <form name="wcookie" method="GET" target="bufferframe" action="/test/setwcookie/">
+        <table cellspacing="3" cellpadding="0" border="0">
+            <tr>
+                <td class="label">pid:</td>
+                <td>
+                    <input name="pid" value="" type="text">
+                    <input name="hpid" value="" type="hidden">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">block:</td>
+                <td>
+                    <input name="block" value="" type="text">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">row:</td>
+                <td>
+                    <input name="row" value="" type="text">
+                </td>
+            </tr>
+            <tr>
+                <td class="label">temp:</td>
+                <td>
+                    <input name="temp" type="checkbox">
+                <td>
+            </tr>
+            <tr>
+                <td class="label">&nbsp;</td>
+                <td>
+                    <input name="ncrnd" value="[% NcRnd %]" type="hidden">
+                    <input name="iframe" value="yes" type="hidden">
+                    <input type="submit" value="Выставить">
+                </td>
+            </tr>
+        </table>
+    </form>
+    <div id="wcookiesql"></div>
+    <script type="text/javascript">updatewcookievals();</script>
+</div>
+
+<div class="block">
+    <p><b>Подписки на виджеты</b></p>
+    <div>Логин: <span id="subscrlogin">&nbsp;</span></div>
+    <div>Контейнер: '<span id="subscrcont">&nbsp;</span>'</div>
+    <div id="subscrerr">&nbsp;</div>
+    <form name="subscription" method="GET" action="/test/subscribe/" target="bufferframe">
+        <div><input type="radio" name="subscr" value="0">0: прозрачно</div>
+        <div><input type="radio" name="subscr" value="1">1: подписан</div>
+        <div><input type="radio" name="subscr" value="2">2: подавление</div>
+        <input name="iframe" value="yes" type="hidden">
+        <div><input type="submit" value="Подписка">
+    </form>
+    <div>
+        <div>pid: <span id="sdpid">&nbsp;</span></div>
+        <div>block: <span id="sdblock">&nbsp;</span></div>
+        <div>row: <span id="sdrow">&nbsp;</span></div>
+        <div>temp: <span id="sdtemp">&nbsp;</span></div>
+        <div><b>SQL:</b> <span id="sdsql">&nbsp;</span></div>
+    </div>
+    <div id="subscrlastupdate" stype="font-color:blue;">&nbsp;</div>
+    <script type="text/javascript">updatesubscription();</script>
+</div>
+
+</body>
+</html>
+[% ELSE %]
+    [% IF InternalPage == 'qwerty' %]
+
+
+    [% ELSIF InternalPage == 'zxcvbn' %]
+
+
+    [% END %]
+[% END %]
+
+[% BLOCK InstanceMenu %]
+    [% IF Hypostasis == key %]&gt;&gt;&nbsp;[% ELSE %]<a href="http://[% left %][% InstanceSubname %][% right %]/test/">**</a>&nbsp;[% END %]<a href="http://[% left %][% InstanceSubname %][% right %]">[% left %][% InstanceSubname %][% right %]</a>&nbsp;[% descr %]<br />
+[% END %]
+
+
+
+
+<!--
+xss HOME-26410:
+<form id="xss" action="/wsave" method="POST">
+<input type="hidden" name="widget" value="9710&#45;2" />
+<input type="hidden" name="coord" value="1&#58;1" />
+<input type="hidden" name="usrCh" value="1" />
+<input type="hidden" name="psettings" value="&amp;pinned&#61;1&amp;hidePromo&#61;1&lt;&#47;script&gt;&lt;script&gt;alert&#40;document&#46;domain&#41;&lt;&#47;script&gt;&amp;columnsCount&#61;5&amp;layoutType&#61;rows" />
+<input type="hidden" name="yu" value="[% yu %]" />
+<input type="submit" value="Submit request" />
+</form>
+-->

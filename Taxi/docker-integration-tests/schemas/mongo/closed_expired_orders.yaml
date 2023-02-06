@@ -1,0 +1,42 @@
+settings:
+    collection: closed_expired_orders
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: order_alias_id
+    unique: true
+  - expireAfterSeconds: 604800
+    key: updated
+wiki_info: |
+    #### closed_expired_orders
+    *Назначение:* Коллекция содержит информацию о заказаз, которые через админку были переведены
+    из статуса finished-expired в finished-complete или finished-cancelled с указанием цены. В коллекции
+    установлен TTL-индекс на поле updated c временем жизни 1 неделя.
+
+    *Структура документа:*
+
+    ```python
+    closed_expired_orders = {
+    # Идентификатор заказа
+    "_id" : "76f07121e1134940b16339eba148712b",
+    # Идентификатора заказа для парка
+    "order_alias_id" : "9e13a423de24487bb8f75f054f6b410b",
+    # Дата обновления
+    "updated" : ISODate("2017-01-20T11:23:31.797Z"),
+    # Идентификатор парка в таксометре
+    "db_id" : "9e13a423de24487bb8f75f054f6b410b",
+    #Изменения в заказе
+    "updates" : [
+            #Новая цена
+            {
+                    "new_value" : 233,
+                    "type" : "cost"
+            },
+            #Новый статус
+            {
+                    "new_value" : "cancelled",
+                    "type" : "taxi_status"
+            }
+    ]
+    }
+    ```

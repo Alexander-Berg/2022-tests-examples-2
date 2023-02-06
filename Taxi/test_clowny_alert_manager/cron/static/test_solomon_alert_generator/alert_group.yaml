@@ -1,0 +1,76 @@
+  - service: service-one
+    alert_type: threshold
+    description: existing alert with groupByLabels
+    groupByLabels: ["group"]
+    selectors: |
+        {project='eda', cluster='qloud_prod_metrics', service='business_metrics', sensor='eda_orders_without_courier_total'}
+    predicateRules:
+      - comparison: GT
+        timeAggregation: Avg
+        threshold: 0
+        targetStatus: ALARM
+    period: 500
+  - service: new-service-with-delay
+    alert_type: threshold
+    description: new threshold alert with delay
+    selectors: |
+        {project='eda', cluster='qloud_prod_metrics', service='business_metrics', sensor='eda_orders_without_courier_total'}
+    predicateRules:
+      - comparison: GT
+        timeAggregation: Avg
+        threshold: 0
+        targetStatus: ALARM
+    period: 500
+    delay: 30
+  - service: new-service-with-double-threshold
+    alert_type: threshold
+    description: new threshold alert with double threshold
+    selectors: |
+        {project='eda', cluster='qloud_prod_metrics', service='business_metrics', sensor='eda_orders_without_courier_total'}
+    predicateRules:
+      - comparison: GT
+        timeAggregation: Last
+        threshold: 0.05
+        targetStatus: ALARM
+    period: 500
+  - service: new-service-two
+    alert_type: expression
+    description: new expression alert with groupByLabels
+    program: |
+        let data = {project="eda", cluster="qloud_prod_metrics", service="business_metrics_empty_menu_items", sensor="eda_empty_menu_items"};
+        let value = max(data);
+        alarm_if(value > 20);
+        warn_if(value > 0);
+    checkExpression: 'false'
+    period: 180
+    groupByLabels: ["group"]
+  - service: new-service-three
+    description: new alert with notificationChannels
+    host: test_host
+    notificationChannels:
+      - juggler_service_and_host_from_annotations
+    alert_type: expression
+    program: |
+        let traffic = {project="kikimr", service="quoter_service", cluster="lbkx", host="cluster", quoter="/Root/PersQueue/System/Quoters/taxi", resource="write-quota/subventions/gta/production/online-events", sensor="QuotaConsumed"};
+        let limit = 10000000;
+        let usage = avg(traffic) / limit;
+        alarm_if(usage > 0.9);
+        warn_if(usage > 0.8);
+    checkExpression: 'false'
+    period: 60
+  - service: new-service-with-no-metrics-policy
+    description: new alert with notificationChannels
+    host: test_host
+    notificationChannels:
+      - juggler_service_and_host_from_annotations
+    alert_type: expression
+    resolvedEmptyPolicy: RESOLVED_EMPTY_MANUAL
+    noPointsPolicy: NO_POINTS_MANUAL
+    program: |
+        let traffic = {project="kikimr", service="quoter_service", cluster="lbkx", host="cluster", quoter="/Root/PersQueue/System/Quoters/taxi", resource="write-quota/subventions/gta/production/online-events", sensor="QuotaConsumed"};
+        let limit = 10000000;
+        let usage = avg(traffic) / limit;
+        alarm_if(usage > 0.9);
+        warn_if(usage > 0.8);
+    checkExpression: 'false'
+    period: 60

@@ -1,0 +1,44 @@
+  - id: hierarchy_test
+    title: Тест с очерёдностью вызова ресурсов
+    source:
+        request:
+            method: post
+            body#object:
+              - key: code
+                value: 200
+        expectations:
+            response:
+                status-code: 200
+                body:
+                    key1: 1
+                    key2: 2
+                    key3: 3
+    mocks:
+      - resource: resource1
+        response:
+            status-code: 200
+            body:
+                key1: 1
+        expectations:
+            called-before:
+              - resource2
+              - resource3
+      - resource: resource2
+        response:
+            status-code: 200
+            body:
+                key2: 2
+        expectations:
+            called-before:
+              - resource3
+            called-after:
+              - resource1
+      - resource: resource3
+        response:
+            status-code: 200
+            body:
+                key3: 3
+        expectations:
+            called-after:
+              - resource1
+              - resource2

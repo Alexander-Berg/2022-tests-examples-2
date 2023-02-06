@@ -1,0 +1,94 @@
+status:
+  port: 16301
+
+storages:
+  - name: main
+    plugin: fs
+    config:
+      directory: /var/log/yandex/unified-agent/storage-main
+      max_partition_size: 1gb
+      max_segment_size: 32mb
+      data_retention:
+        by_age: 3d
+
+#  - name: metrics_storage
+#    plugin: fs
+#    config:
+#      directory: /var/lib/yandex/unified_agent/storage/metrics
+#      max_partition_size: 500mb
+#      data_retention:
+#        by_age: 3d
+
+routes:
+  - input:
+      plugin: grpc
+      config:
+        uri: localhost:12500
+
+    channel:
+      pipe:
+        - storage_ref:
+            name: main
+      case:
+        - when:
+            message:
+              logger_name: "ACCESS_LOG"
+        channel:
+          pipe:
+            - filter:
+                plugin: protoseq_batch
+                config:
+                  flush_period: 100ms
+                  limit:
+                    bytes: 256kb
+            output:
+              plugin: logbroker
+              config:
+                endpoint: logbroker.yandex.net
+                topic: /support_platform_omnichat/testing/access-log
+                codec: zstd
+                tvm:
+                  client_id: 2035181
+                  secret:
+                    env: "OMNICHAT_BACKEND_TVM_SECRET_KEY"
+            - channel:
+                pipe:
+                  - filter:
+                      plugin: protoseq_batch
+                      config:
+                        flush_period: 100ms
+                        limit:
+                          bytes: 256kb
+                output:
+                  plugin: logbroker
+                  config:
+                    endpoint: logbroker.yandex.net
+                    topic: /support_platform_omnichat/testing/application-log
+                    codec: zstd
+                    tvm:
+                    client_id: 2035181
+                    secret:
+                      env: "OMNICHAT_BACKEND_TVM_SECRET_KEY"
+
+#        - channel:
+#            output:
+#              plugin: dev_null
+#  - input:
+#      plugin: metrics_pull
+#      config:
+#        url: http://localhost:8090/metrics/solomon
+#        format:
+#          solomon_json: { }
+#        metric_name_label: sensor
+#
+#        project: taxi_support_omnichat
+#        service: monitoring_testing
+#    channel:
+#      pipe:
+#        - storage_ref:
+#            name: metrics_storage
+#
+#      output:
+#        plugin: metrics_pull
+#        config:
+#          port: 3450

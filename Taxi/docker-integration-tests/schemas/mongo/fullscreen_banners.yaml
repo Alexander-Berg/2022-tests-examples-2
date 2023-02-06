@@ -1,0 +1,83 @@
+description: full-screen banners info
+settings:
+    collection: fullscreen_banners
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: name
+    unique: true
+wiki_info: |
+    ####dbtaxi.fullscreen_banners - полноэкранные баннеры
+
+    В этой коллекции содержится информация для показа полноэкранных баннеров. Изображения для баннеров хранятся в ```dbtaxi.images```. В настоящий момент активным (```active: True```) может быть только один баннер.
+
+    ```python
+    dbtaxi.fullscreen_banners = {
+        # Обязательные атрибуты
+        '_id': ObjectId(),       # id баннера
+        'name': 'Мой баннер',    # внутреннее имя баннера, должно быть уникальным
+        'created': utcnow(),     # Дата создания
+        'updated': utcnow(),     # Дата обновления
+        'caption': {
+            'ru': 'строка',      # Заголовок баннера (русский)
+            'en': 'строка',      # Заголовок баннера (английский)
+            ...
+        },
+        'text': {
+            ...                   # Текст баннера (как в caption)
+        },
+        'close_button': True,     # Демонстрировать ли крестик
+        'menu_button': True,      # Демонстрировать ли кнопку меню
+        'action_button': {
+            ...                   # Текст для кнопки внизу баннера (см. caption)
+        },
+        'priority': 1,            # Приоритет баннера
+        'screen': 'строка',       # Экран показа баннера
+        'deeplink_uri': {
+            'android': 'yandextaxi://addpromocode?code=%(promocode)s',  # Диплинк для Android, форматная строка Python
+            'iphone': 'yandextaxi://addpromocode?code=%(promocode)s',   # Диплинк для iOS, форматная строка Python
+        },
+        'deployed': True,         # Раскатан ли баннер на пользователей Я.Такси
+        'deploy_status': 'inprogress|done|failed',  # или отсутствует
+
+        'start_date': utcnow(),   # Время начала демонстрации баннера (UTC)
+        'end_date': utcnow(),     # Время окончания демонстрации баннера (UTC)
+
+        'active': True,           # Активен ли баннер (в данный момент активен может быть только один)
+
+        'localized_images': True, # Есть второй набор картинок (для английской локали)
+
+        # Необязательные атрибуты
+        'deeplink_kwargs': {
+            'promocode': 'APPSTORE',  # Аргументы для форматной строки
+        },
+        'deeplink_target': {  # target для deeplink_uri
+            'iphone': 'webview',
+            'android': 'webview',
+        },
+        'promotion': 'promotion_id',  # id dbtaxi.promotions, промоакция, связанная с баннером
+
+        # если поле отсутствует или пустое, то нет ограничений, иначе запрет, если нет разрешающего правила
+        'restrictions': {
+          'android': {
+            'disabled': False,             # отключить
+            'app_version': '3.18.0',       # минимальная версия приложения
+            'platform_version': '3.18.0',  # минимальная версия платформы
+          },
+          'iphone': {
+            'app_version': '3.0.0'
+          }
+        }
+        #Список городов баннера
+        'cities' : [
+                    'Алматы',
+                    'Алушта',
+                   ]
+        # устарело, было сделано для applepay, использовать restrictions
+        'version_restrictions': {
+          "platform_version": "9.0.0",
+          "application": "iphone",
+          "app_version": "3.63.0"
+        }
+    }
+    ```

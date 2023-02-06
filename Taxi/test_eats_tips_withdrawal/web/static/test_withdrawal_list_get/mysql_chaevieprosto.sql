@@ -1,0 +1,72 @@
+INSERT INTO modx_web_users_pays (
+    id,
+    to_user_id,
+    amount,
+    transaction_id,
+    transaction_status,
+    transaction_pay_date,
+    date_created,
+    procent,
+    `type`,
+    parent_id,
+    pan,
+    test,
+    is_blago,
+    who,
+    is_apple,
+    is_google,
+    is_samsung,
+    is_ecommpay,
+    is_b2p_fail,
+    code,
+    room_id,
+    `language`,
+    comment,
+    idempotenceKey,
+    message,
+    email,
+    is_best2pay,
+    best2pay_fee
+)
+VALUES
+(1,1,10,1,'succeeded',0,1624374620,5,0,0,'some pan1',   0,0,0,0,0,0,0,0,0,0,'','','','','',1,0),
+(2,1,20.2,2,'succeeded',0,1624378225,5,0,0,'some pan2',   0,0,0,0,0,0,0,0,0,0,'','','','','',1,0),
+(3,1,30.7,3,'succeeded',0,1624378225,5,0,0,'some pan3',   0,0,0,0,0,0,0,0,0,0,'','','','','',1,0),
+(4,1,0,4,'succeeded',0,1624378225,5,0,0,'some pan4',   0,0,0,0,0,0,0,0,0,0,'','','','','',1,0),
+(5,1,50.5,5,'succeeded',0,1624378225,5,0,0,'some pan5',   0,0,0,0,0,0,0,0,0,0,'','','','','',1,0),
+(6,1,60,6,'succeeded',0,1624381826,5,0,0,'some pan6',   0,0,0,0,0,0,0,0,0,0,'','','','','',1,0)
+;
+
+INSERT INTO modx_web_users_withdrawal (
+  `id`,
+  `user_id`,
+  `fullname`,
+  `sum`,
+  `date_time`,
+  `admin_id`,
+  `transaction_date`,
+  `pay_id`,
+  `pay_method`,
+  `cancel_admin_id`,
+  `cancel_date`,
+  `cancel_reason`,
+  `cancel_reason_description`,
+  `is_blacklist`,
+  `is_one_card`,
+  `is_not_from_russian`,
+  `is_from_3k_pay`,
+  `bank_id`,
+  `target_phone_id`,
+  `last_update_time`,
+  `precheck_id`,
+  `status`,
+  `idempotency_key`
+)
+VALUES
+(1,1,'FULLNAME_ID_11','10',1624374620,0,0,1,'best2pay',0,  0,'','',0,0,0,0,'','',1624378225,0,'',NULL),
+(2,1,'FULLNAME_ID_11','20',1624378223,0,0,2,'best2pay',0,  0,'','',0,0,0,0,'','',1624378225,0,'',NULL),
+(3,1,'FULLNAME_ID_11','30',1624378224,-1,0,3,'best2pay',0,  0,'','',0,0,0,0,'','',1624378225,0,'',NULL),
+(4,1,'FULLNAME_ID_11','40',1624378225,0,0,4,'best2pay',-1,  0,'','',0,0,0,0,'','',1624378225,0,'',NULL),
+(5,1,'FULLNAME_ID_11','50',1624378226,-1,0,5,'best2pay',0,  0,'','',0,0,0,0,'','',1624378225,0,'',NULL),
+(6,1,'FULLNAME_ID_11','60',1624381826,0,0,6,'best2pay',0,  0,'','',0,0,0,0,'','',1624378225,0,'',NULL)
+;

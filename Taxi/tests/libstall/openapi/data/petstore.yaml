@@ -1,0 +1,246 @@
+openapi: "3.0.0"
+info:
+  version: 3.0.0
+  title: Тестовая спека для нашего велосипеда
+servers:
+  - url: https://lavka.yandex
+paths:
+  /only-path: {}
+  /path-method-responses:
+    post:
+      responses:
+        '200':
+          description: успех
+  /work/{work_id}:
+    post:
+      summary: проверяем валидацию inpath параметров
+      parameters:
+        - in: header
+          name: header_id
+          schema:
+            type: string
+            pattern: '^param$'
+        - in: path
+          name: work_id
+          schema:
+            type: string
+            pattern: '^param$'
+        - in: query
+          name: query_id
+          schema:
+            type: string
+            pattern: '^param$'
+        - in: cookie
+          name: cookie_id
+          schema:
+            type: string
+            pattern: '^param$'
+      responses:
+        '200':
+          description: успех
+  /pets:
+    post:
+      summary: создаем питомцев разными способами
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+            pattern: '^(Bearer|Token) \S+$'
+          required: true
+        - in: header
+          name: X-Yandex-ID
+          schema:
+            type: string
+            pattern: '\d+'
+          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        '200':
+          description: созданный питомец
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Pet"
+                  - $ref: "#/components/schemas/Pets"
+        '400':
+          description: некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "./refs/error.yaml#/components/schemas/Error"
+        '500':
+          description: сломался
+components:
+  schemas:
+    Pet:
+      type: object
+      additionalProperties: false
+      properties:
+        # number
+        f_num:
+          type: number
+        f_num_null:
+          type: number
+          nullable: true
+        f_num_minmax:
+          type: integer
+          minimum: 1
+          maximum: 3
+        f_num_enum:
+          type: integer
+          enum:
+            - 1
+            - 2
+        # string
+        f_str:
+          type: string
+        f_str_null:
+          type: string
+          nullable: true
+        f_str_minmax:
+          type: string
+          minLength: 1
+          maxLength: 3
+        f_str_pattern:
+          type: string
+          pattern: '^hello \S+$'
+        f_str_format_datetime:
+          type: string
+          format: date-time
+        f_str_format_date:
+          description: данные формат не работает по непонятной причине!
+          type: string
+          format: date
+        # boolean
+        f_bool:
+          type: boolean
+        f_bool_null:
+          type: boolean
+          nullable: true
+        # object
+        f_obj:
+          type: object
+        f_obj_null:
+          type: object
+          nullable: true
+        f_obj_minmax:
+          type: object
+          minProperties: 1
+          maxProperties: 3
+        f_obj_required:
+          type: object
+          required:
+            - a
+          properties:
+            a:
+              type: integer
+            b:
+              type: integer
+        f_obj_required_null:
+          type: object
+          nullable: true
+          required:
+            - a
+          properties:
+            a:
+              type: integer
+            b:
+              type: integer
+        f_obj_disable_extra_props:
+          type: object
+          additionalProperties: false
+          properties:
+            a:
+              type: integer
+            b:
+              type: integer
+        f_obj_hardcore:
+          type: object
+          required:
+            - c
+          properties:
+            a:
+              type: integer
+              minimum: 300
+            b:
+              type: string
+              pattern: '\S{4}'
+            c:
+              type: object
+              required:
+                - ca
+                - cb
+                - cc
+              properties:
+                ca:
+                  type: integer
+                  maximum: 300
+                cb:
+                  type: string
+                  format: date-time
+                cc:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  items:
+                    type: object
+                    additionalProperties: False
+                    properties:
+                      cca:
+                        type: string
+                        enum:
+                          - OK
+        # array
+        f_arr:
+          type: array
+        f_arr_null:
+          type: array
+          nullable: true
+        f_arr_minmax:
+          type: array
+          minItems: 1
+          maxItems: 3
+        f_arr_minmax_null:
+          type: array
+          nullable: true
+          minItems: 1
+        f_arr_unique:
+          type: array
+          uniqueItems: true
+        f_arr_hardcore:
+          type: array
+          items:
+            oneOf:
+              - type: number
+                minimum: 300
+              - type: string
+                minLength: 1
+              - type: object
+                required:
+                  - a
+                  - b
+                  - c
+                properties:
+                  a:
+                    type: integer
+                  b:
+                    type: integer
+                  c:
+                    type: object
+                    properties:
+                      ca:
+                        type: array
+                        minItems: 1
+                        maxItems: 2
+                        items:
+                          type: string
+    Pets:
+      type: array
+      items:
+        $ref: "#/components/schemas/Pet"

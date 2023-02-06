@@ -1,0 +1,80 @@
+openapi: 3.0.0
+info:
+    title: Yandex Taxi arcadia-userver-test Service - database tests
+    description: handlers for testing database interaction
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: arcadia-userver-test.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: ARCADIA_USERVER_TEST_CLIENT_QOS
+
+paths:
+    /ytlib/smoke-test:
+        post:
+            summary: Read table example
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ReadTableRequest'
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RowsResponse'
+
+components:
+    schemas:
+        ReadTableRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - yt_cluster
+              - table
+            properties:
+                yt_cluster:
+                    type: string
+                table:
+                    type: string
+        SampleRow:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - value
+            properties:
+                id:
+                    type: string
+                value:
+                    type: string
+        SelectRowsRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - yt_cluster
+              - table
+            properties:
+                table:
+                    type: string
+                yt_cluster:
+                    type: string
+        RowsResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - items
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SampleRow'

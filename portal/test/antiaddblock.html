@@ -1,0 +1,278 @@
+<head>
+    <title>Anti Add-Block Switcher</title>
+    <style type="text/css">
+        * {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        .page {
+            padding: 10px 40px;
+        }
+
+        .title {
+            font-size: 2.2em;
+            font-weight: 400;
+            margin: 0 0 15px;
+        }
+
+        .subtitle {
+            font-size: 17px;
+            margin: 0 0 5px;
+        }
+
+        .text {
+            color: gray;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #eeeeee;
+            width: 100%;
+            max-width: 500px;
+            padding: 10px 20px;
+        }
+
+        .col {
+            min-width: 180px;
+        }
+
+        .status {
+            margin: 0 0 15px;
+        }
+
+        .status__value {
+            color: gray;
+        }
+
+        .status__value_enabled {
+            color: green;
+        }
+
+        .status__value_disabled {
+            color: red;
+        }
+
+        .status__value_enabled-partially {
+            color: orange;
+        }
+
+        .button {
+            background: #ffffff;
+            outline: none;
+            border-radius: 3px 0 0 3px;
+            border: 1px solid #eeeeee;
+            padding: 5px 8px 4px;
+            line-height: 1.2;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #eeeeee;
+        }
+
+        .button:disabled {
+            background: #eeeeee;
+            cursor: not-allowed;
+        }
+
+        .button + button {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-left: 0;
+        }
+
+        .button:last-of-type {
+            border-top-right-radius: 3px;
+            border-bottom-right-radius: 3px;
+        }
+
+        .button_active, .button_active:hover {
+            background: #ffeba0;
+        }
+    </style>
+</head>
+<body class="page">
+
+<h1 class="title">Включение антиадблочной схемы</h1>
+<p class="status">Статус:&nbsp;<span class="status__value" id="status">загрузка...</span></p>
+<div class="row">
+    <div class="col">
+        <p class="subtitle">Принудительное включение</p>
+        <p class="text">Добавляет куку&nbsp;<strong>computer</strong></p>
+    </div>
+    <div class="col">
+        <button class="button" id="switcherForcedOff">Отключить</button>
+        <button class="button" id="switcherForcedOn">Включить</button>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <p class="subtitle">Опциональное включение</p>
+        <p class="text">Добавляет куку дня</p>
+    </div>
+    <div class="col">
+        <button class="button" id="switcherOptionalOff">Отключить</button>
+        <button class="button" id="switcherOptionalOn">Включить</button>
+    </div>
+</div>
+
+<script>
+    window._computer = 'computer';
+    window.buttons = {
+        switcherForcedOn: document.getElementById("switcherForcedOn"),
+        switcherForcedOff: document.getElementById("switcherForcedOff"),
+        switcherOptionalOn: document.getElementById("switcherOptionalOn"),
+        switcherOptionalOff: document.getElementById("switcherOptionalOff")
+    };
+
+    window.setCookie = function (name, value, options) {
+        options = options || {};
+
+        var expires = options.expires;
+
+        if (typeof expires == "number" && expires) {
+            var d = new Date();
+            d.setTime(d.getTime() + expires * 1000);
+            expires = options.expires = d;
+        }
+        if (expires && expires.toUTCString) {
+            options.expires = expires.toUTCString();
+        }
+
+        value = encodeURIComponent(value);
+
+        var updatedCookie = name + "=" + value;
+
+        for (var propName in options) {
+            updatedCookie += "; " + propName;
+            var propValue = options[propName];
+            if (propValue !== true) {
+                updatedCookie += "=" + propValue;
+            }
+        }
+
+        document.cookie = updatedCookie;
+    };
+
+    window.deleteCookie = function (name) {
+        setCookie(name, "0", {
+            expires: -1,
+            path: '/',
+            domain: '.yandex.ru'
+        })
+    };
+
+    window.init = function () {
+        var el = document.getElementById("status");
+        var computerCookie = window.getCookie(window._computer);
+        var dayCookie = window.getCookie(window._dayCookie);
+        var enabledSchemasCount = 0;
+
+        if (computerCookie) {
+            enabledSchemasCount++;
+
+            window.buttons.switcherForcedOn.classList.add("button_active");
+            window.buttons.switcherForcedOff.classList.remove("button_active");
+        } else {
+            window.buttons.switcherForcedOff.classList.add("button_active");
+            window.buttons.switcherForcedOn.classList.remove("button_active");
+        }
+
+        if (dayCookie) {
+            enabledSchemasCount++;
+
+            window.buttons.switcherOptionalOn.classList.add("button_active");
+            window.buttons.switcherOptionalOff.classList.remove("button_active");
+        } else {
+            window.buttons.switcherOptionalOff.classList.add("button_active");
+            window.buttons.switcherOptionalOn.classList.remove("button_active");
+        }
+
+        switch (enabledSchemasCount) {
+            case 0:
+                el.innerText = "схема отключена";
+                el.className = "status__value status__value_disabled";
+                break;
+            case 1:
+                el.innerText = "схема включена не полностью";
+                el.className = "status__value status__value_enabled-partially";
+                break;
+            case 2:
+                el.innerText = "схема включена";
+                el.className = "status__value status__value_enabled";
+                break;
+        }
+    };
+
+    window.bindSwitcher = function () {
+        window.buttons.switcherForcedOn.addEventListener('click', function () {
+            setCookie(window._computer, '1', {
+                path: '/',
+                domain: '.yandex.ru',
+                sameSite: 'None',
+                secure: 'true'
+            });
+
+            window.init();
+        });
+
+        window.buttons.switcherOptionalOn.addEventListener('click', function () {
+            setCookie(window._dayCookie, '1', {
+                path: '/',
+                domain: '.yandex.ru',
+                sameSite: 'None',
+                secure: 'true'
+            });
+
+            window.init();
+        });
+
+        window.buttons.switcherForcedOff.addEventListener('click', function () {
+            deleteCookie(window._computer);
+            window.init();
+        });
+
+        window.buttons.switcherOptionalOff.addEventListener('click', function () {
+            deleteCookie(window._dayCookie);
+            window.init();
+        });
+    };
+
+    window.getCookie = function (name) {
+        var matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
+    };
+
+    window.requestDayCookie = function () {
+        var request = new XMLHttpRequest();
+
+        request.onreadystatechange = function () {
+            if (request.readyState === XMLHttpRequest.DONE) {
+                if (request.status === 200) {
+                    var result = JSON.parse(request.responseText);
+
+                    if (result.aadb_day_cookie) {
+                        window._dayCookie = result.aadb_day_cookie;
+
+                        window.bindSwitcher();
+                        window.init();
+                    }
+                } else {
+                    alert('Что-то пошло не так...');
+                }
+            }
+        };
+
+        request.open("GET", "/?cleanvars=aadb_day_cookie", true);
+        request.send();
+    };
+
+    window.requestDayCookie();
+</script>
+</body>

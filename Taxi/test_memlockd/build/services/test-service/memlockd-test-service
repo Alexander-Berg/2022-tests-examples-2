@@ -1,0 +1,21 @@
+#!/bin/bash
+
+SERVICE=test-service
+CMD=yandex-taxi-$SERVICE
+STATS=taxi-$SERVICE-stats.py
+CFG=$(mktemp --suffix -memlockd.conf)
+
+# TODO: ugly
+while $STATS 2>/dev/null | grep -q .; do
+  echo >&2 "No service running, sleeping..."
+  sleep 5
+done
+
+# Collect all mmap'ed files with at least one +x mapping.
+# ldd doesn't show all libraries (e.g. nss), and memlockd's "+"
+# recursive flag doesn't do its job, so do it manually.
+for pid in $(pidof nginx) $(pidof $CMD); do 
+  cat /proc/$pid/maps
+done | grep 'xp' | grep '/.*' -o >$CFG
+
+exec memlockd -d -f -c $CFG

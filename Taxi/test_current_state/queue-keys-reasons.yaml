@@ -1,0 +1,28 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create#xget: /event/payload/is-create
+        dynamic-event-traits:
+            reason#xget:
+                path: /event/payload/reason
+                default-value#null:
+        keys-mapping:
+            default-keys: [handle-default]
+        state-manager:
+            initial: {}
+            mutators:
+              - name: update-reason
+                condition#xhas: /event/reason
+                effects:
+                    event-reason#xget: /event/reason
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages: []

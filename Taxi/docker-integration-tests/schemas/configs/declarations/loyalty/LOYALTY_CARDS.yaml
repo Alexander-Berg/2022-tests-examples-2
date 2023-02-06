@@ -1,0 +1,99 @@
+default: {}
+description: Список банковских карт (с настройками) доступные в программе лояльности
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Card'
+    definitions:
+        Detail:
+            description: Параметр банковской карты
+            type: object
+            required:
+              - title
+              - detail
+            additionalProperties: false
+            properties:
+                title:
+                    description: Ключ в танкере для заголовка параметра банковской
+                        карты
+                    type: string
+                detail:
+                    description: Ключ в танкере для значения параметра банковской
+                        карты
+                    type: string
+                subtitle:
+                    description: Ключ в танкере для описания параметра банковской
+                        карты
+                    type: string
+        Button:
+            description: Кнопка для перехода на карту или на сайт банка
+            type: object
+            required:
+              - title
+              - payload
+            additionalProperties: false
+            properties:
+                title:
+                    description: Ключ в танкере для надписи на кнопке
+                    type: string
+                payload:
+                    type: object
+                    required:
+                      - type
+                    additionalProperties: false
+                    properties:
+                        type:
+                            type: string
+                            enum:
+                              - navigate_to_bank_url_with_extra
+                              - show_locations
+                        data:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - url
+                              - javascript
+                              - bank_id
+                            properties:
+                                url:
+                                    type: string
+                                    minLength: 1
+                                javascript:
+                                    type: string
+                                    minLength: 1
+                                bank_id:
+                                    type: string
+                                    enum:
+                                      - tinkoff
+
+        Card:
+            description: Банковская карта
+            type: object
+            required:
+              - title
+              - subtitle
+              - image
+              - description
+              - details
+            additionalProperties: false
+            properties:
+                title:
+                    description: Ключ в танкере для заголовка банковской карты
+                    type: string
+                subtitle:
+                    description: Ключ в танкере для краткого описания банковской карты
+                    type: string
+                description:
+                    description: Ключ в танкере для полного описания банковской карты
+                    type: string
+                image:
+                    description: Урл картинки банковской карты
+                    type: string
+                details:
+                    description: Дополнительные параметры банковской карты
+                    type: array
+                    items:
+                        $ref: '#/definitions/Detail'
+                button:
+                    $ref: '#/definitions/Button'

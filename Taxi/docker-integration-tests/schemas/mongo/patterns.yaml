@@ -1,0 +1,77 @@
+description: Storage of patterns
+settings:
+    collection: patterns
+    connection: misc
+    database: dbmisc
+indexes:
+  - key: name
+    unique: true
+  - key: pattern_type
+  - key: ticket
+wiki_info: |
+    ####dbmisc.patterns - хранит информацию о шаблонах сущностей
+
+    ```python
+    patterns = {
+        # обязательные атрибуты
+        '_id': ObjectId(),
+        'doc': { # Информация о полях шаблона и их ограничениях
+          "field": {
+            # обязательные атрибуты
+            'important': boolean, # Ключевое поле или нет
+            'default': anyvalue, # Значение по-умолчанию
+            'constraint': constraint_object # Объект ограничения
+          },
+          ...
+        },
+        'pattern_type': string, # Тип шаблона. Enum: ['commission']
+        'name': string, # Название шаблона. Уникально.
+        'ticket': string, # TAXIRATE тикет последнего создания/удаления
+        'version': int, # Версионирование документа. Требуется, чтобы учесть состояние гонки
+    },
+
+    # constraint_object это объект с обязательным поле type и другими полями,
+    # в зависимости от типа.
+    # type - enum: ['range', 'regex', 'const', 'enum', 'array_constraint', 'object_constraint', 'pattern_constraint']
+
+    constraint_object_range = {
+      'type': 'range',
+      'range': {
+        'start': None | int | string, # None - если нет ограничения, string - если число представляется в виде decimal
+        'end': None | int | string
+      }
+    },
+
+    constraint_object_regex = {
+      'type': 'regex',
+      'regex': string # regex. Пример: '[a-z]+'
+    },
+
+    constraint_object_const = {
+      'type': 'const',
+      'const': anyvalue
+    },
+
+    constraint_object_enum = {
+      'type': 'enum',
+      'enum': array # Пример: ['a', 'b', 'c']
+    },
+
+    constraint_object_array_constraint = {
+      'type': 'array_constraint',
+      'items_constraint': constraint_object # объект-ограничение
+    },
+
+    constraint_object_object_constraint = {
+      'type': 'object_constraint',
+      'fields_constraint': {
+        "field": constraint_object,
+        ...
+      }
+    },
+
+    constraint_object_pattern_constraint = {
+      'type': 'pattern_constraint',
+      'pattern_constraint': array # Список идентификаторов шаблонов
+    }
+    ```

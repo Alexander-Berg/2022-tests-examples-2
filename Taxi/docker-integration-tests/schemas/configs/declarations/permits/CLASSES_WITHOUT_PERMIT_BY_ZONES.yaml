@@ -1,0 +1,48 @@
+default:
+    __default__: {}
+description: >
+    Соответсвие классов работающих без лицензии разделенное по геозонам.
+    В каждой геозоне, в поле "*" должны быть указаны классы для которых разрешение
+    не требуется.
+    Если этого поля нет, то считается что все классы в регионе должны иметь разрешение
+    и будут проверяться
+    на соответствие по дальнейшим полям.
+    В остальных полях задаются соответсвия каким классам можно ездить в каких классах
+    без разрешения.
+    Если геозоны нет в конфиге, то применяется __default__
+    Пример:
+    {"__default__":{}, # применяется ко всем зонам которых нет в конфиге, елси пустой,
+                         то считается, что для всех классов нужно разрешение
+        "moscow": {
+            "*": ["vip", "elite", "cargo", "express"], # эти классы ездят без разрешений
+            "vip": ["econom", "comfort", "comfortplus"], # vip может возить перечисленные
+                                                классы даже если у него нет разрешений
+            "business":["econom", "comfort"], # business может возить эти классы,
+                                                даже если у него нет разрешения
+        },
+        "spb": {
+           "*": ["vip", "cargo", "express"], # эти классы ездят без разрешений
+           "vip": ["econom", "comfort"],
+           "business":["econom", "comfort"]
+        }
+    }
+
+maintainers: [a-mits]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        type: object
+        additionalProperties:
+            type: array
+            items:
+                type: string
+    required:
+      - __default__
+    properties:
+        __default__:
+            type: object
+            additionalProperties:
+                type: array
+                items:
+                    type: string

@@ -1,0 +1,22 @@
+enabled: true
+sources:
+  - id: unreachable
+    resource: unreachable
+    enabled#not:
+        value#source-enabled: failed
+  - id: failed
+    resource: failed
+    fail-policy:
+      - action: return
+        response: resp-ok
+        selector: any
+responses:
+  - id: resp-ok
+    body#if:
+        condition#source-enabled: unreachable
+        then#source-response-body: unreachable
+        else#source-response-body: failed
+default-response: resp-ok
+allow-unauthorized: true
+skip-checks:
+  - usage-of-possiby-unreachable-source

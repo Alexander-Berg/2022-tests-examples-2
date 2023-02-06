@@ -1,0 +1,30 @@
+[QPROC-TEST](!)
+type=endpoint
+transport=transport-udp-ipv6
+context=from-QPROC
+disallow=all
+allow=alaw
+allow=ulaw
+direct_media=no
+
+;---------------------------------------------------
+{% for item in qproc_test %}
+; {{ item.name }}
+; AORS
+[{{ item.name }}-aor]
+type=aor
+qualify_frequency=20
+contact=sip:[{{ item.dstip }}]
+
+; IDENTITIES
+[{{ item.name }}-id]
+type=identify
+endpoint={{ item.endpoint }}
+match=[{{ item.dstip }}]
+
+; ENDPOINTS
+[{{ item.endpoint }}](QPROC-TEST)
+aors={{ item.name }}-aor
+;---------------------------------------------------
+
+{%endfor%}

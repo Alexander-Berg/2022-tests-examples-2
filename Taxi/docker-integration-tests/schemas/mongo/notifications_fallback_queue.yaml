@@ -1,0 +1,24 @@
+settings:
+    collection: notifications_fallback_queue
+    connection: communications
+    database: dbcommunications
+indexes:
+  - expireAfterSeconds: 0
+    key: expires
+wiki_info: |
+    #### Очередь нотификаций в сервисе коммуникаций
+    Используется чтобы складывать push-нотификации водителям, которые не удалось отправить с первого раза.
+    ```python
+    'notifications_fallback_queue': {
+        '_id': ObjectId(),      # Уникальный идентификатор группы сообщений
+        'request_id': string,   # Если при балковой отправке сообщение было разбито
+                                  на несколько, то у всех будет одинаковое значение в этом поле
+        'action': integer,      # Тип пуша, в зависимости от которого клиент выполняет различные действия
+        'drivers': [string],    # Список водителей в формате dbid_uuid (если сообщение на конкретных водителей)
+        'topic': string,        # Топик (если сообщение на топик)
+        'collapse_key': string, # Сообщения с одинаковым collapse_key могут быть объединены на клиенте
+        'payload': JSON,        # Произвольный JSON с основным содержимым пуша, формат зависит от action
+        'created': ISODate,     # Дата/время создания
+        'expires': ISODate,     # Дата/время, до которых надо доставить пуш
+    }
+    ```

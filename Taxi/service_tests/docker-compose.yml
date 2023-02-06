@@ -1,0 +1,53 @@
+version: "2.3"
+
+services:
+    autotests:
+        build:
+            context: .
+            dockerfile: docker-files/autotests/Dockerfile
+        environment:
+          - POSTGRES_DBNAME=metrics
+          - DB_HOST=postgres
+          - DB_USER=user
+          - DB_PASSWORD=password
+          - DB_PORT=5432
+          - YDB_DATABASE=/local
+          - YDB_ENDPOINT=ydb:2135
+          - SSL_MODE=disable
+          - LOG_LEVEL=INFO
+        volumes:
+          - ..:/var/autotests_metrics:delegated
+        depends_on:
+            ydb:
+              condition: service_healthy
+            postgres:
+              condition: service_healthy
+        networks:
+             - internal
+    ydb:
+        image: registry.yandex.net/yandex-docker-local-ydb:stable
+        ports:
+          - "2135:2135"
+        networks:
+          - internal
+    postgres:
+      image: registry.yandex.net/taxi/externalimages/postgres:latest
+      ports:
+        - "5432:5432"
+      environment:
+        - POSTGRES_DB=metrics
+        - POSTGRES_USER=user
+        - POSTGRES_PASSWORD=password
+        - POSTGRES_PORT=5432
+      volumes:
+        - ../autotests_metrics/schema/postgres_schema:/docker-entrypoint-initdb.d:ro
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      networks:
+        - internal
+networks:
+    internal:
+        driver: bridge

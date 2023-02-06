@@ -1,0 +1,40 @@
+settings:
+    collection: holded_driver_balances
+    connection: subvention_reasons
+    database: dbsubvention_reasons
+wiki_info: |
+    #### holded_driver_balances
+    Устарело. Скоро выпилится. Используйте holded_taximeter_driver_balances.
+
+    *Назначение:* текущий захолженный баланс водителя
+
+    *Структура документа*:
+    ```python
+    {
+        # Все поля обязательные
+        # Ссылка на driver_id
+        '_id': 'clid_uuid',
+        # основная валюта водителя
+        'default_currency': 'RUB',
+        # Словарь: валюта -> сумма
+        "holded_balance": {
+            # текущий баланс водителя, умноженный на 10000 и округленный до int
+            "RUB": 12345678
+        },
+        # время создания документа
+        'created': datetime.datetime.utcnow(),
+        # время обновления документа
+        'updated': datetime.datetime.utcnow(),
+        # id документов из holded_subventions, которые надо прибавить
+        # на захолженный баланс
+        "in_progress_subventions": [ObjectId(), ObjectId(), ...],
+
+        # список N последних субсидий прибавленных к балансу, поля - подмножество полей из db.holded_subventions
+        "latest_subventions": [
+          {"_id": ObjectId(), "cur_value": "1.2345", "prev_value": "0.0",
+           "undo_of_versions": [], "hold_status": "holded", "version": 1
+           "currency": "RUB", "clear_time": datetime.datetime()
+           "created": datetime.datetime()}
+        ],
+    }
+    ```

@@ -1,0 +1,149 @@
+id: test_post_success_response
+title: Проверка получения ответа из сервиса eats-report-storage
+
+source:
+    request:
+        method: post
+        url: /4.0/restapp-front/api/v1/client/restaurants/metrics/widgets/orderCancelPercentCount
+        headers:
+            X-YaEda-PartnerId#string: 100
+        body:
+            places:
+              - value: 1234
+              - value: 4321
+            presetPeriodType: "month"
+            periodGroupBy: "day"
+            periodBegin: "2021-11-22T15:43:19"
+            periodEnd:
+    expectations:
+        response:
+            status-code: 200
+            body:
+                isSuccess: true
+                payload:
+                    title: "Отмененные заказы"
+                    summary: "Отмененные заказы, процент"
+                    metrics:
+                      - value:
+                            id: "orderCancelPercentCount"
+                            title: "Отмененные заказы"
+                            summary: "Процент отмененных заказов"
+                            targetValue:
+                            totalValue:
+                                title: "50"
+                                value: 50
+                            dataSet:
+                              - value:
+                                    date: "08.11"
+                                    value: 0
+                                    label:
+                              - value:
+                                    date: "09.11"
+                                    value: 50
+                                    label:
+                      - value:
+                            id: "common_order_cancel_count"
+                            title: "Отмененные заказы 2"
+                            summary: ""
+                            targetValue:
+                                title: "10%"
+                                value: 10
+                            totalValue:
+                            dataSet:
+                              - value:
+                                    date: "2021-11-08T00:00:00+00:00"
+                                    value: 0
+                                    label: "2"
+                              - value:
+                                    date: "2021-11-09T00:00:00+00:00"
+                                    value: 500
+                                    label: "3"
+
+mocks:
+  - resource: backend-service-vendor-v1-client-restaurants-metrics-widgets
+    expectations:
+        call-count: 0
+
+  - resource: eats-report-storage-v1-place-metrics-widgets-get
+    response:
+        status-code: 200
+        body:
+            payload:
+                title: "Отмененные заказы"
+                description: "Отмененные заказы, процент"
+                widget_type: "widget_basic_chart"
+                widget_slug: "orderCancelPercentCount"
+                stretch_to_full_width: true
+                chart_type: "bar_stacked"
+                points_chunking: "day"
+                charts:
+                  - value:
+                        data_key: "orderCancelPercentCount"
+                        name: "Отмененные заказы"
+                        full_name: "Процент отмененных заказов"
+                        total_value:
+                            title: "50"
+                            value: 50
+                        points_data:
+                          - value:
+                                status:
+                                value: 0
+                                title: "0"
+                                dt_to: "2021-11-09T00:00:00+00:00"
+                                dt_from: "2021-11-08T00:00:00+00:00"
+                                xlabel: "08.11"
+                          - value:
+                                status:
+                                value: 50
+                                title: "50"
+                                dt_to: "2021-11-10T00:00:00+00:00"
+                                dt_from: "2021-11-09T00:00:00+00:00"
+                                xlabel: "09.11"
+                  - value:
+                        data_key: "common_order_cancel_count"
+                        name: "Отмененные заказы 2"
+                        target_value:
+                            title: "10%"
+                            value: 10
+                        points_data:
+                          - value:
+                                status:
+                                value: 0
+                                title: "0"
+                                dt_to: "2021-11-09T00:00:00+00:00"
+                                dt_from: "2021-11-08T00:00:00+00:00"
+                                combined_count: 2
+                          - value:
+                                status:
+                                value: 500
+                                title: "500"
+                                dt_to: "2021-11-10T00:00:00+00:00"
+                                dt_from: "2021-11-09T00:00:00+00:00"
+                                combined_count: 3
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            headers:
+                X-YaEda-PartnerId#string: 100
+            body:
+                widget_slug: "orderCancelPercentCount"
+                places:
+                  - value: 1234
+                  - value: 4321
+                preset_period_type: "month"
+                period_group_by: "day"
+                period_begin: "2021-11-22T15:43:19Z"
+                period_end:
+
+configs:
+    values#object:
+      - key: eats-report-storage-switch-common
+        value:
+            enabled: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 100

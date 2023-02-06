@@ -1,0 +1,161 @@
+- service: test-contractor-merch-no-promocodes-left
+  description: |-
+      Мониторинг на закончившиеся промокоды
+  groupByLabels:
+    - host
+  alert_type: expression
+  period: 300
+  program: |
+    let data = {project="taxi", cluster="testing_uservices", service="uservices", application="contractor-merch", sensor="cannot-buy-reason.no_promocodes_left", host!="cluster|Man|Sas|Vla|Myt|Iva"};
+    ok_if(size(data) == 0);
+
+    let delta = max(diff(data));
+    alarm_if(delta > 0);
+  checkExpression: 'false'
+- service: test-contractor-merch-feeds-count-limit
+  description: |-
+      Мониторинг на то, что не приближаемся к лимиту на количество офферов
+  alert_type: threshold
+  selectors: |
+     {
+        project='taxi',
+        cluster='testing_uservices',
+        service='uservices',
+        application='contractor-merch',
+        sensor='feeds-count.1min.max',
+        host!='cluster|Man|Sas|Vla|Myt|Iva'
+     }
+  period: 300
+  predicateRules:
+  - timeAggregation: Max
+    comparison: GTE
+    threshold: 9
+    targetStatus: ALARM
+- service: test-contractor-merch-v1-offer-500
+  description: |-
+      Мониторинг на 500-ки v1/offer
+  groupByLabels:
+    - host
+  alert_type: expression
+  checkExpression: 'false'
+  period: 600
+  delay: 120
+  program: |
+    let ok =  last(moving_sum(series_sum(
+        {cluster="testing",
+         service="dorblu_agent",
+         object="contractor-merch_taxi_tst_yandex_net_driver_v1_contractor-merch_v1_offer_GET",
+         sensor="ok_rps"}
+      ), 10m));
+
+    let error = last(moving_sum(series_sum(
+        {{cluster="testing",
+         service="dorblu_agent",
+         object="contractor-merch_taxi_tst_yandex_net_driver_v1_contractor-merch_v1_offer_GET",
+         sensor="errors_rps"}
+      ), 10m));
+
+    ok_if(error <= 0);
+
+    let prc = error / (ok + error);
+
+    alarm_if(prc > 0.4);
+    warn_if(prc > 0.025);
+- service: test-contractor-merch-v1-offer-immutable-500
+  description: |-
+      Мониторинг на 500-ки v1/offer-by-immutable-id
+  groupByLabels:
+    - host
+  alert_type: expression
+  checkExpression: 'false'
+  period: 600
+  delay: 120
+  program: |
+    let ok =  last(moving_sum(series_sum(
+        {cluster="testing",
+         service="dorblu_agent",
+         object="contractor-merch_taxi_tst_yandex_net_driver_v1_contractor-merch_v1_offer-by-immutable-id_GET", 
+         sensor="ok_rps"}
+      ), 10m));
+
+    let error = last(moving_sum(series_sum(
+        {cluster="testing",
+         service="dorblu_agent",
+         object="contractor-merch_taxi_tst_yandex_net_driver_v1_contractor-merch_v1_offer-by-immutable-id_GET",
+         sensor="errors_rps"}
+      ), 10m));
+
+    ok_if(error <= 0);
+
+    let prc = error / (ok + error);
+
+    alarm_if(prc > 0.4);
+    warn_if(prc > 0.025);
+- service: test-contractor-merch-purchases-hard-alerts
+  description: |-
+    Мониторинг покупок (алерт при их отсутствии)
+  alert_type: expression
+  period: 3600
+  program: |
+    let _sensor = replace_nan(
+    {'cluster'='production_stq',
+    'group'='taxi_stq-agent-py3_pre_stable|taxi_stq-agent-py3_stable',
+    'project'='taxi', 'service'='stq',
+    'workers_group'='taxi_contractor-merch_stable|taxi_contractor-merch_pre_stable',
+    'application'='stq-agent',
+    'sensor'='done',
+    'stat_type'='by_hosts',
+    'subsection'='total'},
+    0);
+    let sensorSum = group_lines("sum", _sensor);
+    let sum = sum(sensorSum);
+    alarm_if(sum < 1);
+  checkExpression: 'false'
+- service: test-contractor-merch-localization-errors
+  description: |-
+      Мониторинг на критические ошибки локализации
+      ~~~~
+      Темплейт метрик:
+      https://solomon.yandex-team.ru/?project=taxi&cluster=testing_uservices&service=uservices&l.application=feeds&l.host=*.*&l.feeds_service=contractor-marketplace*&l.sensor=feeds_statistics.by_service.errors.localization.fatal*&graph=auto&b=6h&e=  period: 600
+  alert_type: expression
+  period: 600
+  program: |
+    let _sensor = replace_nan(
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="feeds",
+      host="cluster",
+      feeds_service="contractor-marketplace*",
+      sensor="feeds_statistics.by_service.errors.localization.fatal*"
+      }, 0);
+    let sensorSum = group_lines("sum", _sensor);
+    let minutesDeltaErrors = last(sensorSum) - min(sensorSum);
+    alarm_if(minutesDeltaErrors > 10);
+    let deltaErrors = diff(sensorSum);
+    warn_if(last(deltaErrors) > 0);
+  resolvedEmptyPolicy: RESOLVED_EMPTY_OK
+  noPointsPolicy: NO_POINTS_OK
+  checkExpression: 'false'
+- service: contractor-merch-localization-errors-categories
+  description: |-
+      Мониторинг на критические ошибки локализации для категорий
+      ~~~~
+      Темплейт метрик:
+      https://solomon.yandex-team.ru/admin/projects/TaxiSandbox/alerts/9e20621d-5da7-4a41-8127-c7123f7b968f
+  alert_type: expression
+  period: 600
+  program: |
+    let sensor = replace_nan(
+    {'project'='taxi',
+    'cluster'='testing_uservices',
+    'service'='uservices',
+    'sensor'='categories-without-translation',
+    'application'='contractor-merch',
+    'group'='taxi_contractor-merch_*stable',
+    'host'='cluster'},
+    0);
+    let difference = max(sensor) - min(sensor);
+    alarm_if(difference > 0);
+  checkExpression: 'false'

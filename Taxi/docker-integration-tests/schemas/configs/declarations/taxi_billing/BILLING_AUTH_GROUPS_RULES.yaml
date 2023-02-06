@@ -1,0 +1,59 @@
+default: {}
+description: 'Словарь для контроля правил групп авторизации биллинга. Ключ - название
+    группы, по ключу - словарь с атрибутами accounts, documents и tags. В accounts
+    - массив словарей с атрибутами kind и agreement. Т.е. перечисление разрешенных
+    комбинаций kind и agreement. В documents - массив словарей с атрибутом external_obj_id,
+    которые задают схему идентификатора документа. В tags - массив словарей с атрибутом
+    tag, которые задают схему тэга документов.'
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/GroupRule'
+    definitions:
+        GroupRule:
+            type: object
+            additionalProperties: false
+            properties:
+                accounts:
+                    type: array
+                    description: Массив правил для доступа к счетам
+                    items:
+                        $ref: '#/definitions/AccountRule'
+                documents:
+                    type: array
+                    description: Массив правил для доступа к документам
+                    items:
+                        $ref: '#/definitions/DocumentRule'
+                tags:
+                    type: array
+                    description: Массив правил для доступа к документам по тегам
+                    items:
+                        $ref: '#/definitions/TagRule'
+        AccountRule:
+            type: object
+            additionalProperties: false
+            properties:
+                kind:
+                    type: string
+                agreement:
+                    type: string
+        DocumentRule:
+            type: object
+            additionalProperties: false
+            properties:
+                external_obj_id:
+                    type: string
+        TagRule:
+            type: object
+            additionalProperties: false
+            properties:
+                tag:
+                    type: string
+samples:
+  - group: {'accounts': [], 'documents': [], 'tags': []}
+    some_key: {'accounts': [{'kind': '%', 'agreement': '%'}], 'documents': ['external_obj_id': '%'],
+        'tags': ['tag': '%']}
+invalid-samples:
+  - some_key: true
+    group_name: 1

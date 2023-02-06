@@ -1,0 +1,59 @@
+description: mocks for js pipeline tests
+settings:
+    collection: tests
+    connection: admin_pipeline
+    database: admin_pipeline
+indexes:
+  - key:
+      - name: consumer
+        type: ascending
+      - name: name
+        type: ascending
+    unique: true
+wiki_info: |
+    ####tests
+    Моки для тестов пайплайнов
+
+    ```python
+      {
+        'consumer': 'taxi_surge',   # название потребителя пайплайна
+        'name': 'test_antisurge',   # название теста
+        'testcases': [              # Тесткейсы
+          {
+            'name': 'simple',                   # название тесткейса
+            'output_checks': [                  # Список названий проверок, которые нужно выполнить
+              'check_surge_positive'
+            ],
+            'input_mock': 'dummy_input',        # выбранный мок ввода
+            'prefetched_resources': {           # выбранные моки для prefetched ресурсов
+              'zone': 'dummy'
+            },
+            'resource_mocks': {                 # выбранные моки для ресурсов
+              'pin_stats': 'dummy_pin_stats'
+            }
+          }
+        ],
+        'output_checks': {                                        # available output checks
+          'check_surge_positive': {                               # check name
+            'source_code': 'assert(classes.econom.value_raw > 0)' # imperative check
+          }
+        } 
+        # Моки
+        'prefetched_resources_mocks': {    # моки prefetched ресурсов
+          'zone': {                        # название ресурса
+            'dummy': {},                   # ключ - название мока, значение - тело мока
+          },
+        },
+        'resources_mocks': {      # моки ресурсов
+          'pin_stats': {          # название ресурса
+            'dummy_pin_stats': {  # название мока
+              'mock_body': 'return {pins: 10, pins_order: 8}'  # тело мока
+            }
+          },
+        },
+        'input_mocks': {          # моки ввода
+            'dummy_input': {},    # ключ - название мока, значение - тело мока
+          },
+        },
+      }
+    ```

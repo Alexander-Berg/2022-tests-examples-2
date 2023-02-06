@@ -1,0 +1,119 @@
+id: antifraud_order_check_fake_notification_handler
+title: Проверяет, что ответ ручки antifraud-order-check-fake-cancel-notification-handler
+    есть в общем response
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            media_size_info: {'screen_height': 1920, 'screen_width': 1080, 'scale': 2.5}
+        headers:
+            content-type: 'application/json'
+            X-Request-Language#string: 'ru'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                notifications#object:
+                  - key: order_status_alert
+                    value#object:
+                      - key: translations
+                        value#object:
+                          - key: title
+                            value#string: 'Заказ отменён службой такси'
+                          - key: change_params_button_text
+                            value#string: 'Ок'
+                higher_class_dialog:
+                    image: class_comfortplus_car
+                    text: some_text
+                    title: some_title
+                    class_after_upgrade: comfortplus
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+experiments:
+    values#object:
+      - key: update_selected_class_after_upgrade
+        value:
+            enabled: false
+        enabled: true
+      - key: api_proxy_antifraud_order_cancel_notification_handler_enabled
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            higher_class_dialog:
+                image: class_comfortplus_car
+                title: some_title
+                text: some_text
+                class_after_upgrade: comfortplus
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: antifraud-order-cancel-notification-handler
+    response:
+        status-code: 200
+        body#object:
+          - key: order_status_alert
+            value#object:
+              - key: title
+                value#string: 'Заказ отменён службой такси'
+              - key: change_params_button_text
+                value#string: 'Ок'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                order_id: 'order_id'
+            headers:
+                X-Request-Language: ru
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                nz: 'moscow'
+                driver_id: 'driver_id_1'
+                user_fraud: true
+            request:
+                route: ['geopoint': [37.5, 57.5], 'geopoint': [37.8, 59.7]]
+            tariff:
+                class: comfortplus
+            status: 'transporting'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

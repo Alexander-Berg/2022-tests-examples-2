@@ -1,0 +1,179 @@
+data:
+    name: CreateAwacsBalancer
+    provider_name: clowny-balancer
+    job_vars:
+      - service_id
+      - fqdn
+      - datacenters
+      - size
+      - env
+      - new_service_ticket
+    stages:
+      - name: AwacsCheckBalancerNotExists
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+        output:
+            fqdn: fqdn
+            origin_fqdn: origin_fqdn
+
+      - name: AwacsSaveNamespace
+        provider_name: clowny-balancer
+        input:
+            service_id: service_id
+            env: env
+            fqdn: fqdn
+        output:
+            namespace_id: namespace_id
+            entry_point_id: entry_point_id
+            skip_domain_usage: skip_domain_usage
+            awacs_namespace_id: awacs_namespace_id
+
+      - name: NannyCubeGetActiveDatacenters
+        provider_name: clownductor
+        input:
+            env: env
+            service_id: service_id
+        output:
+            active_datacenters: active_datacenters
+
+      - name: AwacsCreateAwacsNamespace
+        provider_name: clowny-balancer
+        input:
+            size: size
+            datacenters: datacenters
+            namespace_id: namespace_id
+            active_backend_datacenters: active_datacenters
+
+      - name: AwacsWaitForNamespace
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+            new_service_ticket: new_service_ticket
+
+      - name: MetaCubeDomainCreate
+        provider_name: clowny-balancer
+        input:
+            origin_fqdn: origin_fqdn
+            entry_point_id: entry_point_id
+            skip_domain_usage: skip_domain_usage
+        output:
+            domain_create_job_id: job_id
+
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: domain_create_job_id
+
+      - name: MetaCubeApplyL7MonitoringSettings
+        provider_name: clowny-balancer
+        imput:
+            env: env
+            fqdn: fqdn
+            service_id: service_id
+        output:
+            apply_monitoring_job_id: job_id
+
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: apply_monitoring_job_id
+
+      - name: AwacsGetL7NannyServices
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+        output:
+            l7_nanny_man: nanny_man
+            l7_nanny_sas: nanny_sas
+            l7_nanny_vla: nanny_vla
+            l7_balancers_ids: l7_balancers_ids
+
+      - name: AwacsCreateL3
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+            service_id: service_id
+            l7_balancers_ids: l7_balancers_ids
+
+      - name: AwacsWaitForL3
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+        output:
+            l3mgrServiceId: l3mgrServiceId
+
+      - name: L3MGRFetchIpv6
+        provider_name: clowny-balancer
+        input:
+            l3mgrServiceId: l3mgrServiceId
+        output:
+            ipv6: ipv6
+
+      - name: DNSCreateRecord
+        provider_name: clowny-balancer
+        imput:
+            fqdn: fqdn
+            ipv6: ipv6
+
+      - name: MetaStartChangeL7PodsOneNannyService
+        provider_name: clowny-balancer
+        input:
+            nanny_name: l7_nanny_vla
+            env: env
+            fqdn: fqdn
+            st_ticket: new_service_ticket
+        output:
+            vla_job_id: job_id
+
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: vla_job_id
+            st_ticket: new_service_ticket
+
+      - name: MetaStartChangeL7PodsOneNannyService
+        provider_name: clowny-balancer
+        input:
+            nanny_name: l7_nanny_sas
+            env: env
+            fqdn: fqdn
+            st_ticket: new_service_ticket
+        output:
+            sas_job_id: job_id
+
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: sas_job_id
+            st_ticket: new_service_ticket
+
+      - name: MetaStartChangeL7PodsOneNannyService
+        provider_name: clowny-balancer
+        input:
+            nanny_name: l7_nanny_man
+            env: env
+            fqdn: fqdn
+            st_ticket: new_service_ticket
+        output:
+            man_job_id: job_id
+
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: man_job_id
+            st_ticket: new_service_ticket
+
+      - name: AwacsSetDefaultYaml
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+            origin_fqdn: origin_fqdn
+        output:
+            upstream_id: default_upstream_name
+
+      - name: AwacsUpstreamWaitFor
+        provider_name: clowny-balancer
+        input:
+            upstream_id: upstream_id
+            namespace_id: awacs_namespace_id

@@ -1,0 +1,162 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: rtc
+    name: eda_eats-coupons_testing
+graphs:
+    eats-coupons.eda.tst.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 408 # Request timeout
+              - 409 # Conflict
+              - 424 # Not standard client error
+              - 429 # Too many requests
+
+    eats-coupons.eda.tst.yandex.net/internal/coupon_finish_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Окончание обработки купона при завершении заказа
+              - Equals: {request_url: "/internal/coupon_finish"}
+              - Equals: {request_url: "/internal/coupon_finish/"}
+              - StartsWith: {request_url: "/internal/coupon_finish?"}
+              - StartsWith: {request_url: "/internal/coupon_finish/?"}
+        Options:
+            CustomHttp:
+              - 400 # BadRequest (например, не передали cost_usage при success=true)
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    eats-coupons.eda.tst.yandex.net/internal/couponlist_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Получает список промокодов пользователей, а также удаляет промокоды в терминальном состоянии 
+              - Equals: {request_url: "/internal/couponlist"}
+              - Equals: {request_url: "/internal/couponlist/"}
+              - StartsWith: {request_url: "/internal/couponlist?"}
+              - StartsWith: {request_url: "/internal/couponlist/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad Request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 408 # Timeout
+              - 424 # Need retry
+              - 429 # TooManyAttempts
+
+    eats-coupons.eda.tst.yandex.net/internal/generate_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Ручка выдачи промокода пользователю
+              - Equals: {request_url: "/internal/generate"}
+              - Equals: {request_url: "/internal/generate/"}
+              - StartsWith: {request_url: "/internal/generate?"}
+              - StartsWith: {request_url: "/internal/generate/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad Request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 408 # Timeout
+              - 409 # Conflict (some inner limit has been exceeded)
+              - 424 # Need retry
+              - 429 # Too many requests
+
+    eats-coupons.eda.tst.yandex.net/internal/v1/coupons/validate_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Валидировать купон
+              - Equals: {request_url: "/internal/v1/coupons/validate"}
+              - Equals: {request_url: "/internal/v1/coupons/validate/"}
+              - StartsWith: {request_url: "/internal/v1/coupons/validate?"}
+              - StartsWith: {request_url: "/internal/v1/coupons/validate/?"}
+        Options:
+            CustomHttp:
+              - 400 # Что-то пошло совсем не так, сервис не понял запроса. Можно считать, что промокод не действителен, но нужно зажечь лампочку 
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    eats-coupons.eda.tst.yandex.net/internal/white-list_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Ручка добавления пользователя в валидационный список серии промокодов
+              - Equals: {request_url: "/internal/white-list"}
+              - Equals: {request_url: "/internal/white-list/"}
+              - StartsWith: {request_url: "/internal/white-list?"}
+              - StartsWith: {request_url: "/internal/white-list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad Request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    eats-coupons.eda.tst.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    eats-coupons.eda.tst.yandex.net/v1/couponcheck_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Проверка валидности промокода.
+              - Equals: {request_url: "/v1/couponcheck"}
+              - Equals: {request_url: "/v1/couponcheck/"}
+              - StartsWith: {request_url: "/v1/couponcheck?"}
+              - StartsWith: {request_url: "/v1/couponcheck/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad Request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too Many Requests
+
+    eats-coupons.eda.tst.yandex.net/v1/couponreserve_POST:
+        And:
+          - Equals: {http_host: "eats-coupons.eda.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Резерв промокода в старом формате 3.0/couponreserve Сервис клиентского протокола проксирует ререзв купона в данную ручку.  Основные задачи 1. Проверка промокода на валидность 2. Запись использований промокода в базы promocode_usages, promocode_usages2  В зависимости от различных условий может быть проведена как короткая, так и полная проверка промокода. - короткая проверка подразумевает проверку на лимиты и классы купона - полная проверка это полная проверка промокода  Если промокод был проверен при получении оффера, то в момент заказа делать полную проверку еще раз нет смысла, поэтому делается короткая проверка  В остальных случаях проверка будет полной. 
+              - Equals: {request_url: "/v1/couponreserve"}
+              - Equals: {request_url: "/v1/couponreserve/"}
+              - StartsWith: {request_url: "/v1/couponreserve?"}
+              - StartsWith: {request_url: "/v1/couponreserve/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad Request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 408 # Timeout
+              - 424 # Need retry
+              - 429 # Слишком много запросов
+

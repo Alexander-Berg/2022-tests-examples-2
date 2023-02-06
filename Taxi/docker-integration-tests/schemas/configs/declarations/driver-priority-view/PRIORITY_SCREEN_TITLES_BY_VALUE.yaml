@@ -1,0 +1,59 @@
+default:
+    __default__: {title: 'priority_view.normal_priority_title', description: 'priority_view.normal_priority_description',
+        thresholds: []}
+description: Настройки текстов экрана приоритета водителя по тарифным зонам. При достижении
+    водителем приоритета N из списка thresholds берется наибольшее значение, не превосходящее
+    N. Если список пустой или значение приоритета N меньше минимального списка, то
+    используются дефолтные тексты тарифной зоны. Задача EFFICIENCYDEV-4304
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ZoneTitles'
+    properties:
+        __default__:
+            $ref: '#/definitions/ZoneTitles'
+    required:
+      - __default__
+
+    definitions:
+        TitlesByValue:
+            type: object
+            description: Танкерные ключи текстов, привязанные к значению приоритета
+            additionalProperties: false
+            properties:
+                value:
+                    description: Значение приоритета
+                    type: integer
+                title:
+                    description: Танкерный ключ заголовка экрана приоритета
+                    type: string
+                description:
+                    description: Танкерный ключ описания экрана приоритета
+                    type: string
+            required:
+              - value
+              - title
+              - description
+
+        ZoneTitles:
+            type: object
+            description: Настройки текстов экрана приоритета водителя в тарифной зоне
+            additionalProperties: false
+            properties:
+                title:
+                    description: Дефолтный танкерный ключ заголовка экрана приоритета
+                    type: string
+                description:
+                    description: Дефолтный танкерный ключ описания экрана приоритета
+                    type: string
+                thresholds:
+                    type: array
+                    description: Список с танкерными ключами текстов, привязанных
+                        к значению приоритета
+                    items:
+                        $ref: '#/definitions/TitlesByValue'
+            required:
+              - title
+              - description
+              - thresholds

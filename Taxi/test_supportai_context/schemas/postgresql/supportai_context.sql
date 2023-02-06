@@ -1,0 +1,16 @@
+\ir ../../../postgresql/supportai_context/migrations/V01__initial.sql
+\ir ../../../postgresql/supportai_context/migrations/V02__migrate_to_separated_context.sql
+\ir ../../../postgresql/supportai_context/migrations/V03__most_probable_topic.sql
+\ir ../../../postgresql/supportai_context/migrations/V04__markup.sql
+\ir ../../../postgresql/supportai_context/migrations/V05__simulation.sql
+\ir ../../../postgresql/supportai_context/migrations/V06__improve_search.sql
+\ir ../../../postgresql/supportai_context/migrations/V07__add_samplings.sql
+\ir ../../../postgresql/supportai_context/migrations/V08__chat_user.sql
+\ir ../../../postgresql/supportai_context/migrations/V09__mocked_in_record.sql
+\ir ../../../postgresql/supportai_context/migrations/V10__sure_topic_in_context.sql
+\ir ../../../postgresql/supportai_context/migrations/V11__version_in_meta.sql
+\ir ../../../postgresql/supportai_context/migrations/V12__marked_percent.sql
+\ir ../../../postgresql/supportai_context/migrations/V13__hidden_context.sql
+\ir ../../../postgresql/supportai_context/migrations/V14__is_sent.sql
+\ir ../../../postgresql/supportai_context/migrations/V15__replied.sql
+\ir ../../../postgresql/supportai_context/migrations/V16__max_iteration_number.sql

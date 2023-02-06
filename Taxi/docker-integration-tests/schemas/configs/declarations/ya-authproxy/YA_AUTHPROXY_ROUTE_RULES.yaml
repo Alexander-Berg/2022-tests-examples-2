@@ -1,0 +1,123 @@
+description: |
+    Правила роутинга запросов для ya-authproxy. Схему см. на
+    https://github.yandex-team.ru/taxi/schemas/tree/develop/schemas/configs/declarations/ya-authproxy/YA_AUTHPROXY_ROUTE_RULES.yaml
+default: []
+tags: [notfallback]
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/RouterRule'
+    definitions:
+        PhoneValidationRule:
+            type: string
+            enum:
+              - strict
+              - proxy
+              - disabled
+            default: disabled
+
+        RouterRule:
+            type: object
+            additionalProperties: false
+            required:
+              - input
+              - output
+              - proxy
+            properties:
+                input:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - http-path-prefix
+                    properties:
+                        http-path-prefix:
+                            type: string
+                        service-client-allowed:
+                            type: boolean
+                            description: |
+                                Разрешить ли запросы от сервисов.
+                                Если true, то прокси проверяет TVM service ticket и доверяет хидеру X-Remote-IP.
+                output:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - upstream
+                      - tvm-service
+                    properties:
+                        upstream:
+                            description: |
+                                URL, на который будут посылаться запросы.
+                                Учтите, что http-path-prefix будет отправляться as-is и
+                                не будет вырезаться.
+                            type: string
+                        tvm-service:
+                            description: Имя TVM-сервиса из TVM_SERVICES
+                            type: string
+                        timeout-ms:
+                            description: Таймаут для одного HTTP-запроса
+                            type: integer
+                            minimum: 1
+                            default: 100
+                            x-taxi-cpp-type: std::chrono::milliseconds
+                        attempts:
+                            description: Максимальное число попыток HTTP-запросов
+                            type: integer
+                            minimum: 1
+                            default: 1
+                proxy:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - server-hosts
+                      - phone-validation-rule
+                    properties:
+                        server-hosts:
+                            description: |
+                                Массив хостов, на которых должно применяться правило.
+                                "*" без кавычек означает "все хосты".
+                                Применяется для выкатки опасных правил.
+                            type: array
+                            items:
+                                type: string
+                        cookie-enabled:
+                            description: Включены ли HTTP cookies
+                            type: boolean
+                            default: false
+                        proxy-401:
+                            description: Проксировать ли неавторизованные запросы
+                            type: boolean
+                            default: false
+                        passport-scopes:
+                            description: |
+                                Необходимые скоупы токена, если дефолтные не подходят
+                            type: array
+                            items:
+                                type: string
+                        auth:
+                            type: string
+                            enum:
+                              - passport-token-webview
+                              - passport-token
+                            default: passport-token
+                            description: |
+                                Разрешенные механизмы авторизации.
+                                passport-token - паспортный токен и dbusers.
+                                passport-token-webview - то же самое, но с возможностью передавать токен в куках.
+                        phone-validation-rule:
+                            $ref: '#/definitions/PhoneValidationRule'
+                        personal:
+                            type: object
+                            properties:
+                                phone_id:
+                                    type: boolean
+                                    default: false
+                                email_id:
+                                    type: boolean
+                                    default: false
+                                bounded_uids:
+                                    type: boolean
+                                    default: false
+                                need_eats_user_info:
+                                    type: boolean
+                                    default: false
+                            additionalProperties: false

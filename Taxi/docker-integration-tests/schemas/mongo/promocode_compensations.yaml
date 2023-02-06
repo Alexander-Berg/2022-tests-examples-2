@@ -1,0 +1,99 @@
+settings:
+    collection: promocode_compensations
+    connection: billing
+    database: dbbilling
+indexes:
+  - key:
+      - name: a
+        type: ascending
+      - name: v
+        type: descending
+    unique: true
+  - key: c
+  - key:
+      - name: p
+        type: ascending
+      - name: od
+        type: descending
+  - key:
+      - name: p
+        type: ascending
+      - name: od
+        type: ascending
+    partialFilterExpression:
+        ts: no_offer
+  - key:
+      - name: ts
+        type: ascending
+      - name: c
+        type: ascending
+  - key: u
+    sparse: true
+wiki_info: |
+    #### promocode_compensations
+    *Назначение:* содержит информацию об изменениях компенсаций за промокоды.
+
+    *Структура документа*
+    ```python
+    {
+        # id заказа
+        'o': '0123456789abcdef',
+
+        # alias_id заказа
+        'a': '0123456789abcdef',
+
+        # версия, у одного alias_id не может быть одинаковых версий
+        'v': 2,
+
+        # время создания документа, naive utc
+        'c': datetime.datetime.utcnow(),
+
+        # время обновления документа
+        'u': datetime.datetime.utcnow(),
+
+        # id водителя
+        'du': 'some_driver_uuid',
+
+        # clid парка
+        'p': '12345',
+
+        # город заказа
+        'ci': 'Москва',
+
+        # время подачи заказа (request.due), naive utc
+        'od': datetime.datetime.utcnow(),
+
+        # валюта
+        'cu': 'RUB',
+
+        # db_id парка (для отдачи в CSV)
+        'db_id': 'fdflkj34lkjfhs2kjvcbnxm',
+
+        # текущее значение компенсации промокода по данному заказу
+        'cv': '400.0',
+
+        # предыдущее значение компенсации промокода по данному заказу (0, если v = 1)
+        'pv': '0',
+
+        # статус передачи данных в траст
+        # init - передача в траст в процесее
+        # ignored - данные в траст передавать не надо
+        #     (например, для промокодов Москвы)
+        # zero - нулевое значение с первой версией
+        # no_offer - парк не подтвердил оферту
+        # failed - ошибка при передаче в траст
+        # outdated - есть более поздняя запись в транзакционном логе, которую надо
+        #  передать в траст.
+        # saved - передали в траст
+        # no_park - неизвестный парк у заказа
+        # no_city - неизвестный город у заказа
+        'ts': 'init|ignored|...|...|no_city',
+
+        # Человеко-читаемый текст с причиной изменения компенсации. Например,
+        # taxi_tasks/billing.py выставит здесь 'r': 't_t/b.py'
+        'r': 't_t/b.py'
+
+        # Статус отправки в billing-orders
+        'billing_orders_status': u'success',
+    }
+    ```

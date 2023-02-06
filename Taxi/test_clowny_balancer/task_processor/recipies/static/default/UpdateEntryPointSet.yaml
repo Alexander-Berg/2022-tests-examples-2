@@ -1,0 +1,29 @@
+data:
+    name: UpdateEntryPointSet
+    provider_name: clowny-balancer
+    job_vars:
+      - clown_service_id
+      - clown_branch_id
+      - active_regions
+    stages:
+      - name: InternalGetAwacsInfoBranch
+        provider_name: clowny-balancer
+        input:
+            clown_service_id: clown_service_id
+            clown_branch_id: clown_branch_id
+        output:
+            awacs_backend_id: awacs_backend_id
+            awacs_namespace_id: awacs_namespace_id
+
+      - name: AwacsUpdateEntrypointSet
+        provider_name: clowny-balancer
+        input:
+            regions: active_regions
+            awacs_namespace_id: awacs_namespace_id
+            awacs_backend_id: awacs_backend_id
+
+      - name: AwacsBackendWaitFor
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace_id
+            backend_id: awacs_backend_id

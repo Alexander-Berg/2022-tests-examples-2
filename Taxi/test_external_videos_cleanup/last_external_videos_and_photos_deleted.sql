@@ -1,0 +1,54 @@
+-- last_videos_and_photos_deleted table must contain only 1 row
+INSERT INTO signal_device_api.last_videos_and_photos_deleted (
+  last_deleted_photo_at,
+  last_deleted_external_video_at,
+  last_deleted_video_at,
+  last_deleted_external_photo_at,
+  last_deleted_external_video_event_id,
+  last_deleted_event_type,
+  updated_at
+) VALUES (
+  '2030-10-01T00:00:00+03:00',
+  '2020-10-01T00:00:00+03:00',
+  '2021-10-01T00:00:00+03:00',
+  '2023-10-01T00:00:00+03:00',
+  '',
+  '__default__',
+  CURRENT_TIMESTAMP
+),
+(
+  '2020-11-01T00:00:00+03:00',
+  '2020-11-01T00:00:00+03:00',
+  '2019-10-01T00:00:00+03:00',
+  '2017-10-01T00:00:00+03:00',
+  '',
+  'distraction',
+  CURRENT_TIMESTAMP
+),
+(
+  '2020-09-01T00:00:00+03:00',
+  '2020-09-01T00:00:00+03:00',
+  '2221-10-01T00:00:00+03:00',
+  '2223-10-01T00:00:00+03:00',
+  '',
+  'fart',
+  CURRENT_TIMESTAMP
+),
+(
+  '2016-01-01T00:00:00+03:00',
+  '2020-05-01T00:00:00+03:00',
+  '2121-10-01T00:00:00+03:00',
+  '2123-10-01T00:00:00+03:00',
+  '',
+  'seatbelt',
+  CURRENT_TIMESTAMP
+),
+(
+  '2020-12-01T00:00:00+03:00',
+  '2016-01-01T00:00:00+03:00',
+  '2024-10-01T00:00:00+03:00',
+  '2043-10-01T00:00:00+03:00',
+  '',
+  'sleep',
+  CURRENT_TIMESTAMP
+);

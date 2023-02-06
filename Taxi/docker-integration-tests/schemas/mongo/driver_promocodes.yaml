@@ -1,0 +1,44 @@
+description: driver promocodes for support use
+settings:
+    collection: driver_promocodes
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: clid
+  - key: code
+    unique: true
+  - key: created
+  - key: created_by
+  - key: idempotency_token
+  - key: send_notification
+    sparse: true
+  - key: series_id
+  - key: updated
+  - key: uuid
+  - key: zendesk_ticket
+wiki_info: |
+    #### driver_promocodes
+    *Назначение:* хранит список водительских промокодов
+    *Структура документа:*
+    ```python
+    driver_nominals = {
+        '_id': 'uuid',                  # идентификатор документа
+        'created_by': 'login',          # логин создателя промокода
+        'series_id': 'series_id',       # идентификатор номинала
+        'idempotency_token': 'token'    # токен идемпотентности
+        'code': 'series_id123456',      # код промокода
+        'created': datetime.datetime(), # время создания промокода
+        'updated': datetime.datetime(), # время изменения промокода
+        'db_id': 'db_ud',               # внутренний (РИТ) id парка
+        'clid': 'clid',                 # идентификатор таксопарка
+        'uuid': 'uuid',                 # идентификатор водителя внутри таксопарка
+        'zendesk_ticket': '123456',     # id соответствующего тикета в Zendesk
+        'description': 'text',          # описание промокода
+        'usages': ['order_1'],          # заказы, к котором был применен промокод
+
+        # опциональные поля
+        'send_notification': 'created', # какой тип нотификации нужно отправить водителю
+        'start': datetime.datetime(),   # время начала действия промокода, после активации
+        'finish': datetime.datetime(),  # время окончание действия промокода, после активации
+    }
+    ```

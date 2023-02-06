@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cron
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cron
+  template:
+    metadata:
+      labels:
+        app: cron
+    spec:
+      containers:
+      - name: cron
+        image: cr.yandex/crpss8bfd1shnvbptaji/backoffice:__VERSION__
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/bash", "-c"]
+        args:
+          - bundle exec whenever --update-crontab && cron -f
+        env:
+          - name: RAILS_ENV
+            value: "staging"
+          - name: REDIS_HOST
+            value: "c-c9qtq70tjlrrkdb5odv5.rw.mdb.yandexcloud.net"
+          - name: REDIS_PORT
+            value: "6379"
+          - name: REDIS_DATABASE
+            value: "10"
+          - name: REDIS_CLUSTER
+            value: "taxi-outsource-riderlist-testing"
+          - name: SENTINEL_HOSTS
+            value: "rc1c-si36tsrs263rdi6r.mdb.yandexcloud.net"
+          - name: SENTINEL_PORT
+            value: "26379"
+          - name: PG_HOST
+            value: "c-c9q7tu2ecfkagvk9bckp.rw.mdb.yandexcloud.net"
+          - name: PG_DATABASE
+            value: "education_platform"
+          - name: PG_PORT
+            value: "6432"
+          - name: SECRET_KEY_BASE
+            valueFrom:
+              secretKeyRef:
+                name: secret-key-base
+                key: key
+          - name: PG_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres
+                key: username
+          - name: PG_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres
+                key: password
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: redis
+                key: password

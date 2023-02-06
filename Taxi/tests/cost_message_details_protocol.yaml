@@ -1,0 +1,49 @@
+id: cost_message_details_protocol
+title: Заполнение cost_message_details на основе протокола
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                cost_message_details:
+                    cost_breakdown:
+                      - display_name: protocol string waiting
+                        display_amount: 100
+                      - display_name: protocol string coupon
+                        display_amount: 500
+                    extra_info:
+                      - text: Reserved too much
+                        type: paid_too_much
+                    cost_flags:
+                      - type: paid_by_plus
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            cost_message_details:
+                cost_breakdown:
+                  - display_name: protocol string waiting
+                    display_amount: 100
+                  - display_name: protocol string coupon
+                    display_amount: 500
+                extra_info:
+                  - text: Reserved too much
+                    type: paid_too_much
+                cost_flags:
+                  - type: paid_by_plus
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body: {}

@@ -1,0 +1,95 @@
+{
+  "entries": [
+    {
+      "$SelectedEntry": {
+        "account_id": 18,
+        "agreement_id": "taxi/yandex_ride",
+        "amount": {
+          "$decimal": "-10"
+        },
+        "created": {
+          "$datetime": "2021-03-01T00:00:00"
+        },
+        "currency": "RUB",
+        "details": {
+          "alias_id": "some_alias_id",
+          "firm_id": 13,
+          "is_platform_commission_enabled": true
+        },
+        "entity_external_id": "taximeter_driver_id/some_park_id/some_uuid",
+        "event_at": {
+          "$datetime": "2020-12-31T23:59:59.999999+03:00"
+        },
+        "id": 1,
+        "sub_account": "platform/order/commission_inc_vat/park_only"
+      }
+    }
+  ],
+  "expected_processing_requests": [
+    {
+      "entries": [
+        {
+          "account": {
+            "agreement_id": "taxi/yandex_ride",
+            "currency": "RUB",
+            "entity_external_id": "taximeter_driver_id/some_park_id/some_uuid",
+            "sub_account": "platform/order/commission_inc_vat/park_only"
+          },
+          "amount": "-10",
+          "details": {
+            "alias_id": "some_alias_id",
+            "firm_id": 13,
+            "is_platform_commission_enabled": true
+          },
+          "doc_ref": 18061991,
+          "entry_id": 1,
+          "event_at": "2020-12-31T23:59:59.999999+03:00"
+        }
+      ]
+    }
+  ],
+  "expected_stq_calls": [
+    {
+      "args": [],
+      "eta": "1970-01-01T00:00:00.000000Z",
+      "kwargs": {
+        "data": {
+          "alias_id": "some_alias_id",
+          "based_on_doc_id": 18061991,
+          "billing_park_commission_flow": true,
+          "driver": {
+            "db_id": "park_id",
+            "driver_uuid": "driver_profile_id"
+          },
+          "kind": "commission",
+          "order_cost": "0",
+          "payments": [
+            {
+              "agreement": "taxi/yandex_ride",
+              "amount": "-10",
+              "currency": "RUB",
+              "entry_id": 1,
+              "payload": {
+                "alias_id": "some_alias_id",
+                "firm_id": 13,
+                "is_platform_commission_enabled": true
+              },
+              "sub_account": "platform/order/commission_inc_vat/park_only"
+            }
+          ],
+          "transaction_id": "commission/18061991/1"
+        },
+        "doc_id": null,
+        "event_at": "2020-12-31T23:59:59.999999+03:00",
+        "external_event_ref": "18061991/1/commission/taximeter_request_created",
+        "kind": "taximeter_request"
+      },
+      "task_id": "taximeter_request/commission/based_on_doc_id/18061991/1"
+    }
+  ],
+  "expected_tlog_v1_requests": [],
+  "expected_tlog_v2_requests": [],
+  "query": {
+    "$load_py_json": "query_taxi_order.json"
+  }
+}

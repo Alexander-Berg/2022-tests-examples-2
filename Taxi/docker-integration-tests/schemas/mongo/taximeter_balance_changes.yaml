@@ -1,0 +1,84 @@
+description: order balance changes for Taximeter
+settings:
+    collection: taximeter_balance_changes
+    connection: driver_payments
+    database: dbdriver_payments
+indexes:
+  - expireAfterSeconds: 259200
+    key: created
+  - key:
+      - name: created
+        type: ascending
+      - name: _id
+        type: ascending
+  - key:
+      - name: trust_payment_id
+        type: ascending
+      - name: payment_type
+        type: ascending
+      - name: sequence_number
+        type: descending
+    unique: true
+  - key: updated
+wiki_info: |
+    #### taximeter_balance_changes
+    *Назначение:* Коллекция, хранящая платежи по заказам для отдачи в Таксометр.
+
+    Каждая запись связана с какой-либо транзакцией в Биллинге. В коллекции сохраняются не все виды платежей, а лишь следующие:
+    - `card`, `applepay`, `googlepay`, `corp` --- записи о безналичной оплате
+    - `resize` --- запись об изменении суммы транзакции, сделанном до клира
+    - `compensation` --- запись о компенсации
+    - `refund` --- запись о рефанде
+    - `compensation_refund` --- запись о рефанде компенсации
+
+    У рефандов, компенсаций, рефандов компенсаций может быть не больше одной версии, у ресайзов и записей с типами `card`, `applepay`, `googlepay`, `corp` может быть несколько версий.
+
+    Все суммы в документах коллекции хранятся во внутреннем формате, т.е. в виде изначальной суммы, умноженной на 10000 и представленной в виде целого числа. Например, если платеж меняет сумму поездки на 71 рубль 23 копейки, то будет храниться число 712300.
+
+    Индексы:
+    - TTL-индекс на 3 дня на поле created
+    - Уникальный индекс на поля (`trust_payment_id`, `payment_type`, `sequence_number`).
+    - Индекс на поля (`created`, `_id`) - чтобы по этим полям отдавать записи в Таксометр
+
+    Коллекция льется в YT.
+
+    *Структура документов:*
+    ```python
+    taximeter_balance_change = {
+        # ID транзакции (UUID version 4)
+        '_id': uuid.uuid4().hex,
+        # ID транзакции в Биллинге, к которой относится данная запись.
+        # ID транзакции, тип записи и порядковый номер должны быть уникальны
+        'trust_payment_id': '5a59dacd792ab140426bc923',
+        # Тип записи (см. выше описание типов)
+        'payment_type': 'resize|compensation|refund|compensation_refund',
+        # Порядковый номер платежа среди других платежей того же типа, относящихся к той же транзакции
+        'sequence_number': 2,
+        # Валюта заказа
+        'currency': 'RUB',
+        # ID парка (clid)
+        'clid': '100500',
+        # db_id парка
+        'db_id': '31340b812ad14ef8be62580f99473244',
+        # ID заказа
+        'order_id': '398b9611471548029cd3338c44cdd6bf',
+        # alias_id заказа
+        'order_alias_id': '4b0c5ff7574147eb95461ea4192a7d84',
+        # UUID водителя, выполнявшего заказ
+        'driver_uuid': '59743e6c74e3482e8303aff1b2eed0a5',
+        # Сумма, на которую этот платеж меняет выплату парку за поездку (во внутреннем формате)
+        'ride_sum_delta': -10000,
+        # Сумма, на которую этот платеж меняет выплату парку за чаевые (во внутреннем формате)
+        'tips_sum_delta': -10000,
+        # Полное изменение выплаты за поездку в этой транзакции после создания платежа (во внутреннем формате)
+        'total_ride_sum_delta': -20000,
+        # Полное изменение выплаты за чаевые в этой транзакции после создания платежа (во внутреннем формате)
+        'total_tips_sum_delta': -20000,
+        # Дата создания записи
+        'created': datetime.datetime.utcnow(),
+        # Дата изменения записи
+        'updated': datetime.datetime.utcnow(),
+        # Статус отправки в billing-orders
+        'billing_orders_status': u'success',
+    }
+    ```

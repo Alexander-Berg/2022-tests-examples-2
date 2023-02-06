@@ -1,0 +1,275 @@
+type: apitest
+version: 0
+service: taxi_bank_userinfo
+
+tests:
+  - name: invalid_request
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body: {}
+    assertions: []
+    response:
+        status: 400
+
+  - name: buid_empty_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            buid: ''
+    assertions: []
+    response:
+        status: 400
+
+  - name: buid_not_uuid_format_invalid
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            buid: 'wrong_buid'
+    assertions: []
+    response:
+        status: 400
+
+  - name: uid_empty_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            uid: ''
+    assertions: []
+    response:
+        status: 400
+
+  - name: phone_id_empty_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            phone_id: ''
+    assertions: []
+    response:
+        status: 400
+
+  - name: buid_and_phone_id_present_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            uid: '111112'
+            phone_id: 7948e3a9-623c-4524-a390-9e4264d27a77
+    assertions: []
+    response:
+        status: 400
+
+  - name: buid_and_uid_present_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            uid: '111112'
+            buid: 7948e3a9-623c-4524-a390-9e4264d27a77
+    assertions: []
+    response:
+        status: 400
+
+  - name: buid_and_phone_id_present_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            buid: 7948e3a9-623c-4524-a390-9e4264d27a77
+            phone_id: 7948e3a9-623c-4524-a390-9e4264d27a77
+    assertions: []
+    response:
+        status: 400
+
+  - name: all_args_present_invalid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            uid: '111112'
+            buid: 7948e3a9-623c-4524-a390-9e4264d27a77
+            phone_id: 7948e3a9-623c-4524-a390-9e4264d27a77
+    assertions: []
+    response:
+        status: 400
+
+  - name: buid_not_found
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            buid: 024e7db5-9bd6-4f45-a1cd-2a442e15bdf8
+    assertions: []
+    response:
+        status: 404
+
+  - name: uid_not_found
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            uid: '111112'
+    assertions: []
+    response:
+        status: 404
+
+  - name: phone_id_not_found
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            phone_id: 024e7db5-9bd6-4f45-a1cd-2a442e15bdf8
+    assertions: []
+    response:
+        status: 404
+
+
+  - name: full_response_by_buid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            buid: 7948e3a9-623c-4524-a390-9e4264d27a77
+    assertions: []
+    response:
+        status: 200
+        body:
+            buid_info:
+                status: NONEXISTENT
+                yandex_uid: '111111'
+                phone_id: 'phone_id_1'
+                buid: '7948e3a9-623c-4524-a390-9e4264d27a77'
+
+  - name: full_response_by_uid
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            uid: '111111'
+    assertions: []
+    response:
+        status: 200
+        body:
+            buid_info:
+                status: NONEXISTENT
+                yandex_uid: '111111'
+                phone_id: 'phone_id_1'
+                buid: '7948e3a9-623c-4524-a390-9e4264d27a77'
+
+  - name: full_response_by_phone_id
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_buid_info
+        body:
+            phone_id: 'phone_id_1'
+    assertions: []
+    response:
+        status: 200
+        body:
+            buid_info:
+                status: NONEXISTENT
+                yandex_uid: '111111'
+                phone_id: 'phone_id_1'
+                buid: '7948e3a9-623c-4524-a390-9e4264d27a77'

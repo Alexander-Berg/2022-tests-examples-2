@@ -1,0 +1,52 @@
+data:
+    name: CreateS3MDSBucket
+    provider_name: clownductor
+    job_vars:
+      - users
+      - service_slug
+      - bucket_name
+      - bucket_size_gb
+      - buckets_quantity
+      - bucket_objects_quantity
+      - bucket_rps_read
+      - bucket_rps_write
+    stages:
+      - name: S3CreateBucket
+        provider_name: clownductor
+        input:
+            users: users
+            service_slug: service_slug
+            bucket_name: bucket_name
+            bucket_size_gb: bucket_size_gb
+            buckets_quantity: buckets_quantity
+            bucket_objects_quantity: bucket_objects_quantity
+            bucket_rps_read: bucket_rps_read
+            bucket_rps_write: bucket_rps_write
+        output:
+            service_id: service_id
+            group_id: group_id
+            ticket_user: ticket_user
+            bucket_name: bucket_name
+            ticket_summary: ticket_summary
+            ticket_description: ticket_description
+            ticket_project: ticket_project
+            ticket_skip_creation: ticket_skip_creation
+
+      - name: StartrekCubeCreateTicket
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            ticket_summary: ticket_summary
+            ticket_description: ticket_description
+            user: ticket_user
+            set_ticket_project: ticket_project
+            skip: ticket_skip_creation
+        output:
+            new_ticket: new_ticket
+
+      - name: PermissionRequestTVMRolesForS3
+        provider_name: clownductor
+        input:
+            service_slug: service_slug
+            service_id: service_id
+            group_id: group_id

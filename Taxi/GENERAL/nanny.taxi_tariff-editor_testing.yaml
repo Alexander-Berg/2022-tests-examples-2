@@ -1,0 +1,52 @@
+group:
+  type: rtc
+  name: taxi_tariff-editor_testing
+
+graphs:
+  tariff-editor-rtc.taxi.tst.yandex-team.ru:
+    Or:
+      - Equals: { http_host: "tariff-editor.taxi.tst.yandex-team.ru" }
+      - Equals: { http_host: "tariff-editor-rtc.taxi.tst.yandex-team.ru" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+  tariff-editor-rtc.taxi.tst.yandex-team.ru_nodejs:
+    And:
+      - Or:
+          - Equals: { http_host: "tariff-editor-rtc.taxi.tst.yandex-team.ru" }
+          - Equals: { http_host: "tariff-editor.taxi.tst.yandex-team.ru" }
+      - Not:
+          - StartsWith: { request_url: "/api" }
+      - Not:
+          - StartsWith: { request_url: "/taximeter" }
+
+  tariff-editor-rtc.taxi.tst.yandex-team.ru/ping_GET:
+    And:
+      - Or:
+          - Equals: { http_host: "tariff-editor-rtc.taxi.tst.yandex-team.ru" }
+          - Equals: { http_host: "tariff-editor.taxi.tst.yandex-team.ru" }
+      - Equals: {request_method: "GET"}
+      - Or:
+          - Equals: {request_url: "/ping"}
+          - Equals: {request_url: "/ping/"}
+          - StartsWith: {request_url: "/ping?"}
+          - StartsWith: {request_url: "/ping/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  tariff-editor-rtc.taxi.tst.yandex-team.ru/orders:
+    And:
+      - Or:
+          - Equals: { http_host: "tariff-editor-rtc.taxi.tst.yandex-team.ru" }
+          - Equals: { http_host: "tariff-editor.taxi.tst.yandex-team.ru" }
+      - StartsWith: { request_url: "/orders" }

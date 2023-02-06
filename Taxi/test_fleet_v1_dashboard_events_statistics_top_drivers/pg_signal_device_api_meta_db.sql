@@ -1,0 +1,389 @@
+INSERT INTO signal_device_api.events
+(
+    id,
+    public_event_id,
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    event_at,
+    event_type,
+    park_id,
+    driver_profile_id,
+    resolution
+)
+VALUES
+(
+    3,
+    '54b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    2,
+    '2020-02-27T23:55:00+00',
+    '2020-02-27T23:55:00+00',
+    '5e94c0875963785801eed76c4322b394',
+    '2020-02-27T23:00:00+03',
+    'driver_lost',
+    'p1',
+    'd2',
+    NULL
+),
+(
+    41,
+    'xxxsdf-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-26T23:57:00+00',
+    '2020-02-26T23:57:00+00',
+    'yyyyyyy4b7816b84ccf4fcb7d886f7',
+    '2020-02-26T23:57:00+03',
+    'smoking',
+    'p1',
+    'd1',
+    NULL
+),
+(
+    12,
+    '4213d7ec-gggg-llll-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '5120466elko331b3a7d35c585983076a',
+    '2020-02-27T12:20:00+03',
+    'distraction',
+    'p1',
+    'd1',
+    NULL
+),
+(
+    11,
+    '1233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '0ef0466elko331b3a7d35c585983076a',
+    '2020-02-27T12:10:03+00',
+    'sleep',
+    'p1',
+    'd1',
+    NULL
+),
+(
+    111,
+    '129999c-xxxx-43cf-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    'xklgaelko331tttt5c585983076a',
+    '2020-02-27T12:10:03+00',
+    'driver_found',
+    'p1',
+    'd1',
+    NULL
+),
+(
+    112,
+    '5553d7ec-tttt-llll-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    'gasfllks331tttt5c585983076a',
+    '2020-02-27T12:10:03+00',
+    'sleep',
+    'p1',
+    'd1',
+    NULL
+),
+(
+    1,
+    '34b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '5dddddfsss13xxxx7d35c585983076a',
+    '2020-02-27T12:00:03+00',
+    'sleep',
+    'p1',
+    'd1',
+    NULL
+),
+(
+    13,
+    '5553d7ec-xxxx-tttt-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    'xxxxx66elko331b3a7d35c585983076a',
+    '2020-02-27T00:00:00+00',
+    'distraction',
+    'p1',
+    'd1',
+    'delete'
+),
+(
+    2,
+    '44b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    3,
+    '2020-02-27T12:02:00+00',
+    '2020-02-27T12:02:00+00',
+    '7faebfa97bfafe293023a41a49250ac3',
+    '2020-02-27T11:00:03+00',
+    'driver_lost',
+    'p1',
+    'd4',
+    NULL
+),
+( -- this is later than the previous, so device 4 must be chosen
+    212,
+    '44lll7ec-ttf6-43cf-94a8-911bc8fe404c',
+    4,
+    '2020-02-27T13:02:00+00',
+    '2020-02-27T13:02:00+00',
+    'zzzzcca97bfafe293023a41a49250ac3',
+    '2020-02-27T12:00:03+00',
+    'driver_lost',
+    'p1',
+    'd4',
+    NULL
+),
+(
+    123,
+    'tttfs7ec-30f6-43cf-94a8-911bc8fe404c',
+    3,
+    '2020-02-26T23:57:00+00',
+    '2020-02-26T23:57:00+00',
+    'd5lll1a1f4b7816b84ccf4fcb7d886f7',
+    '2020-02-26T23:57:00+03',
+    'distraction',
+    'p1',
+    'd3',
+    NULL
+),
+(
+    644,
+    '84b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    2,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '0ef0466e6e1331b3a7d35c5859830666',
+    '2020-02-27T13:00:00+03',
+    'sleep',
+    'p1',
+    'd2',
+    NULL
+),
+(
+    444,
+    '64b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    7,
+    '2020-02-26T23:57:00+00',
+    '2020-02-26T23:57:00+00',
+    'd58841a1f4b7816b84ccf4fcb7d886f7',
+    '2020-02-26T23:57:00+03',
+    'driver_lost',
+    'p2',
+    'd7',
+    NULL
+),
+(
+    97,
+    'yyysdf-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-27T13:02:00+00',
+    '2020-02-27T13:02:00+00',
+    'yxyxyxy4b7816b84ccf4fcb7d886f7',
+    '2020-02-27T13:02:00+00',
+    'distraction',
+    'p1',
+    NULL,
+    NULL
+),
+( -- this is outside the time scope, however, device 2 has to be chosen
+    34,
+    'abcdef-30f6-43cf-94a8-911bc8fe404c',
+    1, 
+    '2020-03-27T13:00:00+00',
+    '2020-03-27T13:00:00+00',
+    '1330456e6e1331b3a7d35c5859830666',
+    '2020-03-27T13:00:00+03',
+    'sleep',
+    'p1',
+    'd2',
+    NULL
+);
+
+INSERT INTO signal_device_api.devices
+(
+    id,
+    is_alive,
+    public_id,
+    public_key,
+    mac_wlan0,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    TRUE,
+    'pd1',
+    'pub_key_1',
+    '07:f2:74:af:8b:b1',
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    2,
+    TRUE,
+    'pd2',
+    'pub_key_2',
+    'a5:90:c5:98:95:48',
+    'AB12FE45DD',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    '2019-12-17T08:38:54',
+    '2019-12-17T08:38:54'
+),
+(
+    3,
+    TRUE,
+    'pd3',
+    'pub_key_3',
+    'ca:ff:4d:64:f2:79',
+    'FFEE33',
+    '2.01',
+    '7p117mV/CfzpOnevbsdfFC3g7nJ+dTliDx1QwMhOPBRCrLrSCMuUV6dLm+z2FchT',
+    '03Kl5ckWGKlUWmD4ZPq6dpVF5X5+oqycQgOJIZXfPg0=',
+    'RIVcPWACRArzJqxvXfm37l3HOaY41Ew3aIB4JhQYe/QQ+0XRWzsr9BNltXVHDhwUcgVLCmYBKn8PLvnqZg9V+A==',
+    '2019-12-17T09:38:54',
+    '2019-12-17T09:38:54'
+),
+(
+    4,
+    FALSE,
+    'pd4',
+    'pub_key_4',
+    '32:41:27:d5:fb:ed',
+    'FFFDEAD4',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+),
+(
+    7,
+    FALSE,
+    'pd7',
+    'pub_key_5',
+    '11:11:11:22:22:ff',
+    '1337587103',
+    'hw_5',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+);
+
+INSERT INTO signal_device_api.device_groups (
+        group_id,
+        park_id,
+        group_name,
+        parent_group_id,
+        idempotency_token,
+        created_at
+) VALUES 
+(
+    'g1',
+    'p1',
+    'Group1',
+    NULL,
+    'some_token1',
+    '2021-06-30T00:00:00+00'
+),
+(
+    'g1s1',
+    'p1',
+    'Group1_Subgroup1',
+    'g1',
+    'some_token11',
+    '2021-06-30T00:00:00+00'
+),
+(
+    'g2',
+    'p1',
+    'Group2',
+    NULL,
+    'some_token2',
+    '2021-06-30T00:00:00+00'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    group_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    'g1',
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    FALSE
+),
+(
+    'p1',
+    1,
+    'g1s1',
+    '2020-08-18T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE
+),
+(
+    'p1',
+    2,
+    'g1',
+    '2020-08-01T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE
+),
+(
+    'p1',
+    3,
+    'g2',
+    '2020-08-01T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE
+),
+(
+    'p1',
+    4,
+    'g1',
+    '2020-08-01T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE
+),
+(
+    'p2',
+    7,
+    NULL,
+    '2020-08-01T17:00:00Z',
+    '2020-08-18T17:00:00Z',
+    TRUE
+);

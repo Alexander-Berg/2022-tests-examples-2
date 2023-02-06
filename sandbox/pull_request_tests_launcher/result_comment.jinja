@@ -1,0 +1,100 @@
+{#
+tasks: [{
+    name: string
+    link: string
+    status: {text: string, color: string}
+    buildTask?: {
+        link: string
+        status: {text: string, color: string}
+    }
+    runners: [{
+        name: string
+        link: string
+        status: {text: string, color: string}
+        result: {passed: string, total: string}
+        allureLink: string
+        duration?: string
+    }]
+    duration?: string
+}]
+width: {
+    name: int
+    status: int
+    result: int
+    allure: int
+}
+#}
+{%- macro space(number=1) %}
+    {%- for _ in range(number) %} {% endfor %}
+{%- endmacro %}
+{%- macro cell(displayText, width=0, align="left") %}
+    {%- set spaces = space(width - displayText|length) %}
+    {{- spaces if align == "left" }}{{ caller() }}{{ spaces if align == "right" }}
+{%- endmacro %}
+{%- macro coloredStatus(entry) -%}
+    <font color="{{ entry.color }}">{{ entry.text }}</font>
+{%- endmacro %}
+{%- macro link(text, url) -%}
+    <a href="{{ url }}" target="_blank">{{ text }}</a>
+{%- endmacro %}
+{%- macro linkWith(item) %}
+    {{- link(item.name, item.link) }}
+{%- endmacro %}
+{%- macro resultToStr(entry) %}
+    {{- "{} / {}".format(entry.passed, entry.total) }}
+{%- endmacro %}
+{#- vvv content vvv -#}
+{% for task in tasks %}
+{{- linkWith(task) }}: {{ coloredStatus(task.status) }} {{ task.duration }}
+
+<pre>
+{%- if task.buildTask %}
+{%- call cell("Build task", width.name, align="right") %}{{ link("Build task", task.buildTask.link) }}{% endcall %}
+{{- space() }}
+{%- call cell(task.buildTask.status.text, width.status) %}{{ coloredStatus(task.buildTask.status) }}{% endcall %}
+{% endif %}
+{%- for runner in task.runners %}
+{%- set resultStr = resultToStr(runner.result) %}
+{%- call cell(runner.name, width.name, align="right") %}{{ linkWith(runner) }}{% endcall %}
+{{- space() }}
+{%- call cell(runner.status.text, width.status) %}{{ coloredStatus(runner.status) }}{% endcall %}
+{{- space() }}
+{%- call cell(resultStr, width.result) %}{{ resultStr }}{% endcall %}
+{{- space() }}
+{%- call cell("Allure", width.allure) %}{{ link("Allure", runner.allureLink) }}{% endcall %}
+{%- if runner.duration %}
+{{- space() }}
+{%- call cell(runner.duration, width.duration) %}{{ runner.duration }}{% endcall %}
+{%- endif %}
+{% endfor -%}
+</pre>
+{% endfor %}
+
+{#- example https://cryptic-cliffs-32040.herokuapp.com/
+tasks:
+  - name: "Android"
+    link: "https://sandbox.yandex-team.ru/task/1358075250/view"
+    status: {"text": "SUCCESS", "color": "#18A651"}
+    runners:
+      - name: "17_google_apis"
+        link: "https://sandbox.yandex-team.ru/task/1358095230"
+        status: {"text": "SUCCESS", "color": "#18A651"}
+        result: {"passed": "10", "total": "10"}
+        allureLink: "https://proxy.sandbox.yandex-team.ru/3261043498/reports/allure/index.html"
+      - name: "25_default"
+        link: "https://sandbox.yandex-team.ru/task/1358095129"
+        status: {"text": "EXCEPTION", "color": "#FD0D1B"}
+        result: {"passed": "NAN", "total": "NAN"}
+        allureLink: "https://proxy.sandbox.yandex-team.ru/3261044553/reports/allure/index.html"
+  - name: "iOS"
+    link: "https://sandbox.yandex-team.ru/task/1358738723"
+    status: {"text": "EXCEPTION", "color": "#FD0D1B"}
+    buildTask:
+      link: "https://sandbox.yandex-team.ru/task/1358739675"
+      status: {"text": "FAILURE", "color": "#FD0D1B"}
+width:
+  name: 14
+  status: 9
+  result: 9
+  allure: 6
+-#}

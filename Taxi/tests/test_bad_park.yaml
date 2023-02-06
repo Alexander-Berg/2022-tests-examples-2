@@ -1,0 +1,31 @@
+id: test_bad_park
+title: Bad park id
+source:
+    request:
+        method: get
+        query:
+            code: some_code_for_reg
+            state: parkid_parktin
+            some_param: some_param
+        headers:
+            Content-Type: application/json
+    expectations:
+        response:
+            status-code: 200
+            body:
+                code: request_processed
+                message: Failed to validate park data.
+
+mocks:
+  - resource: py2-delivery-fetch-fiscal-data-post
+    response:
+        status-code: 200
+        body:
+            nds_for_receipt: nds_none
+            inn_for_receipt: another_parktin
+            inn_for_receipt_id: another_parktinid
+    expectations:
+        request:
+            method: post
+            body:
+                park_clid: parkid

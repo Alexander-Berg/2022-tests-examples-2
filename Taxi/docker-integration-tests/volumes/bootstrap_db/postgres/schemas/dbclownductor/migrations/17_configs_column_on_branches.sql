@@ -1,0 +1,5 @@
+START TRANSACTION;
+
+ALTER TABLE clownductor.branches ADD COLUMN configs JSONB NOT NULL DEFAULT '[]'::JSONB;
+
+COMMIT;

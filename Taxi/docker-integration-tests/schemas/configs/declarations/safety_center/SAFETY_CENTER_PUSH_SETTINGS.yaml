@@ -1,0 +1,60 @@
+default:
+    accident:
+        enabled: false
+        ttl: 300
+        intent: 'safety_center.accident'
+        msg: 'У вас всё в порядке?'
+        confidence_threshold: 60
+
+description: 'Настройки пушей для центра безопасности'
+schema:
+    type: object
+    properties:
+        accident:
+            $ref: '#/definitions/AccidentPushSettings'
+    additionalProperties: false
+    required:
+      - accident
+
+    definitions:
+        AccidentPushSettings:
+            description: 'Настройки для пуша'
+            type: object
+            properties:
+                ttl:
+                    type: number
+                    description: 'Время в течение которого пуш актуален'
+                intent:
+                    type: string
+                    description: 'Причина отправки пуша. Используется для логгирования
+                        и метрик'
+                    example: 'order.assigned'
+                msg:
+                    type: string
+                    description: 'Сообщение, отправляемое в пуше'
+                confidence_threshold:
+                    type: integer
+                enabled:
+                    description: 'Включение/выключение пушей'
+                    type: boolean
+                experiments:
+                    description: 'Список экспериментов, попадание в один из которых
+                        позволит получать пуши. Если пуст - эксперименты не нужны
+                        для получения пушей.'
+                    type: array
+                    items:
+                        type: string
+                countries:
+                    description: 'Список стран для которых следует отправлять пуши.
+                        Пуш не будет отправлен пользователю, страна заказа которого
+                        не находится в этом списке'
+                    type: array
+                    items:
+                        type: string
+            required:
+              - ttl
+              - intent
+              - msg
+              - confidence_threshold
+              - enabled
+            additionalProperties: false

@@ -1,0 +1,60 @@
+default:
+    transceiving_period_sec: 20
+    tick_period_sec: 5
+    select_test_cases_db_command_control:
+        network_timeout_ms: 200
+        statement_timeout_ms: 200
+    select_test_data_db_command_control:
+        network_timeout_ms: 200
+        statement_timeout_ms: 200
+    save_db_command_control:
+        network_timeout_ms: 300
+        statement_timeout_ms: 300
+description: Настройки для работы с тест кейсами
+tags: [notfallback]
+maintainers:
+  - alklev
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - transceiving_period_sec
+      - tick_period_sec
+      - select_test_cases_db_command_control
+      - select_test_data_db_command_control
+      - save_db_command_control
+    properties:
+        transceiving_period_sec:
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            minimum: 1
+            description: время между итерациями трансивера в секундах
+        tick_period_sec:
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            minimum: 1
+            description: время между тиками в секундах
+        select_test_cases_db_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        select_test_data_db_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        save_db_command_control:
+            $ref: '#/definitions/DbCommandControl'
+    definitions:
+        DbCommandControl:
+            type: object
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout_ms
+              - statement_timeout_ms

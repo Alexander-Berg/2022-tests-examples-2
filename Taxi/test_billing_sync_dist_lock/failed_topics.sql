@@ -1,0 +1,35 @@
+INSERT INTO corp_billing.failed_topics (
+    topic_namespace,
+    topic_type,
+    topic_external_ref,
+    status,
+    try_after
+)
+VALUES (
+    'corp',
+    'eats/order',
+    'eats-external-ref-1',
+    'unprocessed',
+    now()
+),
+(
+    'corp',
+    'drive/order',
+    'drive-external-ref-1',
+    'unprocessed',
+    now()
+),
+(
+   'corp',
+   'discount/order',
+   'discount-external-ref-1',
+   'unprocessed',
+   now()
+),
+(
+   'corp',
+   'tanker/order',
+   'tanker-external-ref-1',
+   'unprocessed',
+   now()
+);

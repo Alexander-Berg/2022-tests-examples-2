@@ -1,0 +1,78 @@
+USE hahn;
+PRAGMA yt.TmpFolder = "//home/taxi/testing/services/cargo-tasks/payments_billing_status_reader/tmp/tmp_files";
+
+$tlog_payments_scheme=Struct<
+            transaction_id:Int64,
+            amount:String,
+            currency:String,
+            payload:Yson,
+            product:String,
+            detailed_product:String,
+            client_id:String,
+            contract_id:String?,
+            service_id:Int32,
+            transaction_type:String,
+            event_time:String,
+            transaction_time:String,
+            invoice_date:String?,
+        >;
+
+$unprocessed_docs=(
+    SELECT billing_doc_id, operation_id, billing_request_time
+    FROM `//home/taxi/testing/services/cargo-tasks/payments_billing_status_reader/tmp/unprocessed_docs`
+);
+
+$cashless_dir = "//home/taxi/testing/export/tlog/payments";
+$start_date = "{start_date}";
+
+$time_passed = ($x, $y) -> {
+    return 
+        CurrentTzDatetime("Europe/Moscow")
+        - DateTime::MakeDatetime(DateTime::ParseIso8601($x))
+        > $y;
+};
+
+$tlog_payment_operations = (
+    SELECT
+        UD.billing_doc_id AS billing_doc_id,
+        MAX(T.transaction_time) AS last_transaction_time
+    FROM RANGE($cashless_dir, $start_date) WITH SCHEMA $tlog_payments_scheme AS T
+    JOIN $unprocessed_docs AS UD
+        ON UD.operation_id = CAST(
+            Yson::LookupString(
+                T.payload, "operation_id", Yson::Options(false AS Strict)
+            ) AS Utf8) AND
+           UD.billing_doc_id = Yson::LookupInt64(
+                T.payload, "base_doc_id", Yson::Options(false AS Strict)
+            )
+    GROUP BY UD.billing_doc_id
+);
+
+-- No OEBS data for testing, mock it
+INSERT INTO `//home/taxi/testing/services/cargo-tasks/payments_billing_status_reader/tmp/result`
+    WITH TRUNCATE
+SELECT
+    UD.billing_doc_id AS billing_doc_id,
+    UD.operation_id AS operation_id,
+    UD.billing_request_time AS billing_request_time,
+    'test_payment_id' AS payment_id,
+    '100500.00' AS orig_amount,
+    '100500.00' AS credited_amount,
+    'RUB' AS currency,
+    UD.billing_request_time AS event_time,
+    P.last_transaction_time AS transaction_time,
+    UD.billing_request_time AS invoice_time,
+    CASE
+        WHEN $time_passed(P.last_transaction_time, DateTime::IntervalFromMinutes(30))
+        THEN 'RECONCILED' -- RECONCILED after 30 minuters
+        ELSE 'CONFIRMED' -- CONFIRMED after 5 minutes
+    END AS payment_status,
+    'test_payment_order_number' as payment_order_number
+FROM $unprocessed_docs AS UD
+JOIN $tlog_payment_operations AS P
+    ON P.billing_doc_id = UD.billing_doc_id
+WHERE $time_passed(P.last_transaction_time, DateTime::IntervalFromMinutes(5)) -- not found in OEBS first 5 min
+ORDER BY
+    operation_id,
+    billing_request_time
+;

@@ -1,0 +1,64 @@
+default:
+    dependencies: []
+description: |
+    Управление зависимостями между тарифами.
+    Eсли на водителе есть хотя бы один тэг из "driver_tags", то при
+    переключении "master_category" будет производиться действие
+    "dependency_type" над "slave_category". То, происходит ли действие при
+    включении "master_category", выключении или в обоих случаях, определяется
+    реализацией действия "dependency_type"
+maintainers: [unpaleness, azinoviev]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - dependencies
+    properties:
+        dependencies:
+            $ref: '#/definitions/Dependencies'
+    definitions:
+        DependencyType:
+            description: |
+                Строковое предствление типа зависимости категории
+                slave_category от категории master_category
+            type: string
+            enum:
+              - auto_on
+        Dependency:
+            type: object
+            additionalProperties: false
+            required:
+              - dependency_type
+              - master_category
+              - slave_category
+              - driver_tags
+            properties:
+                dependency_type:
+                    $ref: '#/definitions/DependencyType'
+                master_category:
+                    description: |
+                        Название категории, от которой зависит slave_category
+                        (название брать из сервиса driver-categories-api)
+                    type: string
+                slave_category:
+                    description: |
+                        Название категории, зависимой от master_category
+                        (название брать из сервиса driver-categories-api)
+                    type: string
+                driver_tags:
+                    description: |
+                        Массив строковых водительских тэгов
+                        (из сервиса driver-tags), для которых распространяется
+                        данная зависимость
+        Dependencies:
+            type: array
+            items:
+                $ref: '#/definitions/Dependency'
+samples:
+  - dependencies: []
+  - dependencies:
+      - dependency_type: "auto_on"
+        master_category: "express"
+        slave_category: "courier"
+        driver_tags: ["tag1", "tag2"]

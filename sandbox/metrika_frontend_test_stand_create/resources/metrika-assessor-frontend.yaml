@@ -1,0 +1,414 @@
+---
+labels:
+  deploy_engine: env_controller
+meta:
+  account_id: abc:service:30740
+  project_id: 'metrika-assessor-frontend-autobetas'
+spec:
+  deploy_units:
+    frontend:
+      coredump_config:
+        NGINX-workload:
+          coredump_processor:
+            aggregator: {}
+            count_limit: 3
+            probability: 100
+            total_size_limit_megabytes: 1024
+            cleanup_ttl_seconds: 100
+        BEM-workload:
+          coredump_processor:
+            aggregator: {}
+            count_limit: 3
+            probability: 100
+            total_size_limit_megabytes: 1024
+            cleanup_ttl_seconds: 100
+        EXPRESS-workload:
+          coredump_processor:
+            aggregator: {}
+            count_limit: 3
+            probability: 100
+            total_size_limit_megabytes: 1024
+            cleanup_ttl_seconds: 100
+        HTML2PDF-workload:
+          coredump_processor:
+            aggregator: {}
+            count_limit: 3
+            probability: 100
+            total_size_limit_megabytes: 1024
+            cleanup_ttl_seconds: 100
+        ABOUT-workload:
+          coredump_processor:
+            aggregator: {}
+            count_limit: 3
+            probability: 100
+            total_size_limit_megabytes: 1024
+            cleanup_ttl_seconds: 100
+      images_for_boxes:
+        BEM:
+          name: metrika/frontend/metrika-bem
+          registry_host: registry.yandex.net
+          tag: latest
+        EXPRESS:
+          name: metrika/frontend/metrika
+          registry_host: registry.yandex.net
+          tag: latest
+        HTML2PDF:
+          name: metrika/frontend/html2pdf
+          registry_host: registry.yandex.net
+          tag: latest
+        NGINX:
+          name: metrika/frontend/metrika-nginx
+          registry_host: registry.yandex.net
+          tag: latest
+        ABOUT:
+          name: metrika/frontend/about
+          registry_host: registry.yandex.net
+          tag: latest
+      logbroker_config:
+        pod_additional_resources_request:
+          vcpu_guarantee: 0
+          vcpu_limit: 0
+      network_defaults:
+        network_id: _YMETRICTESTNETS_
+      replica_set:
+        replica_set_template:
+          constraints:
+            antiaffinity_constraints:
+              - key: node
+                max_pods: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+                - id: metrika-frontend-testing-disk-0
+                  labels:
+                    used_by_infra: true
+                  quota_policy:
+                    bandwidth_guarantee: 5242880
+                    bandwidth_limit: 10485760
+                    capacity: 7516192768
+                  storage_class: hdd
+              host_infra:
+                monitoring: {}
+              ip6_address_requests:
+                - enable_dns: true
+                  network_id: _YMETRICTESTNETS_
+                  vlan_id: backbone
+                - enable_dns: true
+                  network_id: _YMETRICTESTNETS_
+                  vlan_id: fastbone
+              pod_agent_payload:
+                spec:
+                  boxes:
+                    - id: EXPRESS
+                      rootfs: {}
+                      static_resources:
+                        - mount_point: /static_resources/geobase
+                          resource_ref: geobase6
+                        - mount_point: /static_resources/tzdata
+                          resource_ref: geobase6-tzdata
+                    - id: NGINX
+                      rootfs: {}
+                    - id: BEM
+                      rootfs: {}
+                      static_resources:
+                        - mount_point: /static_resources/geobase
+                          resource_ref: geobase6
+                        - mount_point: /static_resources/tzdata
+                          resource_ref: geobase6-tzdata
+                    - id: HTML2PDF
+                      rootfs: {}
+                    - id: ABOUT
+                      rootfs: {}
+                  mutable_workloads:
+                    - workload_ref: EXPRESS-workload
+                    - workload_ref: NGINX-workload
+                    - workload_ref: BEM-workload
+                    - workload_ref: HTML2PDF-workload
+                    - workload_ref: ABOUT-workload
+                  resources:
+                    static_resources:
+                      - id: geobase6
+                        url: rbtorrent:f318e8c865138fe0ebe24fbdf01ae907cd28fe82
+                        verification:
+                          check_period_ms: 600000
+                          checksum: 'EMPTY:'
+                      - id: geobase6-tzdata
+                        url: rbtorrent:c85b8fddf5d3bc0832350155e26be1e95e306704
+                        verification:
+                          check_period_ms: 600000
+                          checksum: 'EMPTY:'
+                  workloads:
+                    - box_ref: EXPRESS
+                      env:
+                        - name: APPLICATION_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '8080'
+                        - name: BISHOP_ENVIRONMENT_NAME
+                          value:
+                            literal_env:
+                              value: metrika.deploy.frontend.metrika.testing.development
+                        - name: CONFIG_ENV
+                          value:
+                            literal_env:
+                              value: assessor
+                        - name: NODE_ENV
+                          value:
+                            literal_env:
+                              value: production
+                        - name: NODE_PID_FILE
+                          value:
+                            literal_env:
+                              value: '/var/run/metrika.pid'
+                        - name: BISHOP_OAUTH_TOKEN
+                          value:
+                            secret_env:
+                              alias: robot-metrika-test
+                              id: bishop-token
+                        - name: YAV_OAUTH_TOKEN
+                          value:
+                            secret_env:
+                              alias: robot-metrika-test
+                              id: yav-token
+                        - name: MONGO_PASSWORD
+                          value:
+                            secret_env:
+                              alias: metrika-frontend-testing
+                              id: mongoPasswordCloud
+                      id: EXPRESS-workload
+                      init:
+                        - command_line: '/app/setupGeobase.sh'
+                      liveness_check:
+                        http_get:
+                          expected_answer: OK
+                          path: /healthchecks/liveness
+                          port: 8080
+                      readiness_check:
+                        http_get:
+                          expected_answer: OK
+                          path: /healthchecks/readiness
+                          port: 8080
+                      start: {}
+                      stop_policy:
+                        container:
+                          command_line: '/app/stopNodeWorkload.sh'
+                          time_limit:
+                            min_restart_period_ms: 30000
+                            max_restart_period_ms: 30000
+                            max_execution_time_ms: 230000
+                        max_tries: 3
+                      transmit_logs: true
+                    - box_ref: NGINX
+                      env:
+                        - name: APPLICATION_BEM_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '8081'
+                        - name: APPLICATION_ABOUT_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '8091'
+                        - name: APPLICATION_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '8080'
+                        - name: APPLICATION_NGINX_PORT
+                          value:
+                            literal_env:
+                              value: '80'
+                        - name: NGINX_PID_FILE
+                          value:
+                            literal_env:
+                              value: '/var/run/nginx.pid'
+                      id: NGINX-workload
+                      readiness_check:
+                        tcp_check:
+                          port: 80
+                      start: {}
+                      stop_policy:
+                        container:
+                          command_line: /bin/bash -c '[ ! -e $NGINX_PID_FILE ] || { sleep 80; kill -s QUIT $(cat $NGINX_PID_FILE); while [[ -e $NGINX_PID_FILE ]]; do sleep 3; done; }'
+                          time_limit:
+                            min_restart_period_ms: 30000
+                            max_restart_period_ms: 30000
+                            max_execution_time_ms: 230000
+                        max_tries: 3
+                      transmit_logs: true
+                    - box_ref: BEM
+                      env:
+                        - name: APPLICATION_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '8081'
+                        - name: CONFIG_ENV
+                          value:
+                            literal_env:
+                              value: assessor
+                        - name: PROJECT_NAME
+                          value:
+                            literal_env:
+                              value: metrika
+                        - name: NODE_ENV
+                          value:
+                            literal_env:
+                              value: production
+                        - name: NODE_PID_FILE
+                          value:
+                            literal_env:
+                              value: '/var/run/metrika-bem.pid'
+                        - name: BISHOP_PROGRAM_NAME
+                          value:
+                            literal_env:
+                              value: metrika-bem-frontend
+                        - name: BISHOP_ENVIRONMENT_NAME
+                          value:
+                            literal_env:
+                              value: metrika.deploy.frontend.metrika-bem.testing.development
+                        - name: BISHOP_OAUTH_TOKEN
+                          value:
+                            secret_env:
+                              alias: robot-metrika-test
+                              id: bishop-token
+                        - name: YAV_OAUTH_TOKEN
+                          value:
+                            secret_env:
+                              alias: robot-metrika-test
+                              id: yav-token
+                        - name: MONGO_PASSWORD
+                          value:
+                            secret_env:
+                              alias: metrika-frontend-testing
+                              id: mongoPasswordCloud
+                      id: BEM-workload
+                      init:
+                        - command_line: '/app/setupGeobase.sh'
+                      liveness_check:
+                        http_get:
+                          expected_answer: OK
+                          path: /healthchecks/liveness
+                          port: 8081
+                      readiness_check:
+                        http_get:
+                          expected_answer: OK
+                          path: /healthchecks/readiness
+                          port: 8081
+                      start: {}
+                      stop_policy:
+                        container:
+                          command_line: '/app/stopNodeWorkload.sh'
+                          time_limit:
+                            min_restart_period_ms: 30000
+                            max_restart_period_ms: 30000
+                            max_execution_time_ms: 230000
+                        max_tries: 3
+                      transmit_logs: true
+                    - box_ref: HTML2PDF
+                      env:
+                        - name: APPLICATION_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '1080'
+                        - name: CONFIG_ENV
+                          value:
+                            literal_env:
+                              value: assessor
+                        - name: NODE_ENV
+                          value:
+                            literal_env:
+                              value: production
+                      id: HTML2PDF-workload
+                      liveness_check:
+                        http_get:
+                          expected_answer: "OK"
+                          path: "/healthchecks/liveness"
+                          port: 1080
+                      readiness_check:
+                        http_get:
+                          expected_answer: "OK"
+                          path: "/healthchecks/readiness"
+                          port: 1080
+                      start: {}
+                      transmit_logs: true
+                    - box_ref: ABOUT
+                      env:
+                        - name: APPLICATION_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '8091'
+                        - name: CONFIG_ENV
+                          value:
+                            literal_env:
+                              value: assessor
+                        - name: NODE_ENV
+                          value:
+                            literal_env:
+                              value: production
+                      id: ABOUT-workload
+                      liveness_check:
+                        http_get:
+                          expected_answer: "OK"
+                          path: "/healthchecks/liveness"
+                          port: 8091
+                      readiness_check:
+                        http_get:
+                          expected_answer: "OK"
+                          path: "/healthchecks/readiness"
+                          port: 8091
+                      start: {}
+                      transmit_logs: true
+              resource_requests:
+                memory_guarantee: 1073741824
+                memory_limit: 1073741824
+                vcpu_guarantee: 300
+                vcpu_limit: 300
+              secret_refs:
+                robot-metrika-test:
+                  secret_id: sec-01cq6h5rtj649gg8h94zwqshc8
+                  secret_version: ver-01f8z3028462mxthpb8rtjpeef
+                metrika-frontend-testing:
+                  secret_id: sec-01dc2e47bg95qvz40g9jx9p5gs
+                  secret_version: ver-01e0549x0cp154n80rdzgqsknn
+      tvm_config:
+        blackbox_environment: Prod
+        client_port: 4
+        clients:
+          - destinations:
+              - abc_service_id: '185'
+                alias: api
+                app_id: 2000233
+              - abc_service_id: '185'
+                alias: cdpApi
+                app_id: 2019277
+              - abc_service_id: '185'
+                alias: cdpIntApi
+                app_id: 2019281
+              - abc_service_id: '983'
+                alias: mobmetApi
+                app_id: 2000335
+              - abc_service_id: '169'
+                alias: directIntApi
+                app_id: 2000693
+              - abc_service_id: '83'
+                alias: webmasterApi
+                app_id: 2000286
+              - abc_service_id: '14'
+                alias: blackbox
+                app_id: 239
+              - abc_service_id: '248'
+                alias: blog
+                app_id: 2000081
+              - abc_service_id: '1075'
+                alias: avatarsApi
+                app_id: 2002150
+              - abc_service_id: '185'
+                alias: internalApi
+                app_id: 2000269
+            secret_selector:
+              alias: metrika-frontend-testing
+              id: tvmSecret
+            source:
+              abc_service_id: '185'
+              alias: metrikaFrontend
+              app_id: 2000234
+        mode: enabled
+  revision_info: {}

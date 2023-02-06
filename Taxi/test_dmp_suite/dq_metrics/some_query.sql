@@ -1,0 +1,15 @@
+CREATE TEMPORARY TABLE tmp_table1 ON COMMIT DROP AS
+SOME IRRELEVANT STUFF
+SOME IRRELEVANT STUFF
+create  temporary  table  tmp_table2    ON  COMMIT  DROP  AS
+CREATE TEMPORARY TABLE tmp_table1__exclude ON COMMIT DROP AS
+create
+  temporary
+  table
+  tmp_table3
+  ON
+    COMMIT
+  DROP
+  AS
+SOME IRRELEVANT STUFF
+CREATE TEMPORARY TABLE incorrect syntax ON COMMIT DROP AS

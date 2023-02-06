@@ -1,0 +1,53 @@
+group:
+  type: rtc
+  name: lavka_events_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  events.lavka.tst.yandex.net:
+    And:
+      - Equals: { http_host: "events.lavka.tst.yandex.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+        - 499
+
+  events.lavka.tst.yandex.net_push:
+    And:
+      - Equals: { http_host: "events.lavka.tst.yandex.net" }
+      - Equals: { request_method: "POST" }
+      - StartsWith: { request_url: "/api/ev/push" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+        - 499
+
+  events.lavka.tst.yandex.net_take:
+    And:
+      - Equals: { http_host: "events.lavka.tst.yandex.net" }
+      - Equals: { request_method: "POST" }
+      - StartsWith: { request_url: "/api/ev/take" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+        - 499

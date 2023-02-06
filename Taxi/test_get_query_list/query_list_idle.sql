@@ -1,0 +1,5 @@
+INSERT INTO gp.query_idle (database_name, pid, sess_id, user_name, state_change, update_dttm) VALUES ('ritchie', 26633, 3442, 'robot-taxi-gpadmin', '2022-07-27 11:53:03.000000', '2022-07-27 11:53:36.038161');
+INSERT INTO gp.query_idle (database_name, pid, sess_id, user_name, state_change, update_dttm) VALUES ('ritchie', 17646, 2527, 'andreynaumov', '2022-07-27 11:42:36.000000', '2022-07-27 11:53:36.038161');
+INSERT INTO gp.query_idle (database_name, pid, sess_id, user_name, state_change, update_dttm) VALUES ('ritchie', 1046070, 1712, 'etl', '2022-07-27 11:39:53.000000', '2022-07-27 11:53:36.038161');
+INSERT INTO gp.query_idle (database_name, pid, sess_id, user_name, state_change, update_dttm) VALUES ('butthead', 69235, 954938, 'robot-taxi-stat', '2022-07-27 11:50:06.000000', '2022-07-27 11:53:34.917708');
+INSERT INTO gp.query_idle (database_name, pid, sess_id, user_name, state_change, update_dttm) VALUES ('butthead', 69954, 954984, 'robot-lavka-eagle', '2022-07-27 11:50:07.000000', '2022-07-27 11:53:34.917708');

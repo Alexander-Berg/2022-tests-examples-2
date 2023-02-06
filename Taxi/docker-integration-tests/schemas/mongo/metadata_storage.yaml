@@ -1,0 +1,53 @@
+description: key-value pair storage used in metadata-storage service
+settings:
+    collection: metadata_storage
+    connection: metadata_storage
+    database: dbmetadata_storage
+indexes:
+  - key: updated
+jsonschema:
+    additionalProperties: false
+    properties:
+        _id:
+            additioinalProperties: false
+            description: Уникальный id вида {{namespace}}/{{external_id}}
+            type: string
+        updated:
+            description: Время обновления
+            type: datetime
+        value:
+            additionalProperties: false
+            description: Значение
+            properties:
+                experiments:
+                    items:
+                        additionalProperties: false
+                        properties:
+                            json:
+                                type: string
+                            name:
+                                type: string
+                            position:
+                                format: int64
+                                type: integer
+                            version:
+                                format: int64
+                                type: integer
+                        required:
+                          - name
+                          - position
+                          - version
+                          - json
+                        type: object
+                    type: array
+                tags:
+                    items:
+                        additionalProperties: false
+                        properties:
+                            name:
+                                type: string
+                        required:
+                          - name
+                        type: object
+                    type: array
+            type: object

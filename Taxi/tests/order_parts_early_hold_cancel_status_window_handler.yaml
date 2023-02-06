@@ -1,0 +1,121 @@
+id: order_parts_early_hold_cancel_status_window_handler
+title: Проверяет, что ответ ручки order-parts-early-hold-cancel-status-window-handler
+    есть в общем response
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            media_size_info: {'screen_height': 1920, 'screen_width': 1080, 'scale': 2.5}
+        headers:
+            content-type: 'application/json'
+            X-Request-Language#string: 'ru'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                notifications#object:
+                  - key: order_status_window
+                    value: {"main_button": {"action": {"screen": "payment_methods",
+                                "type": "go_to_screen"}, "text": "К способам оплаты",
+                            "color": "yellow"}, "reason": "early_hold_cancel", "title": "Поездку\
+                            \ отменили: оплата не прошла", "text": "Мы не смогли заморозить\
+                            \ 123 $SIGN$$CURRENCY$ на вашей карте. Проверьте, что\
+                            \ с ней всё в порядке, или измените способ оплаты на наличные"}
+                higher_class_dialog:
+                    image: class_comfortplus_car
+                    text: some_text
+                    title: some_title
+                    class_after_upgrade: comfortplus
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            higher_class_dialog:
+                image: class_comfortplus_car
+                title: some_title
+                text: some_text
+                class_after_upgrade: comfortplus
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: order-parts-early-hold-cancel-status-window-handler
+    response:
+        status-code: 200
+        body#object:
+          - key: order_status_window
+            value: {"main_button": {"action": {"screen": "payment_methods", "type": "go_to_screen"},
+                    "text": "К способам оплаты", "color": "yellow"}, "reason": "early_hold_cancel",
+                "title": "Поездку отменили: оплата не прошла", "text": "Мы не смогли\
+                    \ заморозить 123 $SIGN$$CURRENCY$ на вашей карте. Проверьте, что\
+                    \ с ней всё в порядке, или измените способ оплаты на наличные"}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                order_id: 'order_id'
+                order_price#real: 123
+                currency_name: 'RUB'
+                payment_tech_type: 'card'
+                payment_method_id: 'card-abcd123'
+                zone: 'moscow'
+                tariff_class: 'comfortplus'
+            headers:
+                X-Request-Language: ru
+  - resource: stq-agent
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            currency_rules:
+                code: 'RUB'
+            payment:
+                type: 'card'
+                payment_method_id: 'card-abcd123'
+            private_data:
+                nz: 'moscow'
+                driver_id: 'driver_id_1'
+                early_hold: true
+                cancelled_by_early_hold: true
+                current_prices:
+                    user_total_display_price: 123
+            request:
+                route: ['geopoint': [37.5, 57.5], 'geopoint': [37.8, 59.7]]
+            tariff:
+                class: comfortplus
+            status: 'transporting'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

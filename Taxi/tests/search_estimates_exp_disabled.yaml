@@ -1,0 +1,40 @@
+id: search_estimates_exp_disabled
+title: Disable search estimate if user is not in experiment
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                routeinfo:
+                    positions: [[37, 55]]
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: totw_estimate_search_time
+        value:
+            enabled: false
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            routeinfo:
+                positions: [[37, 55]]
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data:
+                driver_id: dbid_uuid
+            status: "search"

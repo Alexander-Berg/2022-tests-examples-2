@@ -1,0 +1,69 @@
+id: test_deposit_is_holding
+title: тест с депозитом, который еще не списался
+
+parameters:
+  - case:
+      - payment_check_response:
+            status_code: 402
+            body:
+                error_details:
+                    special_info:
+                        error_code: required_deposit_is_not_held
+        response:
+            status_code: 402
+            body:
+                error_details:
+                    special_info:
+                        error_code: required_deposit_is_not_held
+        tag_evolve_calls: 0
+      - payment_check_response:
+            status_code: 402
+            body:
+                error_details:
+                    special_info:
+                        error_code: deposit_fails
+        response:
+            status_code: 402
+            body:
+                error_details:
+                    special_info:
+                        error_code: deposit_fails
+        tag_evolve_calls: 0
+      - payment_check_response:
+            status_code: 200
+            body: {}
+        response:
+            status_code: 200
+            body: {}
+        tag_evolve_calls: 1
+
+source:
+    request:
+        method: post
+        body:
+            session_id: SESSION_ID
+            tag_name: old_state_riding
+    expectations:
+        response#xget: /test-params/case/response
+
+mocks:
+  - resource: scooters-tag-evolve
+    expectations:
+        call-count#xget: /test-params/case/tag_evolve_calls
+    response:
+        status-code: 200
+        body: {}
+  - resource: scooters-payments-check
+    expectations:
+        call-count: 1
+        request:
+            query:
+                session_id: SESSION_ID
+    response:
+        status-code#xget: /test-params/case/payment_check_response/status_code
+        body#xget: /test-params/case/payment_check_response/body
+
+configs:
+    values#object:
+      - scooters_payments_config:
+            enabled: true

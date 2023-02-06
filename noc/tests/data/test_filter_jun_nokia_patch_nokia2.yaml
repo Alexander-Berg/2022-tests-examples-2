@@ -1,0 +1,785 @@
+vendor: nokia
+
+output: |
+  /configure delete policy-options policy-statement "EDGE_EXPORT_S1"
+  /configure delete policy-options policy-statement "PE_REDISTRIBUTE_BORDERS_VRF"
+  /configure delete policy-options policy-statement "SR_POLICY_SUSANIN"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DENY_MARKED"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS2"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" from prefix-list "PFXS_BORDERS_LO"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" from protocol name static
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action origin igp
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action bgp-med set 9000
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action community add "BR_EGRESS_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DENY_MARKED" from community name "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DENY_MARKED" action action-type reject
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB" from community name "TOR_BB_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE" from community name "REANNOUNCE_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" from community name "L3VPN_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" action as-path add "64998 64998"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS" from prefix-list "PFXS_DEFRAGv6@/40-/64"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" from community name "BR_EGRESS_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" action metric set 9000
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" entry-type named
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" default-action action-type reject
+  /configure delete policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "SPINES"
+  /configure delete policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "ANYCAST_HACK"
+  /configure delete policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "BORDERS"
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "SPINES" from community name "SPINE_COMMUNITY"
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "SPINES" action action-type accept
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "BORDERS" from community name "BR_COMMUNITY"
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "BORDERS" action action-type accept
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" default-action action-type reject
+  /configure delete policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64"
+  /configure delete policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_DEFRAGMENTATORS"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" from prefix-list "PFXS_YANDEX_TUN64_ANYCASTv6"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" from community name "MATCH_VPN_COMM_BB__AND__TOR_ANYCAST_COMMUNITY"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action as-path add "65401"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action metric set 9000
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action next-hop ::ffff:87.250.228.146
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action action-type accept
+  /configure policy-options policy-statement "SET_VPN_NHOP" default-action action-type reject
+  /configure delete policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_DEFRAGv6@/40-/64"
+  /configure delete policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_SPECIALv6"
+  /configure delete policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_YANDEX_TUN64_ANYCASTv6"
+  /configure policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_SPECIALv6"
+  /configure policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_YANDEX_TUN64_ANYCASTv6"
+  /configure delete policy-options prefix-list "ANYCAST"
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:3401::1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:3401::2/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2000::99/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2000::200/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2200::131/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2027::1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1400::fa1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1800::100/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2400::1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1600::145/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2200::135/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1400::be/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2029::1ab:2/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1400::5/128 type exact
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc02:1400::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc02:1400::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:800::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:800::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:900::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:900::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:a00::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:a00::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:b00::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:b00::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc28::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc28::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc29::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc29::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2a::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2a::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2b::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2b::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2c::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2c::/48 type range end-length 64
+  /configure delete router "Base" isis 20
+  /configure delete router "Base" isis 0 segment-routing egress-statistics node-sid true
+  /configure router "Base" isis 0 segment-routing egress-statistics node-sid false
+  /configure delete router "Base" bgp group "sr-policy"
+  /configure delete router "Base" bgp neighbor "87.250.228.151"
+  /configure delete router "Base" bgp neighbor "172.16.5.6"
+  /configure delete router "Base" bgp group "LURR" aigp true
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" admin-state enable
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" ip-mtu 9012
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" port 1/1/c10/1:816
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" ipv4
+  /configure delete router "Base" interface "lag-1:1" ip-mtu 9012
+  /configure router "Base" interface "lag-1:1" ip-mtu 9020
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" admin-state enable
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" ip-mtu 9012
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" port 1/1/c10/1:817
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" ipv4
+  /configure delete router "Base" interface "lag-1:10" ip-mtu 9012
+  /configure router "Base" interface "lag-1:10" ip-mtu 9048
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" admin-state enable
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" ip-mtu 9012
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" port 1/1/c10/1:818
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" ipv4
+  /configure delete router "Base" interface "lag-2:1" ip-mtu 9012
+  /configure router "Base" interface "lag-2:1" ip-mtu 9020
+  /configure delete router "Base" interface "lab_test" loopback
+  /configure delete router "Base" interface "lab_test" ipv4
+  /configure delete router "Base" interface "lag-2:10" ip-mtu 9012
+  /configure router "Base" interface "lag-2:10" ip-mtu 9048
+  /configure delete router "Base" interface "lag-101:10" ip-mtu 9012
+  /configure router "Base" interface "lag-101:10" ip-mtu 9048
+  /configure delete router "Base" interface "lag-102:10" ip-mtu 9012
+  /configure router "Base" interface "lag-102:10" ip-mtu 9048
+  /configure delete router "Base" mpls interface "Int 1/1/c10/1.816"
+  /configure delete router "Base" mpls interface "Int 1/1/c10/1.817"
+  /configure delete router "Base" mpls interface "Int 1/1/c10/1.818"
+  /configure router "Base" mpls interface "et-1/1/c10/1:816" admin-state enable
+  /configure router "Base" ldp interface-parameters interface "et-1/1/c10/1:816" admin-state enable
+  /configure router "Base" ldp interface-parameters interface "et-1/1/c10/1:816" ipv4
+  /configure router "Base" ldp session-parameters adv-adj-addr-only true
+  /configure router "Base" ldp session-parameters adv-local-lsr-id true
+  /configure router "Base" ldp session-parameters fec-type-capability p2mp false
+  /configure delete router "Base" rsvp interface "Int 1/1/c10/1.816"
+  /configure delete router "Base" rsvp interface "Int 1/1/c10/1.817"
+  /configure delete router "Base" rsvp interface "Int 1/1/c10/1.818"
+  /configure router "Base" rsvp interface "et-1/1/c10/1:816" admin-state enable
+  /configure router "Base" rsvp interface "et-1/1/c10/1:816" hello-interval 0
+  /configure router "Base" interface "et-1/1/c10/1:816" ldp-sync-timer seconds 10
+  /configure router "Base" interface "et-1/1/c10/1:816" ldp-sync-timer end-of-lib true
+  /configure delete system security aaa user-template tacplus-default access grpc true
+  /configure delete system security user-params local-user user "gslv_local"
+  /configure delete service vprn "Hbf" bgp import
+  /configure service vprn "Hbf" bgp group "S1" multipath-eligible true
+  /configure delete service vprn "Hbf" bgp group "S1" export policy "EDGE_EXPORT_S1"
+  /configure service vprn "Hbf" bgp group "S1" export policy "ACCEPT_ALL"
+  /configure delete service vprn "Hbf" static-routes route 2a02:6b8:0:1a00::143/128 route-type unicast
+  /configure service vprn "Hbf" static-routes route 2a02:6b8:0:1a00::c1b3:0/128 route-type unicast grt admin-state enable
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd admin-state enable
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd multiplier 3
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd receive 300
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd transmit-interval 300
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 primary address 172.16.4.189
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 primary prefix-length 27
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ingress-stats true
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" sap 1/1/c10/1:816 ingress qos sap-ingress policy-name "DC_INGRESS"
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" sap 1/1/c10/1:816 egress qos sap-egress policy-name "DC_EGRESS"
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" admin-state enable
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ip-mtu 9000
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" tos-marking-state trusted
+  /configure port 1/1/c10/1 ethernet mode access
+  /configure port 1/1/c10/1 ethernet access egress queue-group "EGRESS_QUEUE" instance-id 11101
+  /configure delete lag "lag-1" admin-state disable
+  /configure lag "lag-1" admin-state enable
+  /configure delete lag "lag-2" admin-state disable
+  /configure lag "lag-2" admin-state enable
+  /configure delete log log-id "sr_policy"
+
+diff_filtered: |2
+    system
+      security
+        aaa
+          user-template tacplus-default
+            access
+  -           grpc true
+        user-params
+          local-user
+  -         user "gslv_local"
+  -           access
+  -             console true
+  -             netconf true
+  -           console
+  -             member ["administrative"]
+  -           password "$2y$10$vK1GaQ97WRot/is2W/ayA.U.N39v/9ACpr3dREXj5/gkq2HL5SkUK"
+    service
+      vprn "Hbf"
+        bgp
+          group "S1"
+            export
+  +           policy ["ACCEPT_ALL"]
+  -           policy ["EDGE_EXPORT_S1"]
+  +         multipath-eligible true
+  -       import
+  -         policy ["PE_REDISTRIBUTE_BORDERS_VRF"]
+        static-routes
+  -       route 2a02:6b8:0:1a00::143/128 route-type unicast
+  -         grt
+  -           admin-state enable
+  +       route 2a02:6b8:0:1a00::c1b3:0/128 route-type unicast
+  +         grt
+  +           admin-state enable
+      ies "GRT"
+  +     interface "et-1/1/c10/1:816"
+  +       admin-state enable
+  +       ingress-stats true
+  +       ip-mtu 9000
+  +       ipv4
+  +         bfd
+  +           admin-state enable
+  +           multiplier 3
+  +           receive 300
+  +           transmit-interval 300
+  +         primary
+  +           address 172.16.4.189
+  +           prefix-length 27
+  +       sap 1/1/c10/1:816
+  +         egress
+  +           qos
+  +             sap-egress
+  +               policy-name "DC_EGRESS"
+  +         ingress
+  +           qos
+  +             sap-ingress
+  +               policy-name "DC_INGRESS"
+  +       tos-marking-state trusted
+    port 1/1/c10/1
+      ethernet
+  +     access
+  +       egress
+  +         queue-group "EGRESS_QUEUE" instance-id 11101
+  +     mode access
+    lag "lag-1"
+  -   admin-state disable
+  +   admin-state enable
+    lag "lag-2"
+  -   admin-state disable
+  +   admin-state enable
+    log
+  -   log-id "sr_policy"
+  -     destination
+  -       memory
+  -     source
+  -       debug true
+    router "Base"
+      bgp
+        group "LURR"
+  -       aigp true
+  -     group "sr-policy"
+  -       admin-state enable
+  -       family
+  -         sr-policy-ipv4 true
+  -       import
+  -         policy ["SR_POLICY_SUSANIN"]
+  -       local-address 172.16.6.91
+  -       multihop 254
+  -       peer-as 4200000001
+  -       type external
+  -     neighbor "172.16.5.6"
+  -       admin-state enable
+  -       group "sr-policy"
+  -     neighbor "87.250.228.151"
+  -       admin-state enable
+  -       description "lab-vla-32z4 @ PE_SLB_MESH"
+  -       group "PE_SLB_MESH"
+      interface "Int 1/1/c10/1.816"
+  -     admin-state enable
+  -     ip-mtu 9012
+  -     ipv4
+  -       primary
+  -         address 172.16.4.189
+  -         prefix-length 27
+  -     port 1/1/c10/1:816
+      interface "lag-1:1"
+  -     ip-mtu 9012
+  +     ip-mtu 9020
+      interface "Int 1/1/c10/1.817"
+  -     admin-state enable
+  -     ip-mtu 9012
+  -     ipv4
+  -       primary
+  -         address 213.180.213.51
+  -         prefix-length 31
+  -     port 1/1/c10/1:817
+      interface "lag-1:10"
+  -     ip-mtu 9012
+  +     ip-mtu 9048
+      interface "Int 1/1/c10/1.818"
+  -     admin-state enable
+  -     ip-mtu 9012
+  -     ipv4
+  -       primary
+  -         address 213.180.213.53
+  -         prefix-length 31
+  -     port 1/1/c10/1:818
+  +   interface "et-1/1/c10/1:816"
+  +     ldp-sync-timer
+  +       end-of-lib true
+  +       seconds 10
+      interface "lag-2:1"
+  -     ip-mtu 9012
+  +     ip-mtu 9020
+      interface "lab_test"
+  -     ipv4
+  -       primary
+  -         address 172.16.6.91
+  -         prefix-length 32
+  -     loopback
+      interface "lag-2:10"
+  -     ip-mtu 9012
+  +     ip-mtu 9048
+      interface "lag-101:10"
+  -     ip-mtu 9012
+  +     ip-mtu 9048
+      interface "lag-102:10"
+  -     ip-mtu 9012
+  +     ip-mtu 9048
+      mpls
+  -     interface "Int 1/1/c10/1.816"
+  -       admin-state enable
+  -     interface "Int 1/1/c10/1.817"
+  -       admin-state enable
+  -     interface "Int 1/1/c10/1.818"
+  -       admin-state enable
+  +     interface "et-1/1/c10/1:816"
+  +       admin-state enable
+      ldp
+        interface-parameters
+  +       interface "et-1/1/c10/1:816"
+  +         admin-state enable
+  +         ipv4
+        session-parameters
+  +       adv-adj-addr-only true
+  +       adv-local-lsr-id true
+  +       fec-type-capability
+  +         p2mp false
+      rsvp
+  -     interface "Int 1/1/c10/1.816"
+  -       admin-state enable
+  -     interface "Int 1/1/c10/1.817"
+  -       admin-state enable
+  -     interface "Int 1/1/c10/1.818"
+  -       admin-state enable
+  +     interface "et-1/1/c10/1:816"
+  +       admin-state enable
+  +       hello-interval 0
+      isis 0
+        segment-routing
+          egress-statistics
+  +         node-sid false
+  -         node-sid true
+  -   isis 20
+  -     admin-state enable
+  -     advertise-router-capability area
+  -     area-address [01]
+  -     interface "Int 1/1/c10/1.816"
+  -       interface-type point-to-point
+  -       level-capability 2
+  -     interface "Int 1/1/c10/1.817"
+  -       interface-type point-to-point
+  -       level-capability 2
+  -     interface "Int 1/1/c10/1.818"
+  -       interface-type point-to-point
+  -       level-capability 2
+  -     interface "lab_test"
+  -       ipv4-node-sid
+  -         index 5091
+  -       passive true
+  -     level 2
+  -       advertise-router-capability true
+  -       wide-metrics-only true
+  -     level-capability 2
+  -     segment-routing
+  -       admin-state enable
+  -       egress-statistics
+  -         node-sid true
+  -       prefix-sid-range
+  -         max-index 6000
+  -         start-label 150000
+  -     system-id 1720.1600.6091
+  -     traffic-engineering true
+    policy-options
+  -   policy-statement "EDGE_EXPORT_S1"
+  -     default-action
+  -       action-type reject
+  -     entry-type named
+  -     named-entry "REJECT_SELF_ORIGIN"
+  -       action
+  -         action-type reject
+  -       from
+  -         protocol
+  -           name [static]
+  -     named-entry "TO_DOWNSTREAM"
+  -       action
+  -         action-type accept
+  -         community
+  -           remove ["COLOR_FB"]
+      policy-statement "PE_EXPORT_STOR_VRF"
+  >     entry-type named
+  >     default-action
+  >       action-type reject
+  -     named-entry "BR_EGRESS2"
+  -       action
+  -         action-type accept
+  -         bgp-med
+  -           set 9000
+  -         community
+  -           add ["BR_EGRESS_COMMUNITY"]
+  -         origin igp
+  -       from
+  -         prefix-list ["PFXS_BORDERS_LO"]
+  -         protocol
+  -           name [static]
+  +     named-entry "BR_EGRESS_NOKIA"
+  +       action
+  +         action-type accept
+  +         bgp-med
+  +           set 9000
+  +         community
+  +           add ["BR_EGRESS_COMMUNITY" "MARKED_COMMUNITY"]
+  +         origin igp
+  +       from
+  +         prefix-list ["PFXS_BORDERS_LO"]
+  +         protocol
+  +           name [static]
+  >     named-entry "DENY_MARKED"
+  >       from
+  >         community
+  >           name "MARKED_COMMUNITY"
+  >       action
+  >         action-type reject
+  >     named-entry "TOR_BB"
+  >       from
+  >         community
+  >           name "TOR_BB_COMMUNITY"
+  >       action
+  >         community
+  >           add ["MARKED_COMMUNITY"]
+  >         action-type accept
+  >     named-entry "REANNOUNCE"
+  >       from
+  >         community
+  >           name "REANNOUNCE_COMMUNITY"
+  >       action
+  >         community
+  >           add ["MARKED_COMMUNITY"]
+  >         action-type accept
+  >     named-entry "L3VPN"
+  >       from
+  >         community
+  >           name "L3VPN_COMMUNITY"
+  >       action
+  >         community
+  >           add ["MARKED_COMMUNITY"]
+  >         as-path
+  >           add "64998 64998"
+  >         action-type accept
+  >     named-entry "DEFRAGMENTATORS"
+  >       from
+  >         prefix-list ["PFXS_DEFRAGv6@/40-/64"]
+  >       action
+  >         community
+  >           add ["MARKED_COMMUNITY"]
+  >         action-type accept
+  >     named-entry "BR_EGRESS"
+  >       from
+  >         community
+  >           name "BR_EGRESS_COMMUNITY"
+  >       action
+  >         action-type accept
+  +         community
+  +           add ["MARKED_COMMUNITY"]
+  +         metric
+  +           set 9000
+      policy-statement "PE_IMPORT_LURR_GRT"
+  -     named-entry "ANYCAST_HACK"
+  -       action
+  -         action-type accept
+  -         aigp-metric
+  -           set 0
+  -         bgp-tunnel-metric
+  -           prefer-aigp true
+  -           value 1000
+  -       from
+  -         community
+  -           name "SPINE_COMMUNITY"
+  -         prefix-list ["ANYCAST"]
+  >     named-entry "SPINES"
+  >       from
+  >         community
+  >           name "SPINE_COMMUNITY"
+  >       action
+  >         action-type accept
+  >     named-entry "BORDERS"
+  >       from
+  >         community
+  >           name "BR_COMMUNITY"
+  >       action
+  >         action-type accept
+  >     default-action
+  >       action-type reject
+  -   policy-statement "PE_REDISTRIBUTE_BORDERS_VRF"
+  -     default-action
+  -       action-type reject
+  -     entry-type named
+  -     named-entry "BORDERS"
+  -       action
+  -         action-type accept
+  -         bgp-med
+  -           set 9000
+  -         community
+  -           add ["BR_EGRESS_COMMUNITY"]
+  -         next-hop self
+  -       from
+  -         prefix-list ["PFXS_BORDERS_LO"]
+  -         protocol
+  -           name [static]
+  -       to
+  -         protocol
+  -           name [bgp]
+      policy-statement "SET_VPN_NHOP"
+  >     default-action
+  >       action-type reject
+  -     named-entry "MATCH_DEFRAGMENTATORS"
+  -       action
+  -         action-type accept
+  -         next-hop ::ffff:87.250.228.146
+  -       from
+  -         community
+  -           name "MATCH_VPN_COMM_BB__AND__TOR_ANYCAST_COMMUNITY"
+  -         prefix-list ["PFXS_DEFRAGv6@/40-/64"]
+  >     named-entry "MATCH_TUN64"
+  >       from
+  >         prefix-list ["PFXS_YANDEX_TUN64_ANYCASTv6"]
+  >         community
+  >           name "MATCH_VPN_COMM_BB__AND__TOR_ANYCAST_COMMUNITY"
+  >       action
+  >         as-path
+  >           add "65401"
+  >         metric
+  >           set 9000
+  >         next-hop ::ffff:87.250.228.146
+  >         action-type accept
+  -   policy-statement "SR_POLICY_SUSANIN"
+  -     entry-type named
+  -     named-entry "ACCEPT"
+  -       action
+  -         action-type accept
+  -       from
+  -         family [sr-policy-ipv4]
+  -         source-address
+  -           ip-address 172.16.5.6
+      policy-statement "VRF_Hbf_EXPORT"
+        named-entry "VRF_Hbf_EXPORT_4"
+          from
+  -         prefix-list ["PFXS_DEFRAGv6@/40-/64" "PFXS_SPECIALv6" "PFXS_YANDEX_TUN64_ANYCASTv6"]
+  +         prefix-list ["PFXS_SPECIALv6" "PFXS_YANDEX_TUN64_ANYCASTv6"]
+  -   prefix-list "ANYCAST"
+  -     prefix 141.8.140.200/32 type exact
+  -     prefix 141.8.140.210/32 type exact
+      prefix-list "PFXS_BORDERS_LO"
+  +     prefix 2a02:6b8:0:1400::5/128 type exact
+  +     prefix 2a02:6b8:0:1400::be/128 type exact
+  +     prefix 2a02:6b8:0:1400::fa1/128 type exact
+  +     prefix 2a02:6b8:0:1600::145/128 type exact
+  +     prefix 2a02:6b8:0:1800::100/128 type exact
+  +     prefix 2a02:6b8:0:2000::99/128 type exact
+  +     prefix 2a02:6b8:0:2000::200/128 type exact
+  +     prefix 2a02:6b8:0:2027::1/128 type exact
+  +     prefix 2a02:6b8:0:2029::1ab:2/128 type exact
+  +     prefix 2a02:6b8:0:2200::131/128 type exact
+  +     prefix 2a02:6b8:0:2200::135/128 type exact
+  +     prefix 2a02:6b8:0:2400::1/128 type exact
+  +     prefix 2a02:6b8:0:3401::1/128 type exact
+  +     prefix 2a02:6b8:0:3401::2/128 type exact
+      prefix-list "PFXS_FBv6@/48-/64"
+  +     prefix 2a02:6b8:fc02:1400::/56 type range
+  +       start-length 56
+  +       end-length 64
+  +     prefix 2a02:6b8:fc09:800::/56 type range
+  +       start-length 56
+  +       end-length 64
+  +     prefix 2a02:6b8:fc09:900::/56 type range
+  +       start-length 56
+  +       end-length 64
+  +     prefix 2a02:6b8:fc09:a00::/56 type range
+  +       start-length 56
+  +       end-length 64
+  +     prefix 2a02:6b8:fc09:b00::/56 type range
+  +       start-length 56
+  +       end-length 64
+  +     prefix 2a02:6b8:fc28::/48 type range
+  +       start-length 48
+  +       end-length 64
+  +     prefix 2a02:6b8:fc29::/48 type range
+  +       start-length 48
+  +       end-length 64
+  +     prefix 2a02:6b8:fc2a::/48 type range
+  +       start-length 48
+  +       end-length 64
+  +     prefix 2a02:6b8:fc2b::/48 type range
+  +       start-length 48
+  +       end-length 64
+  +     prefix 2a02:6b8:fc2c::/48 type range
+  +       start-length 48
+  +       end-length 64
+
+input: |
+  /configure delete policy-options policy-statement "EDGE_EXPORT_S1"
+  /configure delete policy-options policy-statement "PE_REDISTRIBUTE_BORDERS_VRF"
+  /configure delete policy-options policy-statement "SR_POLICY_SUSANIN"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DENY_MARKED"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS"
+  /configure delete policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS2"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" from prefix-list "PFXS_BORDERS_LO"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" from protocol name static
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action origin igp
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action bgp-med set 9000
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action community add "BR_EGRESS_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS_NOKIA" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DENY_MARKED" from community name "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DENY_MARKED" action action-type reject
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB" from community name "TOR_BB_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "TOR_BB" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE" from community name "REANNOUNCE_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "REANNOUNCE" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" from community name "L3VPN_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" action as-path add "64998 64998"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "L3VPN" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS" from prefix-list "PFXS_DEFRAGv6@/40-/64"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "DEFRAGMENTATORS" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" from community name "BR_EGRESS_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" action community add "MARKED_COMMUNITY"
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" action metric set 9000
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" named-entry "BR_EGRESS" action action-type accept
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" entry-type named
+  /configure policy-options policy-statement "PE_EXPORT_STOR_VRF" default-action action-type reject
+  /configure delete policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "SPINES"
+  /configure delete policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "ANYCAST_HACK"
+  /configure delete policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "BORDERS"
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "SPINES" from community name "SPINE_COMMUNITY"
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "SPINES" action action-type accept
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "BORDERS" from community name "BR_COMMUNITY"
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" named-entry "BORDERS" action action-type accept
+  /configure policy-options policy-statement "PE_IMPORT_LURR_GRT" default-action action-type reject
+  /configure delete policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64"
+  /configure delete policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_DEFRAGMENTATORS"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" from prefix-list "PFXS_YANDEX_TUN64_ANYCASTv6"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" from community name "MATCH_VPN_COMM_BB__AND__TOR_ANYCAST_COMMUNITY"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action as-path add "65401"
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action metric set 9000
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action next-hop ::ffff:87.250.228.146
+  /configure policy-options policy-statement "SET_VPN_NHOP" named-entry "MATCH_TUN64" action action-type accept
+  /configure policy-options policy-statement "SET_VPN_NHOP" default-action action-type reject
+  /configure delete policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_DEFRAGv6@/40-/64"
+  /configure delete policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_SPECIALv6"
+  /configure delete policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_YANDEX_TUN64_ANYCASTv6"
+  /configure policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_SPECIALv6"
+  /configure policy-options policy-statement "VRF_Hbf_EXPORT" named-entry "VRF_Hbf_EXPORT_4" from prefix-list "PFXS_YANDEX_TUN64_ANYCASTv6"
+  /configure delete policy-options prefix-list "ANYCAST"
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:3401::1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:3401::2/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2000::99/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2000::200/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2200::131/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2027::1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1400::fa1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1800::100/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2400::1/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1600::145/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2200::135/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1400::be/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:2029::1ab:2/128 type exact
+  /configure policy-options prefix-list "PFXS_BORDERS_LO" prefix 2a02:6b8:0:1400::5/128 type exact
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc02:1400::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc02:1400::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:800::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:800::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:900::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:900::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:a00::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:a00::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:b00::/56 type range start-length 56
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc09:b00::/56 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc28::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc28::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc29::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc29::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2a::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2a::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2b::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2b::/48 type range end-length 64
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2c::/48 type range start-length 48
+  /configure policy-options prefix-list "PFXS_FBv6@/48-/64" prefix 2a02:6b8:fc2c::/48 type range end-length 64
+  /configure delete router "Base" isis 20
+  /configure delete router "Base" isis 0 segment-routing egress-statistics node-sid true
+  /configure router "Base" isis 0 segment-routing egress-statistics node-sid false
+  /configure delete router "Base" bgp group "sr-policy"
+  /configure delete router "Base" bgp neighbor "87.250.228.151"
+  /configure delete router "Base" bgp neighbor "172.16.5.6"
+  /configure delete router "Base" bgp group "LURR" aigp true
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" admin-state enable
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" ip-mtu 9012
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" port 1/1/c10/1:816
+  /configure delete router "Base" interface "Int 1/1/c10/1.816" ipv4
+  /configure delete router "Base" interface "lag-1:1" ip-mtu 9012
+  /configure router "Base" interface "lag-1:1" ip-mtu 9020
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" admin-state enable
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" ip-mtu 9012
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" port 1/1/c10/1:817
+  /configure delete router "Base" interface "Int 1/1/c10/1.817" ipv4
+  /configure delete router "Base" interface "lag-1:10" ip-mtu 9012
+  /configure router "Base" interface "lag-1:10" ip-mtu 9048
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" admin-state enable
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" ip-mtu 9012
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" port 1/1/c10/1:818
+  /configure delete router "Base" interface "Int 1/1/c10/1.818" ipv4
+  /configure delete router "Base" interface "lag-2:1" ip-mtu 9012
+  /configure router "Base" interface "lag-2:1" ip-mtu 9020
+  /configure delete router "Base" interface "lab_test" loopback
+  /configure delete router "Base" interface "lab_test" ipv4
+  /configure delete router "Base" interface "lag-2:10" ip-mtu 9012
+  /configure router "Base" interface "lag-2:10" ip-mtu 9048
+  /configure delete router "Base" interface "lag-101:10" ip-mtu 9012
+  /configure router "Base" interface "lag-101:10" ip-mtu 9048
+  /configure delete router "Base" interface "lag-102:10" ip-mtu 9012
+  /configure router "Base" interface "lag-102:10" ip-mtu 9048
+  /configure delete router "Base" mpls interface "Int 1/1/c10/1.816"
+  /configure delete router "Base" mpls interface "Int 1/1/c10/1.817"
+  /configure delete router "Base" mpls interface "Int 1/1/c10/1.818"
+  /configure router "Base" mpls interface "et-1/1/c10/1:816" admin-state enable
+  /configure router "Base" ldp interface-parameters interface "et-1/1/c10/1:816" admin-state enable
+  /configure router "Base" ldp interface-parameters interface "et-1/1/c10/1:816" ipv4
+  /configure router "Base" ldp session-parameters adv-adj-addr-only true
+  /configure router "Base" ldp session-parameters adv-local-lsr-id true
+  /configure router "Base" ldp session-parameters fec-type-capability p2mp false
+  /configure delete router "Base" rsvp interface "Int 1/1/c10/1.816"
+  /configure delete router "Base" rsvp interface "Int 1/1/c10/1.817"
+  /configure delete router "Base" rsvp interface "Int 1/1/c10/1.818"
+  /configure router "Base" rsvp interface "et-1/1/c10/1:816" admin-state enable
+  /configure router "Base" rsvp interface "et-1/1/c10/1:816" hello-interval 0
+  /configure router "Base" interface "et-1/1/c10/1:816" ldp-sync-timer seconds 10
+  /configure router "Base" interface "et-1/1/c10/1:816" ldp-sync-timer end-of-lib true
+  /configure delete system security aaa user-template tacplus-default access grpc true
+  /configure delete system security user-params local-user user "gslv_local"
+  /configure delete service vprn "Hbf" bgp import
+  /configure service vprn "Hbf" bgp group "S1" multipath-eligible true
+  /configure delete service vprn "Hbf" bgp group "S1" export policy "EDGE_EXPORT_S1"
+  /configure service vprn "Hbf" bgp group "S1" export policy "ACCEPT_ALL"
+  /configure delete service vprn "Hbf" static-routes route 2a02:6b8:0:1a00::143/128 route-type unicast
+  /configure service vprn "Hbf" static-routes route 2a02:6b8:0:1a00::c1b3:0/128 route-type unicast grt admin-state enable
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd admin-state enable
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd multiplier 3
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd receive 300
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 bfd transmit-interval 300
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 primary address 172.16.4.189
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ipv4 primary prefix-length 27
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ingress-stats true
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" sap 1/1/c10/1:816 ingress qos sap-ingress policy-name "DC_INGRESS"
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" sap 1/1/c10/1:816 egress qos sap-egress policy-name "DC_EGRESS"
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" admin-state enable
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" ip-mtu 9000
+  /configure service ies "GRT" interface "et-1/1/c10/1:816" tos-marking-state trusted
+  /configure port 1/1/c10/1 ethernet mode access
+  /configure port 1/1/c10/1 ethernet access egress queue-group "EGRESS_QUEUE" instance-id 11101
+  /configure delete lag "lag-1" admin-state disable
+  /configure lag "lag-1" admin-state enable
+  /configure delete lag "lag-2" admin-state disable
+  /configure lag "lag-2" admin-state enable
+  /configure delete log log-id "sr_policy" 

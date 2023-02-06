@@ -1,0 +1,38 @@
+---
+host: taxi_wind-yango-website_testing
+telegram: warn_default
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+services:
+- service: http_alive
+  flaps:
+    stable_time: 600
+    critical_time: 3600
+  telegram: talaria-alerts
+  active: http
+  active_kwargs:
+    port: 80
+    ok_codes: 200
+    path: /ping
+    always_show_body: true
+  children:
+  - wind-yango-website.taxi.tst.yandex.net
+  - wind.tst.yango.com
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 101%
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 101%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 101%

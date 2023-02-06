@@ -1,0 +1,96 @@
+description: |
+    Тут хранятся вопросы к промо Новый Год 2020, описание ссылок
+    на картинки в s3 и координаты линий на которых пишут ответы
+
+default:
+    questions: []
+    image_links: []
+    edit_infos: []
+
+schema:
+    type: object
+    properties:
+        questions:
+            type: array
+            items:
+                $ref: '#/definitions/Question'
+        image_links:
+            type: array
+            items:
+                $ref: '#/definitions/ImageLink'
+        edit_infos:
+            type: array
+            items:
+                $ref: '#/definitions/EditInfo'
+    required:
+      - questions
+      - image_links
+      - edit_infos
+    additionalProperties: false
+
+    definitions:
+        Question:
+            description: Question config information
+            type: object
+            properties:
+                id:
+                    type: string
+                input_type:
+                    type: string
+                    description: Controller type for the question
+                    enum:
+                      - barrel
+                      - bulb
+                      - calendar
+                      - circle
+                      - circle-slime
+                      - delta
+                      - delta-slime
+                      - flasher
+                      - progress
+                      - progress-vertical
+                      - star
+                      - tumbler
+                      - tumbler-slime
+                      - tumbler-vertical
+                      - twist
+                      - waterfall
+                answers_are_tanker_keys:
+                    type: boolean
+                    description: Translate the answers in the tanker
+            required:
+              - id
+              - input_type
+              - answers_are_tanker_keys
+            additionalProperties: false
+
+        ImageLink:
+            type: object
+            properties:
+                id:
+                    type: string
+                paths:
+                    type: array
+                    description: Array of image paths in MDS S3 storage
+                    items:
+                        type: string
+            required:
+              - id
+              - paths
+            additionalProperties: false
+
+        EditInfo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Must match id of template image specified in `image_links`
+                edit_line:
+                    type: integer
+                    format: int32
+                    description: Specifies height offset used to insert numbers to
+                        template image
+            required:
+              - id
+              - edit_line
+            additionalProperties: false

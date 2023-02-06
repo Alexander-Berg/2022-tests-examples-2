@@ -1,0 +1,79 @@
+INSERT INTO parks_activation.accounts (
+    park_id,
+    city_id,
+    promised_payment_till,
+    threshold,
+    dynamic_threshold,
+    recommended_payments,
+    mongo_revision,
+    require_card,
+    require_coupon,
+    has_corp_vat
+) VALUES
+(
+    '100',
+    'moscow',
+    '1970-01-15T06:56:07.000'::TIMESTAMPTZ,
+    0.1,
+    0.1,
+    '{}'::parks_activation.recommended_payment_t[],
+    'rev1',
+    false,
+    true,
+    true
+),
+(
+    '300',
+    'moscow',
+    '1970-01-15T06:56:07.000'::TIMESTAMPTZ,
+    0.1,
+    0.1,
+    '{}'::parks_activation.recommended_payment_t[],
+    'rev1',
+    false,
+    true,
+    true
+);
+
+INSERT INTO parks_activation.parks (
+    park_id,
+    deactivated,
+    deactivated_reason,
+    can_cash,
+    can_card,
+    can_coupon,
+    can_corp,
+    has_corp_without_vat_contract,
+    can_corp_without_vat,
+    can_subsidy,
+    updated,
+    revision
+) VALUES
+(
+    '100',
+    false,
+    null,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    '1970-01-15T06:56:07.000'::TIMESTAMPTZ,
+    1
+),
+(
+    '300',
+    false,
+    null,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    '1970-01-15T06:56:07.000'::TIMESTAMPTZ,
+    1
+);

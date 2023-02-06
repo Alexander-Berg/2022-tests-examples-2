@@ -1,0 +1,17 @@
+export const baseCategoryId = 'baseCategoryId'
+export const baseProductId = 'baseProductId'
+
+export const sigmaCategoryId = 'sigmaCategoryId'
+export const sigmaProductWithCashbackId = 'sigmaProductWithCashbackId'
+export const sigmaProductWithStickersId = 'sigmaProductWithStickersId'
+export const sigmaProductWithDiscountId = 'sigmaProductWithDiscountId'
+export const sigmaProductWithUpsaleId = 'sigmaProductWithUpsaleId'
+export const sigmaProductWithInformersId = 'sigmaProductWithInformersId'
+export const sigmaProductWithGradesId = 'sigmaProductWithGradesId'
+export const sigmaProductNoImageId = 'sigmaProductNoImageId'
+export const sigmaProductExpiringId = 'sigmaProductExpiringId'
+
+export const deltaCategoryThreeInRowId = 'deltaCategoryThreeInRowId'
+export const deltaCategoryTwoInRowId = 'deltaCategoryTwoInRowId'
+export const deltaCategoryBubblesId = 'deltaCategoryBubblesId'
+export const deltaCategoryHeroId = 'deltaCategoryHeroId'

@@ -1,0 +1,26 @@
+allow-unauthorized: true
+enabled: true
+default-response: resp-def
+sources:
+  - id: upstream
+    resource: resource-upstream
+    content-type: application/json
+    enabled#not:
+        value#xget: /request/body/enable-fail-policy
+  - id: upstream-with-policy
+    resource: resource-upstream
+    content-type: application/json
+    enabled#xget: /request/body/enable-fail-policy
+    fail-policy:
+      - selector: any
+        action: disable
+
+responses:
+  - id: resp-def
+    body#object:
+      - key: foo
+        value#xget: /request/body/foo
+      - key: bar
+        value#xget: /sources/upstream/response/body/bar
+        enabled#source-enabled: upstream
+    content-type: application/json

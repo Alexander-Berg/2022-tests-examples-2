@@ -1,0 +1,184 @@
+dashboard_title: Nomenclature places import errors in testing
+
+layout:
+  - include:
+        row_panels: 1
+        title: Количество по всем брендам - $error_level
+        path: eats_nomenclature_collector/task_errors_metrics_for_brands.json
+        variables:
+          -   - cluster: testing_uservices
+                task_type: nomenclature
+                task_type_name: Меню
+              - cluster: testing_uservices
+                task_type: price
+                task_type_name: Цены
+              - cluster: testing_uservices
+                task_type: availability
+                task_type_name: Доступность товаров
+              - cluster: testing_uservices
+                task_type: stock
+                task_type_name: Остатки
+  - include:
+        row_panels: 1
+        title: Количество по магазинам бренда $brand - $error_level
+        path: eats_nomenclature_collector/task_errors_metrics_for_places_per_brand.json
+        variables:
+          -   - cluster: testing_uservices
+                task_type: nomenclature
+                task_type_name: меню
+              - cluster: testing_uservices
+                task_type: price
+                task_type_name: цен
+              - cluster: testing_uservices
+                task_type: availability
+                task_type_name: доступности товаров
+              - cluster: testing_uservices
+                task_type: stock
+                task_type_name: остатков
+  - include:
+        row_panels: 2
+        title: Критичные ошибки валидации по магазину $place_id
+        path: eats_nomenclature_collector/task_errors_metrics_per_brand_and_place.json
+        variables:
+          -   - cluster: testing_uservices
+                task_type: nomenclature
+                task_type_name: Меню
+              - cluster: testing_uservices
+                task_type: price
+                task_type_name: Цены
+              - cluster: testing_uservices
+                task_type: availability
+                task_type_name: Доступность товаров
+              - cluster: testing_uservices
+                task_type: stock
+                task_type_name: Остатки
+  - include:
+        row_panels: 2
+        title: Критичные ошибки верификации по магазину $place_id
+        path: eats_nomenclature/processing_errors_metrics_per_brand_and_place.json
+        variables:
+          -   - cluster: testing_uservices
+                task_type: nomenclature
+                task_type_name: Меню
+              - cluster: testing_uservices
+                task_type: price
+                task_type_name: Цены
+              - cluster: testing_uservices
+                task_type: availability
+                task_type_name: Доступность товаров
+              - cluster: testing_uservices
+                task_type: stock
+                task_type_name: Остатки
+  - include:
+        row_panels: 1
+        title: Предупреждения верификации импорта по магазину $place_id
+        path: eats_nomenclature/processing_warnings_metrics_per_brand_and_place.json
+        variables:
+          -   - cluster: testing_uservices
+  - include:
+        row_panels: 1
+        title: Предупреждения валидации импорта по магазину $place_id
+        path: eats_nomenclature_collector/task_warnings_metrics_per_brand_and_place.json
+        variables:
+          -   - cluster: testing_uservices
+
+dashboard_update:
+    templating:
+        list:
+          - allValue: null
+            datasource: Solomon
+            definition: "{application='eats-nomenclature-collector|eats-nomenclature', cluster='testing_uservices', \
+                        \ group='eda_eats-nomenclature-collector*|eda_eats-nomenclature*', host='*.*|*-*', project='taxi', \
+                        \ sensor='task-errors-metrics.nomenclature.error_type|task-errors-metrics.price.error_type| \
+                            task-errors-metrics.stock.error_type|task-errors-metrics.availability.error_type| \
+                            processing-errors-metrics.nomenclature.error_type|processing-errors-metrics.price.error_type| \
+                            processing-errors-metrics.stock.error_type|processing-errors-metrics.availability.error_type| \
+                            processing-errors-metrics.nomenclature.warning_types.*|processing-errors-metrics.price.warning_types.*| \
+                            processing-errors-metrics.availability.warning_types.*|processing-errors-metrics.stock.warning_types.*', \
+                        \ service='uservices'} #brand"
+            description: null
+            error: null
+            hide: 0
+            includeAll: false
+            label: "Бренд:"
+            multi: false
+            name: "brand"
+            options: [ ]
+            query: "{application='eats-nomenclature-collector|eats-nomenclature', cluster='testing_uservices', \
+                   \ group='eda_eats-nomenclature-collector*|eda_eats-nomenclature*', host='*.*|*-*', project='taxi', \
+                   \ sensor='task-errors-metrics.nomenclature.error_type|task-errors-metrics.price.error_type| \
+                        task-errors-metrics.stock.error_type|task-errors-metrics.availability.error_type| \
+                        processing-errors-metrics.nomenclature.error_type|processing-errors-metrics.price.error_type| \
+                        processing-errors-metrics.stock.error_type|processing-errors-metrics.availability.error_type| \
+                        processing-errors-metrics.nomenclature.warning_types.*|processing-errors-metrics.price.warning_types.*| \
+                        processing-errors-metrics.availability.warning_types.*|processing-errors-metrics.stock.warning_types.*', \
+                   \ service='uservices'} #brand"
+            refresh: 2
+            regex: ""
+            skipUrlSync: false
+            sort: 1
+            tagValuesQuery: ""
+            tags: [ ]
+            tagsQuery: ""
+            type: "query"
+            useTags: false
+          - allValue: null
+            datasource: Solomon
+            definition: "{application='eats-nomenclature-collector|eats-nomenclature', cluster='testing_uservices', \
+                        \ group='eda_eats-nomenclature-collector*|eda_eats-nomenclature*', host='*.*|*-*', project='taxi', \
+                        \ sensor='task-errors-metrics.nomenclature.error_type|task-errors-metrics.price.error_type| \
+                            \ task-errors-metrics.stock.error_type|task-errors-metrics.availability.error_type| \
+                            \ processing-errors-metrics.nomenclature.error_type|processing-errors-metrics.nomenclature.error_type| \
+                            \ processing-errors-metrics.stock.error_type|processing-errors-metrics.availability.error_type| \
+                            \ processing-errors-metrics.nomenclature.warning_types.*|processing-errors-metrics.price.warning_types.*| \
+                            \ processing-errors-metrics.availability.warning_types.*|processing-errors-metrics.stock.warning_types.*', \
+                        \ brand='$brand', service='uservices'} #place_id"
+            description: null
+            error: null
+            hide: 0
+            includeAll: false
+            label: "Магазин:"
+            multi: false
+            name: "place_id"
+            options: []
+            query: "{application='eats-nomenclature-collector|eats-nomenclature', cluster='testing_uservices', \
+                   \ group='eda_eats-nomenclature-collector*|eda_eats-nomenclature*', host='*.*|*-*', project='taxi', \
+                   \ sensor='task-errors-metrics.nomenclature.error_type|task-errors-metrics.price.error_type| \
+                        \ task-errors-metrics.stock.error_type|task-errors-metrics.availability.error_type| \
+                        \ processing-errors-metrics.nomenclature.error_type|processing-errors-metrics.nomenclature.error_type| \
+                        \ processing-errors-metrics.stock.error_type|processing-errors-metrics.availability.error_type| \
+                        \ processing-errors-metrics.nomenclature.warning_types.*|processing-errors-metrics.price.warning_types.*| \
+                        \ processing-errors-metrics.availability.warning_types.*|processing-errors-metrics.stock.warning_types.*', \
+                   \ brand='$brand', service='uservices'} #place_id"
+            refresh: 2
+            regex: ""
+            skipUrlSync: false
+            sort: 1
+            tagValuesQuery: ""
+            tags: []
+            tagsQuery: ""
+            type: "query"
+            useTags: false
+          - allValue: null
+            current:
+              selected: true
+              text: критичные ошибки
+              value: error
+            description: null
+            error: null
+            hide: 0
+            includeAll: false
+            label: "Уровень ошибок в графиках:"
+            multi: false
+            name: "error_level"
+            options:
+              - selected: true
+                text: критичные ошибки
+                value: error
+              - selected: false
+                text: предупреждения
+                value: warning
+            query: "error, warning"
+            queryValue: ""
+            skipUrlSync: false
+            type: custom

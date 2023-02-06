@@ -1,0 +1,28 @@
+id: orders_search_passed_personal_phone_id
+title: Проверяет, что в search передаётся personal_phone_id если указан
+source:
+    request:
+        method: post
+        url: /integration/maps/v1/orders/search
+        headers:
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+        body:
+            user:
+                user_id: 123
+    expectations:
+        response:
+            status-code#integer: 200
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        request:
+            body:
+                user:
+                    personal_phone_id: 'personal_123'
+                    yandex_uid: ''
+                    user_id: 123
+        call-count: 1

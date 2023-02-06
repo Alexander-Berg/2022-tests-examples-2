@@ -1,0 +1,16 @@
+INSERT INTO clients_schema.experiments (id, name, date_from, date_to,
+                                        rev,
+                                        default_value,
+                                        clauses,
+                                        predicate,
+                                        description,
+                                        enabled,
+                                        schema)
+    VALUES (1, 'n1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
+            nextval('clients_schema.clients_rev'),
+            '{}',
+            '[{"title": "clause_title", "value": {}, "predicate": {"type": "true"}}]'::jsonb,
+            '{"type": "true"}'::jsonb,
+            'DESCRIPTION',
+            TRUE,
+            'additionalProperties: true');

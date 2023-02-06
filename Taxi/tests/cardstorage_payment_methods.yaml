@@ -1,0 +1,78 @@
+id: cardstorage_payment_methods
+title: Используем ответ /v1/payment_methods
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 1
+              - 1
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payment_methods:
+                  - available: true
+                    number: "****1111"
+                    system: visa
+                    updated_at: '2016-12-14T10:25:05.312+00:00'
+                    availability:
+                        disabled_reason: ''
+                        available: true
+                    name: visa
+                    currency: RUR
+                    type: card
+                    id: valid_card_id
+                    bin: '4000000'
+                    card_bank: 'METABANK'
+                    card_country: 'USA'
+                merchant_id_list:
+                  - id1
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards:
+              - card_id: valid_card_id
+                system: visa
+                number: '****1111'
+                bin: '4000000'
+                currency: RUR
+                busy: false
+                valid: true
+                updated_at: '2016-12-14T10:25:05.312+00:00'
+                expiration_year: 2025
+                expiration_month: 11
+                expiration_time: '2020-10-31T00:00:00+0000'
+                card_bank: 'METABANK'
+                card_country: 'USA'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payments:
+                card:
+                    type: card
+            merchant_ids:
+              - id1
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false

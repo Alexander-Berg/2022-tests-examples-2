@@ -1,0 +1,71 @@
+description: |
+    Отдельные настройки для каждого rps-лимитера
+default:
+    __default__:
+        minimal_quota: 10
+        reject_time: 850
+        fallback_reject_time: 1000
+        wait_request_duration: 100
+
+tags: [notfallback]
+maintainers: [alexey-ivanov, luxenia]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/LimiterSettings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/LimiterSettings'
+    example:
+        limiter1:
+            minimal_quota: 5
+            reject_time: 850
+            wait_request_duration: 100
+
+    definitions:
+        LimiterSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                minimal_quota:
+                    description: |
+                        Минимальная квота, которую может выдать сервис статистики клиенту.
+                        Если бюджет меньше минимальной квоты, то сервис выделяет клиенту квоту = 0,
+                        что означает превышение лимита и отклонение запросов.
+                    type: integer
+                    minimum: 0
+                    default: 10
+                reject_time:
+                    description: |
+                        Время, в течение которого клиент отклоняет запросы и не пытается запросить новую квоту.
+                        Используется при получении нулевой квоты от сервера (явное указание, что бюджет исчерпан
+                        и надо отклонять запросы)
+                    type: integer
+                    minimum: 0
+                    default: 850
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                fallback_reject_time:
+                    description: |
+                        Время, в течение которого клиент не пытается запросить новую квоту у сервера, если предыдущие
+                        попытки получить квоту провалились. В этом случае клиент присваивает fallback квоту и не шлёт
+                        запросов в statistics
+                    type: integer
+                    minimum: 0
+                    default: 1000
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                wait_request_duration:
+                    description: |
+                        Максимальное время ожидания обновления квоты
+                    type: integer
+                    minimum: 0
+                    default: 100
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                old_version_with_extensive_quota_assignment:
+                    description: |
+                        Флаг, который включает старую логику лимитера с неэффективным quota-assigned
+                        Временно и только для лимитера stq-tasks-taken!
+                        Должен быть выпилен в TAXICOREINFRA-1420
+                    type: boolean
+                    default: false

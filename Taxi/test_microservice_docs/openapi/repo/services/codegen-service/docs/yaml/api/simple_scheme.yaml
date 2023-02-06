@@ -1,0 +1,230 @@
+openapi: 3.0.0
+info:
+    title: sample service
+    description: testing openapi 3.0 schema, don't use it as a base for your service,
+        it is ugly
+    version: '1.0'
+
+servers:
+  - url: http://example.com
+    description: production
+
+paths:
+    /openapi/ping:
+        get:
+            summary: ping handler
+            responses:
+                '200':
+                    description: service is ok
+
+    /openapi/simple:
+        get:
+            summary: simple handler
+            description: |
+                Long description
+            parameters:
+              - in: query
+                name: name
+                schema:
+                    type: string
+              - in: query
+                name: movies
+                schema:
+                    type: array
+                    items:
+                        type: string
+                explode: false
+              - in: query
+                name: tobaccos
+                schema:
+                    type: array
+                    items:
+                        type: string
+                style: pipeDelimited
+            responses:
+                '200':
+                    description: example response
+                    headers:
+                        X-YaTaxi-BacBac:
+                            schema:
+                                type: integer
+                        X-YaTaxi-IDS:
+                            schema:
+                                type: array
+                                items:
+                                    type: integer
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    name:
+                                        type: string
+                                    age:
+                                        type: integer
+                                    favorite_movies:
+                                        type: array
+                                        items:
+                                            type: string
+                                    tobaccos:
+                                        type: array
+                                        items:
+                                            type: string
+                                additionalProperties: false
+        post:
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                age:
+                                    type: integer
+                            additionalProperties: false
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+
+    /openapi/user:
+        get:
+            parameters:
+              - in: query
+                name: name
+                schema:
+                    type: string
+            responses:
+                '200':
+                    description: response with ref schema
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OpenUser'
+
+
+    /openapi/binary:
+        post:
+            parameters:
+              - $ref: '#/components/parameters/Name'
+            requestBody:
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: binary
+            responses:
+                '200':
+                    $ref: '#/components/responses/MyResponse'
+
+    /openapi/multiple-responses:
+        get:
+            parameters:
+              - in: query
+                name: name
+                schema:
+                    type: string
+                required: true
+            responses:
+                '200':
+                    description: response with ref schema
+                    content:
+                        text/plain; charset=utf-8:
+                            schema:
+                                type: string
+                        application/octet-stream:
+                            schema:
+                                type: string
+                                format: binary
+
+    /openapi/homogeneous-multiple-responses:
+        get:
+            parameters:
+              - in: query
+                name: ext
+                schema:
+                    type: string
+                    enum:
+                      - png
+                      - jpeg
+                required: true
+            responses:
+                '200':
+                    description: response with ref schema
+                    content:
+                        image/png:
+                            schema:
+                                type: string
+                                format: binary
+                        image/jpeg:
+                            schema:
+                                type: string
+                                format: binary
+
+components:
+    schemas:
+        OpenUser:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+            properties:
+                name:
+                    type: string
+                age:
+                    type: integer
+                likes:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/OpenLike'
+
+        OpenLike:
+            type: object
+            additionalProperties: false
+            required:
+              - from
+            properties:
+                from:
+                    type: string
+
+        OpenNullable:
+            type: object
+            additionalProperties:
+                type: string
+                nullable: true
+            required:
+              - nullable_string
+              - required_string
+            properties:
+                nullable_string:
+                    type: string
+                    nullable: true
+                not_required_string:
+                    type: string
+                required_string:
+                    type: string
+
+    parameters:
+        Name:
+            name: name
+            in: query
+            schema:
+                type: string
+
+    responses:
+        MyResponse:
+            description: common response
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            name:
+                                type: string
+                            data:
+                                type: string

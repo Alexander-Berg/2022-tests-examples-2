@@ -1,0 +1,45 @@
+[
+  {
+    "global_scope": {
+      "source_code": ""
+    },
+    "name": "courier_demand_pclinear",
+    "stages": [
+      {
+        "conditions": [],
+        "in_bindings": [
+          {
+            "domain": "input",
+            "optional": false,
+            "query": {
+              "operations": [
+                {
+                  "property_name": "courier_demand_input"
+                }
+              ]
+            }
+          },
+          {
+            "domain": "input",
+            "optional": false,
+            "query": {
+              "operations": [
+                {
+                  "property_name": "courier_demand_settings"
+                }
+              ]
+            }
+          }
+        ],
+        "name": "main",
+        "out_bindings": [
+          {
+            "alias": "courier_demand",
+            "query": "courier_demand"
+          }
+        ],
+        "source_code": "var output = {\n  courier_demand: {courier_demand_multiplier: 1.1}\n}\n\nconst load_level = courier_demand_input.load_level;\n\nconst ll_min = courier_demand_settings.ll_min;\nconst ll_max = courier_demand_settings.ll_max;\nconst surge_slope = courier_demand_settings.surge_slope;\n\nif (load_level < (ll_min / 2)) {\n  output.courier_demand.courier_demand_multiplier = 1.0;\n} else if (load_level < ll_min) {\n  output.courier_demand.courier_demand_multiplier = 1.05;\n} else if (load_level < ll_max) {\n  output.courier_demand.courier_demand_multiplier = 1.1;\n} else {\n  output.courier_demand.courier_demand_multiplier =\n    Math.min(3, 1.1 + (load_level - ll_max) * (surge_slope / 100.0));\n}\n\nreturn output;"
+      }
+    ]
+  }
+]

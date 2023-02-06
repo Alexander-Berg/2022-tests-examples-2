@@ -1,0 +1,64 @@
+default:
+    enabled: false
+    only_search: true
+    max_age_in_hours: 24  # 1 day
+    skip_for_services: []
+    skip_for_branches: []
+    yp_regions:
+      - SAS
+      - VLA
+      - MAN
+
+maintainers:
+  - karachevda
+
+description: |
+    Настройки нахождения старых, не используемых подов, которые не прикреплены
+    ни к одному снэпшоту
+
+tags: [notfallback]
+
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enabled
+      - only_search
+      - max_age_in_hours
+      - skip_for_services
+      - skip_for_branches
+      - yp_regions
+    properties:
+        enabled:
+            description: Включен ли крон поиска и удаления подов
+            type: boolean
+        only_search:
+            description: Включен ли режим только поиска подов без удаления
+            type: boolean
+        max_age_in_hours:
+            description: Максимальный возраст не использования подов
+            type: integer
+            minimum: 1
+        skip_for_services:
+            description: |
+                Список имён сервисов клоундуктора,
+                для которых не искать не используемые поды
+            type: array
+            items:
+                type: string
+        skip_for_branches:
+            description: |
+                Список имён бранчей клоундуктора,
+                для которых не искать не используемые поды
+            type: array
+            items:
+                type: string
+        yp_regions:
+            description: Список регионов (датацентров) в которых искать поды
+            type: array
+            items:
+                type: string
+        branches_concurrency_limit:
+            description: Ограничение паралельности поиска
+            type: integer
+            minimum: 1

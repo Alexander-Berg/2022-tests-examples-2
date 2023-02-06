@@ -1,0 +1,167 @@
+id: chat
+title: Check for all test cases of the chats channel
+
+parameters:
+  - case:
+      # 0: No auth, one_chat=false → general chat only
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 2, "channel#string": "link",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: ""
+        one_chat#boolean: false
+        query_order_nr#string: ""
+        expected_history_calls#integer: 0
+        expected_history_request#null: {}
+        history#array:
+        taxi_user#string: ""
+      # 1: No auth, one_chat=false, order nr provided via query → order chat only
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "link?order_nr=123123-123123",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: ""
+        one_chat#boolean: false
+        query_order_nr#string: "123123-123123"
+        expected_history_calls#integer: 0
+        expected_history_request#null: {}
+        history#array:
+        taxi_user#string: ""
+      # 2: Auth, has order, one_chat=false, order nr provided via query → order chat only, nr from query
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "link?order_nr=123123-123123",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: g9348hj
+        one_chat#boolean: false
+        query_order_nr#string: "123123-123123"
+        expected_history_calls#integer: 1
+        expected_history_request#object:
+          - key: eats_user_id
+            value#integer: 42
+        history#array:
+          - value#object:
+              - key: order_id
+                value#string: 321321-321321
+        taxi_user#string: personal_phone_id=g9348hj, eats_user_id=42
+      # 3: Auth, has order, one_chat=false, order nr from history → both chats
+      - expected_body: {"meta": {"count": 2}, "payload": {"channels": [{"id": 1, "channel#string": "link?order_nr=321321-321321",
+                        "type": "chat", "text": "text"}, {"id": 2, "channel#string": "link",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: g9348hj
+        one_chat#boolean: false
+        query_order_nr#string: ""
+        expected_history_calls#integer: 1
+        expected_history_request#object:
+          - key: eats_user_id
+            value#integer: 42
+        history#array:
+          - value#object:
+              - key: order_id
+                value#string: 321321-321321
+        taxi_user#string: personal_phone_id=g9348hj, eats_user_id=42
+      # 4: No auth, one_chat=true → general chat only
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 2, "channel#string": "link",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: ""
+        one_chat#boolean: true
+        query_order_nr#string: ""
+        expected_history_calls#integer: 0
+        expected_history_request#null: {}
+        history#array:
+        taxi_user#string: ""
+      # 5: Auth, one_chat=true, order nr provided via query → order chat only, nr from query
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "link?order_nr=123123-123123",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: g9348hj
+        one_chat#boolean: true
+        query_order_nr#string: "123123-123123"
+        expected_history_calls#integer: 1
+        expected_history_request#object:
+          - key: eats_user_id
+            value#integer: 42
+        history#array:
+          - value#object:
+              - key: order_id
+                value#string: 321321-321321
+        taxi_user#string: personal_phone_id=g9348hj, eats_user_id=42
+      # 6: Auth, one_chat=true, order nr from history → order chat only
+      - expected_body: {"meta": {"count": 1}, "payload": {"channels": [{"id": 1, "channel#string": "link?order_nr=321321-321321",
+                        "type": "chat", "text": "text"}]}}
+        expected_phone_id#string: g9348hj
+        one_chat#boolean: true
+        query_order_nr#null: {}
+        expected_history_calls#integer: 1
+        expected_history_request#object:
+          - key: eats_user_id
+            value#integer: 42
+        history#array:
+          - value#object:
+              - key: order_id
+                value#string: 321321-321321
+        taxi_user#string: personal_phone_id=g9348hj, eats_user_id=42
+
+source:
+    request:
+        method: get
+        query:
+            orderNr#xget: /test-params/case/query_order_nr
+        headers#object:
+          - key: X-Platform
+            value#string: somePlatform
+          - key: X-Device-Id
+            value#string: someDevice
+          - key: X-YaTaxi-User
+            value#xget: /test-params/case/taxi_user
+          - key: X-Request-Application
+            value#string: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/case/expected_body
+
+experiments:
+    values#object:
+      - key: eats-feedback-channels-ab
+        value:
+            enabled: true
+            one_chat#xget: /test-params/case/one_chat
+            channels#array:
+              - value#object:
+                  - key: id
+                    value: 1
+                  - key: channel
+                    value#string: "link?order_nr="
+                  - key: type
+                    value: "chat"
+                  - key: text
+                    value: "text"
+              - value#object:
+                  - key: id
+                    value: 2
+                  - key: channel
+                    value#string: "link"
+                  - key: type
+                    value: "chat_no_order"
+                  - key: text
+                    value: "text"
+        enabled: true
+    expectations:
+        kwargs:
+          - key: platform
+            type: string
+            value: somePlatform
+          - key: device_id
+            type: string
+            value: someDevice
+          - key: personal_phone_id
+            type: string
+            value#xget: /test-params/case/expected_phone_id
+
+taxi_config:
+    EATS_FEEDBACK_PHONE_NUMBERS:
+        "1": {"phone_number#string": "8800"}
+
+mocks:
+  - resource: eats-ordershistory-get-orders
+    expectations:
+        call-count#xget: /test-params/case/expected_history_calls
+        request#xget: /test-params/case/exptected_history_request
+    response:
+        status-code: 200
+        body:
+            orders#xget: /test-params/case/history

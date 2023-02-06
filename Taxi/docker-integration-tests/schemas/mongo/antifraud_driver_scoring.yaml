@@ -1,0 +1,38 @@
+settings:
+    collection: antifraud_driver_scoring
+    connection: antifraud
+    database: dbantifraud
+indexes:
+  - key:
+      - name: driver_id
+        type: hashed
+  - expireAfterSeconds: 7776000
+    key: updated
+wiki_info: |
+    #### antifraud_driver_scoring
+    *Назначение:* Кеш проверок скорринга водителей
+
+    *Структура документа:*
+    ```python
+    {
+      # Hash из (Фамилия, Имя, Отчество, Дата рождения, Серия ВУ, Номер ВУ, Дата выдачи ВУ)
+      'driver_id': 'hashed driver info',
+      # Идентификатор запроса во внешний сервис
+      'request_id': '3d8d49ebd27043da9ef3829541349a66',
+      # отчет из сервиса скорринга
+      'report': {
+        # Статус запроса
+        'status': 'processing'|'ok'|'warning'|'error',
+        # Текстовый код отрицательного результата
+        'code': null|'SOME SOURCES FAILED'|<explanation string>,
+        # Детали
+        'details': null|JSON,
+        # Скорринг (0 или отрицательное число)
+        'scoring': -600
+      },
+      # Время создание записи
+      'created': datetime.datetime.utcnow(),
+      # Время последнего обновления
+      'updated': datetime.datetime.utcnow()
+    }
+    ```

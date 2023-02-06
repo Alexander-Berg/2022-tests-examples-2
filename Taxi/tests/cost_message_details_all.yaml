@@ -1,0 +1,114 @@
+id: cost_message_details_all
+title: Заполнение cost_message_details на основе протокола и сервиса плюса
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid: 'uid=uid'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+                cost_message_details:
+                    cost_breakdown:
+                      - display_name: protocol string waiting
+                        display_amount: 100
+                      - display_name: protocol string coupon
+                        display_amount: 500
+                      - display_name: plus string card
+                        display_amount: 800
+                      - display_name: plus string wallet
+                        display_amount: 200
+                    extra_info:
+                      - text: Reserved too much
+                        type: paid_too_much
+                    cashback:
+                      - value_as_str: 112
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: cashback_for_plus
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            cost_message_details:
+                cost_breakdown:
+                  - display_name: protocol string waiting
+                    display_amount: 100
+                  - display_name: protocol string coupon
+                    display_amount: 500
+                extra_info:
+                  - text: Reserved too much
+                    type: paid_too_much
+  - resource: plus-internal-v2-totw-info
+    response:
+        status-code: 200
+        body:
+            cost_message_details:
+                cost_breakdown:
+                  - display_name: plus string card
+                    display_amount: 800
+                  - display_name: plus string wallet
+                    display_amount: 200
+                cashback:
+                  - value_as_str: 112
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                category: econom
+                complements:
+                    personal_wallet: true
+                currency: RUB
+                current_prices:
+                    user_total_price: 1000
+                    cashback_price: 100
+                    discount_cashback: 12
+                    possible_cashback: 10
+                    kind: final_cost
+                    cashback_by_sponsor:
+                      - mastercard
+                      - portal
+                    cost_breakdown:
+                order_id: order_id
+                is_possible_cashback:
+                zone_name:
+                order_status: complete
+            content-type: application/json
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: complete
+            tariff:
+                class: econom
+            currency_rules:
+                code: RUB
+            private_data:
+                complements:
+                  - type: personal_wallet
+                current_prices:
+                    user_total_price: 1000
+                    cashback_price: 100
+                    discount_cashback: 12
+                    possible_cashback: 10
+                    kind: final_cost
+                    cashback_by_sponsor:
+                      - mastercard
+                      - portal

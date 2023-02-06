@@ -1,0 +1,709 @@
+type: apitest
+version: 0
+service: taxi_market_plus_plaque
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "exp3_enable_plaque.json"
+
+mockserver:
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120.0000"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+  - url: /cashback-levels/internal/cashback-levels/v1/plaque/templates
+    response:
+        body:
+            templates:
+              - name: "$$CASHBACK_LEVELS_RIDES_COUNT_TEMPLATE$$"
+                value: "20 поездок"
+              - name: "$$CASHBACK_LEVELS_MISSION_ID_TEMPLATE$$"
+                value: "taxi_make_first_order_lvl1_8"
+              - name: "$$CASHBACK_LEVELS_MISSION_REWARD_TEMPLATE$$"
+                value: "100"
+              - name: "$$CASHBACK_LEVELS_ORDER_ID_TEMPLATE$$"
+                value: "27525923875932525352"
+              - name: "$$CASHBACK_LEVELS_SWITCH_TO_TARIFF_NAME_TEMPLATE$$"
+                value: "комфорт+"
+              - name: "$$CASHBACK_LEVELS_SWITCH_TO_TARIFF_TEMPLATE$$"
+                map_value:
+                    vertical: "taxi"
+                    tariff: "comfortplus"
+              - name: "$$CASHBACK_LEVELS_SWITCH_FROM_TARIFF_TEMPLATE$$"
+                map_value:
+                    vertical: "taxi"
+                    tariff: "econom"
+              - name: "$$CASHBACK_LEVELS_SWITCH_FROM_TARIFF_TEMPLATE$$"
+                map_value:
+                    vertical: "taxi"
+                    tariff: "business"
+              - name: "$$CASHBACK_LEVELS_MISSION_SELECTED_TARIFFS_TEMPLATE$$"
+                map_value:
+                    vertical: "taxi"
+                    tariff: "comfortplus"
+              - name: "$$CASHBACK_LEVELS_MISSION_SELECTED_TARIFFS_TEMPLATE$$"
+                map_value:
+                    vertical: "taxi"
+                    tariff: "vip"
+
+
+tests:
+  - name: composite_payment_ok
+    request:
+        method: POST
+        path: /4.0/market-plus-plaque/v1/sdk-state/plaques
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque_v2:
+                plaques:
+                  - condition:
+                        screens: ["summary"]
+                        tariffs: ["econom"]
+                        selected_tariffs:
+                          - tariff: econom
+                            vertical: ultima
+                        available_tariffs:
+                          - tariff: econom
+                            vertical: ultima
+                        payment_methods:
+                          - cash
+                          - card
+                    display_rules:
+                        background_color_settings:
+                          - linear:
+                                colors:
+                                  - color: "#AAFCAB14"
+                                    opacity: 100
+                                    position: 0.0
+                                  - color: "#AAFA6641"
+                                    opacity: 100
+                                    position: 0.16
+                                  - color: "#AABE40C0"
+                                    opacity: 100
+                                    position: 0.4
+                                  - color: "#AA00505A"
+                                    opacity: 100
+                                    position: 1.0
+                                end_point: [0.0, 1.0]
+                                start_point: [0.758, 0.0]
+                            type: "LINEAR"
+                        indent_rules:
+                            indent_bottom: 4
+                            indent_left: 4
+                            indent_right: 4
+                            indent_top: 4
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    params:
+                        close_after: 60
+                        show_after: 0
+                    action:
+                        vertical: "ultima"
+                        tariff: "econom"
+                        type: "SWITCH_TARIFF"
+                    plaque_id: "v2_plaque:taxi:composite_payment"
+                    priority: 50
+                    widgets_level_ids: ["balance_level", "composite_payment_level"]
+                widget_groups:
+                  - widget_group_id: "default_widget_group"
+                    widgets: ["widget:taxi:composite_payment"]
+                    display_rules:
+                        background_color_settings:
+                          - linear:
+                                colors:
+                                  - color: "#AAFCAB14"
+                                    opacity: 100
+                                    position: 0.0
+                                  - color: "#AAFA6641"
+                                    opacity: 100
+                                    position: 0.16
+                                  - color: "#AABE40C0"
+                                    opacity: 100
+                                    position: 0.4
+                                  - color: "#AA00505A"
+                                    opacity: 100
+                                    position: 1.0
+                                end_point: [0.0, 1.0]
+                                start_point: [0.758, 0.0]
+                            type: "LINEAR"
+                        indent_rules:
+                            indent_bottom: 4
+                            indent_left: 4
+                            indent_right: 4
+                            indent_top: 4
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                widgets:
+                  - action:
+                        setting_id: "composite_payment.enabled"
+                        type: "SETTING"
+                    display_widget_rules:
+                        display_rules:
+                            background_color_settings:
+                              - type: "TRANSPARENT"
+                            indent_rules:
+                                indent_bottom: 4
+                                indent_left: 4
+                                indent_right: 4
+                                indent_top: 4
+                            background_shape_settings:
+                                left_bottom_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                left_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_bottom_corner:
+                                    type: "half_height"
+                        width_type: "fit"
+                    switch:
+                        text:
+                            items:
+                              - text: "Списать $$COMPOSITE_PAYMENT_AMOUNT$$ баллов"
+                                type: "text"
+                    templates: ["$$COMPOSITE_PAYMENT_AMOUNT$$"]
+                    type: "SWITCH"
+                    widget_id: "widget:taxi:composite_payment"
+                  - display_widget_rules:
+                        display_rules:
+                            background_color_settings:
+                              - type: "TRANSPARENT"
+                            indent_rules:
+                                indent_bottom: 4
+                                indent_left: 4
+                                indent_right: 4
+                                indent_top: 4
+                            background_shape_settings:
+                                left_bottom_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                left_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_bottom_corner:
+                                    type: "half_height"
+                        width_type: "fit"
+                    type: "BALANCE"
+                    widget_id: "widget:common:balance"
+                    content_description:
+                        text: "ваш баланс"
+                    action:
+                        vertical: "ultima"
+                        tariff: "econom"
+                        type: "SWITCH_TARIFF"
+                    balance:
+                        balance:
+                            items:
+                              - text: "120"
+                                type: "text"
+                widgets_levels:
+                  - display_rules:
+                        background_color_settings:
+                          - type: "TRANSPARENT"
+                        indent_rules:
+                            indent_bottom: 2
+                            indent_left: 2
+                            indent_right: 2
+                            indent_top: 2
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    elements:
+                      - type: "widget_group"
+                        widget_group_id: "default_widget_group"
+                    widgets_level_id: "composite_payment_level"
+                  - display_rules:
+                        background_color_settings:
+                          - type: "TRANSPARENT"
+                        indent_rules:
+                            indent_bottom: 2
+                            indent_left: 2
+                            indent_right: 2
+                            indent_top: 2
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    action:
+                        vertical: "ultima"
+                        tariff: "econom"
+                        type: "SWITCH_TARIFF"
+                    elements:
+                      - type: "widget"
+                        widget_id: "widget:common:balance"
+                    widgets_level_id: "balance_level"
+
+  - name: internal_templates_ok
+    request:
+        method: POST
+        path: /4.0/market-plus-plaque/v1/sdk-state/plaques
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            plaque_v2:
+                plaques:
+                  - action:
+                        tariff: "comfortplus"
+                        type: "SWITCH_TARIFF"
+                        vertical: "taxi"
+                    condition:
+                        screens: ["summary"]
+                        selected_tariffs:
+                          - tariff: econom
+                            vertical: taxi
+                          - tariff: business
+                            vertical: taxi
+                          - tariff: comfortplus
+                            vertical: taxi
+                          - tariff: vip
+                            vertical: taxi
+                        available_tariffs:
+                          - tariff: comfortplus
+                            vertical: taxi
+                    display_rules:
+                        background_color_settings:
+                          - linear:
+                                colors:
+                                  - color: "#AAFCAB14"
+                                    opacity: 100
+                                    position: 0.0
+                                  - color: "#AAFA6641"
+                                    opacity: 100
+                                    position: 0.16
+                                  - color: "#AABE40C0"
+                                    opacity: 100
+                                    position: 0.4
+                                  - color: "#AA00505A"
+                                    opacity: 100
+                                    position: 1.0
+                                end_point: [0.0, 1.0]
+                                start_point: [0.758, 0.0]
+                            type: "LINEAR"
+                        indent_rules:
+                            indent_bottom: 4
+                            indent_left: 4
+                            indent_right: 4
+                            indent_top: 4
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    params:
+                        close_after: 60
+                        show_after: 0
+                    metric_context:
+                        metrics:
+                          - name: value_of_cashback_metric
+                            value: "100"
+                    plaque_id: "v2_plaque:personal_goals:v_comfort"
+                    priority: 1
+                    widgets_level_ids: ["personal_goals:text_and_group", "personal_goals:button"]
+                widget_groups:
+                  - widget_group_id: "taxi:personal_goals:n_trips:glyph_and_cashback"
+                    widgets: ["widget:taxi:personal_goal:n_trips:glyph", "widget:taxi:personal_goal:n_trips:cashback"]
+                    display_rules:
+                        background_color_settings:
+                          - linear:
+                                colors:
+                                  - color: "#AAFCAB14"
+                                    opacity: 100
+                                    position: 0.0
+                                  - color: "#AAFA6641"
+                                    opacity: 100
+                                    position: 0.16
+                                  - color: "#AABE40C0"
+                                    opacity: 100
+                                    position: 0.4
+                                  - color: "#AA00505A"
+                                    opacity: 100
+                                    position: 1.0
+                                end_point: [0.0, 1.0]
+                                start_point: [0.758, 0.0]
+                            type: "LINEAR"
+                        indent_rules:
+                            indent_bottom: 4
+                            indent_left: 4
+                            indent_right: 4
+                            indent_top: 4
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    content_description:
+                        accessibility_enabled: true
+                        text: "100 баллов плюса вы получите за выполнение цели"
+                        action_text: "100 баллов плюса вы получите за выполнение цели\
+                            \ экшен"
+                        templates: ["$$TEMPLATE$$"]
+                widgets:
+                  - action:
+                        tariff: "comfortplus"
+                        type: "SWITCH_TARIFF"
+                        vertical: "taxi"
+                    button:
+                        text:
+                            items:
+                              - text: "комфорт+"
+                                type: "text"
+                    display_widget_rules:
+                        display_rules:
+                            background_color_settings:
+                              - linear:
+                                    colors:
+                                      - color: "#AAFCAB14"
+                                        opacity: 100
+                                        position: 0.0
+                                      - color: "#AAFA6641"
+                                        opacity: 100
+                                        position: 0.16
+                                      - color: "#AABE40C0"
+                                        opacity: 100
+                                        position: 0.4
+                                      - color: "#AA00505A"
+                                        opacity: 100
+                                        position: 1.0
+                                    end_point: [0.0, 1.0]
+                                    start_point: [0.758, 0.0]
+                                type: "LINEAR"
+                            indent_rules:
+                                indent_bottom: 4
+                                indent_left: 4
+                                indent_right: 4
+                                indent_top: 4
+                            background_shape_settings:
+                                left_bottom_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                left_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_bottom_corner:
+                                    type: "half_height"
+                        width_type: "fill"
+                    type: "BUTTON"
+                    widget_id: "widget:taxi:personal_goal:n_trips:button"
+                  - display_widget_rules:
+                        display_rules:
+                            background_color_settings:
+                              - linear:
+                                    colors:
+                                      - color: "#AAFCAB14"
+                                        opacity: 100
+                                        position: 0.0
+                                      - color: "#AAFA6641"
+                                        opacity: 100
+                                        position: 0.16
+                                      - color: "#AABE40C0"
+                                        opacity: 100
+                                        position: 0.4
+                                      - color: "#AA00505A"
+                                        opacity: 100
+                                        position: 1.0
+                                    end_point: [0.0, 1.0]
+                                    start_point: [0.758, 0.0]
+                                type: "LINEAR"
+                            indent_rules:
+                                indent_bottom: 4
+                                indent_left: 4
+                                indent_right: 4
+                                indent_top: 4
+                            background_shape_settings:
+                                left_bottom_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                left_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_bottom_corner:
+                                    type: "half_height"
+                        width_type: "fit"
+                    type: "TEXT"
+                    widget_id: "widget:taxi:personal_goal:n_trips:cashback"
+                    action:
+                        deeplink: "yandextaxi://personal_goal?mission_id=taxi_make_first_order_lvl1_8"
+                        type: "DEEPLINK"
+                    content_description:
+                        accessibility_enabled: true
+                        text: "100 баллов плюса вы получите за выполнение цели"
+                        action_text: "100 баллов плюса вы получите за выполнение цели\
+                            \ экшен"
+                        templates: ["$$TEMPLATE$$"]
+                    text:
+                        text:
+                            items:
+                              - text: "100"
+                                type: "text"
+                  - display_widget_rules:
+                        display_rules:
+                            background_color_settings:
+                              - linear:
+                                    colors:
+                                      - color: "#AAFCAB14"
+                                        opacity: 100
+                                        position: 0.0
+                                      - color: "#AAFA6641"
+                                        opacity: 100
+                                        position: 0.16
+                                      - color: "#AABE40C0"
+                                        opacity: 100
+                                        position: 0.4
+                                      - color: "#AA00505A"
+                                        opacity: 100
+                                        position: 1.0
+                                    end_point: [0.0, 1.0]
+                                    start_point: [0.758, 0.0]
+                                type: "LINEAR"
+                            indent_rules:
+                                indent_bottom: 4
+                                indent_left: 4
+                                indent_right: 4
+                                indent_top: 4
+                            background_shape_settings:
+                                left_bottom_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                left_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_bottom_corner:
+                                    type: "half_height"
+                        width_type: "fit"
+                    type: "ICON"
+                    widget_id: "widget:taxi:personal_goal:n_trips:glyph"
+                    action:
+                        deeplink: "yandextaxi://personal_goal?mission_id=taxi_make_first_order_lvl1_8"
+                        type: "DEEPLINK"
+                    icon:
+                        image: "https://tc.tst.mobile.yandex.net/static/test-images/598/43fa53aeab91435d9f71c94882cd7287"
+                  - display_widget_rules:
+                        display_rules:
+                            background_color_settings:
+                              - linear:
+                                    colors:
+                                      - color: "#AAFCAB14"
+                                        opacity: 100
+                                        position: 0.0
+                                      - color: "#AAFA6641"
+                                        opacity: 100
+                                        position: 0.16
+                                      - color: "#AABE40C0"
+                                        opacity: 100
+                                        position: 0.4
+                                      - color: "#AA00505A"
+                                        opacity: 100
+                                        position: 1.0
+                                    end_point: [0.0, 1.0]
+                                    start_point: [0.758, 0.0]
+                                type: "LINEAR"
+                            indent_rules:
+                                indent_bottom: 4
+                                indent_left: 4
+                                indent_right: 4
+                                indent_top: 4
+                            background_shape_settings:
+                                left_bottom_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                left_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_top_corner:
+                                    height_fix: 10
+                                    type: "fix"
+                                right_bottom_corner:
+                                    type: "half_height"
+                        width_type: "fit"
+                        horizontal_rule: "LEFT"
+                    type: "TEXT"
+                    templates:
+                      - "27525923875932525352"
+                    widget_id: "widget:taxi:personal_goal:n_trips:text"
+                    action:
+                        deeplink: "yandextaxi://personal_goal?mission_id=taxi_make_first_order_lvl1_8"
+                        type: "DEEPLINK"
+                    text:
+                        text:
+                            items:
+                              - text: "До награды\n20 поездок"
+                                type: "text"
+                widgets_levels:
+                  - action:
+                        tariff: "comfortplus"
+                        type: "SWITCH_TARIFF"
+                        vertical: "taxi"
+                    display_rules:
+                        background_color_settings:
+                          - linear:
+                                colors:
+                                  - color: "#AAFCAB14"
+                                    opacity: 100
+                                    position: 0.0
+                                  - color: "#AAFA6641"
+                                    opacity: 100
+                                    position: 0.16
+                                  - color: "#AABE40C0"
+                                    opacity: 100
+                                    position: 0.4
+                                  - color: "#AA00505A"
+                                    opacity: 100
+                                    position: 1.0
+                                end_point: [0.0, 1.0]
+                                start_point: [0.758, 0.0]
+                            type: "LINEAR"
+                        indent_rules:
+                            indent_bottom: 4
+                            indent_left: 4
+                            indent_right: 4
+                            indent_top: 4
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    elements:
+                      - type: "widget"
+                        widget_id: "widget:taxi:personal_goal:n_trips:button"
+                    widgets_level_id: "personal_goals:button"
+                  - display_rules:
+                        background_color_settings:
+                          - linear:
+                                colors:
+                                  - color: "#AAFCAB14"
+                                    opacity: 100
+                                    position: 0.0
+                                  - color: "#AAFA6641"
+                                    opacity: 100
+                                    position: 0.16
+                                  - color: "#AABE40C0"
+                                    opacity: 100
+                                    position: 0.4
+                                  - color: "#AA00505A"
+                                    opacity: 100
+                                    position: 1.0
+                                end_point: [0.0, 1.0]
+                                start_point: [0.758, 0.0]
+                            type: "LINEAR"
+                        indent_rules:
+                            indent_bottom: 4
+                            indent_left: 4
+                            indent_right: 4
+                            indent_top: 4
+                        background_shape_settings:
+                            left_bottom_corner:
+                                height_fix: 10
+                                type: "fix"
+                            left_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_top_corner:
+                                height_fix: 10
+                                type: "fix"
+                            right_bottom_corner:
+                                type: "half_height"
+                    elements:
+                      - type: "widget"
+                        widget_id: "widget:taxi:personal_goal:n_trips:text"
+                      - type: "widget_group"
+                        widget_group_id: "taxi:personal_goals:n_trips:glyph_and_cashback"
+                    widgets_level_id: "personal_goals:text_and_group"

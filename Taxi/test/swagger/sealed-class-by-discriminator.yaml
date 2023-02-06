@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+  description: Test additional properties with all of
+  title: Test additional properties with all of
+  version: '1.0'
+
+paths:
+  /test/sealed/success:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_sealed_by_discriminator
+      responses:
+        '200':
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResultByDiscriminator'
+
+  /test/sealed/failure:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_sealed_by_discriminator
+      responses:
+        '200':
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResultByDiscriminator'
+
+components:
+  schemas:
+    BaseResultByDiscriminator:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          enum:
+            - success
+            - failure
+      required:
+        - type
+
+    SuccessResultByDiscriminator:
+      allOf:
+        - $ref: '#/components/schemas/BaseResultByDiscriminator'
+        - type: object
+          properties:
+            message:
+              type: string
+          required:
+            - message
+
+    FailureResultByDiscriminator:
+      allOf:
+        - $ref: '#/components/schemas/BaseResultByDiscriminator'
+        - type: object
+          properties:
+            message:
+              type: string
+          required:
+            - message
+
+    CheckResultByDiscriminator:
+      x-resolve-by-discriminator: true
+      oneOf:
+        - $ref: '#/components/schemas/SuccessResultByDiscriminator'
+        - $ref: '#/components/schemas/FailureResultByDiscriminator'
+      discriminator:
+        propertyName: type
+        mapping:
+          success: SuccessResultByDiscriminator
+          failure: FailureResultByDiscriminator

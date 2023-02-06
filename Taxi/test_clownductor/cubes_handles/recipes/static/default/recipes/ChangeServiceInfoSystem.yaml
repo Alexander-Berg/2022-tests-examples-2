@@ -1,0 +1,39 @@
+data:
+    name: ChangeServiceInfoSystem
+    provider_name: clownductor
+    job_vars:
+      - service_id
+      - branch_id
+      - environment
+      - subsystems_info
+      - need_updates
+    stages:
+      - name: ChangeSystemInfo
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            environment: environment
+            subsystems_info: subsystems_info
+      - name: PermissionsRequestRoleForDuty
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            need_updates: need_updates
+        output:
+            actual_role_ids: actual_role_ids
+      - name: PermissionsRevokeRoleForDuty
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            need_updates: need_updates
+            actual_role_ids: actual_role_ids
+            subsystems_info: subsystems_info
+        output:
+            revoked_role_ids: revoked_role_ids
+      - name: ABKConfigsEnsureNewDutyGroupInConfig
+        provider_name: clownductor
+        input:
+            subsystems_info: subsystems_info

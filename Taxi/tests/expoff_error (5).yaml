@@ -1,0 +1,45 @@
+id: expoff_error
+title: Эксперимент выключен, ходим только в core. Эмулируется ответ с ошибкой.
+
+source:
+    request:
+        method: get
+        body:
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 401
+            body: {}
+            headers: {"X-Eats-Service-Source": "eats-core"}
+
+mocks:
+  - resource: eats-feedback-predefined-comment
+    response:
+        status-code: 401
+        body: {}
+        content-type: application/json
+    expectations:
+        call-count: 0
+        request:
+            method: get
+  - resource: eats-core-predefined-comment
+    response:
+        status-code: 401
+        body: {}
+        content-type: application/json
+    expectations:
+        call-count: 1
+        request:
+            method: get
+
+experiments:
+    values#object:
+      - key: eats_feedback_predefined_comment
+        value:
+        enabled: false

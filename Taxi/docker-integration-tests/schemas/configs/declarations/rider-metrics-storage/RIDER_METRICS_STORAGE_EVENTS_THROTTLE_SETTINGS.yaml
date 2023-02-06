@@ -1,0 +1,67 @@
+default:
+    events_latency:
+        weight_factor_cent: 50
+        panic_level_ms: 5000
+        relax_level_ms: 2000
+    queue_size:
+        weight_factor_cent: 50
+        panic_level: 50000
+        relax_level: 1000
+description: Параметры троттлинга событий
+tags: []
+schema:
+    additionalProperties: false
+    type: object
+    properties:
+        events_latency:
+            $ref: '#/definitions/EventLatencySettings'
+        queue_size:
+            $ref: '#/definitions/QueueSizeSettings'
+    required:
+      - events_latency
+      - queue_size
+    definitions:
+        EventLatencySettings:
+            type: object
+            additionalProperties: false
+            properties:
+                weight_factor_cent:
+                    description: Весовой коэффициент текущего значения (%)
+                    type: integer
+                    minimum: 1
+                    maximum: 99
+                panic_level_ms:
+                    description: Порог включения троттлинга (мсек)
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                relax_level_ms:
+                    description: Порог выключения троттлинга (мсек)
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+            required:
+              - weight_factor_cent
+              - panic_level_ms
+              - relax_level_ms
+        QueueSizeSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                weight_factor_cent:
+                    description: Весовой коэффициент текущего значения (%)
+                    type: integer
+                    minimum: 1
+                    maximum: 99
+                panic_level:
+                    description: Порог включения троттлинга
+                    type: integer
+                    minimum: 1
+                relax_level:
+                    description: Порог выключения троттлинга
+                    type: integer
+                    minimum: 1
+            required:
+              - weight_factor_cent
+              - panic_level
+              - relax_level

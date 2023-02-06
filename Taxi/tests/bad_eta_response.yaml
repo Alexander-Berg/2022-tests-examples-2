@@ -1,0 +1,96 @@
+id: bad_eta_response
+title: Тест с не проходящим валидацию временем доставки
+
+taxi_config:
+    EATS_RESTAPP_PLACES_ZONE_VALIDATION#object:
+      - is_delivery_time_validation_on#boolean: true
+    EATS_RESTAPP_PLACES_CANCEL_ZONE_REASONS#object:
+      - reasons#object:
+          - key: delivery_time.less
+            value#string: "Время доставки меньше возможного"
+
+mocks:
+  - resource: eats-restapp-authorizer-user-check-access
+    response:
+        status-code: 200
+        body:
+            role#string: "ROLE_MANAGER"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: partner_id
+                value: 123123
+              - key: place_ids
+                value: [123]
+              - key: permissions
+                value: ["permission.restaurant.functionality"]
+  - resource: eats-core-places-delivery-zones
+    response:
+        status-code: 200
+        body#object:
+          - key: payload
+            value#object:
+              - key: geo_place
+                value#object:
+                  - key: geometry
+                    value#object:
+                      - key: coordinates
+                        value#array: [55.737375, 37.640156]
+    expectations:
+        call-count: 1
+
+  - resource: eats-restapp-places-internal-v1-post
+    response:
+        status-code: 400
+        body#object:
+          - key: eta
+            value#integer: 500
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: place_position
+                value: [55.737375, 37.640156]
+              - key: eta
+                value: 10
+              - key: geozone
+                value: [[[ [55.737375, 37.640156]]]]
+
+
+  - resource: eats-core-places-delivery-zone
+    response:
+        status-code: 200
+    expectations:
+        call-count: 0
+
+source:
+    request:
+        url: /4.0/restapp-front/places/v1/delivery-zone-with-checks
+        method: post
+        body#object:
+          - key: geometry
+            value#object:
+              - key: coordinates
+                value: [[[55.737375, 37.640156]]]
+          - key: properties
+            value#object:
+              - key: average_delivery_time
+                value#integer: 10
+        headers:
+            X-YaEda-PartnerId#string: "123123"
+        query:
+            place_id: "123"
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - value#object:
+                      - code: -1
+                      - message#string: "Время доставки должно быть больше 500 минут"

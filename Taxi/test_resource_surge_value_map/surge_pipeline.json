@@ -1,0 +1,98 @@
+{
+  "consumer": "taxi-surge",
+  "name": "test_pipeline_name",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "layer_meta"
+        },
+        {
+          "children": [
+            {
+              "query": "point_a"
+            },
+            {
+              "query": "classes"
+            }
+          ],
+          "domain": "input",
+          "query": "request"
+        }
+      ],
+      "name": "resource_fetch",
+      "resources": [
+        {
+          "field": "surge_value_map",
+          "name": "surge_value_map"
+        },
+        {
+          "field": "surge_map",
+          "name": "surge_map"
+        }
+      ],
+      "source_code": "let params = {point: point_a, layer_meta: layer_meta, categories: classes, max_age: 600}; return {surge_value_map: params, surge_map: params};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": {
+            "operations": [
+              {
+                "property_name": "required_categories"
+              },
+              {
+                "type": "iteration",
+                "value_alias": "category"
+              }
+            ]
+          }
+        },
+        {
+          "domain": "resource",
+          "query": {
+            "operations": [
+              {
+                "property_name": "surge_value_map"
+              },
+              {
+                "alias": "smooth_value",
+                "expression": "category"
+              }
+            ]
+          }
+        },
+        {
+          "domain": "resource",
+          "query": {
+            "operations": [
+              {
+                "property_name": "surge_map"
+              },
+              {
+                "property_name": "values"
+              },
+              {
+                "alias": "smooth_value_surge_map",
+                "expression": "category"
+              }
+            ]
+          }
+        }
+      ],
+      "name": "use_resource",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[category]"
+        }
+      ],
+      "source_code": "if(!smooth_value_surge_map){ if(smooth_value) {throw 'No smooth value surge_map';}} else if(!smooth_value) {throw 'No smooth value surge_map';} else if(smooth_value_surge_map.value != smooth_value) {throw 'smooth values differ!';} return {data: {name: category, surge: {value: 42}, value_raw: smooth_value_surge_map ? smooth_value_surge_map.surge : 42 , calculation_meta: {smooth: {point_a: {value: smooth_value || 1.0, is_default: !smooth_value}}}}};"
+    }
+  ],
+  "state": "active"
+}

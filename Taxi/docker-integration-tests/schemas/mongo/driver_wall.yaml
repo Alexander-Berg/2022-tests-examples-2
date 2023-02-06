@@ -1,0 +1,117 @@
+description: Storage for taximeter's driver wall
+settings:
+    collection: driver_wall
+    connection: communications
+    database: dbcommunications
+indexes:
+  - key: channels
+  - expireAfterSeconds: 86400
+    key: expires
+  - key: image_id
+  - key: created
+wiki_info: |
+    #### driver_wall
+    *Назначение:* Коллекция хранит сообщения ленты водителей Таксометра.
+     *Структура документа:*
+    ```python
+    driver_wall = {
+      # Уникальный ID сообщения, имеет вид PUBLIC:<msg_uuid> если сообщение может быть
+      # опубликовано в любой канал либо PRIVATE:<dbid>:<uuid>:<msg_uuid> если оно
+      # предназначено только для канала конкретного водителя.
+      # Не гарантируется что такой формат ID будет всегда
+      "_id" : "PUBLIC:5d330d757e62499b5c47783e6eab58b1",
+
+      # Каналы, в которых опубликовано сообщение.
+      # Каналы бывают:
+      #  - водительский (Driver:<dbid>:<uuid>)
+      #  - на парк (Domain:<dbid>)
+      #  - на город (City:<city name uppercased russian>
+      #  - на страну (Country:<country name uppercased russian>
+      #
+      # Водителю всегда подписан ровно на 4 канала (водительский, свой парк,
+      # город парка, страна парка)
+      "channels" : [
+        "Driver:c52e88b724674ef7917ee0f8fa4627de:de0cba5daff34c8a8f6212924cd1826e",
+        "Domain:c52e88b724674ef7917ee0f8fa4627de",
+        "City:МОСКВА",
+        "City:РОССИЯ"
+      ],
+
+      # ID группы сообщений.
+      # Сообщения, добавленные одним батчем (в одном вызове /driver/wall/add),
+      # имеют одинаковый series_id. Генерируется автоматически.
+      "series_id" : "5bff9c63bfa929bafa2ee8ed",
+
+      # ID сообщения или группы сообщений, переданный при вызове /driver/wall/add.
+      # Обычно все сообщения, добавленные в одном батче, имеют одинаковое значение.
+      # По этому ID сообщения можно удалять сообщения пачками в /driver/wall/remove
+      "request_id" : "72f8160135cc4b2eb8487a7144f09417",
+
+      # Заголовок сообщения
+      "title" : "Тест",
+
+      # Тип сообщения. Влияет на способ отображения и поведение на клиенте.
+      # Не валидируется бэкендом, заполняется админкой и должен быть известен клиенту.
+      # Существующие в текущий момент типы:
+      #   - newsletter (обычное сообщение)
+      #   - survey (опрос)
+      #   - dsat (опрос удовлетворенности водителей в виде popup)
+      "type" : "survey",
+
+      # Текст сообщения (может быть Markdown)
+      "text" : "**Опрос для водителя**\n* Вариант 1\n* Вариант N",
+
+      # Формат текста: 0 - Raw, 1 - Markdown-разметка
+      "format" : 1,
+
+      # URL, на который выполняется переход при клике по сообщению
+      "url" : "http://yandex.com",
+
+      # Alias для URL
+      "teaser" : "Яндекс",
+
+      # ID изображения.
+      # Изображения в разных масштабах хранятся в MDS S3,
+      # бакет taxi-communications, пути:
+      #    /wall-images/<image_id>.png - оригинал
+      #    /wall-images/<image_id>-1024.png - масштабированные копии, размеры: 320, 480, 800, 1024
+      "image_id": "20190101/uuid",
+
+      # Deprecated: используйте image_id.
+      # Основная ссылка на фоновую картинку (если есть)
+      "image" : "/get-taximeter/3325/a0f6658f-e7c3-415e-baf1-42aad407e401.png",
+
+      # Deprecated: используйте image_id.
+      # Картинка в разных масштабах
+      "images" : [
+        "/get-taximeter/3325/d931c245-cef4-442f-b734-d0db5badaacc.png",
+        "/get-taximeter/4267/b5b59a52-111e-4620-8aa4-fed978f3a7cd.png",
+        "/get-taximeter/4267/7bbb8990-844a-4ffe-9d03-97527f84e705.png",
+        "/get-taximeter/4267/3f3dba4a-56b5-4e01-b556-b0c7c1a9ce70.png"
+      ],
+
+      # Превью картинки
+      "thumbnail" : "iVBORw0KGgoAAAANSUhEUgAAAAUAAAADCAIAAADUVFKvAAAAOUlEQVR4nGMI8lIV1TQRZWasCtV+dbiH4cmO7kA3p2c72m30dK2NNBnqYixlBdh//frl42Dw6elVAH+QEm+tr8wmAAAAAElFTkSuQmCC",
+
+      # Флаг для клиента что используется DOM-storage (не знаю как обрабатывается клиентов)
+      "dom_storage" : true,
+
+      # Флаг для клиента что сообщение срочное (будет красным в ленте)
+      "alert" : true,
+
+      # Флаг для клиента что сообщение важное (не знаю как обрабатывается клиентом)
+      "important : true,
+
+      # Способ оповещения о новом сообщении - legacy, сейчас не используется и всегда равен "normal"
+      "notification_mode": "normal",
+
+      # URL действия в опросе удовлетворенности водителей (только для "type": "dsat")
+      "dsat_action": "http://yandex.ru",
+
+      # До какой даты показывать сообщение в ленте
+      "expires" : ISODate("2018-12-04T08:00:00Z"),
+
+      # Дата создания сообщения
+      "created" : ISODate("2018-11-29T08:00:00.579Z")
+    }
+    ```

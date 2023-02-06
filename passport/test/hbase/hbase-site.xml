@@ -1,0 +1,365 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://historydb/hbase</value>
+  </property>
+  <property>
+    <name>hbase.tmp.dir</name>
+    <value>/tmp/hdfs-${user.name}</value>
+  </property>
+  <property>
+      <name>hbase.zookeeper.quorum</name>
+      <value>kvs-test-m1.passport.yandex.net:2181,kvs-test-m2.passport.yandex.net:2181,kvs-test-m3.passport.yandex.net:2181</value>
+  </property>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+  </property>
+
+  <!-- Master server -->
+  <property>
+    <name>hbase.master.port</name>
+    <value>6000</value>
+  </property>
+  <property>
+    <name>hbase.master.info.port</name>
+    <value>60001</value>
+  </property>
+  <property>
+    <name>hbase.master.wait.on.regionservers.timeout</name>
+    <value>120000</value>
+  </property>
+
+  <!-- Region server -->
+  <property>
+    <name>hbase.regionserver.port</name>
+    <value>60020</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.info.port</name>
+    <value>60002</value>
+  </property>
+  <property>
+    <!--
+      Число обработчиков входящих запросов.
+    -->
+    <name>hbase.regionserver.handler.count</name>
+    <value>100</value>
+  </property>
+
+  <!-- Regions -->
+  <property>
+    <name>hbase.hregion.max.filesize</name>
+    <value>5368709120</value>   <!-- 5GB -->
+  </property>
+  <property>
+    <name>hbase.regionserver.region.split.policy</name>
+    <value>org.apache.hadoop.hbase.regionserver.ConstantSizeRegionSplitPolicy</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.fileSplitTimeout</name>
+    <value>3600000</value>   <!-- 1h -->
+  </property>
+
+  <!-- Client -->
+  <property>
+    <name>hbase.client.write.buffer</name>
+    <value>2097152</value>
+  </property>
+  <property>
+    <name>hbase.client.pause</name>
+    <value>100</value>
+  </property>
+  <property>
+    <name>hbase.client.retries.number</name>
+    <value>35</value>
+  </property>
+  <property>
+    <name>hbase.client.scanner.caching</name>
+    <value>100</value>
+  </property>
+  <property>
+    <name>hbase.client.keyvalue.maxsize</name>
+    <value>10485760</value>
+  </property>
+  <property>
+    <name>hbase.client.scanner.timeout.period</name>
+    <value>60000</value>
+  </property>
+
+  <property>
+    <name>hbase.regionserver.regionSplitLimit</name>
+    <value>2147483647</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.msginterval</name>
+    <value>3000</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.optionallogflushinterval</name>
+    <value>1000</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.thread.splitcompactcheckfrequency</name>
+    <value>10000</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.checksum.verify</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hbase.server.thread.wakefrequency</name>
+    <value>10000</value>
+  </property>
+
+  <property>
+    <name>hbase.balancer.period</name>
+    <value>300000</value>
+  </property>
+  <property>
+    <name>hbase.master.loadbalance.bytable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hbase.regions.slop</name>
+    <value>0.1</value>
+  </property>
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/run/hadoop-hdfs/dn._PORT</value>
+  </property>
+
+  <!--
+    Memstore
+    При заливке данных в HBase данные сначала сохраняются в memstore после чего по различным критериям ниже
+    (или по достижению hbase.regionserver.maxlogs) сбрасываются на диск. Сброс на диск операция затратная,
+    плюс после большого числа сбросов начинается compaction (по объему или числу hfile).
+  -->
+  <property>
+    <!--
+      Размер памяти (от размера heap) под все memstore-блоки.
+      При достижении данного размера запись в regionserver блокируется и начинается принудительный
+      сброс данных всех memstore-блоков на диск.
+    -->
+    <name>hbase.regionserver.global.memstore.size</name>
+    <value>0.4</value>
+  </property>
+  <property>
+    <!--
+      Размер памяти (от размера всех memstore-блоков) после достижения которого начинается
+      неблокирующий сброс данных всех memstore-блоков на диск.
+    -->
+    <name>hbase.regionserver.global.memstore.size.lower.limit</name>
+    <value>0.8</value>
+  </property>
+  <property>
+    <!--
+      Размер одного memstore-блока после которого начинается неблокирующий сброс данных блока на диск.
+    -->
+    <name>hbase.hregion.memstore.flush.size</name>
+    <value>134217728</value>   <!-- 128MB -->
+  </property>
+  <property>
+    <!--
+      Максимальный размер memstore-блока (множитель hbase.hregion.memstore.flush.size) после которого
+      запись блокируется и начинается принудительный сброс данных блока на диск.
+    -->
+    <name>hbase.hregion.memstore.block.multiplier</name>
+    <value>4</value>
+  </property>
+  <property>
+    <!--
+      Максимальное время жизни данных в одном memstore-блоке после которого начинается
+      неблокирующий сброс данных блока на диск.
+    -->
+    <name>hbase.regionserver.optionalcacheflushinterval</name>
+    <value>10800000</value>   <!-- 3h -->
+  </property>
+  <property>
+    <!--
+      При закрытии региона у memstore-блоков больше данного размера выполняется принудительный сброс данных.
+    -->
+    <name>hbase.hregion.preclose.flush.size</name>
+    <value>5242880</value>   <!-- 5MB -->
+  </property>
+  <property>
+    <!--
+      Использовать отдельный аллокатор для уменьшения фрагментации heap.
+    -->
+    <name>hbase.hregion.memstore.mslab.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <!--
+      Число потоков сброса данных из memstore на hdfs.
+      Большое число может вызвать flush-шторм, маленькое будет растить flush-очередь.
+    -->
+    <name>hbase.hstore.flusher.count</name>
+    <value>2</value>
+  </property>
+
+  <!--
+    WAL-лог, куда regionserver пишет любое изменение в данных (для восстановления после сбоя).
+    Определяет максимальную скорость заливки данных в hbase, т.к. на каждую операцию изменения
+    данных делается запись в wal-лог.
+  -->
+  <property>
+    <!--
+      Для увеличения скорости заливки данных, запись ведется в несколько wal-логов.
+      В HBase 2 появится параметр hbase.wal.regiongrouping.delegate.provider
+      (см. https://issues.apache.org/jira/browse/HBASE-15536) в котором можно задать
+      значение asyncfs (вместо имеющегося filesystem по умолчанию), что ускорит.
+    -->
+    <name>hbase.wal.provider</name>
+    <value>multiwal</value>
+  </property>
+  <property>
+    <!--
+      Число wal-логов в которое ведется запись.
+      Сверху ограничено числом шпинделей и пропускной способностью сети.
+    -->
+    <name>hbase.wal.regiongrouping.numgroups</name>
+    <value>2</value>
+  </property>
+  <property>
+    <!--
+      Максимальный размер одного файла wal-лога.
+      Приблизительный фактический размер определяется значением hbase.regionserver.logroll.multiplier.
+    -->
+    <name>hbase.regionserver.hlog.blocksize</name>
+    <value>1073741824</value>   <!-- 1GB -->
+  </property>
+  <property>
+    <!--
+      Часть размера одного WAL-лога после заполнения которого начинается принудительный процесс ротации лога.
+      Значение 0.5 дает время на полный сброс большого объема данных без исключительных ситуаций.
+    -->
+    <name>hbase.regionserver.logroll.multiplier</name>
+    <value>0.5</value>
+  </property>
+  <property>
+    <!--
+      Период времени, после которого запускается принудительная ротация wal-лога вне зависимости от его размера.
+      На практике под нагрузкой 4 лога заполняются за 5-10 минут.
+    -->
+    <name>hbase.regionserver.logroll.period</name>
+    <value>3600000</value>   <!-- 1h -->
+  </property>
+  <property>
+    <!--
+      Максимальное число wal-логов.
+      При достижении максимального числа вызывается принудительный checkpoint (сброс всех данных из memstore).
+      Не deprecated (см. https://issues.apache.org/jira/browse/HBASE-21289).
+    -->
+    <name>hbase.regionserver.maxlogs</name>
+    <value>32</value>
+  </property>
+  <property>
+    <!--
+      Логгирование событий записи wal длительносью больше чем значение.
+      (см. https://issues.apache.org/jira/browse/HBASE-11240)
+    -->
+    <name>hbase.regionserver.hlog.slowsync.ms</name>
+    <value>1000</value>
+  </property>
+
+  <!-- -->
+  <property>
+    <name>hbase.hstore.checksum.algorithm</name>
+    <value>NULL</value>
+  </property>
+  <property>
+    <name>hbase.hstore.compaction.min</name>
+    <value>10</value>
+  </property>
+  <property>
+    <name>hbase.hstore.compaction.max</name>
+    <value>150</value>
+  </property>
+  <property>
+    <name>hbase.hstore.compaction.max.size</name>
+    <value>536870912</value>   <!-- 512MB -->
+  </property>
+  <property>
+    <name>hbase.hstore.compaction.max.size.offpeak</name>
+    <value>1073741824</value>   <!-- 1GB -->
+  </property>
+  <property>
+    <name>hbase.hstore.blockingStoreFiles</name>
+    <value>16384</value>
+  </property>
+  <property>
+    <name>hbase.hstore.blockingWaitTime</name>
+    <value>120000</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.thread.compaction.small</name>
+    <value>10</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.thread.compaction.large</name>
+    <value>5</value>
+  </property>
+  <property>
+    <name>hbase.hregion.majorcompaction</name>
+    <value>604800000</value>
+  </property>
+  <property>
+    <name>hbase.offpeak.start.hour</name>
+    <value>0</value>
+  </property>
+  <property>
+    <name>hbase.offpeak.end.hour</name>
+    <value>7</value>
+  </property>
+  <property>
+    <name>hfile.block.cache.size</name>
+    <value>0.16</value>
+  </property>
+
+  <!-- Zookeeper client-->
+  <property>
+    <name>zookeeper.session.timeout</name>
+    <value>120000</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.tickTime</name>
+    <value>6000</value>
+  </property>
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value>/hbase</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.maxClientCnxns</name>
+    <value>300</value>
+  </property>
+
+  <!-- Thrift -->
+  <property>
+    <name>hbase.thrift.worker.threads</name>
+    <value>80</value>
+  </property>
+  <property>
+    <name>hbase.thrift.selector.threads</name>
+    <value>30</value>
+  </property>
+  <property>
+    <name>hbase.thrift.accept.queue.size.per.selector</name>
+    <value>100</value>
+  </property>
+  <property>
+     <name>hbase.regionserver.thrift.framed</name>
+     <value>true</value>
+  </property>
+  <property>
+    <name>hbase.regionserver.thrift.framed.max_frame_size_in_mb</name>
+    <value>16</value>
+  </property>
+</configuration>

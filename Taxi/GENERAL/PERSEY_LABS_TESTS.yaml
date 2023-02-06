@@ -1,0 +1,69 @@
+description: виды лабораторных тестов
+default: {}
+tags: [notfallback]
+maintainers: [pavelnekrasov]
+schema:
+    type: object
+    additionalProperties:
+        type: object
+        additionalProperties: false
+        properties:
+            name:
+                type: string
+            price:
+                $ref: '#/definitions/Price'
+            detailed_price:
+                $ref: '#/definitions/DetailedPrice'
+            days_to_ready:
+                type: integer
+            test_systems:
+                type: array
+                items:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        name:
+                            type: string
+                        qualities:
+                            type: array
+                            items:
+                                type: string
+                    required:
+                      - name
+                      - qualities
+        required:
+          - name
+          - price
+
+
+    definitions:
+        Price:
+            type: object
+            additionalProperties: false
+            properties:
+                logistics_rub:
+                    type: string
+                test_rub:
+                    type: string
+                sampling_rub:
+                    type: string
+            required:
+              - logistics_rub
+              - test_rub
+
+        # LabEntityPrice keys are locality_ids
+        LabEntityPrice:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Price'
+            properties:
+                __default__:
+                    $ref: '#/definitions/Price'
+            required:
+              - __default__
+
+        DetailedPrice:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/LabEntityPrice'
+            properties: {}

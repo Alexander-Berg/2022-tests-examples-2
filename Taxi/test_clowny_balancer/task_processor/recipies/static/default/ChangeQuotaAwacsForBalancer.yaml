@@ -1,0 +1,34 @@
+data:
+    name: ChangeQuotaAwacsForBalancer
+    provider_name: clowny-balancer
+    job_vars:
+      - new_quota_abc
+      - namespace_id
+      - user
+    stages:
+      - name: AwacsGetL7NannyServices
+        provider_name: clowny-balancer
+        input:
+            fqdn: namespace_id
+        output:
+            nanny_services: nanny_services
+
+      - name: AwacsNamespaceUpdate
+        provider_name: clowny-balancer
+        input:
+            namespace_id: namespace_id
+            service_abc: new_quota_abc
+
+      - name: MetaStartChangeQuotaAwacsNanny
+        provider_name: clowny-balancer
+        input:
+            user: user
+            nanny_services: nanny_services
+            new_quota_abc: new_quota_abc
+        output:
+            job_ids: job_ids
+
+      - name: MetaCubeWaitForJobsCommon
+        provider_name: clowny-balancer
+        input:
+            job_ids: job_ids

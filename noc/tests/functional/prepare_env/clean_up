@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ "$(whoami)" != 'root' ]]; then
+    echo "root priv required too run this!"
+    exit 1
+fi
+
+cnt_name="${1:-}"
+if [[ -z "$cnt_name" ]]; then
+    cnt_name="$(machinectl list | grep dnsl3r | awk '{print $1}' | head -1)"
+    if [[ -z "$cnt_name" ]]; then
+        echo "can not found container"
+        exit 1
+    fi
+fi
+machinectl poweroff "$cnt_name"
+if ! machinectl list | grep "$cnt_name" > /dev/null; then
+    echo "container $cnt_name was not found"
+    exit 1
+fi
+sleep 1
+rm -rf /var/lib/machines/"$cnt_name"
+rm /etc/systemd/nspawn/"$cnt_name".nspawn

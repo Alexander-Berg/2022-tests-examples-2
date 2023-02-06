@@ -1,0 +1,3093 @@
+version: "2.3"
+
+services:
+    taxi-rtc-baseimage-production:  # pull this images each time
+        image: registry.yandex.net/taxi/rtc-baseimage/production:latest
+    taxi-rtc-baseimage-testing:  # pull this images each time
+        image: registry.yandex.net/taxi/rtc-baseimage/testing:latest
+    taxi-build-cxx:
+        extends:
+            service: taxi-integration-${PLATFORM:-xenial}-base
+        privileged: true
+        mem_limit: 40G
+        environment:
+          - ASAN_OPTIONS
+          - ASAN_PRELOAD
+          - ASAN_SYMBOLIZER_PATH
+          - BUILD_DIR=${BUILD_DIR:-/taxi/backend-cpp/build-integration}
+          - BUILD_TYPE=${BUILD_TYPE:-Release}
+          - CC
+          - CCACHE_DIR=/taxi/ccache
+          - CCACHE_SIZE
+          - CCACHE_HASHDIR
+          - CCACHE_NOHASHDIR
+          - CCACHE_PREFIX
+          - CORES_DIR=/taxi/cores
+          - DISTCC_HOSTS
+          - CMAKE_OPTS
+          - CXX
+          - CLICOLOR_FORCE
+          - NPROCS
+          - IS_TEAMCITY
+          - TESTSUITE_PGSQL_BINDIR=/usr/lib/postgresql/10/bin
+        volumes:
+          - ./backend-cpp:/taxi/backend-cpp:rw
+          - ${CCACHE_DIR:-~/.ccache}:/taxi/ccache:rw
+          - ../..:/arcadia:rw
+          - ${TC_CORES_DIR:-./backend-cpp/cores}:/taxi/cores:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+          - type: tmpfs
+            target: /mnt/ramdisk
+            tmpfs:
+                size: 6442450944 # 6 GB
+        working_dir: /arcadia/taxi/backend-cpp
+        networks:
+          - taxi_net
+        command: /taxi/run/build-cxx.sh
+    taxi-build-cxx-deb:
+        extends:
+            service: taxi-integration-xenial-${BASE_IMAGE_ENV-base}
+        environment:
+          - ARCADIA_PROJECT_REL_PATH
+          - CC
+          - CCACHE_DIR=/taxi/ccache
+          - CCACHE_SIZE
+          - CCACHE_HASHDIR
+          - CCACHE_NOHASHDIR
+          - CCACHE_PREFIX
+          - DISTCC_HOSTS
+          - CXX
+          - CLICOLOR_FORCE=1
+          - DEB_BUILD_OPTIONS
+          - NPROCS
+        volumes:
+          - ./release:/taxi/backend-cpp:rw
+          - ${CCACHE_DIR:-~/.ccache}:/taxi/ccache:rw
+          - ../..:/arcadia:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ~/.gnupg:/home/user/.gnupg:ro
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+        working_dir: /arcadia/taxi/backend-cpp
+        networks:
+          - taxi_net
+        command: /taxi/run/build-cxx-deb.sh
+    taxi-build-cxx-release-tests:
+        extends:
+            service: taxi-integration-xenial-base
+        privileged: true
+        mem_limit: 40G
+        environment:
+          - CORES_DIR=/taxi/cores
+          - IS_TEAMCITY
+          - BUILD_DIR=${BUILD_DIR:-/taxi/backend-cpp/build-integration}
+          - TESTSUITE_PGSQL_BINDIR=/usr/lib/postgresql/10/bin
+        volumes:
+          - ./release:/taxi/backend-cpp:rw
+          - ${CCACHE_DIR:-~/.ccache}:/taxi/ccache:rw
+          - ../..:/arcadia:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ${TC_CORES_DIR:-./release/cores}:/taxi/cores:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+        working_dir: /arcadia/taxi/backend-cpp
+        command: /taxi/run/cxx-tests.sh
+        networks:
+          - taxi_net
+    taxi-envoy-rtc-config:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - CORES_DIR=/taxi/cores
+          - IS_TEAMCITY
+          - BUILD_DIR=${BUILD_DIR:-/taxi/backend-py3/build-integration}
+        volumes:
+          - ./release:/taxi/backend-py3:rw
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/tools:/taxi/tools:ro
+          - ${TC_CORES_DIR:-./release/cores}:/taxi/cores:rw
+        working_dir: /taxi/backend-py3
+        command: /bin/true
+    taxi-bootstrap:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-backend-py2:${IMAGE_VERSION:-test}
+        environment:
+          - TAXI_SETTINGS_MODULE=taxi_settings_docker
+          - PATH=/usr/lib/yandex/taxi-py2/bin:/usr/lib/yandex/taxi-py3-2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-import/
+          - program_name=taxi-bootstrap
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        volumes:
+          - ./volumes/bootstrap_db:/taxi/bootstrap_db:ro
+          - ./schemas/mongo:/taxi/schemas/mongo:ro
+          - ./schemas/configs:/taxi/schemas/configs:ro
+          - ./volumes/cache_dumps:/taxi/cache_dumps:rw
+        command: /taxi/tools/init_db.sh
+        networks:
+            taxi_internal:
+    taxi-yagr:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/yagr/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-geo-pipeline-control-plane:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-exp3-matcher:
+                condition: service_healthy
+            taxi-tariffs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-yagr
+        hostname: yagr.taxi.yandex.net
+        command: /taxi/run/yagr.sh
+        healthcheck:
+            test: curl -f http://yagr.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - yagr-l7.taxi.yandex.net
+                  - yagr.taxi.yandex.net
+    taxi-driver-trackstory:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-trackstory/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-yagr:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-trackstory
+        hostname: driver-trackstory.taxi.yandex.net
+        command: /taxi/run/driver-trackstory.sh
+        healthcheck:
+            test: curl -f http://driver-trackstory.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-trackstory.taxi.yandex.net
+    taxi-driver-eta:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-eta/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-eta
+        hostname: driver-eta.taxi.yandex.net
+        command: /taxi/run/driver-eta.sh
+        healthcheck:
+            test: curl -f http://driver-eta.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-eta.taxi.yandex.net
+    taxi-approvals:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-approvals:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-approvals
+                packages: yandex-taxi-approvals
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-approvals
+        working_dir: /usr/lib/yandex/taxi-approvals
+        hostname: taxi-approvals.taxi.yandex.net
+        command: /taxi/run/approvals.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f taxi-approvals.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - taxi-approvals.taxi.yandex.net
+                  - taxi-approvals.taxi.tst.yandex.net
+                  - taxi-approvals.taxi.dev.yandex.net
+    taxi-driver-ui-profile:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-ui-profile/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-ui-profile
+        hostname: driver-ui-profile.taxi.yandex.net
+        command: /taxi/run/driver-ui-profile.sh
+        healthcheck:
+            test: curl -f http://driver-ui-profile.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-ui-profile.taxi.yandex.net
+    taxi-driver-orders-builder:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-orders-builder/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-parks:
+                condition: service_healthy
+            taxi-driver-orders-app-api:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-driver-ui-profile:
+                condition: service_healthy
+            taxi-exp:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-orders-builder
+        hostname: driver-orders-builder.taxi.yandex.net
+        command: /taxi/run/driver-orders-builder.sh
+        healthcheck:
+            test: curl -f http://driver-orders-builder.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-orders-builder.taxi.yandex.net
+    taxi-contractor-orders-polling:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/contractor-orders-polling/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-driver-status:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-contractor-orders-polling
+        hostname: contractor-orders-polling.taxi.yandex.net
+        command: /taxi/run/contractor-orders-polling.sh
+        healthcheck:
+            test: curl -f http://contractor-orders-polling.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - contractor-orders-polling.taxi.yandex.net
+    taxi-authproxy-manager:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/authproxy-manager/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./volumes/bootstrap_db/pgmigrate/authproxy-manager:/taxi/pgmigrate/authproxy-manager:ro
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-clownductor:
+                condition: service_healthy
+            taxi-clowny-perforator:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-authproxy-manager
+        hostname: authproxy-manager.taxi.yandex.net
+        command: /taxi/run/authproxy-manager.sh
+        healthcheck:
+            test: curl -f http://authproxy-manager.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - authproxy-manager.taxi.yandex.net
+    taxi-order-core:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/order-core/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-processing:
+                condition: service_started
+        environment:
+          - program_name=taxi-order-core
+        hostname: order-core.taxi.yandex.net
+        command: /taxi/run/order-core.sh
+        healthcheck:
+            test: curl -f http://order-core.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - order-core.taxi.yandex.net
+    taxi-processing:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/processing/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./_sandbox/procaas:/taxi/sandbox/procaas:ro
+          - ./volumes/bootstrap_db/pgmigrate/processing_db:/taxi/pgmigrate/processing_db:ro
+          - ./volumes/bootstrap_db/pgmigrate/processing_noncritical_db:/taxi/pgmigrate/processing_noncritical_db:ro
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-processing
+          - YANDEX_TAXI_YTLIB_TOKEN="yt_token"
+          - CHANGED_PROJECTS=$CHANGED_PROJECTS
+        hostname: processing.taxi.yandex.net
+        command: /taxi/run/processing.sh
+        healthcheck:
+            test: curl -f http://processing.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - processing.taxi.yandex.net
+    taxi-py2-order-processing:
+        extends:
+            service: taxi-backend
+        image: registry.yandex.net/taxi/py2-order-processing/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-order-processing
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-order-processing
+        working_dir: /usr/lib/yandex/taxi-order-processing
+        hostname: py2-order-processing.taxi.yandex.net
+        command: /taxi/run/py2-order-processing.sh
+        healthcheck:
+            test: curl -f http://py2-order-processing.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - py2-order-processing.taxi.yandex.net
+    taxi-scout:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/scout/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-clownductor:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-clowny-perforator:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-scout
+        working_dir: /usr/lib/yandex/taxi-scout-web
+        volumes:
+          - ./volumes/scout/persistent-storage/:/var/cache/yandex/taxi-scout/persistent-storage/:ro
+        hostname: scout.taxi.yandex.net
+        command: /taxi/run/scout.sh
+        healthcheck:
+            test: curl -f http://scout.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - scout.taxi.yandex.net
+    taxi-envoy-exp-alpha:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/envoy-exp-alpha/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-scout:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-envoy-exp-bravo:
+                condition: service_healthy
+            taxi-envoy-exp-delta:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-envoy-exp-alpha
+        hostname: envoy-exp-alpha.taxi.yandex.net
+        command: /taxi/run/envoy-exp-alpha.sh
+        healthcheck:
+            test: curl -f http://envoy-exp-alpha.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - envoy-exp-alpha.taxi.yandex.net
+    taxi-envoy-exp-bravo:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/envoy-exp-bravo/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-envoy-exp-charlie:
+                condition: service_healthy
+            taxi-envoy-exp-delta:
+                condition: service_healthy
+            taxi-clownductor:
+                condition: service_healthy
+            taxi-clowny-perforator:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-envoy-exp-bravo
+        working_dir: /usr/lib/yandex/taxi-envoy-exp-bravo-web
+        # host is unreachable via standard url to be sure
+        # that request flights through envoy cluster
+        hostname: envoy-exp-bravo.envoy-only.taxi.yandex.net
+        command: /taxi/run/envoy-exp-bravo.sh
+        healthcheck:
+            test: curl -f http://envoy-exp-bravo.envoy-only.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                # envoy proxies request to fixed ip defined in scout config
+                ipv6_address: 2001:3984:398a:0:ffff::1
+                # same as hostname
+                aliases:
+                  - envoy-exp-bravo.envoy-only.taxi.yandex.net
+    taxi-envoy-exp-charlie:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/envoy-exp-charlie/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-envoy-exp-charlie
+        # host is unreachable via standard url to be sure
+        # that request flights through envoy cluster
+        hostname: envoy-exp-charlie.envoy-only.taxi.yandex.net
+        command: /taxi/run/envoy-exp-charlie.sh
+        healthcheck:
+            test: curl -f http://envoy-exp-charlie.envoy-only.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                # envoy proxies request to fixed ip defined in scout config
+                ipv6_address: 2001:3984:398a:0:ffff::2
+                # same as hostname
+                aliases:
+                  - envoy-exp-charlie.envoy-only.taxi.yandex.net
+    taxi-envoy-exp-delta:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/envoy-exp-delta/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-envoy-exp-delta
+        # host is unreachable via standard url to be sure
+        # that request flights through envoy cluster
+        hostname: envoy-exp-delta.envoy-only.taxi.yandex.net
+        command: /taxi/run/envoy-exp-delta.sh
+        healthcheck:
+            test: curl -f http://envoy-exp-delta.envoy-only.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                # no ipv6 settings to be sure host is unreachable even through envoy
+
+                # same as hostname
+                aliases:
+                  - envoy-exp-delta.envoy-only.taxi.yandex.net
+    taxi-clownductor:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/clownductor/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-clownductor
+        working_dir: /usr/lib/yandex/taxi-clownductor-web
+        hostname: clownductor.taxi.yandex.net
+        command: /taxi/run/clownductor.sh
+        healthcheck:
+            test: curl -f http://clownductor.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - clownductor.taxi.yandex.net
+    taxi-clowny-perforator:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/clowny-perforator/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-clowny-perforator
+        working_dir: /usr/lib/yandex/taxi-clowny-perforator-web
+        hostname: clowny-perforator.taxi.yandex.net
+        command: /taxi/run/clowny-perforator.sh
+        healthcheck:
+            test: curl -f http://clowny-perforator.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 40
+        networks:
+            taxi_internal:
+                aliases:
+                  - clowny-perforator.taxi.yandex.net
+    taxi-uconfigs:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/uconfigs/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-uconfigs
+        volumes:
+          - ./volumes/bootstrap_db/db_data/:/taxi/bootstrap_db/db_data:ro
+          - ./volumes/cache_dumps/:/taxi/cache_dumps:ro
+        hostname: configs.taxi.yandex.net
+        command: /taxi/run/uconfigs.sh
+        healthcheck:
+            test: curl -f http://configs.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - configs.taxi.yandex.net
+                  - uconfigs.taxi.yandex.net
+    taxi-geo-pipeline-control-plane:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/geo-pipeline-control-plane/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-geo-pipeline-control-plane
+        hostname: geo-pipeline-control-plane.taxi.yandex.net
+        command: /taxi/run/geo-pipeline-control-plane.sh
+        healthcheck:
+            test: curl -f http://geo-pipeline-control-plane.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - geo-pipeline-control-plane.taxi.yandex.net
+    taxi-configs-admin:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/configs-admin/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-configs-admin
+          - PYTHONPATH=/usr/lib/yandex/taxi-configs-admin-web:/usr/lib/yandex/taxi-configs-admin-web/generated/:/usr/lib/yandex/taxi-configs-admin-web/generated/fbs/:/usr/lib/yandex/taxi-configs-admin-web/generated/fbs/fbs/:/taxi/backend-py3/generated/fbs/:/taxi/backend-py3/generated/fbs/fbs/
+        working_dir: /usr/lib/yandex/taxi-configs-admin-web
+        hostname: configs-admin.taxi.yandex.net
+        command: /taxi/run/configs-admin.sh
+        healthcheck:
+            test: curl -f http://configs-admin.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - configs-admin.taxi.yandex.net
+
+    taxi-tests:
+        extends:
+            service: taxi-integration-xenial-base
+        depends_on:
+            taxi-configs-admin:
+                condition: service_healthy
+            taxi-geo-pipeline-control-plane:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-clowny-perforator:
+                condition: service_healthy
+            taxi-clownductor:
+                condition: service_healthy
+            taxi-py2-order-processing:
+                condition: service_healthy
+            taxi-processing:
+                condition: service_started
+            taxi-scout:
+                condition: service_healthy
+            taxi-envoy-exp-delta:
+                condition: service_healthy
+            taxi-envoy-exp-charlie:
+                condition: service_healthy
+            taxi-envoy-exp-bravo:
+                condition: service_healthy
+            taxi-envoy-exp-alpha:
+                condition: service_healthy
+            taxi-order-core:
+                condition: service_healthy
+            taxi-contractor-orders-polling:
+                condition: service_healthy
+            taxi-driver-orders-builder:
+                condition: service_healthy
+            taxi-driver-orders-app-api:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+            taxi-driver-ui-profile:
+                condition: service_healthy
+            taxi-approvals:
+                condition: service_healthy
+            taxi-driver-eta:
+                condition: service_healthy
+            taxi-driver-trackstory:
+                condition: service_healthy
+            taxi-yagr:
+                condition: service_healthy
+            taxi-cars-catalog:
+                condition: service_healthy
+            taxi-unique-drivers:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-fleet-vehicles:
+                condition: service_healthy
+            taxi-api-proxy:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-passenger-authorizer:
+                condition: service_healthy
+            taximeter-proxy:
+                condition: service_healthy
+            taxi-cardstorage:
+                condition: service_healthy
+            taxi-lookup:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-protocol:
+                condition: service_healthy
+            taxi-stq:
+                condition: service_started
+            taxi-persuggest:
+                condition: service_started
+            taxi-driver-authorizer:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+            taxi-reposition:
+                condition: service_healthy
+            taximeter-emulator:
+                condition: service_healthy
+            taximeter-xservice:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-exp3-matcher:
+                condition: service_healthy
+            taxi-candidates:
+                condition: service_healthy
+            taxi-api-admin:
+                condition: service_healthy
+            taxi-zalogin:
+                condition: service_healthy
+            taxi-driver-authproxy:
+                condition: service_healthy
+        environment:
+          - PYTEST_ARGS_INTEGRATION
+          - NUM_PROCESSES
+          - program_name=taxi-tests
+          - IS_TEAMCITY
+        volumes:
+          - ./taxi-tests:/taxi/taxi-tests:ro
+          - ${HOST_BUILD_VOLUME:-./pytest-build/}:${DOCKER_BUILD_VOLUME:-/taxi/pytest-build/}
+        working_dir: /taxi
+        command: /taxi/run/tests.sh
+        networks:
+            taxi_internal:
+    taxi-protocol:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/api/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-cars-catalog:
+                condition: service_healthy
+            taxi-unique-drivers:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-fleet-vehicles:
+                condition: service_healthy
+            taxi-api-proxy:
+                condition: service_healthy
+            taxi-feedback:
+                condition: service_started
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-driver-authorizer:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+            taxi-user-api:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-parks-activation:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-protocol
+        hostname: taxi-protocol.taxi.yandex.net
+        command: /taxi/run/protocol.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z taxi-protocol.taxi.yandex.net 80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - taxi-protocol.taxi.dev.yandex.net
+                  - taxi-protocol.taxi.tst.yandex.net
+                  - taxi-protocol.taxi.yandex.net
+                  - taxi-protocol-l7.taxi.yandex.net
+                  - taxi-utils.taxi.yandex.net
+                  - taxi-utils-l7.taxi.yandex.net
+                  - taximeter-api.taxi.yandex.net
+    taxi-feedback:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-feedback:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-feedback
+                packages: yandex-taxi-feedback yandex-taxi-feedback-nginx-conf
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-feedback
+        hostname: feedback.taxi.yandex.net
+        command: /taxi/run/feedback.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z feedback.taxi.yandex.net 80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - feedback.taxi.yandex.net
+    taxi-backend-py3:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./arcadia:/arcadia:rw
+          - ./backend-py3:/taxi/backend-py3:ro
+    taxi-cars-catalog:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/cars-catalog/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-cars-catalog
+        working_dir: /usr/lib/yandex/taxi-cars-catalog-web
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f cars-catalog.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/cars-catalog.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - cars-catalog.taxi.yandex.net
+    taxi-unique-drivers:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/unique-drivers/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-personal:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-unique-drivers
+        hostname: unique-drivers.taxi.yandex.net
+        healthcheck:
+            test: /taxi/tools/wait_importing_worker.sh unique-drivers
+            timeout: 60s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/unique-drivers.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - unique-drivers.taxi.yandex.net
+    taxi-fleet-vehicles:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/fleet-vehicles/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-fleet-vehicles
+        hostname: fleet-vehicles.taxi.yandex.net
+        healthcheck:
+            test: /taxi/tools/wait_importing_worker.sh fleet-vehicles
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/fleet-vehicles.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - fleet-vehicles.taxi.yandex.net
+    taxi-eslogadminpy3:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-eslogadminpy3:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-eslogadminpy3
+                packages: yandex-taxi-eslogadminpy3-web
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-elastic:
+                condition: service_started
+        hostname: es-logs-admin-py3.taxi.yandex.net
+        environment:
+          - program_name=taxi-eslogadminpy3
+        working_dir: /usr/lib/yandex/taxi-eslogadminpy3-web
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f es-logs-admin-py3.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/eslogadminpy3.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - es-logs-admin-py3.taxi.yandex.net
+    taxi-api-admin:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-api-admin:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-api-admin
+                packages: yandex-taxi-api-admin
+        depends_on:
+            mock-server:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-admin:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-config-schemas:
+                condition: service_healthy
+        hostname: taxi-api-admin.taxi.yandex.net
+        environment:
+          - program_name=taxi-api-admin
+        working_dir: /usr/lib/yandex/taxi-api-admin
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f taxi-api-admin.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/api-admin.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - taxi-api-admin.taxi.yandex.net
+                  - taxi-api-admin.taxi.dev.yandex.net
+                  - taxi-api-admin.taxi.tst.yandex.net
+    taxi-territories:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-territories:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-territories
+                packages: yandex-taxi-territories
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-territories
+        working_dir: /usr/lib/yandex/taxi-territories
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f territories.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/territories.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - territories.taxi.yandex.net
+    taxi-tariffs:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-tariffs/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-tariffs
+        working_dir: /usr/lib/yandex/taxi-tariffs-web
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f tariffs.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/taxi-tariffs.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - tariffs.taxi.yandex.net
+    taxi-exp:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-exp/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./volumes/bootstrap_db/pgmigrate/taxi_exp:/taxi/pg_migrations/taxi_exp:ro
+          - ./volumes/bootstrap_db/integration-tests:/taxi/pg_migrations/integration-tests
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-exp
+        working_dir: /usr/lib/yandex/taxi-exp
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f exp.taxi.yandex.net/ping
+            timeout: 60s
+            interval: 5s
+            retries: 100
+        command: /taxi/run/exp.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - exp.taxi.yandex.net
+    taxi-config-schemas:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-config-schemas:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-config-schemas
+                packages: yandex-taxi-config-schemas
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-config-schemas
+        working_dir: /usr/lib/yandex/taxi-config-schemas
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f config-schemas.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/config-schemas.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - config-schemas.taxi.yandex.net
+        volumes:
+          - ./schemas:/taxi/schemas/schemas:ro
+    taxi-experiments3-proxy:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/experiments3-proxy/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-exp:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-experiments3-proxy
+        hostname: experiments3-proxy.taxi.yandex.net
+        command: /taxi/run/experiments3-proxy.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f experiments3-proxy.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - experiments3-proxy.taxi.yandex.net
+    taxi-exp3-matcher:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/exp3-matcher/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-exp:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-exp3-matcher
+        hostname: exp3-matcher.taxi.yandex.net
+        command: /taxi/run/exp3-matcher.sh
+        healthcheck:
+            test: curl -f http://exp3-matcher.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - exp3-matcher.taxi.yandex.net
+    taxi-passenger-authorizer:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/tc/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-authproxy-manager:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-protocol:
+                condition: service_healthy
+            taxi-api-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-persuggest:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-passenger-authorizer
+        hostname: passenger-authorizer.taxi.yandex-team.ru
+        command: /taxi/run/passenger-authorizer.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f http://passenger-authorizer.taxi.yandex-team.ru/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - tc.taxi.yandex.nonexistent
+                  - tc.mobile.yandex.net
+                  - tc.mobile.yandex.ru
+    taxi-cabinet:
+        extends:
+            service: taxi-backend
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-utils:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-cars-catalog:
+                condition: service_healthy
+        environment:
+          - DJANGO_SETTINGS_MODULE=taxi_djangosettings_docker
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-cabinet:/usr/lib/yandex/taxi-admin
+          - program_name=taxi-cabinet
+        volumes:
+          - ./volumes/ssl:/etc/ssl/yandex:ro
+        hostname: cabinet.taxi.yandex-team.ru
+        command: /taxi/run/cabinet.sh
+        working_dir: /usr/lib/yandex/taxi-cabinet
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z cabinet.taxi.yandex-team.ru 80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - cabinet.taxi.yandex-team.ru
+                  - taxi-cabinet.mobile.yandex.ru
+                  - taxi-cabinet.tst.mobile.yandex.ru
+                  - taxi-cabinet-unstable.tst.mobile.yandex.ru
+    taxi-driver-authproxy:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/taxi-integration/xenial/driver-authproxy:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-driver-authproxy
+                packages: yandex-taxi-driver-authproxy
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+        environment:
+          - program_name=driver-authproxy
+        hostname: driver-authproxy.taxi.yandex.net
+        volumes:
+          - driver-authproxy-socket:/var/lib/yandex/taxi-driver-authproxy/private/:rw
+          - driver-authproxy-nginx-conf-d:/etc/nginx/conf.d:rw
+        command: /taxi/run/driver-authproxy.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl --unix-socket /var/lib/yandex/taxi-driver-authproxy/private/server.socket
+                -f http:/ping-auth
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+          - taxi_internal
+    taximeter-proxy:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taximeter-proxy:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taximeter-proxy
+                packages: yandex-taxi-taximeter-proxy-nginx-conf
+        depends_on:
+            taxi-utils:
+                condition: service_healthy
+            taxi-protocol:
+                condition: service_healthy
+            taxi-yagr:
+                condition: service_healthy
+            taxi-driver-protocol:
+                condition: service_healthy
+            taxi-driver-login:
+                condition: service_healthy
+            taxi-driver-orders-app-api:
+                condition: service_healthy
+            taxi-driver-authproxy:
+                condition: service_healthy
+            taximeter-core:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taximeter-proxy
+        hostname: taximeter.yandex.rostaxi.org
+        volumes:
+          - ./volumes/nginx/mirror-wallarm.conf:/etc/nginx/locations/mirror-wallarm.conf:ro
+          - ./volumes/nginx/da-upstream-list.conf:/etc/nginx/conf.d/da-upstream-list.conf:ro
+          - driver-authproxy-socket:/var/lib/yandex/taxi-driver-authproxy/private/:rw
+          - driver-authproxy-nginx-conf-d:/etc/nginx/conf.d:rw
+        command: /taxi/run/taximeter-proxy.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z taximeter.yandex.rostaxi.org 80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - taximeter.yandex.rostaxi.org
+                  - taximeter-proxy.yandex.nonexistent
+                  - chat.yandex.rostaxi.org
+                  - gps.yandex.rostaxi.org
+                  - app.rostaxi.org
+    taxi-utils:
+        extends:
+            service: taxi-backend
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-tariffs:
+                condition: service_healthy
+            taxi-cars-catalog:
+                condition: service_healthy
+        environment:
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-utils
+          - program_name=taxi-utils
+        ulimits:
+            nofile:
+                soft: 20000
+                hard: 40000
+        hostname: dev-utils.taxi.yandex.net
+        command: /taxi/run/utils.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z dev-utils.taxi.yandex.net 443
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - dev-utils.taxi.dev.yandex.net
+                  - dev-utils.taxi.tst.yandex.net
+                  - dev-utils.taxi.yandex.net
+                  - dev-utils.taxi.yandex.nonexistent
+    taxi-admin:
+        extends:
+            service: taxi-backend
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-user-api:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-cars-catalog:
+                condition: service_healthy
+        environment:
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-admin
+          - DJANGO_SETTINGS_MODULE=taxi_djangosettings_docker
+          - program_name=taxi-admin
+        hostname: ymsh-admin.mobile.yandex-team.ru
+        command: /taxi/run/admin.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z ymsh-admin.mobile.yandex-team.ru
+                443
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - ymsh-admin.mobile.yandex-team.ru
+                  - ymsh-admin-unstable.tst.mobile.yandex-team.ru
+                  - ymsh-admin.tst.mobile.yandex-team.ru
+                  - ymsh-admin.tst.taxi.yandex-team.ru
+                  - taxi-admin.yandex.nonexistent
+    taxi-tariff-editor:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-tariff-editor:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-tariff-editor
+                packages: config-nginx-taxi-tariff-editor=0.34 yandex-taxi-tariff-editor=0.0.1704.1
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-admin:
+                condition: service_healthy
+            taxi-api-admin:
+                condition: service_healthy
+            taximeter-web-admin:
+                condition: service_healthy
+            taxi-cabinet:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-tariff-editor
+        hostname: tariff-editor.taxi.yandex-team.ru
+        command: /taxi/run/tariff-editor.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z tariff-editor.taxi.yandex-team.ru
+                80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - tariff-editor.taxi.yandex-team.ru
+                  - tariff-editor.yandex.nonexistent
+    taxi-proxy:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./taxi-proxy:/etc/nginx/sites-available:ro
+        environment:
+            program_name: taxi-proxy
+        depends_on:
+          - taxi-admin
+          - taxi-api-admin
+          - taxi-config-schemas
+          - taximeter-proxy
+          - taxi-driver-login
+          - taxi-driver-orders-app-api
+          - taxi-elastic
+          - taxi-eslogadminpy3
+          - taxi-fleet-parks
+          - taxi-kibana
+          - taxi-pilorama
+          - taxi-tariff-editor
+          - taximeter-daemon
+        ports:
+          - "8008:8008"
+          - "8080:8080"
+          - "8000:8000"
+          - "8800:8800"
+          - "8888:8888"
+          - "80:80"
+        command: /taxi/run/taxi-proxy.sh
+        networks:
+          - taxi_internal
+          - taxi_net
+    taxi-integration-xenial-base:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-base:${VERSION:-latest}
+    taxi-integration-bionic-base:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-bionic-base:${VERSION:-latest}
+    taxi-integration-xenial-testing:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-testing:${VERSION:-latest}
+    taxi-integration-xenial-unstable:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-unstable:${VERSION:-latest}
+    taxi-common:
+        image: registry.yandex.net/ubuntu:xenial
+        privileged: true
+        environment:
+          - REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/rootCA.crt
+          - SSL_CERT_FILE=/usr/local/share/ca-certificates/rootCA.crt
+#         - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/configs:/taxi/configs:ro
+          - ./volumes/taxi-secdist:/etc/yandex/taxi-secdist:ro
+          - ./volumes/taximeter-secdist:/etc/yandex/taximeter-secdist
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/syslog-ng:/etc/syslog-ng:ro
+          - ./volumes/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+          - ./volumes/nginx/listen:/etc/nginx/listen:ro
+          - ./volumes/nginx/listen_https:/etc/nginx/listen_https:ro
+          - ./_logs:/taxi/logs:rw
+        cap_add:
+          - SYS_PTRACE
+    taxi-backend:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-backend-py2:${IMAGE_VERSION:-test}
+        volumes:
+          # - ./arcadia:/arcadia:rw
+          - ./backend:/taxi/backend:ro
+        environment:
+          - TAXI_SETTINGS_MODULE=taxi_settings_docker
+          - PATH=/usr/lib/yandex/taxi-py2/bin:/usr/lib/yandex/taxi-py3-2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        build:
+            context: services
+            args:
+                project: taxi-backend
+                packages: yandex-taxi-admin yandex-taxi-cabinet yandex-taxi-import
+                    yandex-taxi-stq yandex-taxi-utils
+    taxi-backend-cpp:
+        extends:
+            service: taxi-common
+        volumes:
+          - ./backend-cpp:/taxi/backend-cpp:ro
+          - ../..:/arcadia:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+    taxi-uservices:
+        extends:
+            service: taxi-common
+        volumes:
+          - ../..:/arcadia:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/uservices-build/}:${DOCKER_BUILD_VOLUME:-/tmp/uservices-build/}
+    taximeter-backend:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taximeter-backend:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taximeter-backend
+                platform: xenial
+                packages: yandex-taximeter-core yandex-taximeter-daemon yandex-taximeter-jobs
+                    yandex-taximeter-web-admin yandex-taximeter-xservice
+    taximeter-emulator:
+        extends:
+            service: taxi-backend-py3
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taximeter-emulator:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taximeter-emulator
+                packages: yandex-taximeter-emulator
+        depends_on:
+            taximeter-core:
+                condition: service_healthy
+            taxi-driver-protocol:
+                condition: service_healthy
+            taxi-utils:
+                condition: service_healthy
+            taxi-yagr:
+                condition: service_healthy
+            taxi-driver-login:
+                condition: service_healthy
+            taxi-driver-ui-profile:
+                condition: service_healthy
+            taximeter-proxy:
+                condition: service_healthy
+            taxi-contractor-orders-polling:
+                condition: service_healthy
+        environment:
+          - program_name=taximeter-emulator
+          - PYTHONPATH=/usr/lib/yandex/taximeter-emulator:/taxi/taximeter-emulator-conf
+        working_dir: /taxi/taximeter-emulator
+        hostname: taximeter-emulator.taxi.yandex
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z taximeter-emulator.taxi.yandex
+                80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/taximeter-emulator.sh
+        volumes:
+          - ./taximeter-emulator:/taxi/taximeter-emulator:ro
+          - ./volumes/taximeter-emulator:/taxi/taximeter-emulator-conf:ro
+        networks:
+            taxi_internal:
+                aliases:
+                  - taximeter-emulator.taxi.yandex
+    taximeter-core:
+        extends:
+            service: taximeter-backend
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-protocol:
+                condition: service_started
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+        hostname: taximeter-core.taxi.yandex.net
+        working_dir: /usr/lib/yandex/taximeter-core
+        environment:
+          - program_name=taximeter-core
+        command: /taxi/run/taximeter-core.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z taximeter-core.taxi.yandex.net
+                80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - taximeter-core.taxi.yandex.net
+                  - taximeter-core.taxi.yandex.nonexistent
+    taximeter-daemon:
+        extends:
+            service: taximeter-backend
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+        working_dir: /usr/lib/yandex/taximeter-daemon
+        environment:
+          - program_name=taximeter-daemon
+        command: /taxi/run/taximeter-daemon.sh
+        networks:
+            taxi_internal:
+    taximeter-web-admin:
+        extends:
+            service: taximeter-backend
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+        hostname: taximeter-admin.taxi.yandex-team.ru
+        working_dir: /usr/lib/yandex/taximeter-web-admin
+        environment:
+          - program_name=taximeter-web-admin
+        command: /taxi/run/taximeter-web-admin.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z taximeter-admin.taxi.yandex-team.ru
+                80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - taximeter-admin.taxi.yandex-team.ru
+                  - taximeter-admin.taxi.tst.yandex-team.ru
+                  - taximeter-admin-unstable.taxi.tst.yandex-team.ru
+    taximeter-xservice:
+        extends:
+            service: taximeter-backend
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+        hostname: taximeter-xservice.taxi.yandex.net
+        working_dir: /usr/lib/yandex/taximeter-xservice
+        environment:
+          - program_name=taximeter-xservice
+        command: /taxi/run/taximeter-xservice.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh curl -f taximeter-xservice.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - taximeter-xservice.taxi.yandex.net
+    taxi-driver-protocol:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-driver-protocol:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-driver-protocol
+                packages: yandex-taxi-driver-protocol yandex-taxi-driver-protocol-nginx-conf
+                    libgeobase6=6.0-28 yandex-libgeobase6-default=6.0-28 libgeobase6-abi=6.0-28
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-parks:
+                condition: service_healthy
+            taxi-driver-status:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        hostname: driver-protocol.taxi.yandex.net
+        environment:
+          - program_name=taxi-driver-protocol
+        command: /taxi/run/driver-protocol.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z driver-protocol.taxi.yandex.net
+                80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-protocol.taxi.yandex.net
+                  - driver-protocol.taxi.tst.yandex.net
+                  - driver-protocol.taxi.yandex.nonexistent
+    taxi-parks:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/parks/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+        hostname: parks.taxi.yandex.net
+        environment:
+          - program_name=taxi-parks
+        command: /taxi/run/parks.sh
+        healthcheck:
+            test: curl -f http://parks.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - parks.taxi.yandex.net
+                  - parks.taxi.yandex.nonexistent
+    taxi-reposition:
+        extends:
+            service: taxi-backend-cpp
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-reposition:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-reposition
+                packages: yandex-taxi-reposition yandex-taxi-reposition-nginx-conf
+        depends_on:
+            taxi-cars-catalog:
+                condition: service_healthy
+            taxi-unique-drivers:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-fleet-vehicles:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-reposition
+        hostname: reposition.taxi.yandex.net
+        command: /taxi/run/reposition.sh
+        healthcheck:
+            test: curl -f http://reposition.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - reposition.taxi.yandex.net
+    taxi-stq:
+        extends:
+            service: taxi-backend
+        depends_on:
+            taxi-feedback:
+                condition: service_started
+            taxi-mongo:
+                condition: service_healthy
+            taxi-memcached:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-cars-catalog:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+            taxi-order-core:
+                condition: service_healthy
+        environment:
+          - PYTHONPATH=/taxi/configs:/usr/lib/yandex/taxi-stq
+          - program_name=taxi-stq
+        hostname: stq.taxi.yandex.net
+        command: /taxi/run/stq.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - stq.taxi.yandex
+    taxi-candidates:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/candidates/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-cars-catalog:
+                condition: service_healthy
+            taxi-unique-drivers:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-fleet-vehicles:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-yagr:
+                condition: service_healthy
+            taxi-tariffs:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-driver-freeze:
+                condition: service_healthy
+            taxi-driver-status:
+                condition: service_healthy
+            taxi-parks-activation:
+                condition: service_healthy
+            taxi-driver-categories-api:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-candidates
+        hostname: candidates.taxi.yandex.net
+        command: /taxi/run/candidates.sh
+        healthcheck:
+            test: curl -f http://candidates.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - candidates-l7.taxi.yandex.net
+                  - candidates.taxi.yandex.net
+    taxi-driver-profiles:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-profiles/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-personal:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-profiles
+        hostname: driver-profiles.taxi.yandex.net
+        healthcheck:
+            test: /taxi/tools/wait_importing_worker.sh driver-profiles
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        command: /taxi/run/driver-profiles.sh
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-profiles.taxi.yandex.net
+    taxi-fleet-parks:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/fleet-parks/production:${IMAGE_VERSION:-test}
+        depends_on:
+            mock-server:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-personal:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-fleet-parks
+        hostname: fleet-parks.taxi.yandex.net
+        command: /taxi/run/fleet-parks.sh
+        healthcheck:
+            test: curl -f http://fleet-parks.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - fleet-parks.taxi.yandex.net
+    taxi-driver-login:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-login/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-driver-authorizer:
+                condition: service_healthy
+            taxi-reposition:
+                condition: service_healthy
+            taxi-parks:
+                condition: service_healthy
+            taxi-fleet-parks:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-login
+        hostname: driver-login.taxi.yandex.net
+        command: /taxi/run/driver-login.sh
+        healthcheck:
+            test: curl -f http://driver-login.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-login.taxi.yandex.net
+    taxi-driver-categories-api:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-categories-api/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-fleet-parks:
+                condition: service_healthy
+            taxi-driver-trackstory:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-categories-api
+        hostname: driver-categories-api.taxi.yandex.net
+        command: /taxi/run/driver-categories-api.sh
+        healthcheck:
+            test: curl -f http://driver-categories-api.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-categories-api.taxi.yandex.net
+    taxi-driver-orders-app-api:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-orders-app-api/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-driver-authorizer:
+                condition: service_healthy
+            taxi-reposition:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taximeter-xservice:
+                condition: service_healthy
+            taxi-protocol:
+                condition: service_healthy
+            taxi-parks:
+                condition: service_healthy
+            taxi-fleet-parks:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-driver-trackstory:
+                condition: service_healthy
+            taxi-driver-status:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-orders-app-api
+        hostname: driver-orders-app-api.taxi.yandex.net
+        command: /taxi/run/driver-orders-app-api.sh
+        healthcheck:
+            test: curl -f http://driver-orders-app-api.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-orders-app-api.taxi.yandex.net
+    taxi-driver-authorizer:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-authorizer/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-authorizer
+        hostname: driver-authorizer.taxi.yandex.net
+        command: /taxi/run/driver-authorizer.sh
+        healthcheck:
+            test: curl -f http://driver-authorizer.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-authorizer.taxi.yandex.net
+    taxi-driver-status:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-status/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./volumes/bootstrap_db/pgmigrate/driver-status:/taxi/pgmigrate/driver-status:ro
+        depends_on:
+            taxi-driver-authorizer:
+                condition: service_healthy
+            taximeter-xservice:
+                condition: service_healthy
+            taxi-parks:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-status
+        hostname: driver-status.taxi.yandex.net
+        command: /taxi/run/driver-status.sh
+        healthcheck:
+            test: curl -f http://driver-status.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-status.taxi.yandex.net
+    taxi-driver-freeze:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/driver-freeze/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-redis:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-driver-freeze
+        hostname: driver-freeze.taxi.yandex.net
+        command: /taxi/run/driver-freeze.sh
+        healthcheck:
+            test: curl -f http://driver-freeze.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - driver-freeze.taxi.yandex.net
+    taxi-stq-agent:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/stq-agent/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-redis-sentinel:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-stq-agent
+        hostname: stq-agent.taxi.yandex.net
+        command: /taxi/run/stq-agent.sh
+        healthcheck:
+            test: curl -f http://stq-agent.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - stq-agent.taxi.yandex.net
+    taxi-persuggest:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/persuggest/production:${IMAGE_VERSION:-test}
+        depends_on:
+            mock-server:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-exp3-matcher:
+                condition: service_healthy
+            taxi-tariffs:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-persuggest
+        hostname: persuggest.taxi.yandex.net
+        command: /taxi/run/persuggest.sh
+        healthcheck:
+            test: curl -f http://persuggest.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - persuggest.taxi.dev.yandex.net
+                  - persuggest.taxi.tst.yandex.net
+                  - persuggest.taxi.yandex.net
+    taxi-zalogin:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/zalogin/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-user-api:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-zalogin
+        hostname: zalogin.taxi.yandex.net
+        command: /taxi/run/zalogin.sh
+        healthcheck:
+            test: curl -f http://zalogin.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - zalogin.taxi.yandex.net
+                  - zalogin.taxi.dev.yandex.net
+                  - zalogin.taxi.tst.yandex.net
+    taxi-lookup:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/lookup/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-cars-catalog:
+                condition: service_healthy
+            taxi-unique-drivers:
+                condition: service_healthy
+            taxi-driver-profiles:
+                condition: service_healthy
+            taxi-fleet-vehicles:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-lookup
+        hostname: lookup.taxi.yandex.net
+        command: /taxi/run/lookup.sh
+        healthcheck:
+            test: curl -f http://lookup.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - lookup.taxi.yandex.net
+    taxi-cardstorage:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/cardstorage/production:${IMAGE_VERSION:-test}
+        depends_on:
+            mock-server:
+                condition: service_healthy
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-stq-agent:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-cardstorage
+        hostname: cardstorage.taxi.yandex.net
+        command: /taxi/run/cardstorage.sh
+        healthcheck:
+            test: curl -f http://cardstorage.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - cardstorage.taxi.yandex.net
+    taxi-api-proxy-manager:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/api-proxy-manager/production:${IMAGE_VERSION:-test}
+        volumes:
+          - ./volumes/bootstrap_db/pgmigrate/api-proxy:/taxi/pgmigrate/api-proxy:ro
+        depends_on:
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-api-proxy-manager
+        hostname: api-proxy-manager.taxi.yandex.net
+        command: /taxi/run/api-proxy-manager.sh
+        healthcheck:
+            test: curl -f http://api-proxy-manager.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - api-proxy-manager.taxi.yandex.net
+    taxi-api-proxy:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/api-proxy/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-api-proxy-manager:
+                condition: service_healthy
+            taxi-experiments3-proxy:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-api-proxy
+        hostname: api-proxy.taxi.yandex.net
+        command: /taxi/run/api-proxy.sh
+        healthcheck:
+            test: curl -f http://api-proxy.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - api-proxy.taxi.yandex.net
+    taxi-personal:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/personal/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-personal
+        hostname: personal.taxi.yandex.net
+        command: /taxi/run/personal.sh
+        healthcheck:
+            test: curl -f http://personal.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - personal.taxi.yandex.net
+    taxi-user-api:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-user-api:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-user-api
+                packages: yandex-taxi-user-api
+                platform: ${PLATFORM:-xenial}
+        depends_on:
+            taxi-personal:
+                condition: service_started
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-user-api
+        hostname: user-api.taxi.yandex.net
+        command: /taxi/run/user-api.sh
+        healthcheck:
+            test: curl -f http://user-api.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - user-api.taxi.yandex.net
+    taxi-localizations-replica:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/localizations-replica/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-localizations-replica
+        hostname: localizations-replica.taxi.yandex.net
+        command: /taxi/run/localizations-replica.sh
+        healthcheck:
+            test: curl -f http://localizations-replica.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - localizations-replica.taxi.yandex.net
+    taxi-parks-activation:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/parks-activation/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-parks-replica:
+                condition: service_healthy
+            taxi-territories:
+                condition: service_healthy
+            mock-server:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-parks-activation
+        hostname: parks-activation.taxi.yandex.net
+        command: /taxi/run/parks-activation.sh
+        healthcheck:
+            test: curl -f http://parks-activation.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - parks-activation.taxi.yandex.net
+    taxi-parks-replica:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/parks-replica/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-mongo:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-parks-replica
+        hostname: parks-replica.taxi.yandex.net
+        command: /taxi/run/parks-replica.sh
+        healthcheck:
+            test: curl -f http://parks-replica.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - parks-replica.taxi.yandex.net
+    taxi-pilorama:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-pilorama:${IMAGE_VERSION:-test}
+        build:
+            context: services
+            args:
+                project: taxi-pilorama
+                packages: yandex-taxi-pilorama
+                platform: ${PLATFORM:-xenial}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-elastic:
+                condition: service_started
+        volumes:
+          - ./volumes/pilorama/pilorama_config.yaml:/etc/yandex/taxi/pilorama/pilorama_config.yaml:ro
+        command: /taxi/run/pilorama.sh
+        networks:
+            taxi_internal:
+    taxi-mongo:
+        extends:
+            service: taxi-integration-xenial-base
+        ports:
+          - "27017:27017"
+        command: /taxi/run/mongo.sh
+        environment:
+          - MONGO_RAMDISK
+        volumes:
+          - ./volumes/mongo:/data/db:rw
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/run:/taxi/run:ro
+          - ./_logs:/taxi/logs:rw
+          - type: tmpfs
+            target: /mnt/ram
+            tmpfs:
+                size: 4294967296 # 4 GB
+        working_dir: /data/db
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh mongo < /dev/null
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - mongo.taxi.yandex
+    taxi-redis:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - program_name=taxi-redis
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh redis-cli -h ::1 ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        volumes:
+          - ./volumes/redis:/taxi/redis:ro
+        depends_on:
+            taxi-loghandler:
+                condition: service_healthy
+        networks:
+            taxi_internal:
+                ipv4_address: 172.16.239.222
+                ipv6_address: 2001:3984:398a::222
+                aliases:
+                  - redis.taxi.yandex
+        command: /taxi/run/redis.sh
+    taxi-redis-sentinel:
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - program_name=taxi-redis-sentinel
+        volumes:
+          - ./volumes/redis:/taxi/redis:ro
+        depends_on:
+            taxi-redis:
+                condition: service_healthy
+        networks:
+            taxi_internal:
+                aliases:
+                  - redis-sentinel.taxi.yandex
+        command: /taxi/run/redis-sentinel.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh redis-cli -h ::1 -p 26379 ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+    taxi-postgres:
+        image: registry.yandex.net/taxi/externalimages/postgres:11
+        environment:
+          - POSTGRES_USER=user
+          - POSTGRES_PASSWORD=password
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/bootstrap_db/postgres:/docker-entrypoint-initdb.d:ro
+          - type: tmpfs
+            target: /var/lib/postgresql/data
+            tmpfs:
+                size: 4294967296 # 4 GB
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh env PGPASSWORD=password pg_isready -U
+                user -h pgaas.mail.yandex.net -p 5432 -d dborders -q
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - pgaas.mail.yandex.net
+    taxi-memcached:
+        image: registry.yandex.net/taxi/externalimages/memcached
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh grep :2BCB /proc/net/tcp
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - memcached.taxi.yandex
+    taxi-loghandler:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./taxi-loghandler:/taxi/loghandler:ro
+        command: /taxi/run/loghandler.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh pgrep -f /taxi/loghandler/loghandler.py
+            timeout: 30s
+            interval: 5s
+            retries: 20
+    taxi-elastic:
+        image: registry.yandex.net/taxi/externalimages/elasticsearch:latest
+        environment:
+          - discovery.type=single-node
+        networks:
+            taxi_internal:
+                aliases:
+                  - elasticsearch.taxi.yandex
+                  - taxi-search-logs01.taxi.yandex.net
+                  - taxi-elastic-logs.taxi.yandex.net
+    taxi-kibana:
+        image: registry.yandex.net/taxi/externalimages/kibana:latest
+        depends_on:
+            taxi-elastic:
+                condition: service_started
+        environment:
+          - ELASTICSEARCH_HOSTS=http://elasticsearch.taxi.yandex:9200
+        networks:
+            taxi_internal:
+                aliases:
+                  - kibana.taxi.yandex.nonexistent
+    mock-server:
+        extends:
+            service: taxi-integration-xenial-base
+        command: /taxi/run/mock-server.sh
+        healthcheck:
+            test: /taxi/tools/healthcheck.sh nc -z mock-server.yandex.net 80
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        environment:
+          - program_name=taxi-mock-server
+        volumes:
+          - ./mock-server:/taxi/mock:ro
+        networks:
+            taxi_internal:
+                aliases:
+                  - accelerometer-metrics.taxi.yandex.net
+                  - achievements.taxi.dev.yandex.net
+                  - achievements.taxi.tst.yandex.net
+                  - achievements.taxi.yandex.net
+                  - addrs.yandex.net
+                  - api-python.taxi.dev.yandex.net
+                  - api-python.taxi.tst.yandex.net
+                  - api-python.taxi.yandex.net
+                  - api.routing.yandex.net
+                  - api.social.yandex.ru
+                  - archive-api.taxi.yandex.net
+                  - avatars.mds.yandex.net
+                  - avatars.mdst.yandex.net
+                  - balance-simple.yandex.net
+                  - clowny-balancer.taxi.yandex.net
+                  - billing-replication.taxi.yandex.net
+                  - billing-subventions.taxi.yandex.net
+                  - billing-subventions-x.taxi.yandex.net
+                  - blackbox.yandex-team.ru
+                  - blackbox.yandex.net
+                  - bunker-api.yandex.net
+                  - busy-drivers.taxi.yandex.net
+                  - c.yandex-team.ru
+                  - cargo-claims.taxi.yandex.net
+                  - cargo-dispatch.taxi.yandex.net
+                  - cargo-orders.taxi.yandex.net
+                  - cashbox-integration.taxi.tst.yandex.net
+                  - cashbox-integration.taxi.yandex.net
+                  - chat.taxi.tst.yandex.net
+                  - code-dispatch.taxi.yandex.net
+                  - communications.taxi.yandex.net
+                  - contractor-orders-multioffer.taxi.yandex.net
+                  - classifier.taxi.dev.yandex.net
+                  - classifier.taxi.tst.yandex.net
+                  - classifier.taxi.yandex.net
+                  - contractor-order-history.taxi.yandex.net
+                  - contractor-transport.taxi.dev.yandex.net
+                  - contractor-transport.taxi.tst.yandex.net
+                  - contractor-transport.taxi.yandex.net
+                  - core-driving-router.maps.yandex.net
+                  - core-jams-rdr.maps.yandex.net
+                  - core-renderer-cache.maps.yandex.net
+                  - core-renderer-tiles.maps.yandex.net
+                  - crons.taxi.dev.yandex.net
+                  - crons.taxi.tst.yandex.net
+                  - crons.taxi.yandex.net
+                  - deptrans-driver-status.taxi.dev.yandex.net
+                  - deptrans-driver-status.taxi.tst.yandex.net
+                  - deptrans-driver-status.taxi.yandex.net
+                  - discounts.taxi.dev.yandex.net
+                  - discounts.taxi.tst.yandex.net
+                  - discounts.taxi.yandex.net
+                  - dispatch-settings.taxi.yandex.net
+                  - driver-cctv-map.taxi.yandex.net
+                  - driver-fix.taxi.dev.yandex.net
+                  - driver-fix.taxi.tst.yandex.net
+                  - driver-fix.taxi.yandex.net
+                  - driver-launch.taxi.yandex.net
+                  - driver-map.taxi.dev.yandex.net
+                  - driver-map.taxi.tst.yandex.net
+                  - driver-map.taxi.yandex.net
+                  - driver-mode-subscription.taxi.dev.yandex.net
+                  - driver-mode-subscription.taxi.tst.yandex.net
+                  - driver-mode-subscription.taxi.yandex.net
+                  - driver-money.taxi.yandex.net
+                  - driver-order-messages.taxi.yandex.net
+                  - driver-order-misc.taxi.yandex.net
+                  - driver-payment-types.taxi.yandex.net
+                  - driver-priority-view.taxi.yandex.net
+                  - driver-priority.taxi.yandex.net
+                  - driver-profile-view.taxi.yandex.net
+                  - driver-ratings.taxi.yandex.net
+                  - driver-referrals.taxi.yandex.net
+                  - driver-regulatory-export.taxi.tst.yandex.net
+                  - driver-regulatory-export.taxi.yandex.net
+                  - driver-support.taxi.yandex.net
+                  - driver-tags.taxi.yandex.net
+                  - driver-tutorials.taxi.yandex.net
+                  - driver-wall.taxi.yandex.net
+                  - driver-weariness.taxi.yandex.net
+                  - fleet-rent.taxi.yandex.net
+                  - gas-stations.taxi.yandex.net
+                  - geoareas.taxi.yandex.net
+                  - special-zones.taxi.yandex.net
+                  - pickuppoints.taxi.yandex.net
+                  - georeceiver-l7.taxi.yandex.net
+                  - georeceiver.taxi.yandex.net
+                  - geotracks.taxi.yandex.net
+                  - graph.taxi.yandex.net
+                  - hahn.yt.yandex.net
+                  - heatmap-renderer.taxi.yandex.net
+                  - heatmap-surge-api.taxi.yandex.net
+                  - individual-tariffs.taxi.yandex.net
+                  - integration-api.taxi.yandex.net
+                  - integration-api.taxi.tst.yandex.net
+                  - ivr-dispatcher.taxi.yandex.net
+                  - lbs-cloud-proxy.taxi.tst.yandex.net
+                  - lbs-cloud-proxy.taxi.yandex.net
+                  - login.uber.com
+                  - lookup-ordering.taxi.dev.yandex.net
+                  - lookup-ordering.taxi.tst.yandex.net
+                  - lookup-ordering.taxi.yandex.net
+                  - loyalty.taxi.yandex.net
+                  - mapsuggest-internal.yandex.net
+                  - metadata-storage.taxi.yandex.net
+                  - misc-spell.yandex.net
+                  - mock-server.yandex.net
+                  - music-auth.taxi.yandex.net
+                  - music.taxi.yandex.net
+                  - parks-certifications.taxi.dev.yandex.net
+                  - parks-certifications.taxi.tst.yandex.net
+                  - parks-certifications.taxi.yandex.net
+                  - partner-offers.taxi.dev.yandex.net
+                  - partner-offers.taxi.tst.yandex.net
+                  - partner-offers.taxi.yandex.net
+                  - passenger-profile.taxi.yandex.net
+                  - passport-internal.yandex.ru
+                  - pci-tf.fin.yandex.net
+                  - personal-wallet.taxi.yandex.net
+                  - pricing-data-preparer.taxi.yandex.net
+                  - pricing-taximeter.taxi.yandex.net
+                  - processing-antifraud.taxi.yandex.net
+                  - promotions.taxi.yandex.net
+                  - proxy-ml.taxi.yandex.net
+                  - pyml.taxi.dev.yandex.net
+                  - pyml.taxi.tst.yandex.net
+                  - pyml.taxi.yandex.net
+                  - quality-control-cpp.taxi.yandex.net
+                  - quality-control-cpp.taxi.tst.yandex.net
+                  - quality-control.taxi.yandex.net
+                  - replication.taxi.yandex.net
+                  - reposition-api.taxi.yandex.net
+                  - blocklist.taxi.yandex.net
+                  - blocklist.taxi.tst.yandex.net
+                  - rescue.taxi.yandex.net
+                  - s3.mds.yandex.net
+                  - s3.mdst.yandex.net
+                  - saas-searchproxy-maps-prestable.yandex.net
+                  - saas-searchproxy-maps.yandex.net
+                  - scooter-backend.taxi.yandex.net
+                  - scooter-backend.taxi.tst.yandex.net
+                  - secured-openapi.business.tinkoff.ru
+                  - selfemployed.taxi.yandex.net
+                  - selfemployed-fns-replica.taxi.dev.yandex.net
+                  - selfemployed-fns-replica.taxi.tst.yandex.net
+                  - selfemployed-fns-replica.taxi.yandex.net
+                  - selfreg.taxi.yandex.net
+                  - seneca-man.yt.yandex.net
+                  - seneca-sas.yt.yandex.net
+                  - seneca-vla.yt.yandex.net
+                  - shared-payments.taxi.yandex.net
+                  - stable.leasing-cabinet.carsharing.yandex.net
+                  - static-maps.yandex.ru
+                  - static.rostaxi.org
+                  - statistics.taxi.yandex.net
+                  - storage-int.mds.yandex.net
+                  - storage-int.mdst.yandex.net
+                  - storage.mds.yandex.net
+                  - shuttle-integration.taxi.yandex.net
+                  - subvention-view.taxi.dev.yandex.net
+                  - subvention-view.taxi.tst.yandex.net
+                  - subvention-view.taxi.yandex.net
+                  - suggest-maps.yandex.net
+                  - superapp-misc.taxi.yandex.net
+                  - tariffs.taxi.dev.yandex.net
+                  - tariffs.taxi.tst.yandex.net
+                  - taxi-mvp.s3.yandex.net
+                  - taximeter-basis-minor.taxi.yandex.net
+                  - taximeter-chat.taxi.yandex.net
+                  - taximeter-xservice-utils.taxi.dev.yandex.net
+                  - taximeter-xservice-utils.taxi.tst.yandex.net
+                  - taximeter-xservice-utils.taxi.yandex.net
+                  - tmongo1f.fin.yandex.ru
+                  - tmongo1f.yandex.ru
+                  - toll-roads.taxi.yandex.net
+                  - tolls.taxi.yandex.net
+                  - tracker-analytics.taxi.dev.yandex.net
+                  - tracker-analytics.taxi.tst.yandex.net
+                  - tracker-analytics.taxi.yandex.net
+                  - tracker-map.taxi.dev.yandex.net
+                  - tracker-map.taxi.tst.yandex.net
+                  - tracker-map.taxi.yandex.net
+                  - tracker-set.taxi.yandex.net
+                  - tracker-slb.taxi.tst.yandex.net
+                  - tracker-unstable.taxi.tst.yandex.net
+                  - tracker.taxi.dev.yandex.net
+                  - tracker.taxi.load.yandex.net
+                  - tracker.taxi.tst.yandex.net
+                  - tracker.taxi.yandex.net
+                  - tracks-graph.taxi.dev.yandex.net
+                  - tracks-graph.taxi.tst.yandex.net
+                  - tracks-graph.taxi.yandex.net
+                  - trust-payments-xg.paysys.yandex.net
+                  - trust-paysys.paysys.yandex.net
+                  - trust-lpm.paysys.yandex.net
+                  - trust-test.yandex.ru
+                  - tst.extjams.maps.yandex.net
+                  - tvm-api.yandex.net
+                  - uatraits.qloud.yandex.ru
+                  - ucommunications.taxi.yandex.net
+                  - umlaas-geo.taxi.yandex.net
+                  - user-authconfirm.taxi.yandex.net
+                  - userplaces.taxi.yandex.net
+                  - vec.tiles.maps.yandex.net
+                  - vgw-api.taxi.yandex.net
+                  - virtual-tariffs.taxi.yandex.net
+                  - wallarm-monitor.qloud.yandex.net
+                  - wallarm.nonexistent
+                  - weathermaps.s3.yandex.net
+                  - yaga-adjust.taxi.yandex.net
+                  - yandex.ru
+                  - surge-calculator.taxi.yandex.net
+                  - heatmap-storage.taxi.yandex.net
+networks:
+    taxi_net:
+        driver: bridge
+        enable_ipv6: true
+        ipam:
+            driver: default
+            config:
+              - subnet: 172.16.238.0/24
+              - subnet: 2001:3984:3989:0000:2::/80
+    taxi_internal:
+        driver: bridge
+        enable_ipv6: true
+        internal: true
+        ipam:
+            driver: default
+            config:
+              - subnet: 172.16.239.0/24
+              - subnet: 2001:3984:398a::/64
+
+volumes:
+    driver-authproxy-socket:
+    driver-authproxy-nginx-conf-d:

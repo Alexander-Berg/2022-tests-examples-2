@@ -1,0 +1,101 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: 'apikey middleware test'
+
+basePath: /api-4-0
+
+paths:
+    /closed-echo:
+        get:
+            x-taxi-middlewares:
+                api-4.0: true
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        $ref: '#/definitions/EchoResponse'
+
+    /pass-not-authorized-echo:
+        get:
+            x-taxi-middlewares:
+                api-4.0:
+                    pass-not-authorized: true
+            responses:
+                '200':
+                    description: OK
+                    schema:
+                        oneOf:
+                          - $ref: '#/definitions/EchoResponse'
+                          - type: object
+                            x-taxi-strict-parsing: true
+                            additionalProperties: false
+                            properties:
+                                reason:
+                                    type: string
+definitions:
+    PassFlags:
+        type: object
+        x-taxi-strict-parsing: true
+        additionalProperties: false
+        properties:
+            has_phonish:
+                type: boolean
+            has_ya_plus:
+                type: boolean
+            no_login:
+                type: boolean
+            phone_confirm_required:
+                type: boolean
+            has_plus_cashback:
+                type: boolean
+            account_type:
+                type: string
+    PersonalData:
+        type: object
+        x-taxi-strict-parsing: true
+        additionalProperties: false
+        properties:
+            phone_id:
+                type: string
+            email_id:
+                type: string
+            eats_id:
+                type: string
+    EchoResponse:
+        type: object
+        x-taxi-strict-parsing: true
+        additionalProperties: false
+        properties:
+            yandex_uid:
+                type: string
+            yandex_login:
+                type: string
+            yandex_login_id:
+                type: string
+            yandex_taxi_userid:
+                type: string
+            yandex_taxi_phoneid:
+                type: string
+            user_ticket:
+                type: string
+            flags:
+                $ref: '#/definitions/PassFlags'
+            locale:
+                type: string
+            remote_ip:
+                type: string
+            bound_uids:
+                type: array
+                items:
+                    type: string
+            bound_user_ids:
+                type: array
+                items:
+                    type: string
+            personal:
+                $ref: '#/definitions/PersonalData'
+            app_vars:
+                type: object
+                additionalProperties:
+                    type: string

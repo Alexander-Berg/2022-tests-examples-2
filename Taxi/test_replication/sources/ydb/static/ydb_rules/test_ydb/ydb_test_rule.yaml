@@ -1,0 +1,22 @@
+name: ydb_test_rule
+source:
+    type: ydb
+    connection:
+        secret: test_yav
+    table: dummy
+    replicate_by: updated
+    replicate_by_index_view: updated_idx
+    primary_key:
+      - id
+    timezone: UTC
+destinations:
+  - ydb_test_rule:
+        mapper: ydb_test_mapper
+        target:
+            cluster_groups:
+              - map_reduce
+            path: test/ydb_test_target
+        type: yt
+replication_type: queue
+queue_data:
+    db_cluster: replication_queue_mdb_0

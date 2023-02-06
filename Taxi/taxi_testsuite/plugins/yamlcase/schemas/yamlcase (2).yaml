@@ -1,0 +1,209 @@
+type: object
+additionalProperties: false
+required:
+  - type
+  - version
+  - service
+properties:
+  type:
+    description: Type of test
+    type: string
+    enum:
+      - apitest
+  version:
+    description: YamlCase format version
+    type: integer
+    minimum: 0
+    maximum: 0
+  service:
+    type: string
+  description:
+    description: Testfile description
+    type: string
+  fixtures:
+    $ref: '#definitions/PytestFixtures'
+  marks:
+    $ref: '#definitions/PytestMarks'
+  mockserver:
+    $ref: '#definitions/MockserverHandlers'
+  testpoint:
+    $ref: '#definitions/TestpointHandlers'
+  params:
+    $ref: '#definitions/TemplateParameters'
+  tests:
+    desription: Testcases list
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - request
+      properties:
+        name:
+          description: testcase name
+          type: string
+        description:
+          description: Testcase description
+          type: string
+        fixtures:
+          $ref: '#definitions/PytestFixtures'
+        marks:
+          $ref: '#definitions/PytestMarks'
+        mockserver:
+          $ref: '#definitions/MockserverHandlers'
+        testpoint:
+          $ref: '#definitions/TestpointHandlers'
+        request:
+          $ref: '#definitions/HttpRequest'
+        response:
+          $ref: '#definitions/HttpResponseAssertion'
+        params:
+          $ref: '#definitions/TemplateParameters'
+        assertions:
+          $ref: '#definitions/Assertions'
+definitions:
+  PytestFixtures:
+    description: List of pytest fixtures required by testcase
+    type: array
+    items:
+      type: string
+  PytestMarks:
+    description: pytest.mark() marks list
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          description: pytest.mark.name()
+          type: string
+        args:
+          description: positional pytest.mark arguments
+          type: array
+        kwargs:
+          description: keyword pytest.mark arguments
+          type: object
+  MockserverHandlers:
+    type: array
+    items:
+      description: Mockserver handler defenition
+      type: object
+      additionalProperties: false
+      required:
+        - url
+        - response
+      properties:
+        url:
+          description: Mockserver URL
+          type: string
+        description:
+          description: Mockserver handler description
+          type: string
+        request:
+          $ref: '#definitions/HttpRequestAssertion'
+        response:
+          $ref: '#definitions/HttpResponse'
+  HttpStatus:
+    status:
+      description: HTTP status code
+      type: integer
+  HttpMethod:
+    description: HTTP method
+    type: string
+    enum:
+      - DELETE
+      - GET
+      - OPTIONS
+      - PATCH
+      - POST
+      - PUT
+  HttpHeadersDict:
+    description: HTTP headers dictionary
+    type: object
+    additionalProperties:
+      type: string
+  HttpRequestBody:
+    description: HTTP request body
+  HttpResponse:
+    description: HTTP response defenition
+    type: object
+    additionalProperties: false
+    properties:
+      status:
+        $ref: '#definitions/HttpStatus'
+      headers:
+        $ref: '#definitions/HttpHeadersDict'
+      body:
+        $ref: '#definitions/HttpRequestBody'
+  HttpResponseAssertion:
+    description: HTTP response assertion
+    type: object
+    additionalProperties: false
+    properties:
+      status:
+        $ref: '#definitions/HttpStatus'
+      headers:
+        $ref: '#definitions/HttpHeadersDict'
+      body:
+        $ref: '#definitions/HttpRequestBody'
+  HttpRequest:
+    description: HTTP request defenition
+    type: object
+    additionalProperties: false
+    required:
+      - path
+    properties:
+      path:
+        description: Path part of URL
+        type: string
+      method:
+        $ref: '#definitions/HttpMethod'
+      headers:
+        $ref: '#definitions/HttpHeadersDict'
+      body:
+        $ref: '#definitions/HttpRequestBody'
+  HttpRequestAssertion:
+    description: HTTP request assertion
+    type: object
+    additionalProperties: false
+    properties:
+      method:
+        $ref: '#definitions/HttpMethod'
+      headers:
+        $ref: '#definitions/HttpHeadersDict'
+      body:
+        $ref: '#definitions/HttpRequestBody'
+  TemplateParameters:
+    description: HTTP request assertion
+    type: object
+  Assertions:
+    description: Array of assertion statements
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+      required:
+        - type
+      properties:
+        type:
+          description: Assertion type
+          enum:
+            - mockserver-called
+            - testpoint-called
+  TestpointHandlers:
+    description: Testpoint handlers
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+      required:
+        - name
+      properties:
+        name:
+          description: Testpoint identifier
+          type: string
+        data:
+          description: Expected testpoint data

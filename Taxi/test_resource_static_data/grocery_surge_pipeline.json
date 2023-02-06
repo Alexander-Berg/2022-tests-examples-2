@@ -1,0 +1,71 @@
+{
+  "name": "test_pipeline",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "optional": false,
+          "query": {
+            "operations": [
+              {
+                "property_name": "depot_ids"
+              }
+            ]
+          }
+        }
+      ],
+      "name": "fetch_static_data",
+      "optional": false,
+      "resources": [
+        {
+          "field": "static_data",
+          "name": "static_data"
+        }
+      ],
+      "source_code": "return {static_data: {depot_id: depot_ids[0], pipeline: 'test_pipeline'}}"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "init_out_array",
+      "out_bindings": [
+        {
+          "alias": "depots_out",
+          "query": "depots_out"
+        }
+      ],
+      "source_code": "return {depots_out: []};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "depot_ids.*{idx:depot_id}"
+        },
+        {
+          "domain": "resource",
+          "query": {
+            "operations": [
+              {
+                "alias": "settings",
+                "property_name": "static_data"
+              }
+            ]
+          }
+        }
+      ],
+      "name": "calc_load_level",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "depots_out[idx]"
+        }
+      ],
+      "source_code": "return {data: {depot_id: depot_id, result: {load_level: settings.load_level}}};"
+    }
+  ],
+  "state": "active"
+}

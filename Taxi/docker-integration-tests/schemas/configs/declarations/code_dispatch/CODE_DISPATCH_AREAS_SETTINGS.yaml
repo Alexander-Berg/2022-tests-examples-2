@@ -1,0 +1,95 @@
+default: {}
+description: Настройки районов диспача по коду
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/area_settings'
+    definitions:
+        parking_settings:
+            type: object
+            properties:
+                parking_id:
+                    type: string
+                is_enabled:
+                    type: boolean
+                available_lines:
+                    type: array
+                    items:
+                        type: string
+            additionalProperties: false
+            required:
+              - parking_id
+              - is_enabled
+              - available_lines
+        expiration_settings:
+            type: object
+            properties:
+                processing:
+                    type: integer
+                    minimum: 1
+                assigned:
+                    type: integer
+                    minimum: 1
+                error:
+                    type: integer
+                    minimum: 1
+            additionalProperties:
+                type: integer
+                minimum: 1
+        line_settings:
+            type: object
+            properties:
+                line_id:
+                    type: string
+                is_enabled:
+                    type: boolean
+                available_classes:
+                    type: array
+                    items:
+                        type: string
+                payment_methods:
+                    type: array
+                    items:
+                        type: string
+                off_if_free_drivers_below:
+                    type: integer
+                on_if_free_drivers_above:
+                    type: integer
+            additionalProperties: false
+            required:
+              - line_id
+              - is_enabled
+        area_settings:
+            type: object
+            properties:
+                is_enabled:
+                    type: boolean
+                assignment_expiration:
+                    $ref: '#/definitions/expiration_settings'
+                alias_ids:
+                    type: array
+                    items:
+                        type: string
+                queue_parkings:
+                    type: array
+                    items:
+                        $ref: '#/definitions/parking_settings'
+                queue_lines:
+                    type: array
+                    items:
+                        $ref: '#/definitions/line_settings'
+                code_alphabet:
+                    type: string
+                    pattern: '^[a-zA-Z0-9]+$'
+                code_format:
+                    type: string
+                    pattern: '^([^a-zA-Z0-9]|X)*$'
+            additionalProperties: false
+            required:
+              - is_enabled
+              - assignment_expiration
+              - queue_lines
+              - code_alphabet
+              - code_format
+              - alias_ids

@@ -1,0 +1,91 @@
+id: top_screen_objects
+title: проверка пробрасывания top_screen_objects
+source:
+    request:
+        method: post
+        body: {"state": {}, "shortcuts": {"grids_support": [{"width": 6, "unit_width": 54.5}],
+                "supported_features": [{"type": "taxi:route-input", "services": [],
+                        "prefetch_strategies": []}, {"type": "media-stories", "services": [],
+                        "prefetch_strategies": []}], "ndash_width": 9, "mdash_width": 14},
+            "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+            body: {"modes": [{"top_screen_objects": [{"id": "some_button", "type": "round_button",
+                                "title": {"items": [{"type": "image", "width": 25,
+                                            "image_tag": "superapp_city_mode_icon",
+                                            "vertical_alignment": "center"}, {"text": " \
+                                                \ В город", "type": "text", "color": "#21201F",
+                                            "font_size": 16, "font_style": "normal",
+                                            "font_weight": "light"}]}, "action": {
+                                    "mode": "masstransit", "type": "discovery"}}],
+                        "layout": {"grid_id": "some_grid_id", "width": 6, "type": "linear_grid"},
+                        "mode": "taxi", "offers": {"items": [], "header": []}, "parameters": {
+                            "available": true, "product_tag": "taxi"}}], "shortcuts_tutorial": {},
+                "shortcuts_background_framing": {}, "typed_experiments": {"items": []},
+                "shortcuts_offers": {}, "products": [{"tag": "taxi", "service": "taxi",
+                        "title": "Taxi"}]}
+mocks:
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+            typed_experiments: {"items": []}
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}, "top_screen_objects": [{"id": "some_button",
+                    "type": "round_button", "title": {"items": [{"type": "image",
+                                "width": 25, "image_tag": "superapp_city_mode_icon",
+                                "vertical_alignment": "center"}, {"text": "  В город",
+                                "type": "text", "color": "#21201F", "font_size": 16,
+                                "font_style": "normal", "font_weight": "light"}]},
+                    "action": {"mode": "masstransit", "type": "discovery"}}]}
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body: {"scenario_tops": []}
+experiments:
+    values#object:
+      - key: shortcuts_tutorial
+        value: {}
+        enabled: true
+      - key: shortcuts_background_framing
+        value: {}
+        enabled: true
+      - key: shortcuts_offers
+        value: {}
+        enabled: true

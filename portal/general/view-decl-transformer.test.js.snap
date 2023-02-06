@@ -1,0 +1,148 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transformViewDeclarations should transform lambda expressions 1 1`] = `
+Object {
+  "deps": Array [
+    "Checkbox",
+  ],
+  "output": "export function City(data, req, execView) {
+  return execView(Checkbox, {
+    name: 'auto'
+  });
+}",
+}
+`;
+
+exports[`transformViewDeclarations should transform lambda expressions 2 1`] = `
+Object {
+  "deps": Array [
+    "Checkbox",
+  ],
+  "output": "export function City(data, req, execView) {
+  return execView(Checkbox, {
+    name: 'auto'
+  });
+}",
+}
+`;
+
+exports[`transformViewDeclarations should transform views call expressions into function declarations 1`] = `
+Object {
+  "deps": Array [
+    "StreamEvents__layout",
+    "StreamEvents__items",
+    "StreamEvents__empty",
+    "StreamEvents__empty1",
+    "StreamEvents__empty2",
+    "StreamEvents__item12345",
+    "StreamEvents__buttonsLayout",
+    "StreamEvents__buttonsLayout2",
+    "TestTest__test",
+    "Test2Test2__test2",
+    "Test3Test3__test3",
+    Object {
+      "as": "BMetrika__countersBase",
+      "base": "BMetrika__counters",
+    },
+    Object {
+      "as": "SuggestUrl__queryBase",
+      "base": "SuggestUrl__query",
+    },
+    "Ua__isTablet",
+    "StreamCarousel__hideInfoText",
+    Object {
+      "as": "StreamCarousel__headerHideControlsBase",
+      "base": "StreamCarousel__headerHideControls",
+    },
+  ],
+  "output": "/* eslint-disable */
+export function StreamEvents(data, req, execView) {
+  return execView(StreamEvents__layout, {
+    mods: data.mods,
+    items: execView(StreamEvents__items, data)
+  });
+} // проверка shadowing
+
+var x = 'shouldn-be-changed';
+export function StreamEvents__items(data, req, execView) {
+  var items = data.items || [],
+      schedule = items.filter(function (item) {
+    return item.content_type_name !== 'void';
+  });
+  var x = StreamEvents__empty1;
+
+  if (!items.length || !schedule.length) {
+    if (condition) {
+      return execView(StreamEvents__empty, {
+        message: ''
+      });
+    }
+
+    x = StreamEvents__empty;
+    return execView(x, {
+      message: data.error ? req.l10n('stream.schedule_loading_error') : req.l10n('stream.no_schedule')
+    });
+  }
+
+  x = StreamEvents__empty2;
+  return items.map(function (item, i) {
+    return execView(i === 'shouldn-be-changed' ? StreamEvents__item12345 : x, {
+      parent: data.parent
+    });
+  }).join('');
+}
+var obj = {
+  x: StreamEvents__buttonsLayout,
+  y: 'test2-test2__test2' // shouldn't be changed
+
+};
+var some_condition;
+
+if (some_condition) {
+  obj.x = StreamEvents__buttonsLayout2;
+}
+
+export function StreamEvents__personalBtns(data, req, execView) {
+  var obj2 = {};
+  obj2.x = 'shouldn-be-changed';
+  return execView(obj.x, {
+    attrs: {
+      'data-contentid': data.realContentId
+    }
+  });
+}
+var obj2 = {
+  x: TestTest__test,
+  // should be replaced
+  y: Test2Test2__test2 // should be replaced
+
+};
+obj2.x = Test3Test3__test3;
+export function StreamEvents__personalBtns(data, req, execView) {
+  var type = 'x';
+  return execView(obj2[type], {});
+}
+export function StreamEvents__personalBtns2(data, req, execView) {
+  var type = 'x';
+  return execView(obj2[type], {});
+}
+export function BMetrika__counters(req, execView) {
+  var res = execView(BMetrika__countersBase);
+  return res;
+}
+BMetrika__counters.isCached = true;
+export function SuggestUrl__query(req, execView) {
+  var suggestParams = execView(SuggestUrl__queryBase);
+
+  if (execView(Ua__isTablet)) {
+    suggestParams.mob = 1;
+  }
+
+  return suggestParams;
+}
+SuggestUrl__query.isCached = true;
+export function StreamCarousel__headerHideControls(data, req, execView) {
+  return execView(StreamCarousel__hideInfoText) + execView(StreamCarousel__headerHideControlsBase, data);
+}",
+}
+`;

@@ -1,0 +1,40 @@
+console: {enabled: false, package: yandextank.plugins.Console}
+telegraf: {enabled: false, package: yandextank.plugins.Telegraf}
+phantom: {enabled: false, package: yandextank.plugins.Phantom}
+rcheck: {enabled: false}
+pandora:
+  package: yandextank.plugins.Pandora
+  enabled: true
+  config_content:
+    pools:
+      - id: HTTP pool
+        gun:
+          type: http
+          target: localhost:443
+          ssl: true
+        ammo:
+          type: uripost
+          file: /data/pandora_uripost/pandora_uripost.ammo
+        result:
+          type: phout
+          destination: ./phout.log
+        rps: 
+          - {duration: 30s, type: line, from: 1, to: 1500}
+        startup:
+          type: once
+          times: 100
+    log:
+      level: error
+    monitoring:
+      expvar:
+        enabled: true
+        port: 1234
+monitoring:
+  enabled: false
+  package: yandextank.plugins.YASM
+uploader:
+  api_address: https://lunapark.yandex-team.ru/
+  task: YANDEXTANK-1
+  job_name: '[pandora][uripost][resource][ssl]'
+  operator: lunapark
+  ignore_target_lock: true

@@ -1,0 +1,23 @@
+INSERT INTO checks.conditions
+    (is_allowed_on_order)
+  VALUES
+    (TRUE),
+    (TRUE),
+    (TRUE),
+    (FALSE),
+    (TRUE),
+    (FALSE),
+    (TRUE),
+    (TRUE),
+    (TRUE),
+    (FALSE),
+    (TRUE),
+    (FALSE),
+    (TRUE),
+    (FALSE),
+    (TRUE),
+    (TRUE),
+    (TRUE),
+    (FALSE),
+    (TRUE)
+;

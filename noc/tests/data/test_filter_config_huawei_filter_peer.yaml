@@ -1,0 +1,1517 @@
+vendor: huawei
+
+output: |
+  ip community-filter basic DONT_ANNOUNCE_COMMUNITY index 10 permit 13238:999
+  ip community-filter basic GSHUT_COMMUNITY index 10 permit 65535:0
+  interface 100GE1/0/23
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s42 100ge1/0/1
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s42 inbound
+  route-policy S1_EXPORT_TOR permit node 10
+    apply community 13238:999 additive
+  route-policy S1_IMPORT_TOR deny node 10
+    if-match community-filter DONT_ANNOUNCE_COMMUNITY
+  route-policy S1_IMPORT_TOR permit node 20
+    if-match community-filter GSHUT_COMMUNITY
+    apply local-preference 0
+  route-policy S1_IMPORT_TOR permit node 30
+    apply local-preference 100
+  bgp 65000.65051
+    group TOR external
+    peer FE80::E42:D1 as-number 65000.9042
+    ipv6-family unicast
+      peer TOR enable
+      peer FE80::E42:D1 enable
+      peer TOR advertise-community
+      peer TOR route-policy S1_IMPORT_TOR import
+      peer TOR route-policy S1_EXPORT_TOR export
+      peer FE80::E42:D1 group TOR
+    peer TOR bfd enable
+    peer TOR bfd min-tx-interval 500 min-rx-interval 500 detect-multiplier 4
+    peer TOR listen-only
+    peer FE80::E42:D1 group TOR
+    peer FE80::E42:D1 connect-interface 100GE1/0/23
+  bfd
+
+acl: |
+  bgp
+    peer TOR
+    group TOR
+    peer FE80::E42:D1
+    ipv6-family unicast
+      peer TOR
+      group TOR
+      peer FE80::E42:D1
+  bfd
+  route-policy S1_EXPORT_TOR
+    ~ %global
+  ip community-filter basic DONT_ANNOUNCE_COMMUNITY
+  ip extcommunity-filter basic DONT_ANNOUNCE_COMMUNITY
+  ip extcommunity-filter advanced DONT_ANNOUNCE_COMMUNITY
+  route-policy S1_IMPORT_TOR
+    ~ %global
+  ip community-filter basic DONT_ANNOUNCE_COMMUNITY
+  ip community-filter basic GSHUT_COMMUNITY
+  interface (?i)100GE1/0/23
+    ~ %global=1
+
+input: |
+  # -------------------- vla-51d1.cfg --------------------
+  port split mode mode1 slot 1
+  ip vpn-instance MEth0/0/0
+    ipv6-family
+    ipv4-family
+  ip community-filter basic DONT_ANNOUNCE_COMMUNITY index 10 permit 13238:999
+  ip community-filter basic GSHUT_COMMUNITY index 10 permit 65535:0
+  ntp server disable
+  ntp ipv6 server disable
+  ntp server source-interface all disable
+  ntp ipv6 server source-interface all disable
+  ntp unicast-server ipv6 2A02:6B8:0:C011::1 vpn-instance MEth0/0/0
+  ntp unicast-server ipv6 2A02:6B8:0:829::100 vpn-instance MEth0/0/0
+  ntp unicast-server ipv6 2A02:6B8:0:829::101 vpn-instance MEth0/0/0
+  ntp unicast-server ipv6 2A02:6B8:0:1A01::100 vpn-instance MEth0/0/0
+  ntp unicast-server ipv6 2A02:6B8:0:1A01::101 vpn-instance MEth0/0/0
+  acl name MGMT number 3998
+    rule 0 deny ip
+  acl ipv6 number 3996
+    rule 0 permit ipv6 vpn-instance MEth0/0/0
+    rule 10 deny ipv6
+  acl ipv6 number 2710
+    rule 21 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:1423:225:90FF:FEE4:2BB0/128
+    rule 22 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:1482::100/128
+    rule 23 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:1608::82C1:3E7D/128
+    rule 24 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:1A43::5FF:D673/128
+    rule 25 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:823::5F6C:849E/128
+    rule 26 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:C012::10/128
+    rule 27 permit vpn-instance MEth0/0/0 source 2A02:6B8:0:C01A::54C9:B8C9/128
+    rule 28 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:31::100/128
+    rule 29 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:31::1000/128
+    rule 30 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:31::81/128
+    rule 31 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:50A4:225:90FF:FEE3:CE8D/128
+    rule 32 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:50A4::81/128
+    rule 33 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:7012::2000/128
+    rule 34 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:8009::19/128
+    rule 35 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:8009::20/128
+    rule 36 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:8009::21/128
+    rule 37 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:8009::3/128
+    rule 38 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:88:216:3EFF:FEC9:1640/128
+    rule 39 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:88::101/128
+    rule 40 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:88::201/128
+    rule 41 permit vpn-instance MEth0/0/0 source 2A02:6B8:B010:E011::5F6C:F881/128
+    rule 42 permit vpn-instance MEth0/0/0 source 2A02:6B8:B011:6407:E61D:2DFF:FE01:FA20/128
+  traffic classifier ANY type and
+    if-match any
+  traffic classifier RETRANSMIT_RX_vla-1x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-25x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla2-9s38 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-2x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-26x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla2-9s39 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-3x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-27x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla2-9s41 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-4x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-28x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla2-9s40 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-5x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-29x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-6x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-30x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla2-9s42 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-7x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-31x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla2-9s44 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-8x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-32x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-9x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-25x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-10x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-26x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-11x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-27x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-12x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-28x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-13x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-29x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-14x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-30x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-15x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-31x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-16x1 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic classifier RETRANSMIT_RX_vla-32x1-2 type or
+    if-match ipv6 dscp cs5 41 42 43 44 45 ef 47
+  traffic behavior ALLOW
+    statistics enable
+  traffic policy RETRANSMIT_RX_vla-1x1
+    classifier RETRANSMIT_RX_vla-1x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-25x1
+    classifier RETRANSMIT_RX_vla-25x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla2-9s38
+    classifier RETRANSMIT_RX_vla2-9s38 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-2x1
+    classifier RETRANSMIT_RX_vla-2x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-26x1
+    classifier RETRANSMIT_RX_vla-26x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla2-9s39
+    classifier RETRANSMIT_RX_vla2-9s39 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-3x1
+    classifier RETRANSMIT_RX_vla-3x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-27x1
+    classifier RETRANSMIT_RX_vla-27x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla2-9s41
+    classifier RETRANSMIT_RX_vla2-9s41 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-4x1
+    classifier RETRANSMIT_RX_vla-4x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-28x1
+    classifier RETRANSMIT_RX_vla-28x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla2-9s40
+    classifier RETRANSMIT_RX_vla2-9s40 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-5x1
+    classifier RETRANSMIT_RX_vla-5x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-29x1
+    classifier RETRANSMIT_RX_vla-29x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-6x1
+    classifier RETRANSMIT_RX_vla-6x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-30x1
+    classifier RETRANSMIT_RX_vla-30x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla2-9s42
+    classifier RETRANSMIT_RX_vla2-9s42 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-7x1
+    classifier RETRANSMIT_RX_vla-7x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-31x1
+    classifier RETRANSMIT_RX_vla-31x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla2-9s44
+    classifier RETRANSMIT_RX_vla2-9s44 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-8x1
+    classifier RETRANSMIT_RX_vla-8x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-32x1
+    classifier RETRANSMIT_RX_vla-32x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-9x1
+    classifier RETRANSMIT_RX_vla-9x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-25x1-2
+    classifier RETRANSMIT_RX_vla-25x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-10x1
+    classifier RETRANSMIT_RX_vla-10x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-26x1-2
+    classifier RETRANSMIT_RX_vla-26x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-11x1
+    classifier RETRANSMIT_RX_vla-11x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-27x1-2
+    classifier RETRANSMIT_RX_vla-27x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-12x1
+    classifier RETRANSMIT_RX_vla-12x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-28x1-2
+    classifier RETRANSMIT_RX_vla-28x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-13x1
+    classifier RETRANSMIT_RX_vla-13x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-29x1-2
+    classifier RETRANSMIT_RX_vla-29x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-14x1
+    classifier RETRANSMIT_RX_vla-14x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-30x1-2
+    classifier RETRANSMIT_RX_vla-30x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-15x1
+    classifier RETRANSMIT_RX_vla-15x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-31x1-2
+    classifier RETRANSMIT_RX_vla-31x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-16x1
+    classifier RETRANSMIT_RX_vla-16x1 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  traffic policy RETRANSMIT_RX_vla-32x1-2
+    classifier RETRANSMIT_RX_vla-32x1-2 behavior ALLOW precedence 10
+    classifier ANY behavior ALLOW precedence 15
+  hwtacacs server template tacacs
+    hwtacacs server shared-key cipher %^%#YeReEQ9|f;gpu38MKuv#dTp=1d=3lIA>HA2p&MwMkOzW+k@*]=X0gtOX!!=-%^%#
+    hwtacacs server authentication 2A02:6B8:0:3400:0:8D0:0:1 vpn-instance MEth0/0/0
+    hwtacacs server authorization 2A02:6B8:0:3400:0:8D0:0:1 vpn-instance MEth0/0/0
+    hwtacacs server accounting 2A02:6B8:0:3400:0:8D0:0:1 vpn-instance MEth0/0/0
+  aaa
+    undo local-user policy security-enhance
+    authentication-scheme default
+    authorization-scheme default
+    accounting-scheme default
+    domain default
+    domain default_admin
+    authentication-scheme tacacs
+      authentication-mode local hwtacacs
+    authorization-scheme tacacs
+      authorization-mode local hwtacacs
+    accounting-scheme tacacs
+      accounting-mode hwtacacs
+    domain localuser
+      authentication-scheme tacacs
+      authorization-scheme tacacs
+      accounting-scheme tacacs
+      hwtacacs server tacacs
+    default-domain admin localuser
+    local-user racktables password irreversible-cipher $1a$34qx,Zl^W*$)Zj6;+qRHKAQSoP4mk18s*C=4|I-yD"=j.DEFMCG$
+    local-user racktables service-type ftp terminal telnet ssh
+    local-user racktables level 3
+    local-user racktables ftp-directory flash:
+    local-user robot-noc-ck password irreversible-cipher $1c$^^&/5yReM$$6D]PGJc!]Nu'%>D|v{*S0EW-K{U,VSAm"<(P)&]D$
+    local-user robot-noc-ck service-type ftp terminal telnet ssh
+    local-user robot-noc-ck level 3
+    local-user robot-noc-ck ftp-directory flash:
+    local-user monitor password irreversible-cipher $1a$oaPe#QcSpD$>^0v@C:bmR_R@TGODiGI~J#r&<NI}U`E/qOiT!&5$
+    local-user monitor service-type ftp terminal telnet ssh
+    local-user monitor level 1
+    local-user monitor ftp-directory flash:
+  user-interface con 0
+    authentication-mode aaa
+    user privilege level 3
+    history-command max-size 256
+  user-interface maximum-vty 8
+  user-interface vty 0 7
+    authentication-mode aaa
+    protocol inbound all
+    idle-timeout 60 0
+    history-command max-size 256
+  interface MEth0/0/0
+    ip binding vpn-instance MEth0/0/0
+    ipv6 enable
+    ipv6 address 2A02:6B8:0:C011:0:210:C:11A/64
+    description vla2-i66 gi0/0/17
+  interface 100GE1/0/1
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-1x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-1x1 inbound
+  interface 100GE1/0/2
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-25x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-25x1 inbound
+  interface 100GE1/0/3
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s38 100ge1/0/1
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s38 inbound
+  interface 100GE1/0/5
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-2x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-2x1 inbound
+  interface 100GE1/0/6
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-26x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-26x1 inbound
+  interface 100GE1/0/7
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s39 100ge1/0/1
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s39 inbound
+  interface 100GE1/0/9
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-3x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-3x1 inbound
+  interface 100GE1/0/10
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-27x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-27x1 inbound
+  interface 100GE1/0/11
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s41 100ge1/0/1
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s41 inbound
+  interface 100GE1/0/13
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-4x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-4x1 inbound
+  interface 100GE1/0/14
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-28x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-28x1 inbound
+  interface 100GE1/0/15
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s40 100ge1/0/1
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s40 inbound
+  interface 100GE1/0/17
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-5x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-5x1 inbound
+  interface 100GE1/0/18
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-29x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-29x1 inbound
+  interface 100GE1/0/21
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-6x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-6x1 inbound
+  interface 100GE1/0/22
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-30x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-30x1 inbound
+  interface 100GE1/0/23
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s42 100ge1/0/1
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s42 inbound
+  interface 100GE1/0/25
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-7x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-7x1 inbound
+  interface 100GE1/0/26
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-31x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-31x1 inbound
+  interface 100GE1/0/27
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla2-9s44 swp49
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla2-9s44 inbound
+  interface 100GE1/0/29
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-8x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-8x1 inbound
+  interface 100GE1/0/30
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-32x1 100ge1/0/14
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-32x1 inbound
+  interface 100GE1/0/33
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-9x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-9x1 inbound
+  interface 100GE1/0/34
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-25x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-25x1-2 inbound
+  interface 100GE1/0/37
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-10x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-10x1 inbound
+  interface 100GE1/0/38
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-26x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-26x1-2 inbound
+  interface 100GE1/0/41
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-11x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-11x1 inbound
+  interface 100GE1/0/42
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-27x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-27x1-2 inbound
+  interface 100GE1/0/45
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-12x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-12x1 inbound
+  interface 100GE1/0/46
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-28x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-28x1-2 inbound
+  interface 100GE1/0/49
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-13x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-13x1 inbound
+  interface 100GE1/0/50
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-29x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-29x1-2 inbound
+  interface 100GE1/0/53
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-14x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-14x1 inbound
+  interface 100GE1/0/54
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-30x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-30x1-2 inbound
+  interface 100GE1/0/57
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-15x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-15x1 inbound
+  interface 100GE1/0/58
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-31x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-31x1-2 inbound
+  interface 100GE1/0/61
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-16x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-16x1 inbound
+  interface 100GE1/0/62
+    undo portswitch
+    ipv6 enable
+    ipv6 address FE80::51:C1:2 link-local
+    ipv6 mtu 9000
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+    description vla-32x1 100ge1/0/16
+    mtu 9000
+    traffic-policy RETRANSMIT_RX_vla-32x1-2 inbound
+  interface 100GE1/0/4
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/8
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/12
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/16
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/19
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/20
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/24
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/28
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/31
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/32
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/35
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/36
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/39
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/40
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/43
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/44
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/47
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/48
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/51
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/52
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/55
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/56
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/59
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/60
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/63
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  interface 100GE1/0/64
+    undo portswitch
+    qos drr 0 to 5
+    qos queue 0 drr weight 10
+    qos queue 1 drr weight 10
+    qos queue 2 drr weight 10
+    qos queue 3 drr weight 30
+    qos queue 4 drr weight 30
+    qos queue 5 drr weight 3
+  ipv6 route-static vpn-instance MEth0/0/0 :: 0 MEth0/0/0 FE80::1
+  ipv6 route-static 2A02:6B8:C0E:400:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C17:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC09:300:: 56 NULL0
+  ipv6 route-static 2A02:6B8:FC18:: 48 NULL0
+  ipv6 route-static 2A02:6B8:C0E:700:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C18:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC09:400:: 56 NULL0
+  ipv6 route-static 2A02:6B8:FC19:: 48 NULL0
+  ipv6 route-static 2A02:6B8:C0E:300:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C15:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC09:200:: 56 NULL0
+  ipv6 route-static 2A02:6B8:FC16:: 48 NULL0
+  ipv6 route-static 2A02:6B8:C0E:100:: 56 NULL0
+  ipv6 route-static 2A02:6B8:FC09:100:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C0F:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC15:: 48 NULL0
+  ipv6 route-static 2A02:6B8:C0E:A00:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C1F:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC21:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC09:700:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C0E:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C0D:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC14:: 48 NULL0
+  ipv6 route-static 2A02:6B8:FC09:: 56 NULL0
+  ipv6 route-static 2A02:6B8:C1D:: 48 NULL0
+  ipv6 route-static 2A02:6B8:C0E:900:: 56 NULL0
+  ipv6 route-static 2A02:6B8:FC09:600:: 56 NULL0
+  ipv6 route-static 2A02:6B8:FC1E:: 48 NULL0
+  route-policy S1_EXPORT_S2 deny node 10
+    if-match community-filter DONT_ANNOUNCE_COMMUNITY
+  route-policy S1_EXPORT_S2 permit node 20
+  route-policy S1_EXPORT_TOR permit node 10
+    apply community 13238:999 additive
+  route-policy S1_IMPORT_S2 permit node 10
+    if-match community-filter GSHUT_COMMUNITY
+    apply community 13238:999 additive
+    apply local-preference 0
+  route-policy S1_IMPORT_S2 permit node 20
+    apply community 13238:999 additive
+    apply local-preference 100
+  route-policy S1_IMPORT_TOR deny node 10
+    if-match community-filter DONT_ANNOUNCE_COMMUNITY
+  route-policy S1_IMPORT_TOR permit node 20
+    if-match community-filter GSHUT_COMMUNITY
+    apply local-preference 0
+  route-policy S1_IMPORT_TOR permit node 30
+    apply local-preference 100
+  bgp 65000.65051
+    router-id 1.0.51.1
+    undo default ipv4-unicast
+    group S2 external
+    group TOR external
+    peer FE80::1:B1 as-number 65000.65000
+    peer FE80::1:B25 as-number 65000.65000
+    peer FE80::1:B2 as-number 65000.65000
+    peer FE80::1:B26 as-number 65000.65000
+    peer FE80::1:B3 as-number 65000.65000
+    peer FE80::1:B27 as-number 65000.65000
+    peer FE80::1:B4 as-number 65000.65000
+    peer FE80::1:B28 as-number 65000.65000
+    peer FE80::1:B5 as-number 65000.65000
+    peer FE80::1:B29 as-number 65000.65000
+    peer FE80::1:B6 as-number 65000.65000
+    peer FE80::1:B30 as-number 65000.65000
+    peer FE80::1:B7 as-number 65000.65000
+    peer FE80::1:B31 as-number 65000.65000
+    peer FE80::1:B8 as-number 65000.65000
+    peer FE80::1:B32 as-number 65000.65000
+    peer FE80::1:B9 as-number 65000.65000
+    peer FE80::1:B17 as-number 65000.65000
+    peer FE80::1:B10 as-number 65000.65000
+    peer FE80::1:B18 as-number 65000.65000
+    peer FE80::1:B11 as-number 65000.65000
+    peer FE80::1:B19 as-number 65000.65000
+    peer FE80::1:B12 as-number 65000.65000
+    peer FE80::1:B20 as-number 65000.65000
+    peer FE80::1:B13 as-number 65000.65000
+    peer FE80::1:B21 as-number 65000.65000
+    peer FE80::1:B14 as-number 65000.65000
+    peer FE80::1:B22 as-number 65000.65000
+    peer FE80::1:B15 as-number 65000.65000
+    peer FE80::1:B23 as-number 65000.65000
+    peer FE80::1:B16 as-number 65000.65000
+    peer FE80::1:B24 as-number 65000.65000
+    peer FE80::E38:D1 as-number 65000.9038
+    peer FE80::E39:D1 as-number 65000.9039
+    peer FE80::E41:D1 as-number 65000.9041
+    peer FE80::E40:D1 as-number 65000.9040
+    peer FE80::E42:D1 as-number 65000.9042
+    peer FE80::E44:D1 as-number 65000.9044
+    ipv4-family unicast
+      undo peer S2 enable
+      undo peer TOR enable
+    ipv6-family unicast
+      load-balancing as-path-relax
+      maximum load-balancing 32
+      peer FE80::1:B1 enable
+      peer S2 enable
+      peer FE80::1:B25 enable
+      peer FE80::1:B2 enable
+      peer FE80::1:B26 enable
+      peer FE80::1:B3 enable
+      peer FE80::1:B27 enable
+      peer FE80::1:B4 enable
+      peer FE80::1:B28 enable
+      peer FE80::1:B5 enable
+      peer FE80::1:B29 enable
+      peer FE80::1:B6 enable
+      peer FE80::1:B30 enable
+      peer FE80::1:B7 enable
+      peer FE80::1:B31 enable
+      peer FE80::1:B8 enable
+      peer FE80::1:B32 enable
+      peer FE80::1:B9 enable
+      peer FE80::1:B17 enable
+      peer FE80::1:B10 enable
+      peer FE80::1:B18 enable
+      peer FE80::1:B11 enable
+      peer FE80::1:B19 enable
+      peer FE80::1:B12 enable
+      peer FE80::1:B20 enable
+      peer FE80::1:B13 enable
+      peer FE80::1:B21 enable
+      peer FE80::1:B14 enable
+      peer FE80::1:B22 enable
+      peer FE80::1:B15 enable
+      peer FE80::1:B23 enable
+      peer FE80::1:B16 enable
+      peer FE80::1:B24 enable
+      peer FE80::E38:D1 enable
+      peer TOR enable
+      peer FE80::E39:D1 enable
+      peer FE80::E41:D1 enable
+      peer FE80::E40:D1 enable
+      peer FE80::E42:D1 enable
+      peer FE80::E44:D1 enable
+      peer FE80::1:B1 group S2
+      peer S2 advertise-community
+      peer S2 route-policy S1_IMPORT_S2 import
+      peer S2 route-policy S1_EXPORT_S2 export
+      peer FE80::1:B25 group S2
+      peer FE80::1:B2 group S2
+      peer FE80::1:B26 group S2
+      peer FE80::1:B3 group S2
+      peer FE80::1:B27 group S2
+      peer FE80::1:B4 group S2
+      peer FE80::1:B28 group S2
+      peer FE80::1:B5 group S2
+      peer FE80::1:B29 group S2
+      peer FE80::1:B6 group S2
+      peer FE80::1:B30 group S2
+      peer FE80::1:B7 group S2
+      peer FE80::1:B31 group S2
+      peer FE80::1:B8 group S2
+      peer FE80::1:B32 group S2
+      peer FE80::1:B9 group S2
+      peer FE80::1:B17 group S2
+      peer FE80::1:B10 group S2
+      peer FE80::1:B18 group S2
+      peer FE80::1:B11 group S2
+      peer FE80::1:B19 group S2
+      peer FE80::1:B12 group S2
+      peer FE80::1:B20 group S2
+      peer FE80::1:B13 group S2
+      peer FE80::1:B21 group S2
+      peer FE80::1:B14 group S2
+      peer FE80::1:B22 group S2
+      peer FE80::1:B15 group S2
+      peer FE80::1:B23 group S2
+      peer FE80::1:B16 group S2
+      peer FE80::1:B24 group S2
+      peer FE80::E38:D1 group TOR
+      peer TOR advertise-community
+      peer TOR route-policy S1_IMPORT_TOR import
+      peer TOR route-policy S1_EXPORT_TOR export
+      peer FE80::E39:D1 group TOR
+      peer FE80::E41:D1 group TOR
+      peer FE80::E40:D1 group TOR
+      peer FE80::E42:D1 group TOR
+      peer FE80::E44:D1 group TOR
+    peer S2 bfd enable
+    peer S2 bfd min-tx-interval 500 min-rx-interval 500 detect-multiplier 4
+    peer FE80::1:B1 group S2
+    peer FE80::1:B1 connect-interface 100GE1/0/1
+    peer FE80::1:B25 group S2
+    peer FE80::1:B25 connect-interface 100GE1/0/2
+    peer FE80::1:B2 group S2
+    peer FE80::1:B2 connect-interface 100GE1/0/5
+    peer FE80::1:B26 group S2
+    peer FE80::1:B26 connect-interface 100GE1/0/6
+    peer FE80::1:B3 group S2
+    peer FE80::1:B3 connect-interface 100GE1/0/9
+    peer FE80::1:B27 group S2
+    peer FE80::1:B27 connect-interface 100GE1/0/10
+    peer FE80::1:B4 group S2
+    peer FE80::1:B4 connect-interface 100GE1/0/13
+    peer FE80::1:B28 group S2
+    peer FE80::1:B28 connect-interface 100GE1/0/14
+    peer FE80::1:B5 group S2
+    peer FE80::1:B5 connect-interface 100GE1/0/17
+    peer FE80::1:B29 group S2
+    peer FE80::1:B29 connect-interface 100GE1/0/18
+    peer FE80::1:B6 group S2
+    peer FE80::1:B6 connect-interface 100GE1/0/21
+    peer FE80::1:B30 group S2
+    peer FE80::1:B30 connect-interface 100GE1/0/22
+    peer FE80::1:B7 group S2
+    peer FE80::1:B7 connect-interface 100GE1/0/25
+    peer FE80::1:B31 group S2
+    peer FE80::1:B31 connect-interface 100GE1/0/26
+    peer FE80::1:B8 group S2
+    peer FE80::1:B8 connect-interface 100GE1/0/29
+    peer FE80::1:B32 group S2
+    peer FE80::1:B32 connect-interface 100GE1/0/30
+    peer FE80::1:B9 group S2
+    peer FE80::1:B9 connect-interface 100GE1/0/33
+    peer FE80::1:B17 group S2
+    peer FE80::1:B17 connect-interface 100GE1/0/34
+    peer FE80::1:B10 group S2
+    peer FE80::1:B10 connect-interface 100GE1/0/37
+    peer FE80::1:B18 group S2
+    peer FE80::1:B18 connect-interface 100GE1/0/38
+    peer FE80::1:B11 group S2
+    peer FE80::1:B11 connect-interface 100GE1/0/41
+    peer FE80::1:B19 group S2
+    peer FE80::1:B19 connect-interface 100GE1/0/42
+    peer FE80::1:B12 group S2
+    peer FE80::1:B12 connect-interface 100GE1/0/45
+    peer FE80::1:B20 group S2
+    peer FE80::1:B20 connect-interface 100GE1/0/46
+    peer FE80::1:B13 group S2
+    peer FE80::1:B13 connect-interface 100GE1/0/49
+    peer FE80::1:B21 group S2
+    peer FE80::1:B21 connect-interface 100GE1/0/50
+    peer FE80::1:B14 group S2
+    peer FE80::1:B14 connect-interface 100GE1/0/53
+    peer FE80::1:B22 group S2
+    peer FE80::1:B22 connect-interface 100GE1/0/54
+    peer FE80::1:B15 group S2
+    peer FE80::1:B15 connect-interface 100GE1/0/57
+    peer FE80::1:B23 group S2
+    peer FE80::1:B23 connect-interface 100GE1/0/58
+    peer FE80::1:B16 group S2
+    peer FE80::1:B16 connect-interface 100GE1/0/61
+    peer FE80::1:B24 group S2
+    peer FE80::1:B24 connect-interface 100GE1/0/62
+    peer TOR bfd enable
+    peer TOR bfd min-tx-interval 500 min-rx-interval 500 detect-multiplier 4
+    peer FE80::E38:D1 group TOR
+    peer FE80::E38:D1 connect-interface 100GE1/0/3
+    peer TOR listen-only
+    peer FE80::E39:D1 group TOR
+    peer FE80::E39:D1 connect-interface 100GE1/0/7
+    peer FE80::E41:D1 group TOR
+    peer FE80::E41:D1 connect-interface 100GE1/0/11
+    peer FE80::E40:D1 group TOR
+    peer FE80::E40:D1 connect-interface 100GE1/0/15
+    peer FE80::E42:D1 group TOR
+    peer FE80::E42:D1 connect-interface 100GE1/0/23
+    peer FE80::E44:D1 group TOR
+    peer FE80::E44:D1 connect-interface 100GE1/0/27
+  info-center loghost source MEth0/0/0
+  info-center loghost ipv6 2A02:6B8:B010:31::100 vpn-instance MEth0/0/0
+  info-center loghost ipv6 2A02:6B8:0:1482::100 vpn-instance MEth0/0/0
+  info-center loghost ipv6 2A02:6B8:0:3400::595 vpn-instance MEth0/0/0
+  info-center source aaa channel 7
+  info-center loghost ipv6 2A02:6B8:0:1400::F3 channel 7
+  info-center source fei_l2 channel 2 log state off trap state off
+  info-center source fei_l2 channel 4 log state off
+  info-center filter-id bymodule-alias ntp NTP_PEER_SELE
+  info-center trapbuffer size 512
+  info-center logbuffer size 2048
+  info-center max-logfile-number 400
+  info-center filter-id bymodule-alias devm hwIfMonitorInputRateRising
+  info-center filter-id bymodule-alias devm hwIfMonitorOutputRateRising
+  info-center filter-id bymodule-alias devm hwOpticalUnAuthorized
+  info-center filter-id bymodule-alias devm hwIfMonitorInputRateResume
+  info-center filter-id bymodule-alias devm hwIfMonitorOutputRateResume
+  info-center filter-id bymodule-alias devm hwBiosOrBootloaderPwdError
+  info-center filter-id bymodule-alias devm hwBiosOrBootloaderPwdErrorResume
+  snmp-agent sys-info version all
+  snmp-agent mib-view included default-ro system
+  snmp-agent mib-view included default-ro interfaces
+  snmp-agent mib-view included default-ro snmp
+  snmp-agent mib-view included default-ro ipAddrTable
+  snmp-agent mib-view included default-ro entityMIBObjects
+  snmp-agent mib-view included default-ro ifXEntry
+  snmp-agent mib-view included default-ro hwCpuDevTable
+  snmp-agent mib-view included default-ro hwdbDynFdbTable
+  snmp-agent mib-view included default-ro hwIfEtherStatEntry
+  snmp-agent mib-view included default-ro hwXQoSMIB
+  snmp-agent mib-view included default-ro hwSysPowerMgnt
+  snmp-agent mib-view included default-ro hwCBQoSMIB
+  snmp-agent community complexity-check disable
+  snmp-agent community read cipher %^%#G(SX78hnxFO`tn%p'xf&5#/X"$2.0:tfGV6^@8L*7AY{N$(\!T|IgoIBf>jYN@XXPGMEM6S9tUEF2UH@%^%# acl 2710
+  snmp-agent community read cipher %^%#u+9:S2ncFED.ig#LZ-0,BM%\HLc&j"{g07KEs>f7JKR%/NSh3-]yOdB"ya|VDQo-+^B+B2bJ'*#"sJq5%^%# mib-view default-ro acl 2710
+  snmp-agent community read cipher %^%#|{`aU3NT'6HxMjPk^1#9\jmB8Hxvq=/h8lCRQj3-}z\x<cODIYR7FX,8+,<Hp1}.M>$dG%)S!>Frj;x9%^%# mib-view default-ro acl 2710
+  snmp-agent target-host host-name trap_server_noc-sas trap ipv6 address udp-domain 2A02:6B8:B010:31::100 vpn-instance MEth0/0/0 params securityname cipher %^%#'<H':&YNz6HUXvK'=<<"B8.@#M*yGX9HP.W:z{vB%^%# v2c
+  snmp-agent target-host host-name trap_server_noc-myt trap ipv6 address udp-domain 2A02:6B8:0:1482::100 vpn-instance MEth0/0/0 params securityname cipher %^%#'<H':&YNz6HUXvK'=<<"B8.@#M*yGX9HP.W:z{vB%^%# v2c
+  snmp-agent trap source MEth0/0/0
+  snmp-agent
+  undo snmp-agent protocol source-status all-interface
+  snmp-agent protocol source-status ipv6 all-interface
+  snmp-agent trap enable feature-name configuration trap-name hwcfgmaneventlog
+  snmp-agent trap enable feature-name configuration trap-name hwCfgChgNotify
+  snmp-agent protocol ipv6 vpn-instance MEth0/0/0
+  stelnet server enable
+  telnet server acl 3998
+  ssh server acl 3998
+  ftp server acl 3998
+  telnet ipv6 server acl 3996
+  ssh ipv6 server acl 3996
+  ftp ipv6 server acl 3996
+  ssh server-source all-interface
+  ssh ipv6 server-source all-interface
+  telnet server-source all-interface
+  telnet ipv6 server-source all-interface
+  diffserv domain default
+    ip-dscp-outbound be green map 24
+    ip-dscp-outbound af1 green map 8
+    ip-dscp-outbound af2 green map 16
+    ip-dscp-outbound af3 green map 24
+    ip-dscp-outbound af4 green map 32
+  command-privilege level 0 view shell undo terminal monitor
+  command-privilege level 0 view global display current-configuration
+  command-privilege level 0 view global display saved-configuration
+  command-privilege level 0 view global display
+  command-privilege level 0 view shell undo terminal logging
+  hwtacacs enable
+  ssh server ip-block disable
+  bfd
+  dns resolve
+  dns timeout 2
+  dns domain yndx.net
+  dns server ipv6 2A02:6B8::1:1
+  dns server ipv6 2A02:6B8::1:1 vpn-instance MEth0/0/0
+  dns server ipv6 2A02:6B8:0:C011::1
+  dns server ipv6 2A02:6B8:0:C011::1 vpn-instance MEth0/0/0
+  sysname vla-51d1
+  header login information "vla-51d1"
+  load-balance ecmp
+    hashmode 6
+  clock timezone MSK add 03:00:00
+  lldp enable
+  mac-address aging-time 3600
+  scp server enable
+  sftp server enable
+  ftp server enable
+  ftp ipv6 server enable
+  ftp server source all-interface
+  ftp ipv6 server source all-interface
+  stp bpdu-protection
+  stp enable
+  error-down auto-recovery cause link-flap interval 30

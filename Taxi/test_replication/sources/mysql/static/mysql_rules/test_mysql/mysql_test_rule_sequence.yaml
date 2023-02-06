@@ -1,0 +1,22 @@
+name: mysql_test_rule_sequence
+source:
+    type: mysql
+    replicate_by: updated_at
+    iteration_type: sequence
+    primary_key:
+      - id
+    connection:
+        secret: test_yav_one_shard
+    table: dummy
+    timezone: UTC
+destinations:
+  - mysql_test_rule_sequence:
+        mapper: mysql_test_mapper
+        target:
+            cluster_groups:
+              - map_reduce
+            path: test/mysql_test_target
+        type: yt
+replication_type: queue
+queue_data:
+    db_cluster: replication_queue_mdb_0

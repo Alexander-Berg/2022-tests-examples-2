@@ -1,0 +1,125 @@
+default: []
+description: |
+    Список категорий транзакций, доступных в API
+    По сути отображение пары (agreement_id, sub_account) в category_id
+tags: ['notfallback']
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/Category'
+    definitions:
+        StringSet:
+            type: array
+            x-taxi-cpp-type: std::unordered_set
+            items:
+                type: string
+        StringSetInclude:
+            type: object
+            additionalProperties: false
+            required:
+              - include
+            properties:
+                include:
+                    $ref: '#/definitions/StringSet'
+        StringSetExclude:
+            type: object
+            additionalProperties: false
+            required:
+              - exclude
+            properties:
+                exclude:
+                    $ref: '#/definitions/StringSet'
+        SmartStringSet:
+            oneOf:
+              - $ref: '#/definitions/StringSetInclude'
+              - $ref: '#/definitions/StringSetExclude'
+        Localization:
+            type: object
+            additionalProperties: false
+            required:
+              - category_name_tanker_key
+              - description_tanker_key
+            properties:
+                category_name_tanker_key:
+                    type: string
+                    description: Имя ключа из кейсета taximeter.api.controllers без
+                        параметров
+                description_tanker_key:
+                    type: string
+                    description: |
+                        Имя ключа из кейсета taximeter.api.controllers с именованными параметрами.
+                        Используемые имена:
+                          - date
+                          - hours_free
+                          - minutes_free
+                          - minutes_sum
+                          - hours_sum
+                          - number
+                          - payment_batch_id
+                          - bank_order_id
+                          - invited_driver
+        CategoryGroupId:
+            type: string
+            description: Группа категории для отображения в Оптеуме/Балансе
+            enum:
+              - account_balance
+              - cash_collected
+              - platform_card
+              - platform_corporate
+              - platform_promotion
+              - platform_bonus
+              - platform_tip
+              - platform_fees
+              - partner_fees
+              - partner_other
+              - platform_other
+              - partner_rides
+        Category:
+            type: object
+            additionalProperties: false
+            required:
+              - agreement_id
+              - sub_account
+              - category_id
+            properties:
+                agreement_id:
+                    type: string
+                    minLength: 1
+                sub_account:
+                    type: string
+                    pattern: ^[^*]*\*?$
+                    description: |
+                        В конце строки допустима звёздочка *,
+                        означающая любую (в том числе пустую) последовательность символов
+                    minLength: 1
+                category_id:
+                    type: string
+                    pattern: ^[^*]*\*?$
+                    description: |
+                        В конце строки допустима звёздочка *, вместо которой будет
+                        подставлена сопоставленная звёздочке последовательность символов из sub_account
+                    minLength: 1
+                is_creatable_by:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        dispatcher:
+                            type: object
+                            additionalProperties: false
+                            properties: {}
+                        tech_support:
+                            type: object
+                            additionalProperties: false
+                            properties: {}
+                        fleet_api:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - client_ids
+                            properties:
+                                client_ids:
+                                    $ref: '#/definitions/SmartStringSet'
+                localization:
+                    $ref: '#/definitions/Localization'
+                category_group_id:
+                    $ref: '#/definitions/CategoryGroupId'

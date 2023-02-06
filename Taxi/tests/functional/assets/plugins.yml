@@ -1,0 +1,55 @@
+options:
+  width: 800
+  height: 600
+  browser: chrome
+  timeout: 0.2
+  base_url: http://nginx
+  selenium_hub_url: http://127.0.0.1:4450/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+  - _inner_test:
+      success: True
+      tap_description: Inside plugin.
+
+  - click_ok: css:button#to-click  # 1
+  - _inner_test:
+      success: True
+      tap_description: After pah test.
+
+  - click_ok: css:button#to-click  # 2
+  - _inner_test: [True, Short form with tap desc.]
+
+  - click_ok: css:button#not-existing  # 3
+  - _inner_test: [False, Failed pah test.]
+
+  - click_ok: css:button#to-click  # 4
+  - _inner_test: True  # short form with no desc
+
+  - click_ok: [css:button#to-click, Hoist to inner test.]  # 5
+  - _inner_test: [True, Desc hoisted from plugin.]
+
+  - click_ok: [css:button#to-click, Good desc.]  # 6
+  - _inner_test:
+      success: True
+      description: Good
+      tap_description: Passed check by description.
+
+  - click_ok: css:button#not-existing  # 7
+  - _inner_test:
+      success: False
+      message: Page has no element
+      tap_description: Passed check by message.
+
+  - click_ok: [css:button#to-click, Good desc.]  # 8
+  - _inner_test:
+      success: True
+      description: Bad
+      tap_description: Failed check by description.
+
+  - click_ok: css:button#not-existing  # 9
+  - _inner_test:
+      success: False
+      message: Bad message
+      tap_description: Failed check by message.

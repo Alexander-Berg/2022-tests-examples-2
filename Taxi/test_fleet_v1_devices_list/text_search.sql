@@ -1,0 +1,234 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'dev1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'ABCD11',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+), (
+    2,
+    NULL,
+    TRUE,
+    'dev2',
+    'pub_key_2',
+    '351756051523999',
+    'a5:90:c5:98:95:48',
+    '78:ff:28:f2:69:b1',
+    NULL,
+    'ABCD12',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    65536,
+    '{}',
+    2,
+    '2019-12-17T08:38:54',
+    '2019-12-17T08:38:54'
+), (
+    3,
+    NULL,
+    TRUE,
+    'dev3',
+    'pub_key_3',
+    NULL,
+    'ca:ff:4d:64:f2:79',
+    NULL,
+    '63:72:bf:26:5a:b3',
+    'ABCD13',
+    '2.01',
+    '7p117mV/CfzpOnevbsdfFC3g7nJ+dTliDx1QwMhOPBRCrLrSCMuUV6dLm+z2FchT',
+    '03Kl5ckWGKlUWmD4ZPq6dpVF5X5+oqycQgOJIZXfPg0=',
+    'RIVcPWACRArzJqxvXfm37l3HOaY41Ew3aIB4JhQYe/QQ+0XRWzsr9BNltXVHDhwUcgVLCmYBKn8PLvnqZg9V+A==',
+    256,
+    '{"foo":"bar"}',
+    NULL,
+    '2019-12-17T09:38:54',
+    '2019-12-17T09:38:54'
+), (
+    4,
+    NULL,
+    FALSE,
+    'dev4',
+    'pub_key_4',
+    NULL,
+    '32:41:27:d5:fb:ed',
+    'fb:43:3c:cd:1e:8f',
+    '23:5f:72:1c:04:39',
+    'ABCD21',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+), (
+    5,
+    NULL,
+    FALSE,
+    'dev5',
+    'pub_key_5',
+    NULL,
+    '11:11:11:22:22:ff',
+    NULL,
+    NULL,
+    'ABCD22',
+    'hw_5',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    65536,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p1',
+    2,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    3,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    4,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    5,
+    now(),
+    now(),
+    TRUE
+);
+
+INSERT INTO signal_device_api.car_device_bindings
+(
+    id,
+    park_id,
+    car_id,
+    device_id,
+    created_at,
+    detached_at,
+    updated_at
+)
+VALUES
+(
+    '1',
+    'p1',
+    'car1',
+    1,
+    now(),
+    NULL,
+    now()
+),
+(
+    '2',
+    'p1',
+    'car2',
+    2,
+    now(),
+    NULL,
+    now()
+),
+(
+    '3',
+    'p1',
+    'car3',
+    3,
+    now(),
+    NULL,
+    now()
+),
+(
+    '4',
+    'p1',
+    'car4',
+    4,
+    now(),
+    NULL,
+    now()
+),
+(
+    '5',
+    'p1',
+    'car5',
+    5,
+    now(),
+    NULL,
+    now()
+)
+

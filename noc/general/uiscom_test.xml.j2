@@ -1,0 +1,20 @@
+<include>
+{% for item in dialplanUiscomTest %}
+  <!-- Extension: {{ item.name }} -->
+  <extension name="incoming_{{ item.backside_number }}">
+    <condition field="destination_number" expression="^{{ item.provider_number }}$">
+      <action application="set" data="effective_caller_id_number=+${caller_id_number}"/>
+      <action application="set" data="effective_caller_id_name=+${caller_id_number}"/>
+      <action application="set" data="domain_name=$${domain}"/>
+{% if item.peer %}
+      <action application="bridge" data="sofia/gateway/{{ item.peer }}/{{ item.backside_number }}"/> 
+{% endif %}
+{% if item.backend %}
+      <action application="set" data="continue_on_fail=true"/>
+      <action application="set" data="hangup_after_bridge=true"/>
+      <action application="bridge" data="sofia/gateway/${distributor({{ item.backend }})}/{{ item.backside_number }}" loop="3"/>
+{% endif %}
+    </condition>
+  </extension>
+{%endfor%}
+</include>

@@ -1,0 +1,67 @@
+default: []
+description: "Настройки подписки на события, доставляемые через uid-notify"
+tags: []
+schema:
+    type: array
+    items:
+        type: object
+        additionalProperties: false
+        required:
+          - events
+          - delivery_type
+          - delivery_settings
+          - enabled
+        properties:
+            enabled:
+                type: boolean
+            events:
+                type: array
+                items:
+                    type: string
+                    enum:
+                      - bind
+                      - unbind
+            delivery_type:
+                type: string
+                enum:
+                  - api
+                  - stq
+                  - logbroker
+            delivery_settings:
+                $ref: '#/definitions/DeliverySettings'
+
+    definitions:
+        ApiSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - url
+              - retries
+              - timeout_ms
+              - tvm_name
+            properties:
+                url:
+                    type: string
+                retries:
+                    type: integer
+                timeout_ms:
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    type: integer
+                tvm_name:
+                    type: string
+        StqSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - queue
+            properties:
+                queue:
+                    type: string
+        DeliverySettings:
+            type: object
+            additionalProperties: false
+            properties:
+                stq:
+                    $ref: '#/definitions/StqSettings'
+                api:
+                    $ref: '#/definitions/ApiSettings'

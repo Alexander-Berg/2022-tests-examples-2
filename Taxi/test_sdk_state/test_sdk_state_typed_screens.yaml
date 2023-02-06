@@ -1,0 +1,130 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_enable_plaque.json"
+  - name: experiments3
+    kwargs:
+        filename: "exp3_typed_screens.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+tests:
+  - name: plaque:taxi:catching_up_cashback_with_catching_up_cashback_typed_screen
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "catching_up_cashback"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "100"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques:
+                  - plaque_id: plaque:taxi:catching_up_cashback_has_positive_balance_success_purchase
+                    priority: 5
+                    params:
+                        close_after: 60
+                        show_after: 10
+                    layout: VERTICAL
+                    condition:
+                        screens:
+                          - summary
+                    widgets:
+                      - widget:common:balance_without_text
+                      - widget:taxi:catching_up_cashback:after_purchase_plus:cashback_after_ride:has_balance
+
+                widgets:
+                  - widget_id: widget:taxi:catching_up_cashback:after_purchase_plus:cashback_after_ride:has_balance
+                    type: HORIZONT_TEXT
+                    horizont_text:
+                        text_left:
+                            items:
+                              - text: после поездки
+                                type: text
+                        text_right:
+                            items:
+                              - text: +$$CASHBACK$$
+                                type: text
+                    templates:
+                      - "$$CASHBACK$$"
+                  - widget_id: widget:common:balance_without_text
+                    type: BALANCE
+                    balance: {}
+            typed_screens:
+                items:
+                  - type: catching_up_cashback
+                    templates:
+                      - "$$TOTW_CATCHING_UP_CASHBACK_VALUE$$"
+                      - "$$TOTW_CATCHING_UP_CASHBACK_TEXT$$"
+                    payload:
+                        title:
+                            items:
+                              - text: "Попробуйте Плюс и заберите $$TOTW_CATCHING_UP_CASHBACK_VALUE$$\
+                                    \ $$TOTW_CATCHING_UP_CASHBACK_TEXT$$ после поездки"
+                                type: text
+                        text:
+                            items:
+                              - text: "C Плюсом вы сможете копить и тратить баллы\
+                                    \ в сервисах Яндекса. 1 балл = 1 рубль Подробнее\
+                                    \ о Плюсе"
+                                type: text
+                        image: "image_url"
+                        background_image: "background_image_url"
+
+
+  - name: plaque:taxi:without_catching_up_cashback_typed_screen
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["plaque"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+        # passport-authproxy
+            X-Yandex-UID: "some_new_uid"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /plus-wallet/v1/balances
+        response:
+            body:
+                balances:
+                  - balance: "100"
+                    currency: "RUB"
+                    wallet_id: "test_wallet_id"
+    response:
+        status: 200
+        body:
+            plaque:
+                plaques: []
+                widgets: []

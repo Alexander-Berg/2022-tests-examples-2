@@ -1,0 +1,62 @@
+default:
+    enabled: true
+    period_sec: 10
+    chunk_size: 2000
+    between_chunks_sleep_ms: 20
+    get_old_circuits_command_control:
+        network_timeout_ms: 200
+        statement_timeout_ms: 200
+    update_circuits_command_control:
+        network_timeout_ms: 300
+        statement_timeout_ms: 300
+description: Настройки периодической задачи по сохранению состояния и истории circuit'ов
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        enabled:
+            type: boolean
+            description: Включен ли запуск периодической задачи
+        period_sec:
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            description: Период запуска в секундах
+        chunk_size:
+            type: integer
+            minimum: 1
+            description: Число circuit'ов, обрабатываемых одним чанком
+        between_chunks_sleep_ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 0
+            description: Время слипа между обработкой чанков в мс
+        get_old_circuits_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        update_circuits_command_control:
+            $ref: '#/definitions/DbCommandControl'
+    required:
+      - enabled
+      - period_sec
+      - chunk_size
+      - between_chunks_sleep_ms
+      - get_old_circuits_command_control
+      - update_circuits_command_control
+    definitions:
+        DbCommandControl:
+            type: object
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout_ms
+              - statement_timeout_ms

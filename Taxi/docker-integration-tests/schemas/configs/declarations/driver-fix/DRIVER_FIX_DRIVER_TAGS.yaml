@@ -1,0 +1,57 @@
+default: {}
+description: Теги водителя для режима driver-fix [EFFICIENCYDEV-4240], [EFFICIENCYDEV-5245]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        additional_tags_by_zone:
+            $ref: '#/definitions/AdditionalTagsByZone'
+        common_tags:
+            $ref: '#/definitions/Tags'
+    definitions:
+        OnlineTimeTags:
+            description: Теги учтённого времени в режиме для времени time_in_seconds.
+            type: object
+            additionalProperties: false
+            required:
+              - time_in_seconds
+              - add_tags
+              - remove_tags
+            properties:
+                time_in_seconds:
+                    description: Порог учтённого времени в режиме, после которого
+                        нужно добавлять или удалять теги из tags.
+                    type: integer
+                    minimum: 0
+                add_tags:
+                    description: Список добавляемых тегов учтённого времени в режиме.
+                    type: array
+                    items:
+                        type: string
+                    x-taxi-cpp-type: std::set
+                remove_tags:
+                    description: Список удаляемых тегов учтённого времени в режиме.
+                    type: array
+                    items:
+                        type: string
+                    x-taxi-cpp-type: std::set
+        Tags:
+            type: object
+            additionalProperties: false
+            properties:
+                tags_list:
+                    description: Список тегов.
+                    type: array
+                    items:
+                        type: string
+                    x-taxi-cpp-type: std::unordered_set
+                online_time_tags:
+                    description: Список тегов по учтённому времени в режиме.
+                    type: array
+                    items:
+                        $ref: '#/definitions/OnlineTimeTags'
+        AdditionalTagsByZone:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Tags'

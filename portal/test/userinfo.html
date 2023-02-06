@@ -1,0 +1,194 @@
+<head>
+    <title>User Info</title>
+    <script type="text/javascript" src="//yandex.st/jquery/2.0.3/jquery.js"></script>
+    <link rel="stylesheet" href="//yandex.st/bootstrap/3.0.2/css/bootstrap.css" />
+    <style>
+        body {
+            margin: 10px;
+        }
+        td {
+            padding: 3px;
+        }
+        .clickable {
+            color: #428bca;
+        }
+        .spoiler {
+            display: none;
+        }
+    </style>
+    <script type="application/javascript">
+        function toggleSpoiler(elem) {
+            var spoiler = elem.nextSibling; 
+            if (spoiler.style.display == 'block') {
+                spoiler.style.display = 'none';
+            } else {
+                spoiler.style.display = 'block';
+            }
+        }
+    </script>
+</head>
+<body>
+    Login:&nbsp;[% login | html %]&nbsp;
+    Yandexuid: [% yaid | html %]
+    <form method="get">
+        <input name="login" id="input_login" value="[% login | html %]">
+        <input name="yaid" id="input_yaid" value="[% yaid | html %]">
+        <input type="submit" value="Change">
+        <button onclick="document.getElementById('input_login').value = '[% req_login %]'; document.getElementById('input_yaid').value = '[% req_yaid %]'">Me</button>
+    </form>
+    <hr />
+    <h3>Suggest</h3>
+    <h4>has_auto:&nbsp;[% Suggest.has_auto | html %]</h4>
+    <h4 class="clickable" onclick="toggleSpoiler(this);">geos_interest ([% Suggest.geos_interest.size || 0 %])</h4>
+    <div class="spoiler">
+        <table border=1>
+        <thead><tr><td>Id</td><td>Clicks</td></tr></thead>
+        <tbody>
+        [% FOR s IN Suggest.geos_interest.nsort('value').reverse %]
+            <tr> 
+                <td>[% s.name | html %]&nbsp;([% s.id | html %])</td>
+                <td>[% s.value | html %]</td>
+            </tr>
+        [% END %]
+        </tbody>
+        </table>
+    </div>
+    <h4 class="clickable" onclick="toggleSpoiler(this);">geos_tourist ([% Suggest.geos_tourist.size || 0 %])</h4>
+    <div class="spoiler">
+        <table border=1>
+        <thead><tr><td>Id</td><td>Clicks</td></tr></thead>
+        <tbody>
+        [% FOR s IN Suggest.geos_tourist.nsort('value').reverse %]
+            <tr> 
+                <td>[% s.name | html %]&nbsp;([% s.id | html %])</td>
+                <td>[% s.value | html %]</td>
+            </tr>
+        [% END %]
+        </tbody>
+        </table>
+    </div>
+    <hr />
+    <h3>Big Brother</h3>
+    <h4 class="clickable" onclick="toggleSpoiler(this);">Services ([% Services.size || 0 %])</h4>
+    <div class="spoiler">
+        Популярные сервисы с коэффициентом
+        <table border=1>
+        <thead><tr><td>Site</td><td>Hits</td><td>x</td><td>Days</td><td>Prod</td></tr></thead>
+        <tbody>
+        [% FOREACH cat IN Services.nsort('weight_adjusted').reverse %]
+            <tr> 
+                <td>[% cat.name | html %]&nbsp;([% cat.id | html %])</td>
+                <td>[% cat.hits | html%]</td>
+                <td>[% cat.weight | html %]</td>
+                <td>[% cat.days | html %]</td>
+                <td>[% cat.weight_adjusted | html%]</td>
+            </tr>
+        [% END %]
+        </tbody>
+        </table>
+    </div>
+
+    <h4 class="clickable" onclick="toggleSpoiler(this);">Sites ([% ExternalSites.size || 0 %])</h4>
+    <div class="spoiler">
+        <table border=1>
+        <thead><tr><td>Id</td><td>Site</td></tr></thead>
+        <tbody>
+        [% FOREACH site IN ExternalSites %]
+            <tr> 
+                <td>[% site.id | html %]</td>
+                <td>[% site.name | html %]</td>
+            </tr>
+        [% END %]
+        </tbody>
+        </table>
+    </div>
+    <h4 class="clickable" onclick="toggleSpoiler(this);">Applications ([% Apps.size || 0 %])</h4>
+    <div class="spoiler">
+        <table border=1>
+        <thead><tr><td>Id</td><td>Name</td></tr></thead>
+        <tbody>
+        [% FOREACH app IN Apps %]
+            <tr>
+                <td>[% app.id | html %]</td>
+                <td>[% app.name | html %]</td>
+            </tr>
+        [% END %]
+        </tbody>
+        </table>
+    </div>
+    <hr />
+    <h3>Personal Storage</h3>
+    <h4 class="clickable" onclick="toggleSpoiler(this);">Flights ([% Flights.size || 0 %])&nbsp;<a href="/test/personal/flights/" onclick="event.stopPropagation();" target="_blank">[+]</a></h4>
+    <div class="spoiler">
+        [% IF Flights.size %]
+        <table border="1">
+            <thead>
+                <tr>
+                    <td colspan="2" align="center">Departure</td>
+                    <td colspan="2" align="center">Arrival</td>
+                </tr>
+            </thead>
+            [% FOR f IN Flights %]
+            <tbody id="ticket_[% f.id %]">
+                <tr id="airports_[% f.id %]">
+                    <td align="right">Airport</td>
+                    <td><div id="departure_airport_[% f.id %]">[% f.departure.airport.iata_code | html%]</div></td>
+                    <td align="right">Airport</td>
+                    <td><div id="arrival_airport_[% f.id %]">[% f.arrival.airport.iata_code | html%]</div></td>
+                </tr>
+                <tr id="times_[% f.id %]">
+                    <td align="right">Time</td>
+                    <td><div id="departure_time_[% f.id %]">[% f.departure.time | html%]</div></td>
+                    <td align="right">Time</td>
+                    <td><div id="arrival_time_[% f.id %]">[% f.arrival.time | html%]</div></td>
+                </tr>
+            </tbody>
+            [% END %]
+        </table>
+        [% ELSE %]
+        No flights
+        [% END %]
+    </div>
+    <h4 class="clickable" onclick="toggleSpoiler(this);">Cinema ([% Cine.size || 0 %])</h4>
+    <div class="spoiler">
+        [% IF Cine.size %]
+        <table border="1">
+            [% FOR c IN Cine %]
+            <tbody>
+                <tr>
+                    <td>[% c.session.event.name | html %]</td>
+                    <td>[% c.session.venue.name | html %]</td>
+                    <td>[% c.session.hall.name | html %]</td>
+                    <td rowspan="3" valign="top"><img src="[% c.barcode.url %]" width="[% c.barcode.width %]" height="[% c.barcode.height %]"></td>
+                    <td rowspan="3" valign="top"><img src="[% c.pkpass_barcode.url %]" width="[% c.pkpass_barcode.width %]" height="[% c.pkpass_barcode.height %]"></td>
+                </tr>
+                <tr>
+                    <td>[% c.session.date | html %]</td>
+                    <td colspan="2">[% c.session.venue.region_name | html %],&nbsp;[% c.session.venue.address | html %]</td>
+                </tr>
+                <tr>
+                    <td valign="top">
+                        <table>
+                            <tr> <td> type:&nbsp;[% c.session.event.type | html %] </td> </tr>
+                            <tr> <td> order_number:&nbsp;[% c.presentation_order_number | html %] </td> </tr>
+                        </table>
+                    </td>
+                    <td colspan="2" valign="top">
+                        <table>
+                            [% FOR s IN c.tickets %]
+                            <tr>
+                                <td>row:&nbsp;[% s.row | html %]</td>
+                                <td>place:&nbsp;[% s.place | html %]</td>
+                                <td>admission:&nbsp;[% s.admission | html %]</td>
+                            </tr>
+                            [% END %]
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+            [% END %]
+        </table>
+        [% END %]
+    </div>
+</body>
+ 

@@ -1,0 +1,63 @@
+---
+- service: grocery_checkins_wms_shifts_cache_age
+  description: |-
+    Возраст кэша wms_shifts_cache (количество милисекунд с последнего обновления)
+    превысил пороговое значение
+  alert_type: threshold
+  selectors: |
+    {'cluster'='testing_uservices',
+    'host'='lavka-grocery-checkins*',
+    'project'='taxi',
+    'application'='grocery-checkins',
+    'service'='uservices',
+    'sensor'='cache.any.time.time-from-last-successful-start-ms',
+    'cache_name'='shifts-pg-cache'}
+  period: 60
+  predicateRules:
+    - timeAggregation: Last
+      comparison: GTE
+      threshold: 180000
+      targetStatus: ALARM
+- service: grocery_checkins_wms_shifts_cache_count_week
+  description: |
+    Большое отклонение количества документов в кэше wms_shifts_cache
+    от значения за предыдущую неделю (>15%)
+  alert_type: expression
+  program: |
+    let current_value = series_max({'cluster'='testing_uservices',
+    'host'='lavka-grocery-checkins*',
+    'project'='taxi',
+    'application'='grocery-checkins',
+    'service'='uservices',
+    'sensor'='cache.current-documents-count',
+    'cache_name'='shifts-pg-cache'});
+    let previous_week_value = series_max(shift({'cluster'='testing_uservices',
+    'host'='lavka-grocery-checkins*',
+    'project'='taxi',
+    'application'='grocery-checkins',
+    'service'='uservices',
+    'sensor'='cache.current-documents-count',
+    'cache_name'='shifts-pg-cache'}, 1w));
+  checkExpression: (avg(current_value) / avg(previous_week_value)) < 0.85
+  period: 1800
+- service: grocery_checkins_wms_shifts_cache_count
+  description: |
+    Резкое падение количества документов в кэше wms_shifts_cache (>15%)
+  alert_type: expression
+  program: |
+    let current_value = series_max({'cluster'='testing_uservices',
+    'host'='lavka-grocery-checkins*',
+    'project'='taxi',
+    'application'='grocery-checkins',
+    'service'='uservices',
+    'sensor'='cache.current-documents-count',
+    'cache_name'='shifts-pg-cache'});
+    let previous_value = series_max(shift({'cluster'='testing_uservices',
+    'host'='lavka-grocery-checkins*',
+    'project'='taxi',
+    'application'='grocery-checkins',
+    'service'='uservices',
+    'sensor'='cache.current-documents-count',
+    'cache_name'='shifts-pg-cache'}, 10m));
+  checkExpression: (avg(current_value) / avg(previous_value)) < 0.85
+  period: 1800

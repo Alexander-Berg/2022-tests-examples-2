@@ -1,0 +1,71 @@
+{
+  "test": {
+    "channels-list": {
+      "pp-test-adjusted": {
+        "address": "channel:test:adjusted",
+        "channel-type": "adjusted",
+        "protocol": "edge",
+        "redis-name": "taxi-passing"
+      },
+      "pp-test-positions": {
+        "address": "channel:test:positions",
+        "channel-type": "positions",
+        "protocol": "positions",
+        "redis-name": "taxi-passing"
+      },
+      "pp-test-predicted": {
+        "address": "channel:test:predicted",
+        "channel-type": "predicted",
+        "protocol": "edge",
+        "redis-name": "taxi-passing"
+      }
+    },
+    "yaga": {
+      "subpipelines": [
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              0,
+              10
+            ]
+          },
+          "destinations": [
+            {
+              "filters": [
+                {
+                  "filter": "in-time-boundaries",
+                  "operation-type": "include"
+                }
+              ],
+              "geobus-channels": [
+                "pp-test-adjusted"
+              ],
+              "logbroker-topics": [],
+              "processes": []
+            },
+            {
+              "filters": [
+                {
+                  "filter": "in-time-boundaries",
+                  "operation-type": "exclude"
+                }
+              ],
+              "geobus-channels": [
+                "pp-test-predicted"
+              ],
+              "logbroker-topics": [],
+              "processes": []
+            }
+          ],
+          "input": "pp-test-positions"
+        }
+      ]
+    },
+    "yaga-metrolog": {
+      "input-channels": [
+        "pp-test-adjusted"
+      ],
+      "yt-uploads-key": "test"
+    }
+  }
+}

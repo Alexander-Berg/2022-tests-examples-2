@@ -1,0 +1,90 @@
+id: test_post_finish
+title: отправка статистики в post-finish
+
+parameters:
+  - case:
+      - request:
+            session_id: SESSION_ID
+            tag_name: old_state_reservation
+        config: {}
+        calls: 0
+      - request:
+            session_id: SESSION_ID
+            tag_name: old_state_reservation
+        config:
+            enabled: true
+        calls: 1
+      - request:
+            session_id: SESSION_ID
+            tag_name: old_state_reservation
+        config:
+            tariffs:
+                tariff_a: tariff_a
+        calls: 0
+      - request:
+            session_id: SESSION_ID
+            tag_name: old_state_reservation
+        config:
+            enabled: true
+            tariffs:
+                tariff_a: tariff_a
+        calls: 1
+      - request:
+            dry_run: true
+            session_id: SESSION_ID
+            tag_name: old_state_reservation
+        config:
+            enabled: true
+            tariffs:
+                tariff_a: tariff_a
+        calls: 0
+
+source:
+    request:
+        method: post
+        headers#concat-objects:
+        body#xget: /test-params/case/request
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            user:
+                is_first_riding: true
+            segment:
+                meta:
+                    start: 1654811336
+                session:
+                    specials:
+                        current_offer:
+                            constructor_id: tariff_a
+                        total_price: 456
+
+  - resource: scooters-misc-post-finish
+    response:
+        status-code: 200
+    expectations:
+        call-count#xget: /test-params/case/calls
+        request:
+            body:
+                start: 1654811336
+                revenue: 456
+                order_id: SESSION_ID
+                currency: RUB
+                tariff: tariff_a
+                zone: moscow
+                is_first_riding: true
+configs:
+    values#object:
+      - scooters_misc_post_finish#xget: /test-params/case/config

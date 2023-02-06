@@ -1,0 +1,47 @@
+default: {}
+maintainers: [marge, v-belikov]
+tags: [notfallback]
+description: |
+    Настройки приложений в Xiva.
+    Объединяет настройки из XIVA_APPLICATION_* в один конфиг, чтобы
+    упростить настройку пушей для новых приложений в сервисе client-notify.
+    Ключи - названия приложений, которые приходят на вход /v1/subscribe.
+    Значения - словарь с настройками пушей, в нем содержится мобильная
+    платформа и тип сборки приложения.
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Application'
+    definitions:
+        Application:
+            type: object
+            required:
+              - app_type
+              - platform
+            additionalProperties: false
+            properties:
+                app_type:
+                    type: object
+                    description: |
+                        Маппинг пользовательских приложений на application для запросов в Xiva.
+                        Ключи - тип сборки приложения, например apns_type для ios.
+                        Значения соответствуют параметру app_name в запросах к Xiva.
+                    required:
+                      - __default__
+                    properties:
+                        __default__:
+                            type: string
+                    additionalProperties:
+                        type: string
+                platform:
+                    type: string
+                    description: Мобильная платформа
+                    enum:
+                      - fcm
+                      - apns
+                      - hms
+                xiva_service:
+                    type: string
+                    description: |
+                        Xiva service. Если не указан, берется из конфига
+                        CLIENT_NOTIFY_SERVICES

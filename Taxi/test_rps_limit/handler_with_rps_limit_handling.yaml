@@ -1,0 +1,22 @@
+default-response: resp-ok
+allow-unauthorized: true
+enabled: true
+sources:
+  - id: test-resource
+    content-type: application/json
+    resource: resource
+    fail-policy:
+      - selector: rps-limit-breach
+        action: return
+        response: resp-429
+responses:
+  - id: resp-ok
+    content-type: application/json
+    headers#request-headers: {}
+    body:
+        result#xget: /sources/test-resource/response/body/value
+  - id: resp-429
+    content-type: application/json
+    status-code: 429
+    body:
+        message: "Too many requests"

@@ -1,0 +1,97 @@
+DROP TABLE IF EXISTS `smsgates`;
+CREATE TABLE `smsgates` (
+    `gateid`      BIGINT      NOT NULL AUTO_INCREMENT,
+    `aliase`      VARCHAR(20) NOT NULL DEFAULT '',
+    `fromname`    VARCHAR(20) NOT NULL DEFAULT 'Yandex',
+    `description` VARCHAR(60)          DEFAULT NULL,
+    `delay`       INT         NOT NULL DEFAULT '100',
+    PRIMARY KEY (`gateid`),
+    KEY `gateseek` (`gateid`,`aliase`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `smsgates` (`gateid`, `aliase`, `fromname`, `description`, `delay`) VALUES
+(15, 'infobip',      'Yandex',      '', 0),
+(18, 'mfms',         'Yandex',      '', 0),
+(20, 'infobip',      'AUTO.RU',     '', 0),
+(21, 'infobip',      'ZBX',         '', 0),
+(22, 'devnull',      'Yandex',      '', 0),
+(23, 'devdelivered', 'Yandex',      '', 0),
+(24, 'infobipyt',    'Yandex.Taxi', '', 0),
+(26, 'taxiauth',     'Yandex.Taxi', '', 0),
+(28, 'infobip',      'Talents',     '', 0),
+(29, 'infobipyd',    'YandexDrive', '', 0),
+(30, 'infobipyt',    'Uber',        '', 0),
+(31, 'taxiauth',     'Uber',        '', 0),
+(32, 'gms',          'Yandex',      '', 0),
+(33, 'infobip',      'Ya.Realty',   '', 0),
+(34, 'gmsyt',        'Yandex.Taxi', '', 0),
+(35, 'infobipyt',    'Yandex.Eda',  '', 0),
+(36, 'taxiauth',     'Yandex.Eda',  '', 0),
+(37, 'infobipyt',    'Yango',       '', 0),
+(38, 'taxiauth',     'Yango',       '', 0),
+(39, 'infobip',      'YandexTrack', '', 0),
+(41, 'gmsyt',        'Uber',        '', 0),
+(42, 'gmsyt',        'Yango',       '', 0);
+
+DROP TABLE IF EXISTS `smsrt`;
+CREATE TABLE `smsrt` (
+    `ruleid`      BIGINT      NOT NULL AUTO_INCREMENT,
+    `destination` VARCHAR(40) NOT NULL DEFAULT '',
+    `gateid`      BIGINT      NOT NULL DEFAULT '0',
+    `gateid2`     BIGINT      NOT NULL DEFAULT '0',
+    `gateid3`     BIGINT      NOT NULL DEFAULT '0',
+    `mode`        VARCHAR(10) NOT NULL DEFAULT 'default',
+    `weight`      TINYINT     UNSIGNED DEFAULT '1',
+    `groupname`   VARCHAR(40) NOT NULL DEFAULT '',
+    PRIMARY KEY  (`ruleid`,`destination`),
+    KEY `gateid` (`gateid`),
+    KEY `bymode` (`mode`,`destination`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `smsrt` (`ruleid`, `destination`, `gateid`, `gateid2`, `gateid3`, `mode`, `weight`, `groupname`) VALUES
+(180,  '+7', 15, 18, 32, 'default',    1, ''),
+(959,  '+',  15, 18, 32, 'default',    1, ''),
+(1092, '+7', 18, 15, 32, 'default',    1, ''),
+(1104, '+',  20,  0,  0, 'autoru',     1, ''),
+(1105, '+',  21,  0,  0, 'autoruzbx',  1, ''),
+(1115, '+',  24,  0,  0, 'taxi',       1, ''),
+(3603, '+',  26,  0,  0, 'taxiauth',   1, ''),
+(3605, '+',  27,  0,  0, 'market',     1, ''),
+(3609, '+',  28,  0,  0, 'talents',    1, ''),
+(3611, '+',  29,  0,  0, 'drive',      1, ''),
+(4085, '+',  30,  0,  0, 'uber',       1, ''),
+(4086, '+',  31,  0,  0, 'uber_auth',  1, ''),
+(4100, '+',  33,  0,  0, 'realty',     1, ''),
+(4104, '+',  35,  0,  0, 'eda',        1, ''),
+(4105, '+',  36,  0,  0, 'eda_auth',   1, ''),
+(4131, '+',  37,  0,  0, 'yango',      1, ''),
+(4132, '+',  38,  0,  0, 'yango_auth', 1, ''),
+(4134, '+',  39,  0,  0, 'courier',    1, '');
+
+DROP TABLE IF EXISTS `daemon_heartbeat`;
+CREATE TABLE `daemon_heartbeat` (
+    `hostname`  VARCHAR(255) NOT NULL,
+    `beat_time` TIMESTAMP    NOT NULL DEFAULT '0000-00-00 00:00:00',
+    PRIMARY KEY (`hostname`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `smsqueue_anonym`;
+CREATE TABLE `smsqueue_anonym` (
+    `smsid`       BIGINT      NOT NULL AUTO_INCREMENT,
+    `phone`       VARCHAR(40) NOT NULL DEFAULT '',
+    `status`      ENUM('ready','localqueue','senttosmsc','notsenttosmsc','queued','delivered','notdelivered') NOT NULL DEFAULT 'ready',
+    `gateid`      BIGINT               DEFAULT NULL,
+    `dlrmessage`  TEXT,
+    `text`        TEXT,
+    `create_time` TIMESTAMP   NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `touch_time`  TIMESTAMP   NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `sender`      VARCHAR(20)          DEFAULT NULL,
+    `errors`      TINYINT     UNSIGNED DEFAULT '0',
+    `metadata`    TEXT                 DEFAULT NULL,
+    PRIMARY KEY         (`smsid`),
+    KEY `queuelookup`   (`smsid`,`gateid`,`status`,`create_time`,`touch_time`),
+    KEY `userqueue`     (`smsid`,`phone`,`status`,`create_time`,`touch_time`),
+    KEY `senders`       (`sender`),
+    KEY `sendsmslookup` (`status`,`touch_time`),
+    KEY `touch_time`    (`touch_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

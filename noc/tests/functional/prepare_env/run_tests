@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+cleanup="${1:-}"
+
+if [[ "$(whoami)" != 'root' ]]; then
+    echo "root priv required too run this!"
+    exit 1
+fi
+
+"$SCRIPT_DIR"/create_container
+cnt_name="$(machinectl list | grep dnsl3r | awk '{print $1}' | head -1)"
+if [[ -z "$cnt_name" ]]; then
+    echo "can not found container"
+    exit 1
+fi
+sleep 4  # give time to server to check all IPs
+machinectl shell root@"$cnt_name" /usr/bin/bash -c 'cd /root/dnsl3r && ../virtualenv/bin/python -m pytest tests/{unit,system}'
+machinectl shell root@"$cnt_name" /root/virtualenv/bin/python -m pytest /root/dnsl3r/tests/functional
+if [[ -z "$cleanup" ]]; then
+    "$SCRIPT_DIR"/clean_up "$cnt_name"
+fi

@@ -1,0 +1,33 @@
+default: []
+description: Условия применения перезапроса csat
+tags: []
+schema:
+    type: array
+    description: Список mongo conditions применения перезапроса csat
+    items:
+        $ref: "#/definitions/ApplyCondition"
+    definitions:
+        ApplyCondition:
+            type: object
+            properties:
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ApplyCondition"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ApplyCondition"
+
+                "#not":
+                    $ref: "#/definitions/ApplyCondition"
+
+            patternProperties:
+                ^\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                ^meta_info\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            additionalProperties: false

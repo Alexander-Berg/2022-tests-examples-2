@@ -1,0 +1,44 @@
+syntax = "proto2";
+package yandex.maps.proto.search.geocoder;
+
+import "yandex/maps/proto/common2/geometry.proto";
+import "yandex/maps/proto/common2/metadata.proto";
+import "yandex/maps/proto/search/address.proto";
+import "yandex/maps/proto/search/precision.proto";
+
+
+message GeoObjectMetadata
+{
+    optional precision.Precision house_precision = 1;
+    required address.Address address = 2;
+    optional string former_name = 3; // former name for a recently renamed toponym
+    optional string id = 4;
+
+    extensions 100 to max; // Internal info
+}
+
+message RequestMetadata
+{
+    required string text = 1;
+    optional common2.geometry.BoundingBox bounded_by = 2;
+    optional int32 results = 3;
+}
+
+message ResponseMetadata
+{
+    required RequestMetadata request = 1;
+    required int32 found = 2; // obsolete
+
+    // only in reverse mode:
+    // the search coordinates given via 'll' or parsed from 'text'
+    optional common2.geometry.Point reverse_point = 3;
+
+    extensions 100 to max; // Internal info
+}
+
+extend common2.metadata.Metadata
+{
+    optional ResponseMetadata RESPONSE_METADATA = 10;
+    optional GeoObjectMetadata GEO_OBJECT_METADATA = 11;
+}
+

@@ -1,0 +1,59 @@
+default:
+    cities: []
+    countries: []
+    dbs: []
+    enable: false
+    redirections: []
+description: Включение редиректа в оптеум при переходе определенные адреса в диспетчерской
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        cities:
+            description: Список разрешенных городов, например "Москва", "Омск"
+            $ref: '#/definitions/string_array'
+        countries:
+            description: Список идентификаторов разрешенных стран, например "rus",
+                "kaz"
+            $ref: '#/definitions/string_array'
+        dbs:
+            description: Список разрешенных парков (db_id)
+            $ref: '#/definitions/string_array'
+        enable:
+            description: Выключатель для конфига
+            type: boolean
+        redirections:
+            description: Массив перходов, которые включает конфиг
+            $ref: '#/definitions/redirection_array'
+    definitions:
+        redirection:
+            type: object
+            additionalProperties: false
+            properties:
+                path_source:
+                    type: string
+                path_target:
+                    type: string
+        string_array:
+            type: array
+            items:
+                type: string
+        redirection_array:
+            type: array
+            items:
+                $ref: '#/definitions/redirection'
+samples:
+  - cities:
+      - "Москва"
+    countries:
+      - "rus"
+    dbs:
+      - "test1"
+      - "test2"
+    enable: true
+    redirections:
+      - path_source: "driver/{}"
+        path_target: "driver"
+      - path_source: "orders"
+        path_target: "orders"

@@ -1,0 +1,50 @@
+MAILTO=taximeter-cron-testing@yandex-team.ru
+HOME=/usr/lib/yandex/taximeter-jobs
+DOTNET_CLI_TELEMETRY_OPTOUT=1
+ASPNETCORE_ENVIRONMENT=testing
+JOB_TIMEOUT_INTERVAL=1h
+#NLOG_INTERNAL_LOG_FILE="/var/log/yandex/taximeter-jobs/nlog.log"
+
+*/15 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll  expire_integrator_driver_statuses_job
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll  import_drivers
+#10,40 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll  import_blacklist
+20 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll dkvu_check
+
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll  driver_payment
+
+#*/10 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll selfreg_zendesk_notification
+
+*/10 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll commercial_hiring_cleanup_job  --rate 100/1000
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll hanging_order_cleanup
+#*/2 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll driver_status_dashboard
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll script_runner --next-script
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll repeat_order_sql_errors --rate 100/1000
+15 */2 * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll sync_closed_expired_orders_job
+00 01 * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll auto_ru
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll repeat_payments
+*/10 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll dkvu_check
+#*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll expire_toloka_items
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll expire_avtocod_items
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll expire_nirvana_items
+*/30 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll aggregator_act_close
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll manage_categories_task_runner
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll repeat_feedback_errors
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll repeat_entity_changelog_errors
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll repeat_passenger_errors
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll repeat_transaction_errors
+
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll sync_car_categories
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll sync_driver_restrictions
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll sync_park_robot_settings
+*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll sync_driver_personal_data
+
+*/15 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll sync_billing_balance
+
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll calculate_sync_lag
+
+#*/5 * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll blacklist_expire_job
+
+*/2 0-3 * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll replicate_qc_history --limit 50000 --replication-batch 100 --rate 7/1000 --remove-from-redis
+
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll blocklist_adding
+* * * * * www-data timeout -s TERM ${JOB_TIMEOUT_INTERVAL} /opt/dotnet/dotnet Yandex.Taximeter.JobRunner.dll blocklist_removal

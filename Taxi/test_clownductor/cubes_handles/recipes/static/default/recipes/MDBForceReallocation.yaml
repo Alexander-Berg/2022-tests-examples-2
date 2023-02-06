@@ -1,0 +1,237 @@
+data:
+    name: MDBForceReallocation
+    provider_name: clownductor
+    job_vars:
+      - cluster_id
+      - db_type
+      - locale
+      - abc_slug
+      - flavor_change_level
+      - service_id
+      - branch_id
+      - user
+      - roles_ids_to_check
+    stages:
+      - name: InternalGetLock
+        provider_name: clownductor
+        input:
+            lock_name: abc_slug
+
+      - name: InternalGenerateIdempotencyToken
+        provider_name: clownductor
+        output:
+            update_uuid_token: uuid_token
+
+      - name: InternalGenerateIdempotencyToken
+        provider_name: clownductor
+        output:
+            shrink_uuid_token: uuid_token
+
+      - name: MDBGetCluster
+        provider_name: clownductor
+        input:
+            cluster_id: cluster_id
+            db_type: db_type
+        output:
+            source_flavor: flavor
+            hosts_number: hosts_number
+            cluster_name: cluster_name
+            folder_id: folder_id
+
+      - name: DispenserGetQuotas
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+        output:
+            source_cpu_quota: cpu_quota
+            source_ram_quota: ram_quota
+
+      - name: MDBPrepareToChangeFlavor
+        provider_name: clownductor
+        input:
+            count_hosts: hosts_number
+            source_flavor: source_flavor
+            flavor_change_level: flavor_change_level
+            source_cpu_quota: source_cpu_quota
+            source_ram_quota: source_ram_quota
+        output:
+            flavor_to_change: flavor
+            cpu_to_change: cpu_quota
+            ram_to_change: ram_quota
+            skip_cpu: skip_cpu
+            skip_ram: skip_ram
+            quota_fields: quota_fields
+
+      - name: MDBForceReallocationTicketText
+        provider_name: clownductor
+        input:
+            cluster_name: cluster_name
+            db_type: db_type
+            folder_id: folder_id
+            cluster_id: cluster_id
+            branch_id: branch_id
+            user: user
+            quota_fields: quota_fields
+        output:
+            ticket_summary: summary_text
+            ticket_description: description_text
+
+      - name: DispenserCubeSetCPUQuota
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            skip_cpu: skip_cpu
+            use_raw_cpu: true
+            raw_cpu: cpu_to_change
+
+      - name: DispenserCubeSetRAMQuota
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            skip_ram: skip_ram
+            use_raw_ram: true
+            raw_ram: ram_to_change
+
+      - name: MDBUpdateCluster
+        provider_name: clownductor
+        input:
+            cluster_id: cluster_id
+            db_type: db_type
+            flavor: flavor_to_change
+            idempotency_token: update_uuid_token
+        output:
+            update_operation_id: operation_id
+
+      - name: StartrekCubeCreateTicket
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            ticket_summary: ticket_summary
+            ticket_description: ticket_description
+            user: user
+        output:
+            new_ticket: new_ticket
+
+      - name: MDBForceReallocationCommentText
+        provider_name: clownductor
+        input:
+            old_flavor: source_flavor
+            new_flavor: flavor_to_change
+            db_type: db_type
+            operation_id: update_operation_id
+            user: user
+            folder_id: folder_id
+            cluster_id: cluster_id
+        output:
+            start_comment: start_comment
+            end_comment: end_comment
+            comment_props: comment_props
+            key_phrase: key_phrase
+            rollback_comment: rollback_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: start_comment
+
+      - name: MDBCubeWaitForOperation
+        provider_name: clownductor
+        input:
+            operation_id: update_operation_id
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: end_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: rollback_comment
+
+      - name: ApproveWaitForApprovalWithAbcRole
+        provider_name: clownductor
+        input:
+            locale: locale
+            st_key: new_ticket
+            abc_slug: abc_slug
+            key_phrase: key_phrase
+            roles_ids_to_check: roles_ids_to_check
+
+      - name: MDBUpdateCluster
+        provider_name: clownductor
+        input:
+            cluster_id: cluster_id
+            db_type: db_type
+            flavor: source_flavor
+            idempotency_token: shrink_uuid_token
+        output:
+            shrink_operation_id: operation_id
+
+      - name: MDBForceReallocationCommentText
+        provider_name: clownductor
+        input:
+            old_flavor: flavor_to_change
+            new_flavor: source_flavor
+            db_type: db_type
+            operation_id: shrink_operation_id
+            user: user
+            folder_id: folder_id
+            cluster_id: cluster_id
+        output:
+            start_comment: start_comment
+            end_comment: end_comment
+            comment_props: comment_props
+            key_phrase: key_phrase
+            rollback_comment: rollback_comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: start_comment
+
+      - name: MDBCubeWaitForOperation
+        provider_name: clownductor
+        input:
+            operation_id: shrink_operation_id
+
+      - name: DispenserCubeSetCPUQuota
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            skip_cpu: skip_cpu
+            use_raw_cpu: true
+            raw_cpu: source_cpu_quota
+
+      - name: DispenserCubeSetRAMQuota
+        provider_name: clownductor
+        input:
+            slug: abc_slug
+            skip_ram: skip_ram
+            use_raw_ram: true
+            raw_ram: source_ram_quota
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            comment_props: comment_props
+            st_task: new_ticket
+            text: end_comment
+
+      - name: StartrekCubeCloseTicket
+        provider_name: clownductor
+        input:
+            new_service_ticket: new_ticket
+
+      - name: InternalReleaseLock
+        provider_name: clownductor
+        input:
+            lock_name: abc_slug

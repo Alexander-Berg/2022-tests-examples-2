@@ -1,0 +1,34 @@
+settings:
+    collection: status_history
+    connection: status_history
+    database: dbstatus_history
+indexes:
+  - expireAfterSeconds: 172800
+    key: created
+  - key:
+      - name: driver_id
+        type: ascending
+      - name: created
+        type: ascending
+    unique: true
+  - key:
+      - name: driver_id
+        type: hashed
+  - key: updated
+wiki_info: |
+    ####dbstatus_history.status_history - история изменений статусов водителей
+    ```python
+    doc = {
+      'driver_id': 'clid_uuid',  # айди водителя
+      'updated': datetime.datetime.utcnow(),  # время обновления документа
+      'created': datetime.datetime.utcnow(),  # округленное до 4 часов время создания документа
+      'statuses': [{
+          'timestamp': datetime.datetime.utcnow(),  # время, которое прислал клиент
+          'status': 'free'                          # статус водителя, free|almost|busy|verybusy  в основном free и verybusy
+          'taxi_status': 'free'                     # таксишный статус unknown|free|busy|order_free|order_busy
+          'no_moving': true                         # (опционально) true - если водитель не двигался продолжительное время (подробности TAXIBACKEND-13765)
+          'is_blocked': true                        # (опционально) true - если водитель заблокирован за усталость в данный момент времени
+          'reposition_active': true                 # (опционально) true - если включён и активен режим репозиции, если false - значит включён и не активен. Если этого поля нету - значит выключен. (подробности TAXIBACKEND-14871).
+      }]
+    }
+    ```

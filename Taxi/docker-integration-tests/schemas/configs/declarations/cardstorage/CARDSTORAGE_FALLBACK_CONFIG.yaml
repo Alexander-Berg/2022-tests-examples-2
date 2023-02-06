@@ -1,0 +1,69 @@
+default:
+    fallback_rate: 0.5
+    minimum_events: 10
+    observation_interval_sec: 60
+    read_period_sec: 2
+    write_period_sec: 5
+    cleanup_period_sec: 30
+    cleanup_threshold_sec: 600
+description: Конфиг для настройки fallback параметров метода list_payment_methods
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - fallback_rate
+      - minimum_events
+      - observation_interval_sec
+      - read_period_sec
+      - write_period_sec
+      - cleanup_period_sec
+      - cleanup_threshold_sec
+    properties:
+        fallback_rate:
+            description: >-
+                Отношение отказов к общему число запросов, при достижении которого
+                нужно использовать резервный источник данных
+            minimum: 0
+            maximum: 1
+            type: number
+        minimum_events:
+            description: >-
+                Минимальное количество запросов за рассматриваемы интервал по
+                которому может вычисляться fallback_rate
+            minimum: 0
+            type: integer
+        observation_interval_sec:
+            description: >-
+                Временной интервал на котором считается соотношение запросов
+                и отказов
+            minimum: 1
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+        read_period_sec:
+            description: >-
+                Временной интервал по которому события регулярно вычитываются из
+                общей базы
+            minimum: 1
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+        write_period_sec:
+            description: >-
+                Временной интервал по которому полученные события регулярно
+                записываются в базу
+            minimum: 1
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+        cleanup_period_sec:
+            description: >-
+                Временной интервал через который старые события будут удаляться из
+                базы
+            minimum: 1
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+        cleanup_threshold_sec:
+            description: >-
+                Временная граница за которой события будут удалены из базы
+            minimum: 1
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds

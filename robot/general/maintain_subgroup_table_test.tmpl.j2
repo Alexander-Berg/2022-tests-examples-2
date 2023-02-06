@@ -1,0 +1,77 @@
+{
+    "TestMode": true,
+    
+    "HttpServer": {
+        "Port": {{port}}
+    },
+    "Logs": {
+        "Rules": [
+            {
+                "FilePath": "{{global_log}}",
+                "IncludeCategories": ["BigRT", "Main"],
+                "MinLevel": "Debug"
+            },
+            {
+                "FilePath": "{{global_log}}",
+                "ExcludeCategories": ["BigRT", "Main"],
+                "MinLevel": "Info"
+            }
+        ]
+    },
+
+    "GlobalLogVerbosity": 7,
+
+    "StatelessShardProcessorConfig": {
+        "MaxEpochsInFlight": 3, {# it is not an easy choice #}
+        "CommitPeriodMs": 100
+    },
+
+    "Suppliers": [
+        {
+            "Alias": "test_queue",
+
+            "YtSupplier": {
+                "Cluster": "{{cluster}}",
+                "QueuePath": "{{queue_dir}}",
+                "QueueConsumer": "{{consumer}}",
+                "ChunkSize": 100,
+                "MaxOutChunkSize": 100
+            },
+            "Stable": { {# demo test specific #}
+                "LimitBytes": 102400, {# demo test specific. NEVER use it with real YT clusters #}
+                "LimitOffsets": 100, {# demo test specific. NEVER use it with real YT clusters #}
+                "LimitTimeoutMs": 1000 {# demo test specific. NEVER use it with real YT clusters #}
+            }
+        }
+    ],
+
+    "YtCluster": "{{cluster}}",
+    "YtMirrorSubgroupTablePath": "{{yt_out}}",
+
+     "Consumer": {
+        "MainPath": "{{queue_dir}}/consuming_system",
+        "MaxShards": {{shards_count}},
+        "UseShardLabelInMetrics": true
+    },
+    
+    "ConsumingSystem": {
+        "Cluster": "{{cluster}}",
+        "MainPath": "{{queue_dir}}/consuming_system",
+        "Shards": {
+            "Range": {
+                "Begin": 0,
+                "End": {{shards_count}}
+            }
+        },
+        "MaxShards": {{shards_count}},
+        "MaxShardsToCheck": 1,
+        "LaunchShardProcessorInFiber": true,
+        "MasterBalancing": {
+            "RegisterWorkersInTable": true,
+            "UseWorkersRegistrationsInTable": true,
+            "FetchConsumingSystemInfo": true
+        }
+    },
+
+    "MaxInflightBytes": 1000000
+}

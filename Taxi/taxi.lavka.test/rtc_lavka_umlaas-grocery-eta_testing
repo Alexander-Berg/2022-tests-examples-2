@@ -1,0 +1,22 @@
+---
+host: lavka_umlaas-grocery-eta_testing
+telegram: warn_default
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+services:
+- service: deploy_resources_to_nanny
+  ttl: 88200 # 1d 30min
+  crit_desc: Либо остановлен, либо что-то с последним его запуском TAXI_ML_MODELS_DEPLOY_PRODUCTION https://sandbox.yandex-team.ru/scheduler/701957/view
+  nodata_desc: За сутки не было успешного выполнения. Помогает запустить задачу вручную. https://sandbox.yandex-team.ru/scheduler/701957/view
+  children:
+  - lavka_umlaas-grocery-eta_testing_host
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 0

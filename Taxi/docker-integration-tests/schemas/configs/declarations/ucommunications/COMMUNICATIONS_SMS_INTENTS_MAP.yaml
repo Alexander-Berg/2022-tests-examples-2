@@ -1,0 +1,121 @@
+default: {}
+description: |
+    Настройка маршрутизации SMS в сервисе ucommunications в зависимости от intent'a SMS
+tags: ["notfallback"]
+maintainers: [v-belikov, marge, lostpointer]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Intent'
+    definitions:
+        Intent:
+            type: object
+            additionalProperties: false
+            properties:
+                provider:
+                    type: string
+                    description: Название SMS-провайдера
+                provider_settings:
+                    type: object
+                    description: Настройки SMS-провайдера
+                    additionalProperties:
+                        type: string
+                description:
+                    type: string
+                maintainers:
+                    type: array
+                    items:
+                        type: string
+                mask_text:
+                    description: Скрывать текст сообщения в логах и yt-логах
+                    type: boolean
+                use_fallback_queue:
+                    description: |
+                        Разрешает класть SMS в fallback-очередь и пытаться отправить их
+                        повторно. Рекомендуется отключать для SMS с коротким ttl
+                        (например, SMS с кодом авторизации). По умолчанию включен.
+                    type: boolean
+                request_idempotency:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        enabled:
+                            description: |
+                                Разрешена ли проверка токена идемпотентности для данного intent.
+                                По умолчанию выключена.
+                            type: boolean
+                            default: false
+                        token_ttl:
+                            description: |
+                                Время жизни токена идемпотентности для интента в миллисекундах
+                            type: integer
+                            x-taxi-cpp-type: std::chrono::milliseconds
+                            default: 2000
+                use_whitelist:
+                    description: |
+                        Ограничивать для интента отправку SMS в тестинге и анстейбле.
+                        По умолчанию включен.
+                    type: boolean
+                notification_instead_sms:
+                    description: Настройки отправки нотификации вместо SMS
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - enabled
+                      - payload_template_name
+                    properties:
+                        enabled:
+                            description: |
+                                Разрешена ли отправка нотификации вместо SMS для данного intent.
+                                По умолчанию выключена.
+                            type: boolean
+                        phone_type:
+                            description: |
+                                Тип номера телефона
+                                (как указано в dbusers.user_phones.type: yandex, uber и др.)
+                            type: string
+                        payload_template_name:
+                            description: |
+                                Название шаблон нотификации из конфига
+                                COMMUNICATIONS_USER_NOTIFICATION_PAYLOAD_TEMPLATES.
+                            type: string
+                        ttl_sec:
+                            description: Не используется, будет удалено.
+                            type: integer
+                            minimum: 10
+                            x-taxi-cpp-type: std::chrono::seconds
+                        acknowledge_ttl_sec:
+                            description: |
+                                Время ожидания отчета о доставке от клиента (в секундах).
+                                Если за это время не получаен отчет о доставке, то будет
+                                отправлена SMS. Не может быть меньше 10 сек. Точность не
+                                гарантируется, время может увеличиться при большой очереди
+                                неподтвержденных нотификаций.
+                            type: integer
+                            minimum: 10
+                            x-taxi-cpp-type: std::chrono::seconds
+                        delivery_ttl_sec:
+                            description: |
+                                Время жизни нотификации в сервисах доставки (в секундах).
+                                Для короткоживущих SMS рекомендуется выставлять строго меньше
+                                acknowledge_ttl_sec. По умолчанию равен acknowledge_ttl_sec.
+                                Важно, что некоторые сервисы требуют ttl в теле нотификации,
+                                а не в параметрах запроса - в этом случае надо его указать
+                                в конфиге COMMUNICATIONS_USER_NOTIFICATION_PAYLOAD_TEMPLATES.
+                            type: integer
+                            x-taxi-cpp-type: std::chrono::seconds
+samples:
+  - taxi_ivr_driver_auth_code:
+        description: IVR Auth SMS
+        provider_settings:
+            route: taxi
+            sender: yango
+        provider: yasms
+        maintainers:
+          - yakov-l
+          - ilyasov
+        notification_instead_sms:
+            enabled: true
+            payload_template_name: "taxi_text_only"
+            acknowledge_ttl_sec: 30
+            delivery_ttl_sec: 25

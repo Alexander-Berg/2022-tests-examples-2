@@ -1,0 +1,158 @@
+{
+  "configs": [
+    {
+      "clauses": [
+        {
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "attributes",
+                    "set_elem_type": "string",
+                    "value": "call_center_ok_a"
+                  },
+                  "type": "contains"
+                },
+                {
+                  "init": {
+                    "arg_name": "attributes",
+                    "set_elem_type": "string",
+                    "value": "call_center_ok_b"
+                  },
+                  "type": "contains"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "zero_suggest",
+          "value": {
+            "push_to_metaqueue": "queue1"
+          }
+        },
+        {
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "attributes",
+                    "set_elem_type": "string",
+                    "value": "call_center_ok_a_sandbox"
+                  },
+                  "type": "contains"
+                },
+                {
+                  "init": {
+                    "arg_name": "attributes",
+                    "set_elem_type": "string",
+                    "value": "call_center_ok_b_sandbox"
+                  },
+                  "type": "contains"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "zero_suggest",
+          "value": {
+            "push_to_metaqueue": "queue2"
+          }
+        }
+      ],
+      "match": {
+        "consumers": [
+          {
+            "name": "callcenter_routing_experiment_helper"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "type": "true"
+        }
+      },
+      "name": "cc_stats_phone_routing_config"
+    },
+    {
+      "biz_revision": 1,
+      "clauses": [
+        {
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "is_tech_group": false,
+          "predicate": {
+            "init": {
+              "arg_name": "origin_called_number",
+              "arg_type": "string",
+              "value": "+75999999999"
+            },
+            "type": "eq"
+          },
+          "title": "Отличаем прод от песочницы",
+          "value": {
+            "attributes": {
+              "call_center_ok_a": "call_center_ok_a_sandbox",
+              "call_center_ok_b": "call_center_ok_b_sandbox",
+              "zero_suggest_a": "zero_suggest_a_sandbox",
+              "zero_suggest_b": "zero_suggest_b_sandbox"
+            },
+            "queues_percent_map_id": "some_id",
+            "state_mode": "robot_call_center_sandbox"
+          }
+        }
+      ],
+      "created": "2022-06-29T13:34:20.466453+03:00",
+      "default_value": {
+        "attributes": {
+          "call_center_ok_a": "call_center_ok_a",
+          "call_center_ok_b": "call_center_ok_b",
+          "zero_suggest_a": "zero_suggest_a",
+          "zero_suggest_b": "zero_suggest_b"
+        },
+        "queues_percent_map_id": "some_id",
+        "state_mode": "robot_call_center"
+      },
+      "department": "taxi",
+      "description": "Дополнительные настройки для похода в ручку зеросаджеста",
+      "enable_debug": true,
+      "is_technical": false,
+      "last_manual_update": "2022-06-30T12:56:21.263510+03:00",
+      "last_modified_at": 1237405,
+      "match": {
+        "action_time": {},
+        "consumers": [
+          {
+            "name": "callcenter_stats/calls_route"
+          },
+          {
+            "name": "callcenter_routing_experiment_helper"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "init": {},
+          "type": "true"
+        },
+        "schema": "type: object\nadditionalProperties: false\nproperties:\n    state_mode:\n        type: string\n        description: State параметр для ручки зеросаджеста\n    attributes:\n        type: object\n        description: Какие атрибуты вешаются после похода в ручку зеросадеста\n        additionalProperties: false\n        properties:\n            zero_suggest_a:\n                type: string\n            zero_suggest_b:\n                type: string\n            call_center_ok_a:\n                type: string\n            call_center_ok_b:\n                type: string\n        required:\n          - zero_suggest_a\n          - zero_suggest_b\n          - call_center_ok_a\n          - call_center_ok_b\nrequired:\n  - state_mode\n  - attributes"
+      },
+      "name": "cc_stats_zero_suggest_parameters",
+      "owners": [
+        "felixarg"
+      ],
+      "removed": false,
+      "self_ok": false,
+      "shutdown_mode": "config_no_shutdown",
+      "st_tickets": [
+        "TAXIBACKEND-41287"
+      ],
+      "trait_tags": [
+        "enable-debug"
+      ],
+      "use_as_experiment": false,
+      "watchers": []
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi bank-applications Service
+    title: Yandex Taxi bank-applications Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: bank-applications.fintech.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: BANK_APPLICATIONS_CLIENT_QOS
+
+paths:
+    /applications-test/v1/get_application_track_id:
+        post:
+            summary: Получить паспортный track_id для заявки. Если у заявки нет track_id,
+                вернется пустой объект. Если заявка не найдена, вернется 404.
+            parameters:
+              - $ref: 'bank-definitions/definitions.yaml#/components/parameters/Referer'
+              - $ref: 'bank-definitions/definitions.yaml#/components/parameters/UserAgent'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                application_id:
+                                    '$ref': '../definitions.yaml#/components/schemas/ApplicationID'
+                            required:
+                              - application_id
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    track_id:
+                                        type: string
+                '404':
+                    '$ref': 'bank-definitions/definitions.yaml#/components/responses/404'

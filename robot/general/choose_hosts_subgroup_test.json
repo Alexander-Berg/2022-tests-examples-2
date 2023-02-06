@@ -1,0 +1,56 @@
+{
+    "HttpServer": {
+        "Port": 25867
+    },
+    "Logs": {
+        "Rules": [
+            {
+                "FilePath": "/dev/stderr",
+                "MinLevel": "Info"
+            },
+            {
+                "FilePath": "./chandra.log",
+                "MinLevel": "Warning"
+            }
+        ]
+    },
+
+    "GlobalLogVerbosity": 5,
+
+    "YtCluster": "arnold.yt.yandex.net",
+    
+    "YtUrlStatusesTablePath": "//home/robot-dev/agerria/MirrorsMainTable",
+
+    "YtMirrorSubgroupQueuePath": "//home/robot-dev/agerria/MirrorsMainQueue",
+
+    "ShardProcessorConfig": {
+        "CommitPeriodMs": 3000,
+        "DelayOnCommitErrorMs": 10000
+    },
+
+    "Suppliers": [
+        {
+            "Alias": "chandra_queue",
+
+            "YtSupplier": {
+                "Cluster": "arnold.yt.yandex.net",
+                "QueuePath": "//home/robot-dev/agerria/ChandraData",
+                "QueueConsumer": "ray",
+                "ChunkSize": 1000,
+                "FlushChunkIntervalMs": 5000,
+                "MaxOutChunkSize": 500
+            }
+        }
+    ],
+
+    "Consumer": {
+        "MainPath": "//home/robot-dev/agerria/ChandraData/consuming_system",
+        "MaxShards": 10,
+        "MaxShardsToCheckAutoResolveRatio": 0.05,
+        "MaxMessagesInProxyQueue": 5,
+        "DelayOnUnequalShardOffsetsMs": 10000
+    },
+
+
+    "MaxInflightBytes": 1000000
+}

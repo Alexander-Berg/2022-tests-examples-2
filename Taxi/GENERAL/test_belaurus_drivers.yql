@@ -1,0 +1,284 @@
+-- creation table of personal driver's statistic
+-- RUN AT MONDAY PER WEEK + CHANGE DATE TABLES IN FROM
+
+USE hahn;
+PRAGMA Yson.DisableStrict;
+--PRAGMA DqEngine = 'force';
+PRAGMA yt.InferSchema;
+
+$prev_prev_week_start = CurrentUtcDate() - DateTime::IntervalFromDays(14);
+$prev_prev_week_end = CurrentUtcDate() - DateTime::IntervalFromDays(8);
+
+$prev_week_start = CurrentUtcDate() - DateTime::IntervalFromDays(7);
+$prev_week_end = CurrentUtcDate() - DateTime::IntervalFromDays(1);
+
+-- We will test on Belarus
+$agg_statistics = (
+    SELECT 
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        CAST(SUBSTRING(utc_business_dttm, 0, 10) AS DATE) as utc_business_dttm,
+        success_order_cnt,
+        driver_income_rub
+    FROM 
+        RANGE(`//home/taxi-dwh/cdm/supply/agg_executor_profile_daily_snp`, `2021-09`, `2021-10`)
+    WHERE 
+        CAST(SUBSTRING(utc_business_dttm, 0, 10) AS DATE) BETWEEN $prev_prev_week_start AND $prev_week_end
+);
+
+$belarus_drivers = (
+    SELECT 
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        first_name,
+        country_name_ru
+    FROM 
+        `//home/taxi-dwh/cdm/supply/dm_executor_profile_act/dm_executor_profile_act`
+    WHERE
+         country_name_ru = "Белоруссия"
+);
+
+$agg_statistics_prev_week = (
+    SELECT 
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        SUM(success_order_cnt) AS success_order_cnt,
+        SUM(driver_income_rub) AS driver_income_rub
+    FROM 
+        $agg_statistics
+    WHERE
+        utc_business_dttm BETWEEN $prev_week_start AND $prev_week_end
+    GROUP BY
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id
+);
+
+$agg_statistics_prev_prev_week = (
+    SELECT 
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        SUM(success_order_cnt) AS success_order_cnt,
+        SUM(driver_income_rub) AS driver_income_rub
+    FROM 
+        $agg_statistics
+    WHERE
+        utc_business_dttm BETWEEN $prev_prev_week_start AND $prev_prev_week_end
+    GROUP BY
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id
+);
+
+$agg_statistic = (
+    SELECT 
+        agg1.executor_profile_sk AS executor_profile_sk,
+        agg1.park_taximeter_id AS park_taximeter_id,
+        agg1.executor_profile_id AS executor_profile_id,
+        first_name,
+        country_name_ru,
+        agg1.success_order_cnt AS prev1_success_order_cnt,
+        agg1.driver_income_rub AS prev1_driver_income_rub,
+        agg2.success_order_cnt AS prev2_success_order_cnt,
+        agg2.driver_income_rub AS prev2_driver_income_rub
+
+    FROM
+        $agg_statistics_prev_week AS agg1
+    INNER JOIN
+        $agg_statistics_prev_prev_week AS agg2 ON (agg1.executor_profile_sk == agg2.executor_profile_sk
+                                                AND agg1.park_taximeter_id == agg2.park_taximeter_id
+                                                AND agg1.executor_profile_id == agg2.executor_profile_id)
+    INNER JOIN 
+        $belarus_drivers AS d ON (agg1.executor_profile_sk == d.executor_profile_sk
+                               AND agg1.park_taximeter_id == d.park_taximeter_id
+                                AND agg1.executor_profile_id == d.executor_profile_id )
+);
+
+$num_trips_cut_constant = 10;
+
+$active_drivers_stat = (
+    SELECT 
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        country_name_ru,
+        first_name,
+        prev1_driver_income_rub,
+        prev2_driver_income_rub,
+        prev1_success_order_cnt,
+        prev2_success_order_cnt,
+        prev1_driver_income_rub / prev2_driver_income_rub AS income_ratio,
+        prev1_success_order_cnt - prev2_success_order_cnt AS suc_order_cnt_diff
+
+    FROM 
+        $agg_statistic
+    WHERE
+        prev1_success_order_cnt >= $num_trips_cut_constant
+        AND prev2_success_order_cnt >= $num_trips_cut_constant
+        AND prev1_driver_income_rub >= $num_trips_cut_constant * 50
+        AND prev2_driver_income_rub >= $num_trips_cut_constant * 50
+);
+
+INSERT INTO `//home/taxi-analytics/mihamachine/tmp/driver_communication/driver_stat` WITH TRUNCATE 
+SELECT * FROM $active_drivers_stat;
+
+-- cut about 15% of drivers
+/*
+SELECT 
+    PERCENTILE(income_ratio, 0.1) AS percentile_010,
+    PERCENTILE(income_ratio, 0.2) AS percentile_020,
+    PERCENTILE(income_ratio, 0.3) AS percentile_030,
+    PERCENTILE(income_ratio, 0.35) AS percentile_035,
+    PERCENTILE(income_ratio, 0.4) AS percentile_040,
+    PERCENTILE(income_ratio, 0.5) AS percentile_050,
+    PERCENTILE(income_ratio, 0.6) AS percentile_060,
+    PERCENTILE(income_ratio, 0.65) AS percentile_065,
+    PERCENTILE(income_ratio, 0.7) AS percentile_070,
+    PERCENTILE(income_ratio, 0.8) AS percentile_080,
+    PERCENTILE(income_ratio, 0.9) AS percentile_090,
+
+FROM
+    $active_drivers_stat;
+
+
+SELECT 
+    PERCENTILE(suc_order_cnt_diff, 0.1) AS percentile_010,
+    PERCENTILE(suc_order_cnt_diff, 0.2) AS percentile_020,
+    PERCENTILE(suc_order_cnt_diff, 0.3) AS percentile_030,
+    PERCENTILE(suc_order_cnt_diff, 0.35) AS percentile_035,
+    PERCENTILE(suc_order_cnt_diff, 0.4) AS percentile_040,
+    PERCENTILE(suc_order_cnt_diff, 0.5) AS percentile_050,
+    PERCENTILE(suc_order_cnt_diff, 0.6) AS percentile_060,
+    PERCENTILE(suc_order_cnt_diff, 0.65) AS percentile_065,
+    PERCENTILE(suc_order_cnt_diff, 0.7) AS percentile_070,
+    PERCENTILE(suc_order_cnt_diff, 0.8) AS percentile_080,
+    PERCENTILE(suc_order_cnt_diff, 0.9) AS percentile_090,
+
+FROM
+    $active_drivers_stat;
+*/
+
+-- groupes by income_ratio and suc_order_cnt_diff
+$income_eps_left = 0.9; -- 0.45 percentile
+$income_eps_right = 1.1; --0.65 percentile
+$diff_eps_left = -10.; -- 0.40 percentile
+$diff_eps_right = 10.; -- 0.65 percentile 
+
+$drivers_stat_grouped = (
+    SELECT
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        country_name_ru,
+        first_name,
+        prev1_driver_income_rub,
+        prev2_driver_income_rub,
+        prev1_success_order_cnt,
+        prev2_success_order_cnt,
+        income_ratio,
+        suc_order_cnt_diff,
+        (CASE WHEN income_ratio > $income_eps_right THEN 1
+              WHEN income_ratio < $income_eps_left THEN -1
+              ELSE 0 END) AS income_ratio_flg,
+            
+        (CASE WHEN suc_order_cnt_diff > $diff_eps_right THEN 1
+              WHEN suc_order_cnt_diff < $diff_eps_left THEN -1
+              ELSE 0 END) AS suc_order_cnt_diff_flg
+
+    FROM 
+        $active_drivers_stat
+);
+
+
+$drivers_stat_grouped_dynamics = (
+
+    SELECT
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        country_name_ru,
+        first_name,
+        prev1_driver_income_rub,
+        prev2_driver_income_rub,
+        prev1_success_order_cnt,
+        prev2_success_order_cnt,
+        income_ratio,
+        suc_order_cnt_diff,
+        (CASE WHEN income_ratio_flg == suc_order_cnt_diff_flg THEN income_ratio_flg ELSE NULL END) AS direct_dynamics_flg
+    FROM
+        $drivers_stat_grouped
+);
+
+--
+$drivers_stat_final = (
+    SELECT 
+        executor_profile_sk,
+        park_taximeter_id,
+        executor_profile_id,
+        country_name_ru,
+        first_name,
+        prev1_success_order_cnt,
+        suc_order_cnt_diff,
+        (CASE WHEN direct_dynamics_flg == -1 THEN
+                CAST(prev2_driver_income_rub * 100. / prev1_driver_income_rub - 100 AS Int32)
+            ELSE CAST(prev1_driver_income_rub * 100. / prev2_driver_income_rub - 100 AS Int32) END) AS income_ratio_percent, --because it depends on text
+        direct_dynamics_flg
+    FROM
+        $drivers_stat_grouped_dynamics
+    WHERE
+        direct_dynamics_flg IS NOT NULL
+);
+
+SELECT *
+FROM 
+    $drivers_stat_final
+LIMIT 500;
+
+-- forming final tables by dynamics
+-- positives
+INSERT INTO `//home/taxi-analytics/world/junk/yango/drivers_communication/test_belaurus_drivers/positive_reviews` WITH TRUNCATE 
+SELECT 
+    --executor_profile_sk,
+    park_taximeter_id,
+    executor_profile_id,
+    first_name,
+    prev1_success_order_cnt AS trips_count,
+    suc_order_cnt_diff AS trips_delta,
+    income_ratio_percent AS income_percent
+FROM 
+    $drivers_stat_final
+WHERE 
+    direct_dynamics_flg == 1;
+
+-- neutral
+INSERT INTO `//home/taxi-analytics/world/junk/yango/drivers_communication/test_belaurus_drivers/neutral_reviews` WITH TRUNCATE 
+SELECT 
+    --executor_profile_sk,
+    park_taximeter_id,
+    executor_profile_id,
+    first_name,
+    prev1_success_order_cnt AS trips_count
+FROM 
+    $drivers_stat_final
+WHERE 
+    direct_dynamics_flg == 0;
+
+-- negative
+INSERT INTO `//home/taxi-analytics/world/junk/yango/drivers_communication/test_belaurus_drivers/negative_reviews` WITH TRUNCATE 
+SELECT 
+    --executor_profile_sk,
+    park_taximeter_id,
+    executor_profile_id,
+    first_name,
+    prev1_success_order_cnt AS trips_count,
+    -1 * suc_order_cnt_diff AS trips_delta,
+    income_ratio_percent AS income_percent
+FROM 
+    $drivers_stat_final
+WHERE 
+    direct_dynamics_flg == -1;
+

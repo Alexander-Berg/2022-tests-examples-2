@@ -1,0 +1,60 @@
+service: secsoc # Slug вашего сервиса в ABC (https://abc.yandex-team.ru/services/market/)
+title: Agents_consumer # Имя проекта на странице CI
+
+ci:
+  release-title-source: flow
+  secret: sec-01fhg5fdy57p9pj88cmv4mr22n # Токен для работы самого CI и другие секреты
+  runtime: # Где запускать flow
+    sandbox-owner: SECURITY_SOC # Квота в Sandbox (https://sandbox.yandex-team.ru/admin/groups/SECURITY_SOC)
+
+  releases:
+    agents-consumer-release:
+      title: Test Release for ATP 
+      flow: agents-consumer-flow
+
+  actions:
+    agents-consumer-flow:
+      flow: agents-consumer-flow
+      triggers: # При каких условиях запускать flow
+        - on: commit # Запускаем flow hello-world-flow на каждый коммит в trunk
+
+  flows: # Описания сборок
+    agents-consumer-flow: # Объявление flow hello-world-flow
+      title: Test agents flow
+      jobs: # Задачи конкретного flow
+        start:
+          title: Старт
+          task: dummy
+          stage: single
+      
+        # сборка образа и пуш 
+        build: # https://docs.yandex-team.ru/ya-make/usage/ya_package/docker
+          title: Сборка пакета
+          task: common/arcadia/ya_package_2 # CI-кубик, который запускает в Sandbox задачу YA_PACKAGE
+          needs: start
+          input:
+            packages: security/soc/atp_reader_test/package/pkg.json # путь до файла с описанием сборки пакета
+            resource_type: SOC_ATP_CI
+            package_type: docker
+            docker_image_repository: soc # папка в registry куда пушить образ
+            docker_push_image: true
+            docker_user: robot-han-solo
+            ya_yt_store: False
+            docker_token_vault_name: env.HAN_SOLO_DOCKER_TOKEN
+
+        # Деплой пакета 
+        # тут может быть станза с описанием проекта для инфра (если захотим)
+        # сборка stage common/deploy/create_release - https://deploy.yandex-team.ru/docs/launch/ci-cd#nastrojka-kubika-commondeploycreate_release
+        # выкладка в тестинг
+        deploy-testing:
+          title: "ATP deploy testing"
+          task: common/deploy/release
+          needs: build # Зависимость на результат джобы build
+          input:
+            config:
+              release_artifact_type: DOCKER_IMAGE
+              sandbox_resource_type: SOC_ATP_CI # тип Sandbox-ресурса
+              release_stage: testing # тип релиза, согласно релизному правилу в Deploy
+              release_subject: Version 2 # название релизного тикета
+              release_notes: CI testing ATP # комментарий для релизного тикета
+              stage_name: Agents_alert_testing # имя стейджа в Deploy

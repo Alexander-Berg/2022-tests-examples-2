@@ -1,0 +1,32 @@
+id: proxying_test
+title: Простая проверка проксирования
+
+
+parameters:
+  - status-code:
+      - 200
+      - 400
+      - 500
+
+
+source:
+    request:
+        method: POST
+        body:
+            code#xget: /test-params/status-code
+    expectations:
+        response:
+            status-code#xget: /test-params/status-code
+            body:
+                answer: 42
+
+mocks:
+  - resource: shortcuts-v1-orders-tracking-widgets
+    response:
+        status-code#xget: /request/body/code
+        body:
+            answer: 42
+    expectations:
+        call-count: 1
+        request:
+            method: POST

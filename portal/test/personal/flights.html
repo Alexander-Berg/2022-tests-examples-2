@@ -1,0 +1,105 @@
+<head>
+    <title>PersonalStorage::Flights</title>
+
+</head>
+<body>
+    <h3>UID: [% user_id | html %]</h3>
+    <form method="get">
+        <input name="uid" value="[% user_id | html %]">
+        <input type="submit" value="Change UID">
+    </form>
+    <font color="red">[% error | html %]</font>
+    [% IF user_id %]
+    <h3>Flights</h3>
+    <form method="post">
+        <table border="1">
+            <thead>
+                <tr>
+                    <td colspan="2" align="center">Departure</td>
+                    <td colspan="2" align="center">Arrival</td>
+                    <td></td>
+            </thead>
+            [% FOR f IN flights %]
+            <tbody id="ticket_[% f.id %]">
+                <form method="post">
+                    <input type="hidden" name="uid" value="[% user_id %]">
+                    <input type="hidden" name="tid" value="[% f.id %]">
+                    <tr id="airports_[% f.id %]">
+                        <td align="right">Airport</td>
+                        <td><div id="departure_airport_[% f.id %]">[% f.departure.airport.iata_code | html%]</div></td>
+                        <td align="right">Airport</td>
+                        <td><div id="arrival_airport_[% f.id %]">[% f.arrival.airport.iata_code | html%]</div></td>
+                        <td>
+                            <input id="edit_[% f.id %]" type="button" name="edit" value="Edit" onclick="transformToEditForm('ticket_[% f.id %]')">
+                        </td>
+                    </tr>
+                    <tr id="times_[% f.id %]">
+                        <td align="right">Time</td>
+                        <td><div id="departure_time_[% f.id %]">[% f.departure.time | html%]</div></td>
+                        <td align="right">Time</td>
+                        <td><div id="arrival_time_[% f.id %]">[% f.arrival.time | html%]</div></td>
+                        <td><input id="delete_[% f.id %]" type="submit" name="del" value="Delete"></td>
+                    </tr>
+                </form>
+            </tbody>
+            [% END %]
+        </table>
+    </form>
+    <br />
+    <h3>New ticket</h3>
+    <form method="post">
+        <table border="1">
+            <thead> <tr> <td colspan="2" align="center"> Departure </td> <td colspan="2" align="center"> Arrival </td> </thead>
+            <tbody>
+                <tr>
+                    <td align="right">Airport</td><td><input name="departure_airport" value="DME"></td>
+                    <td align="right">Airport</td><td><input name="arrival_airport" value="SVO"></td>
+                </tr>
+                <tr>
+                    <td align="right">Time</td><td><input name="departure_time" value="[% defaults.departure %]"></td>
+                    <td align="right">Time</td><td><input name="arrival_time" value="[% defaults.arrival %]"></td>
+                </tr>
+            </tbody>
+        </table>
+        <input type="hidden" name="uid" value="[% user_id %]">
+        <input type="submit" name="create" value="New ticket">
+    </form>
+    [% ELSE %]
+    <h4>Cannot manage personal storage for anonymous user. Please log in or enter UID into the form above</h4>
+    [% END %]
+    <script type="application/javascript">
+        function transformToEditForm (ticket_id) {
+            var ticket = document.getElementById(ticket_id);
+            if (ticket.mode == "edit") {
+                return 0;
+            }
+            var id = ticket_id.split('_', 2)[1];
+            var fields = ["departure_airport", "arrival_airport", "departure_time", "arrival_time"];
+            for (var i = 0; i < fields.length; i++) {
+                var field = fields[i].concat("_", id);
+
+                var container = document.getElementById(field);
+                var value = container.textContent;
+
+                container.removeChild(container.childNodes[0]);
+                var input = document.createElement("input");
+                input.name = fields[i];
+                input.value = value;
+                container.appendChild(input);
+            }
+            var saveButton = document.createElement("input");
+            saveButton.type = "submit";
+            saveButton.name = "update";
+            saveButton.value = "Save";
+            saveButton.id = "update".concat("_", id);
+
+            var editButton = document.getElementById("edit".concat("_", id));
+            var parent = editButton.parentNode;
+            parent.removeChild(editButton);
+            parent.appendChild(saveButton);
+
+            ticket.mode = "edit";
+        }
+    </script>
+</body>
+ 

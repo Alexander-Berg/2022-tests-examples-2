@@ -1,0 +1,7 @@
+/* V1 */
+INSERT INTO scripts.js_scripts
+(id, bonus_name, revision, type, content)
+VALUES
+(1, 'bonus_1', 0, 'calculate', 'return 1'),
+(2, 'bonus_1', 1, 'calculate', 'return 2'),
+(3, 'bonus_1', 2, 'calculate', 'will not compile');

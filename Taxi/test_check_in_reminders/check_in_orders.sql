@@ -1,0 +1,52 @@
+INSERT INTO dispatch_check_in.check_in_orders (
+  order_id,
+  updated_ts,
+  created_ts,
+  check_in_ts,
+  terminal_id,
+  pickup_line,
+  tariff_zone,
+  user_id,
+  user_phone_id,
+  user_locale,
+  classes
+) VALUES
+(
+  'order_id1',
+  NOW(),
+  NOW(),
+  NOW(),
+  'terminal_id1',
+  'pickup_line1',
+  'some_tariff_zone',
+  'some_user1',
+  'some_phone_id',
+  'ru',
+  '{econom, comfortplus}'
+),
+(
+  'order_id2',
+  NOW(),
+  NOW(),
+  NULL,
+  'terminal_id2',
+  NULL,
+  'some_tariff_zone',
+  'some_user2',
+  'some_phone_id',
+  'ru',
+  '{business}'
+),
+(
+  'order_id3',
+  NOW(),
+  NOW(),
+  NULL,
+  'terminal_id3',
+  NULL,
+  'some_tariff_zone3',
+  'some_user3',
+  'some_phone_id3',
+  'ru',
+  '{business, econom}'
+);

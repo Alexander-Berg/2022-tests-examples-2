@@ -1,0 +1,39 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+sources:
+  - id: test-resource
+    content-type: application/json
+    resource: test-resource
+    body: {}
+    fail-policy:
+      - selector: "401"
+        action: fallback
+        fallback: some-nice-fallback
+      - selector: any
+        action: ignore
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#object:
+      - key: result
+        value#switch:
+            input#source-response-code: test-resource
+            cases:
+              - case: 200
+                value: Ok
+              - case: 400
+                value: Bad request
+              - case: 404
+                value: Not found
+              - case: 500
+                value: Server error
+            default-value: Failure
+      - key: source-body
+        value#source-response-body: test-resource
+fallbacks:
+  - id: some-nice-fallback
+    status-code: 200
+    body#object:
+      - key: property
+        value#string: test

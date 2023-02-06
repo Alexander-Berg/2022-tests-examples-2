@@ -1,0 +1,41 @@
+INSERT INTO checks.config (config_id, dry_run, info_push_count, warn_push_count, send_push) VALUES
+  (1,  FALSE, NULL, NULL, TRUE),
+  (2,  FALSE, NULL, NULL, FALSE),
+  (3,  FALSE, NULL, NULL, TRUE),
+  (4,  FALSE, NULL, NULL, TRUE),
+  (5,  FALSE, NULL, NULL, TRUE),
+  (6,  FALSE, NULL, NULL, TRUE);
+
+INSERT INTO checks.duration
+(check_id, span,                      due,                       left_time_deadline,        left_time_coef, config_id)
+VALUES
+(1301,     make_interval(mins => 15), NOW() + interval '1 hour', NULL,                      NULL,           1),
+(1302,     make_interval(mins => 15), NOW() + interval '1 hour', NULL,                      NULL,           2),
+(1303,     make_interval(mins => 15), NOW() + interval '1 hour', make_interval(mins => 10), 0.1,            3);
+
+INSERT INTO checks.arrival
+  (check_id, eta, distance, config_id)
+VALUES
+  (1601, make_interval(secs=>5), 25, 4),
+  (1602, make_interval(secs=>5), 25, 5);
+
+INSERT INTO checks.surge_arrival
+  (check_id, coef_surge, min_local_surge, min_ride_time, config_id)
+VALUES
+  (1801, 0.9, 0.5, make_interval(secs=>2), 6);
+
+INSERT INTO state.sessions(session_id, duration_id, arrival_id, surge_arrival_id, dbid_uuid, start,
+  reposition_source_point, reposition_dest_point, reposition_dest_radius, mode_id, tariff_class) VALUES
+(1501, 1301, NULL, NULL, ('dbid777','888'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'home', 'econom'),
+(1502, 1301, 1601, NULL, ('1488','driverSS'), '2018-11-26T12:00:00+0000', point(30,60), point(30,60), 12, 'home', 'econom'),
+(1503, 1301, NULL, NULL, ('1488','driverSS2'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'home', 'econom'),
+(1504, NULL, NULL, NULL, ('pg_park','pg_driver'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'poi', 'econom'),
+(1505, NULL, 1602, NULL, ('dbid','uuid'), '2018-11-26T12:00:00+0000', point(30,60), point(30,60), 12, 'poi', 'econom'),
+(1506, NULL, 1602, NULL, ('dbid','uuid1'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'poi', 'econom'),
+(1507, 1303, NULL, NULL, ('dbid','uuid2'), '2018-11-26T11:45:00+0000', point(30,60), point(30,60), 12, 'surge', 'econom'),
+(1508, NULL, NULL, 1801, ('dbid777','uuid'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'surge', 'econom'),
+(1509, 1302, NULL, NULL, ('dbid777','uuid1'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'surge', 'econom'),
+(1510, 1301, NULL, NULL, ('dbid777','uuid2'), '2018-11-26T08:00:00+0000', point(30,60), point(30,60), 12, 'surge', 'econom')
+;
+
+INSERT INTO state.checks(session_id) SELECT i+1500 FROM generate_series(1, 10) i;

@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  description: Test enum vars
+  title: Test enum vars
+  version: '1.0'
+
+paths:
+
+  /test/common:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - ref_enum
+      responses:
+        200:
+          $ref: '#/components/responses/200OK'
+
+components:
+  responses:
+    200OK:
+      description: Test
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CommonEnumVarOneOfResponse'
+
+  schemas:
+    CommonEnum:
+      type: string
+      enum:
+        - success_status
+        - failure_status
+
+    BaseEnumVarResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          $ref: '#/components/schemas/CommonEnum'
+
+    CommonResponseEnumSuccess:
+      allOf:
+        - $ref: '#/components/schemas/BaseEnumVarResponse'
+        - type: object
+          properties:
+            payload:
+              type: string
+
+    CommonResponseEnumFailure:
+      allOf:
+        - $ref: '#/components/schemas/BaseEnumVarResponse'
+        - type: object
+          properties:
+            message:
+              type: string
+
+    CommonEnumVarOneOfResponse:
+      x-resolve-by-discriminator: true
+      oneOf:
+        - $ref: '#/components/schemas/CommonResponseEnumSuccess'
+        - $ref: '#/components/schemas/CommonResponseEnumFailure'
+      discriminator:
+        propertyName: type
+        mapping:
+          success_status: CommonResponseEnumSuccess
+          failure_status: CommonResponseEnumFailure

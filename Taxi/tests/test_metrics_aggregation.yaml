@@ -1,0 +1,43 @@
+id: test_metrics_aggregation
+title: тест с отправкой метрик
+
+source:
+    request:
+        method: post
+        body:
+            action: blink-n-horn
+            car_id: CAR_ID
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: scooters-car-control
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            body:
+                action: blink-n-horn
+                car_id: CAR_ID
+
+  - resource: scooters-misc-metrics-aggregate
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            body:
+                metrics_item:
+                    status_code: 200
+                    meta:
+                        action: blink-n-horn
+                        endpoint: car/control
+                        bluetooth_flow_enabled: false
+                        bluetooth_flow_enabled_forced: false
+
+experiments:
+    values#object:
+      - scooters-metrics-aggregation:
+            enabled: true

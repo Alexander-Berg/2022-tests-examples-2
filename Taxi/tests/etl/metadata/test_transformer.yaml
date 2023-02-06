@@ -1,0 +1,80 @@
+table_names:
+  metadata:
+    dttm:
+      alias: time
+  orders:
+    id:
+      alias: orders_id
+    lat:
+      alias: latitude
+    lon:
+      alias: longitude
+  cars:
+    class:
+      alias: cars_class
+  statuses:
+    status:
+      alias: statuses.status
+    date:
+      alias: statuses.date
+    value:
+      alias: statuses.value
+
+calculated_fields:
+  orders_quadkey:
+    function: etl.transform_methods.common.latlon2quadkeychecknone
+    parameters:
+      lat:
+        column_name: latitude
+      lon:
+        column_name: longitude
+      zoom:
+        value: 18
+  latitude:
+    function: etl.transform_methods.common.to_float_converter
+    parameters:
+      x:
+        column_name: latitude
+  longitude:
+    function: etl.transform_methods.common.to_float_converter
+    parameters:
+      x:
+        column_name: longitude
+  created_at:
+    function: etl.transform_methods.common.get_current_datetime
+
+  statuses.status:
+    function: etl.transform_methods.common.str_to_array
+    parameters:
+      serialized_str:
+        column_name: statuses.status
+      null_value:
+        value: ""
+      separator:
+        value: ","
+      final_type:
+        value: str
+
+  statuses.date:
+    function: etl.transform_methods.common.str_to_array
+    parameters:
+      serialized_str:
+        column_name: statuses.date
+      separator:
+        value: "#"
+      null_value:
+        value: "0000-00-00 00:00:00"
+      final_type:
+        value: datetime_utc
+
+  statuses.value:
+    function: etl.transform_methods.common.str_to_array
+    parameters:
+      serialized_str:
+        column_name: statuses.value
+      separator:
+        value: ";"
+      null_value:
+        value: "Null"
+      final_type:
+        value: float

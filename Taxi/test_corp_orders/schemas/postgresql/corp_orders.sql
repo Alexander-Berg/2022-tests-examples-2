@@ -1,0 +1,25 @@
+\set role testsuite
+\ir ../../../postgresql/corp_orders/migrations/V001__initial.sql
+\ir ../../../postgresql/corp_orders/migrations/V002__eda_orders.sql
+\ir ../../../postgresql/corp_orders/migrations/V003__add_department_id.sql
+\ir ../../../postgresql/corp_orders/migrations/V004__index_created_at.sql
+\ir ../../../postgresql/corp_orders/migrations/V005__drive_orders.sql
+\ir ../../../postgresql/corp_orders/migrations/V006__add_total_mileage.sql
+\ir ../../../postgresql/corp_orders/migrations/V007__add_vat.sql
+\ir ../../../postgresql/corp_orders/migrations/V008__recreate_drive_order.sql
+\ir ../../../postgresql/corp_orders/migrations/V009__index_started_at.sql
+\ir ../../../postgresql/corp_orders/migrations/V010__add_drive_address.sql
+\ir ../../../postgresql/corp_orders/migrations/V011__add_drive_timezone.sql
+\ir ../../../postgresql/corp_orders/migrations/V012__add_country.sql
+\ir ../../../postgresql/corp_orders/migrations/V013__add_updated_at.sql
+\ir ../../../postgresql/corp_orders/migrations/V014__index_finished_at.sql
+\ir ../../../postgresql/corp_orders/migrations/V015__index_updated_at.sql
+\ir ../../../postgresql/corp_orders/migrations/V016__add_source_for_eda_orders.sql
+\ir ../../../postgresql/corp_orders/migrations/V017__add_corp_discount.sql
+\ir ../../../postgresql/corp_orders/migrations/V018__make_corp_discount_struct_with_vat.sql
+\ir ../../../postgresql/corp_orders/migrations/V019__tanker_orders.sql
+\ir ../../../postgresql/corp_orders/migrations/V020__add_tanker_payment_method.sql
+\ir ../../../postgresql/corp_orders/migrations/V021__add_tanker_price_wo_discount.sql
+\ir ../../../postgresql/corp_orders/migrations/V022__bills_refunds_updated_indexes.sql
+\ir ../../../postgresql/corp_orders/migrations/V023___NONTRANSACTIONAL_add_qr_to_order_sources.sql
+\ir ../../../postgresql/corp_orders/migrations/V024__index_tanker_status.sql

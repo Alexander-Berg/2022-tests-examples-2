@@ -1,0 +1,43 @@
+id: test_error_400
+title: Проверка, что вызывы делаются с правильными параметрами
+
+source:
+    request:
+        method: post
+        body:
+            chainid: some_chainid
+        query:
+            some_field_query: some_field_query
+        headers:
+            some_field_headers: some_field_headers
+            X-Yandex-UID: some_uid
+    expectations:
+        response:
+            status-code: 404
+            body:
+                text: not_found
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code: 404
+        body:
+            text: not_found
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                chainid: some_chainid
+            query:
+                some_field_query: some_field_query
+            headers:
+                some_field_headers: some_field_headers
+                X-Yandex-UID: some_uid
+
+  - resource: callcenter-stats-operators-save_actions
+    expectations:
+        call-count: 0
+
+taxi_config:
+    INTEGRATION_AUTH_SAVE_ACTIONS_ENABLED: true

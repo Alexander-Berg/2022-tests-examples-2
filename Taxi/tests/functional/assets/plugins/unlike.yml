@@ -1,0 +1,48 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - unlike:
+      css: p.text
+      text: text. First
+      desc: Common short unlike
+      timeout: 0.2
+  - _inner_test:
+      success: False
+      message: should not contain
+      tap_description: Failed for common text with unlike.
+
+  - unlike: [css:p.text, Not exising text, Common short unlike]
+  - _inner_test: [True, Passed for common text with like.]
+
+  - unlike:
+      xpath: /html/body/div/p
+      re: '[a-zA-Z]+\.'
+      description: Common regexp.
+  - _inner_test:
+      success: False
+      message: should not match
+      tap_description: Failed for text with regexp.
+
+  - unlike: [css:div#test-unlike .text, Some unlike text]
+  - _inner_test: [False, Failed for elements set with one eq.]
+
+  - unlike: [css:div#test-unlike .text, Not existing text]
+  - _inner_test: [True, Passed for elements set.]
+
+  - unlike: [/not-existing, Some text]
+  - _inner_test: [True, Not existing element.]
+
+  - unlike:
+      css: p.text
+      re: 'Not existing text'
+      timeout: 10
+  - _inner_test: [True, Timeout accepted]

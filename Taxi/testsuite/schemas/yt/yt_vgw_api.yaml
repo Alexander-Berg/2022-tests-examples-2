@@ -1,0 +1,450 @@
+# https://a.yandex-team.ru/arcadia/taxi/dmp/dwh/replication_rules/replication_rules/vgw_api/yt-targets/private/postgres/vgw_api/forwardings.yaml
+  - path: '//home/testsuite/vgw_api_forwardings'
+    attributes:
+        dynamic: true
+        schema:
+          - description: Внешний идентификатор, используется для группировки переадресаций
+            sort_order: ascending
+            name: external_ref_id
+            type: string
+          - description: Время добавления переадресации в базу
+            sort_order: ascending
+            name: created_at
+            type: double
+          - description: ID переадресации
+            sort_order: ascending
+            name: id
+            type: string
+          - description: ID голосового шлюза
+            name: gateway_id
+            type: string
+          - description: ID пользователя в сервисе vgw-api
+            name: consumer_id
+            type: int64
+          - description: Состояние переадресации (draft, broken, created etc.)
+            name: state
+            type: string
+          - description: Время, когда переадресация протухнет
+            name: expires_at
+            type: double
+          - description: Тип звонящего
+            name: caller
+            type: string
+          - description: Тип адресата звонка
+            name: callee
+            type: string
+          - description: Телефон звонящего
+            name: caller_phone
+            type: string
+          - description: Телефон адресата звонка
+            name: callee_phone
+            type: string
+          - description: Телефон переадресации
+            name: redirection_phone
+            type: string
+          - description: Добавочные цифры к номеру переадресации
+            name: ext
+            type: string
+          - description: Идентификатор запроса на создание переадресации (для обеспечения
+                идемпотентности)
+            name: nonce
+            type: string
+          - description: координаты для создания переадресации
+            name: call_location
+            type: any
+          - description: ID региона, полученного по call_location
+            name: region_id
+            type: int64
+
+# https://a.yandex-team.ru/arcadia/taxi/dmp/dwh/replication_rules/replication_rules/vgw_api/yt-targets/private/postgres/vgw_api/talks.yaml
+  - path: '//home/testsuite/vgw_api_talks'
+    attributes:
+        dynamic: true
+        schema:
+          - description: ID переадресации
+            sort_order: ascending
+            name: forwarding_id
+            type: string
+          - description: ID разговора
+            sort_order: ascending
+            name: id
+            type: string
+          - description: Время создания разговора (Не скачивания! Это внешнее поле!)
+            name: created_at
+            type: double
+          - description: Длина разговора
+            name: length
+            type: int64
+          - description: Телефон звонившего
+            name: caller_phone
+            type: string
+          - description: Удался ли звонок
+            name: voip_succeeded
+            type: boolean
+          - description: Ключ в MDS, по которому лежит запись звонка
+            name: s3_key
+            type: string
+          - description: Время последнего обновления разговора КАК ЗАПИСИ В ЭТОЙ БАЗЕ!
+            name: updated_at
+            type: double
+          - description: Успешный ли звонок
+            name: succeeded
+            type: boolean
+          - description: Статус звонка
+            name: status
+            type: string
+          - description: Время дозвона
+            name: dial_time
+            type: int64
+
+# https://a.yandex-team.ru/arcadia/taxi/dmp/dwh/replication_rules/replication_rules/vgw_api/yt-targets/private/postgres/vgw_api/forwardings_by_month.yaml
+  - path: '//home/testsuite/vgw_api_forwardings_by_month/part-1'
+    attributes:
+        dynamic: true
+        schema:
+          - description: ID переадресации
+            sort_order: ascending
+            name: id
+            type: string
+          - description: Внешний идентификатор, используется для группировки переадресаций.
+                В Такси - order_id, частично в Еде - id едового заказа.
+            name: external_ref_id
+            type: string
+          - description: Время создания переадресации
+            name: created_at
+            type: double
+          - description: ID провайдера
+            name: gateway_id
+            type: string
+          - description: ID потребителя в сервисе vgw-api
+            name: consumer_id
+            type: int64
+          - description: Состояние переадресации (draft, broken, created etc.)
+            name: state
+            type: string
+          - description: Время, когда переадресация протухнет
+            name: expires_at
+            type: double
+          - description: Тип звонящего
+            name: src_type
+            type: string
+          - description: Тип вызываемого
+            name: dst_type
+            type: string
+          - description: Номер телефона звонящего
+            name: src_phone
+            type: string
+          - description: Номер телефона вызываемого
+            name: dst_phone
+            type: string
+          - description: ID номера телефона звонящего в personal
+            name: src_phone_pd_id
+            type: string
+          - description: ID номера телефона вызываемого в personal
+            name: dst_phone_pd_id
+            type: string
+          - description: Номер телефона переадресации
+            name: redirection_phone
+            type: string
+          - description: Добавочный номер к номеру переадресации
+            name: ext
+            type: string
+          - description: Идентификатор запроса на создание переадресации (для обеспечения
+                идемпотентности)
+            name: nonce
+            type: string
+          - description: Координаты для создания переадресации, {'lon', 'lat'}
+            name: call_location
+            type: any
+          - description: ID региона, полученного по call_location
+            name: region_id
+            type: int64
+
+  - path: '//home/testsuite/vgw_api_forwardings_by_month/part-2'
+    attributes:
+        dynamic: true
+        schema:
+          - description: ID переадресации
+            sort_order: ascending
+            name: id
+            type: string
+          - description: Внешний идентификатор, используется для группировки переадресаций.
+                В Такси - order_id, частично в Еде - id едового заказа.
+            name: external_ref_id
+            type: string
+          - description: Время создания переадресации
+            name: created_at
+            type: double
+          - description: ID провайдера
+            name: gateway_id
+            type: string
+          - description: ID потребителя в сервисе vgw-api
+            name: consumer_id
+            type: int64
+          - description: Состояние переадресации (draft, broken, created etc.)
+            name: state
+            type: string
+          - description: Время, когда переадресация протухнет
+            name: expires_at
+            type: double
+          - description: Тип звонящего
+            name: src_type
+            type: string
+          - description: Тип вызываемого
+            name: dst_type
+            type: string
+          - description: Номер телефона звонящего
+            name: src_phone
+            type: string
+          - description: Номер телефона вызываемого
+            name: dst_phone
+            type: string
+          - description: ID номера телефона звонящего в personal
+            name: src_phone_pd_id
+            type: string
+          - description: ID номера телефона вызываемого в personal
+            name: dst_phone_pd_id
+            type: string
+          - description: Номер телефона переадресации
+            name: redirection_phone
+            type: string
+          - description: Добавочный номер к номеру переадресации
+            name: ext
+            type: string
+          - description: Идентификатор запроса на создание переадресации (для обеспечения
+                идемпотентности)
+            name: nonce
+            type: string
+          - description: Координаты для создания переадресации, {'lon', 'lat'}
+            name: call_location
+            type: any
+          - description: ID региона, полученного по call_location
+            name: region_id
+            type: int64
+
+# https://a.yandex-team.ru/arcadia/taxi/dmp/dwh/replication_rules/replication_rules/vgw_api/yt-targets/private/postgres/vgw_api/talks_by_month.yaml
+  - path: '//home/testsuite/vgw_api_talks_by_month/part-1'
+    attributes:
+        dynamic: true
+        schema:
+          - description: ID разговора
+            sort_order: ascending
+            name: id
+            type: string
+          - description: ID переадресации
+            name: forwarding_id
+            type: string
+          - description: Время начала разговора
+            name: created_at
+            type: double
+          - description: Длина разговора
+            name: length
+            type: int64
+          - description: Номер телефона звонившего
+            name: src_phone
+            type: string
+          - description: ID номера телефона звонившего в personal
+            name: src_phone_pd_id
+            type: string
+          - description: Ключ в MDS, по которому лежит запись звонка
+            name: s3_key
+            type: string
+          - description: Время последнего обновления записи в базе
+            name: updated_at
+            type: double
+          - description: Успешный ли звонок
+            name: succeeded
+            type: boolean
+          - description: Статус звонка
+            name: status
+            type: string
+          - description: Время дозвона
+            name: dial_time
+            type: int64
+
+  - path: '//home/testsuite/vgw_api_talks_by_month/part-2'
+    attributes:
+        dynamic: true
+        schema:
+          - description: ID разговора
+            sort_order: ascending
+            name: id
+            type: string
+          - description: ID переадресации
+            name: forwarding_id
+            type: string
+          - description: Время начала разговора
+            name: created_at
+            type: double
+          - description: Длина разговора
+            name: length
+            type: int64
+          - description: Номер телефона звонившего
+            name: src_phone
+            type: string
+          - description: ID номера телефона звонившего в personal
+            name: src_phone_pd_id
+            type: string
+          - description: Ключ в MDS, по которому лежит запись звонка
+            name: s3_key
+            type: string
+          - description: Время последнего обновления записи в базе
+            name: updated_at
+            type: double
+          - description: Успешный ли звонок
+            name: succeeded
+            type: boolean
+          - description: Статус звонка
+            name: status
+            type: string
+          - description: Время дозвона
+            name: dial_time
+            type: int64
+
+# https://a.yandex-team.ru/arcadia/taxi/dmp/dwh/replication_rules/replication_rules/vgw_api/forwardings.yaml
+  - path: '//home/testsuite/vgw_api_forwardings_external_ref_id_scan_idx/part-1'
+    attributes:
+        dynamic: true
+        schema:
+          - name: external_ref_id
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_external_ref_id_scan_idx/part-2'
+    attributes:
+        dynamic: true
+        schema:
+          - name: external_ref_id
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_external_ref_id_lookup_idx/part-1'
+    attributes:
+        dynamic: true
+        schema:
+          - name: external_ref_id
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_external_ref_id_lookup_idx/part-2'
+    attributes:
+        dynamic: true
+        schema:
+          - name: external_ref_id
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_redirection_phone_scan_idx/part-1'
+    attributes:
+        dynamic: true
+        schema:
+          - name: redirection_phone
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_redirection_phone_scan_idx/part-2'
+    attributes:
+        dynamic: true
+        schema:
+          - name: redirection_phone
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_redirection_phone_lookup_idx/part-1'
+    attributes:
+        dynamic: true
+        schema:
+          - name: redirection_phone
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_forwardings_redirection_phone_lookup_idx/part-2'
+    attributes:
+        dynamic: true
+        schema:
+          - name: redirection_phone
+            type: string
+            sort_order: ascending
+          - name: created_at
+            type: double
+            sort_order: ascending
+          - name: forwarding_id
+            type: string
+          - name: _dummy
+            type: any
+
+# https://a.yandex-team.ru/arcadia/taxi/dmp/dwh/replication_rules/replication_rules/vgw_api/talks.yaml
+  - path: '//home/testsuite/vgw_api_talks_forwarding_id_scan_idx'
+    attributes:
+        dynamic: true
+        schema:
+          - name: forwarding_id
+            type: string
+            sort_order: ascending
+          - name: talk_id
+            type: string
+            sort_order: ascending
+          - name: _dummy
+            type: any
+
+  - path: '//home/testsuite/vgw_api_talks_forwarding_id_lookup_idx'
+    attributes:
+        dynamic: true
+        schema:
+          - name: forwarding_id
+            type: string
+            sort_order: ascending
+          - name: talk_id
+            type: string
+            sort_order: ascending
+          - name: _dummy
+            type: any

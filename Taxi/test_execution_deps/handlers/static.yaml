@@ -1,0 +1,22 @@
+allow-unauthorized: true
+default-response: resp-ok
+enabled: true
+sources:
+  - id: unconditional
+    resource: unconditional
+    content-type: application/json
+  - id: dependency
+    resource: dependency
+    content-type: application/json
+    enabled: false
+  - id: conditional
+    resource: conditional
+    content-type: application/json
+    body#if:
+        condition: false
+        then#xget: /sources/dependency/response/body
+        else: 'null'
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body: {"result": "ok"}

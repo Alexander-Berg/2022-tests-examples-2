@@ -1,0 +1,6 @@
+INSERT INTO eats_orders_tracking.waybills(waybill_ref, performer_info, points, order_nrs, chained_previous_waybill_ref, waybill_revision)
+VALUES ('waybill_ref_1',
+        '{"driver_id":"driver_1", "park_id": "park_1", "name": "Коля", "raw_type": "car", "type": "vehicle", "is_hard_of_hearing": false, "car_model": "Kia Rio", "car_number": "x000xx199"}'::jsonb,
+        '[{"id":1, "claim_id": "123", "address":{"coordinates":[1.0, 1.0]}, "type": "source", "visit_order": 1, "visit_status": "visited", "corp_client_id": "corp_111", "external_order_id":"000000-000001"}, {"id":2, "claim_id": "123", "address":{"coordinates":[1.0, 1.0]}, "type": "destination", "visit_order": 3, "visit_status": "pending", "corp_client_id": "corp_111", "external_order_id":"000000-000001"}, {"id":3, "claim_id": "456", "address":{"coordinates":[1.0, 1.0]}, "type": "source", "visit_order": 2, "visit_status": "pending", "corp_client_id": "corp_111", "external_order_id":"some_second_order"}, {"id":4, "claim_id": "456", "address":{"coordinates":[1.0, 1.0]}, "type": "destination", "visit_order": 4, "visit_status": "pending", "corp_client_id": "corp_111", "external_order_id":"some_second_order"}]'::jsonb,
+        array['000000-000001', 'some_second_order']::text[],
+        null, 1);

@@ -1,0 +1,22 @@
+default-response: resp-ok
+allow-unauthorized: true
+enabled: true
+sources:
+  - id: test-resource2
+    content-type: application/json
+    resource: resource
+    fail-policy:
+      - selector: rps-limit-breach
+        action: fallback
+        fallback: test-resource2-fallback
+responses:
+  - id: resp-ok
+    content-type: application/json
+    headers#request-headers: {}
+    body:
+        result#xget: /sources/test-resource2/response/body/value
+fallbacks:
+  - id: test-resource2-fallback
+    status-code: 200
+    body:
+        value: fallback-value

@@ -1,0 +1,77 @@
+description: Таблица формирования ключей обработчиков из событий
+tags: [notfallback]
+maintainers: [bznk, lol4t0]
+schema:
+    type: array
+    items:
+        $ref: "#/definitions/Row"
+
+    definitions:
+        Row:
+            type: object
+            additionalProperties: false
+            description: Строка маппинга события на ключ
+            required:
+              - keys
+            properties:
+                keys:
+                    type: array
+                    items:
+                        type: string
+                        minLength: 1
+                    description: Ключи обработчика
+                    minItems: 1
+                reason:
+                    type: string
+                    description: Reason Code (q) события
+                    minLength: 1
+                status:
+                    type: string
+                    description: Текущий статус заказа
+                    minLength: 1
+                    x-taxi-cpp-type: order_access::models::Status
+                taxi_status:
+                    type: string
+                    description: Текущий taxi_status заказа
+                    minLength: 1
+                    x-taxi-cpp-type: order_access::models::TaxiStatus
+                prev_status:
+                    type: string
+                    description: Предыдущий статус заказа
+                    minLength: 1
+                    x-taxi-cpp-type: order_access::models::Status
+
+default:
+  - status: assigned
+    taxi_status: None
+    keys: [handle_assigning]
+  - status: assigned
+    taxi_status: driving
+    keys: [handle_driving]
+  - status: assigned
+    taxi_status: waiting
+    keys: [handle_waiting]
+  - status: assigned
+    taxi_status: transporting
+    keys: [handle_transporting]
+
+  - taxi_status: complete
+    keys: [handle_finish, handle_complete, handle_post_finish]
+  - status: cancelled
+    keys: [handle_finish, handle_failed_completion, handle_cancel_or_fail, handle_cancel_by_user,
+        handle_post_finish]
+  - taxi_status: cancelled
+    keys: [handle_finish, handle_failed_completion, handle_cancel_or_fail, handle_cancel_by_park,
+        handle_post_finish]
+  - taxi_status: failed
+    keys: [handle_finish, handle_failed_completion, handle_cancel_or_fail, handle_fail_by_park,
+        handle_post_finish]
+  - taxi_status: expired
+    prev_status: pending
+    keys: [handle_finish, handle_search_failed, handle_post_finish]
+  - taxi_status: expired
+    keys: [handle_finish, handle_post_finish]
+
+  - status: finished
+    taxi_status: preexpired
+    keys: [handle_preexpiration]

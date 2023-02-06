@@ -1,0 +1,47 @@
+id: test_vendor_post_error_response
+title: Проверка получения ошибочного ответа из сервиса eats-report-storage
+
+source:
+    request:
+        method: post
+        url: /4.0/restapp-front/api/v1/client/restaurants/metrics/widgets/orderCancelPercentCount
+        headers:
+            X-YaEda-PartnerId#string: 100
+        body:
+            places:
+              - value: 1234
+              - value: 4321
+            presetPeriodType: "month"
+            periodGroupBy: "day"
+            periodBegin: "2021-11-22T15:43:19"
+            periodEnd: "2021-11-22T15:43:19"
+    expectations:
+        response:
+            status-code: 400
+            body:
+                some: error
+
+mocks:
+  - resource: backend-service-vendor-v1-client-restaurants-metrics-widgets
+    response:
+        status-code: 400
+        body:
+            some: error
+    expectations:
+        call-count: 1
+
+  - resource: eats-report-storage-v1-place-metrics-widgets-get
+    expectations:
+        call-count: 0
+
+configs:
+    values#object:
+      - key: eats-report-storage-switch-common
+        value:
+            enabled: false
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 100

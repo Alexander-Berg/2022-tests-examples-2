@@ -1,0 +1,225 @@
+type: apitest
+version: 0
+service: taxi_bank_wallet
+
+mockserver:
+  - url: /bank-core-statement/v1/wallets/balance/get
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: "1"
+    response:
+        body:
+            wallets:
+              - id: f0180a66-a339-497e-9572-130f440cc338
+                public_agreement_id: test_agreement_id
+                balance:
+                    amount: '10000'
+                    currency: RUB
+                debit_limit:
+                  - period_start: '2020-08-01T00:00:00+00:00'
+                    period: MONTH
+                    threshold:
+                        amount: '40000'
+                        currency: RUB
+                    remaining:
+                        amount: '39600'
+                        currency: RUB
+                credit_limit: []
+  - url: /bank-core-statement/v2/wallets/balance/get
+    request:
+        method: POST
+        headers:
+            X-Yandex-BUID: "1"
+    response:
+        body:
+            balances:
+              - wallet_id: f0180a66-a339-497e-9572-130f440cc338
+                public_agreement_id: test_agreement_id
+                balance:
+                    amount: '10000'
+                    currency: RUB
+                payment_method_ids:
+                  - method1
+                  - method2
+  - url: /bank-core-audit-log-http-collector/v1/message
+    request:
+        method: POST
+    response:
+        status: 204
+        body: {}
+
+marks:
+  - name: config
+    kwargs:
+        BANK_WALLET_INFO:
+            unauthorized_info:
+                image: ""
+                subtitle: "Повышенный кешбек в сервисах Яндекса"
+                title: "Карта Яндекса"
+            wallet_info:
+                image: ""
+                subtitle: "Повышенный кешбек в сервисах Яндекса"
+                title: "Пройди авторизацию"
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+tests:
+  - name: wallet_good_info
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallets_info
+        headers:
+            X-Yandex-BUID: "1"
+            X-YaBank-SessionUUID: "1"
+            X-Yandex-UID: "1"
+            X-Request-Language: "ru"
+            X-YaBank-PhoneID: "1"
+            X-Ya-User-Ticket: 'user_ticket'
+    response:
+        status: 200
+        body:
+            wallets_info:
+              - wallet_id: f0180a66-a339-497e-9572-130f440cc338
+                image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_authorized/
+                title: Кошелек
+                subtitle: 'Баланс: 10 000 ₽'
+                payment_method_id: method1
+              - image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_authorized/
+                payment_method_id: method2
+                subtitle: 'Баланс: 10 000 ₽'
+                title: Кошелек
+                wallet_id: f0180a66-a339-497e-9572-130f440cc338
+  - name: wallet_good_info_en
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallets_info
+        headers:
+            X-Yandex-BUID: "1"
+            X-YaBank-SessionUUID: "1"
+            X-Yandex-UID: "1"
+            X-Request-Language: "en"
+            X-YaBank-PhoneID: "1"
+            X-Ya-User-Ticket: 'user_ticket'
+    response:
+        status: 200
+        body:
+            wallets_info:
+              - wallet_id: f0180a66-a339-497e-9572-130f440cc338
+                image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_authorized/
+                title: Wallet
+                subtitle: 'Balance: ₽ 10,000'
+                payment_method_id: method1
+              - image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_authorized/
+                payment_method_id: method2
+                subtitle: 'Balance: ₽ 10,000'
+                title: Wallet
+                wallet_id: f0180a66-a339-497e-9572-130f440cc338
+  - name: wallet_no_auth
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallets_info
+        headers:
+            X-YaBank-SessionUUID: "1"
+    response:
+        status: 200
+        body:
+            wallets_info:
+              - image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_unauthorized/
+                title: 'Не зарегистрирован'
+                subtitle: 'Пройдите авторизацию!'
+  - name: wallet_no_session_uuid
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallets_info
+    response:
+        status: 401
+        body: {"code": "401", "message": "No session uuid"}
+  - name: unknown_locale
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallets_info
+        headers:
+            X-YaBank-SessionUUID: "1"
+            X-Request-Language: "en"
+    response:
+        status: 200
+        body:
+            wallets_info:
+              - image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_unauthorized/
+                title: 'Не зарегистрирован'
+                subtitle: 'Пройдите авторизацию!'
+  - name: wallet_bad_translate
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallets_info
+        headers:
+            X-Yandex-BUID: "1"
+            X-YaBank-SessionUUID: "1"
+            X-Yandex-UID: "1"
+            X-Request-Language: "bad_translate"
+            X-YaBank-PhoneID: "1"
+            X-Ya-User-Ticket: 'user_ticket'
+    response:
+        status: 500
+        body: {"code": "500", "message": "Internal Server Error"}
+  - name: cards_info_bad_translate
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_cards_info
+        headers:
+            X-Yandex-BUID: "1"
+            X-YaBank-SessionUUID: "1"
+            X-Yandex-UID: "1"
+            X-Request-Language: "bad_translate"
+            X-YaBank-PhoneID: "1"
+            X-Ya-User-Ticket: 'user_ticket'
+    response:
+        status: 500
+        body: {"code": "500", "message": "Internal Server Error"}
+  - name: unknown_locale
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_wallet_promo
+        headers:
+            X-Yandex-BUID: "1"
+            X-YaBank-SessionUUID: "1"
+            X-Yandex-UID: "1"
+            X-Request-Language: "en"
+            X-YaBank-PhoneID: "1"
+            X-Ya-User-Ticket: 'user_ticket'
+    response:
+        status: 200
+        body:
+            image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_unauthorized/
+            title: 'Не зарегистрирован'
+            subtitle: 'Пройдите авторизацию!'
+  - name: cards_good_info_en
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_cards_info
+        headers:
+            X-Yandex-BUID: "1"
+            X-YaBank-SessionUUID: "1"
+            X-Yandex-UID: "1"
+            X-Request-Language: "en"
+            X-YaBank-PhoneID: "1"
+            X-Ya-User-Ticket: 'user_ticket'
+    response:
+        status: 200
+        body:
+            cards_info:
+              - image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_authorized/
+                title: Wallet
+                subtitle: 'Balance: ₽ 10,000'
+                payment_method_id: method1
+              - image: http://avatars.mdst.yandex.net/get-fintech/1401668/card_authorized/
+                payment_method_id: method2
+                subtitle: 'Balance: ₽ 10,000'
+                title: Wallet
+  - name: cards_info_unauthorized
+    request:
+        method: POST
+        path: /v1/wallet/v1/get_cards_info
+    response:
+        status: 500

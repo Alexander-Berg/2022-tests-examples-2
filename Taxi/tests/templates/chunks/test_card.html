@@ -1,0 +1,86 @@
+{% load i18n %}
+<div class="card">
+    <div class="card-body">
+        <div class="card-header px-0">
+            {% if not test.is_archived %}
+                <div class="card-header-btn">
+                    <a href="{% url 'tests:edit-test' test.id %}"><i class="fas fa-cog"></i></a>
+                </div>
+            {% endif %}
+            {% if data_every_page.user_lang == 'en' %}
+                {% if test.title_en %}{{ test.title_en }}{% else %}{{ test.title }}{% endif %}
+            {% else %}
+                {{ test.title }}
+            {% endif %}
+        </div>
+        <div class="row border-top border-bottom pt-2 mb-2">
+            <div class="col-12">
+                <table class="table table-sm">
+                    <tr>
+                        <th>Статус</th>
+                        <td class="text-right">{{ test.text_status }}</td>
+                    </tr>
+                    <tr>
+                        <th>Публикация</th>
+                        <td class="text-right">{{ test.published_at|date:'d.m.y' }}
+                            – {{ test.published_until|date:'d.m.y' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Назначено</th>
+                        <td class="text-right">{{ test.total_assigned_answered }}/{{ test.total_assigned }}</td>
+                    </tr>
+                    <tr>
+                        <th>Прошли</th>
+                        <td class="text-right">{{ test.answered_percent }}%</td>
+                    </tr>
+                    <tr>
+                        <th>Вопросов</th>
+                        {% if test.get_random_num %}
+                            <td class="text-right">{{ test.get_random_num }} из {{ test.questions_total }}</td>
+                        {% else %}
+                            <td class="text-right">{{ test.questions_total }}</td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <th>Минут на тест</th>
+                        <td class="text-right">{{ test.time }}</td>
+                    </tr>
+                    <tr>
+                        <th>Успешность</th>
+                        <td class="text-right">{{ test.avg_answered }}%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    {% if not test.is_archived %}
+                        <div class="col-4 border-right">
+                            <div class="text-center">
+                                <button class="btn"
+                                        onclick="document.location.href='{% url 'tests:create-questions' test.id %}'"><i
+                                        class="fas fa-pen"></i> {% trans 'Edit' %}</button>
+                            </div>
+                        </div>
+                        <div class="col-4 border-right">
+                            <div class="text-center">
+                                <button class="btn" {% if test.text_status == "expired" %}disabled{% endif %}
+                                        onclick="document.location.href='{% url 'tests:assign-test' test.id %}'"><i
+                                        class="fas fa-user-plus"></i> {% trans 'Assign' %}</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="col-4">
+                        <div class="text-center">
+                            <button class="btn" onclick="document.location.href='{% url 'tests:statistics' test.pk %}'">
+                                <i class="fas fa-file-excel green"></i> {% trans 'Results' %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

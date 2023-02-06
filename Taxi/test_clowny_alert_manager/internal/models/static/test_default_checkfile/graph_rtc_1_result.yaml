@@ -1,0 +1,97 @@
+host: taxi_driver-route-watcher_stable
+type: rtc
+multichildren:
+  - taxi_driver-route-watcher_pre_stable
+  - taxi_driver-route-watcher_stable
+telegram:
+  - alerts-by-duty_taxidutygraph-taxidutygraph
+additional_telegram:
+  - taxi-graph-crit-alerts
+  - taxi-graph-alerts
+services:
+  - service: driver-route-watcher-too-many-db-reset-destination-fails
+  # Алерт на eta в driver-route-watcher
+  # Ответственные: команда графа
+    telegram:
+      - taxi-graph-alerts
+    times:
+      - days: Mon-Sun
+        time: 0-23
+        crit: 0
+        warn: 0
+  - service: driver-route-watcher-too-many-order-core-verify-failed
+  # Алерт на eta в driver-route-watcher
+  # Ответственные: команда графа
+    telegram:
+      - taxi-graph-alerts
+    times:
+      - days: Mon-Sun
+        time: 0-23
+        crit: 0
+        warn: 0
+templates:
+  - template: forced-logrotate-count
+  - template: hejmdal-cutres-draft-notify
+  - template: hejmdal-rtc-timings-cpu-aggregation
+  - template: hejmdal-rtc-net-usage
+  - template: hejmdal-timings
+  - template: ping-handle-status
+  - template: push-client
+  - template: vhost-500
+  - template: core-files
+    times:
+      - warn: 20%
+        crit: 40%
+  - template: hejmdal-bad-rps
+    times:
+      - warn: 30%
+        crit: 60%
+  - template: hejmdal-rtc-ram-usage
+    times:
+      - warn: 40%
+        crit: 101%
+  - template: hejmdal-rtc-cpu-usage
+    times:
+      - warn: 30%
+        crit: 80%
+  - template: hejmdal-rtc-oom
+    times:
+      - warn: 0%
+        crit: 70%
+  - template: iptruler
+    ignore_nodata: 1
+    times:
+      - warn: 10%
+        crit: 35%
+  - template: pilorama
+    times:
+      - warn: 30%
+        crit: 101%
+  - template: strongbox
+    ignore_nodata: 1
+    times:
+      - warn: 30%
+        crit: 60%
+  - template: unispace
+    ignore_nodata: 1
+    times:
+      - warn: 10%
+        crit: 35%
+  - template: vhost-499
+    times:
+      - warn: 30%
+        crit: 50%
+  - template: virtual-meta
+    ignore_nodata: 1
+    times:
+      - warn: 30%
+        crit: 70%
+  - template: userver_congestion_control
+    methods: phone_escalation
+    times:
+      - warn: 30%
+        crit: 70%
+  - template: rtc-atop-warning
+  - template: userver-distlock-task-failures
+    children:
+      - (host=driver-route-watcher & service=userver-distlock-task-failures*)

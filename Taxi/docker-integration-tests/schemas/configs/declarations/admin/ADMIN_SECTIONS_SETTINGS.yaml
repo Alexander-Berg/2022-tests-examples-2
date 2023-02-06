@@ -1,0 +1,85 @@
+default:
+    sections: []
+    responsibles: []
+    default_settings: {}
+description: Настройка разделов админки. В данный момент здесь можно указать ответственных
+    за раздел и настройки формы отправки ошибки.
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        sections:
+            type: array
+            items:
+                $ref: "#/definitions/Section"
+        responsibles:
+            type: array
+            items:
+                $ref: "#/definitions/Responsible"
+        default_settings:
+            $ref: "#/definitions/DefaultSettings"
+    definitions:
+        Section:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    description: Название раздела
+                path:
+                    type: string
+                    description: Адрес раздела (например /logs-load)
+                responsibleId:
+                    type: string
+                    description: ID коллекции ответственных
+                bug_form_settings:
+                    $ref: "#/definitions/BugFormSettings"
+        Responsible:
+            type: object
+            additionalProperties: false
+            properties:
+                id:
+                    type: string
+                    description: ID это коллекции ответственных
+                data:
+                    type: object
+                    additionalProperties: false
+                    description: Данные об ответственных
+                    properties:
+                        managers:
+                            type: array
+                            description: Ответственные менеджеры
+                            items:
+                                type: string
+                        developers:
+                            type: array
+                            description: Ответственные разработчики
+                            items:
+                                $ref: "#/definitions/Developer"
+        BugFormSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                url:
+                    type: string
+                    description: Ссылка на форму для отправки ошибок
+                answer_url_id:
+                    type: string
+                    description: id поля для подставки адреса текущей страницы в браузере
+        Developer:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    description: Название разработчика (имя группы или человека)
+                dev_url:
+                    type: string
+                    description: Ссылка на группу разработки
+        DefaultSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                bug_form_settings:
+                    $ref: "#/definitions/BugFormSettings"

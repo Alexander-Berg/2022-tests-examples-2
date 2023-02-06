@@ -1,0 +1,203 @@
+default:
+    view: {completed_orders: 10, complaint_count: 2}
+    complaint_priority:
+      - name: smellycar_trips
+        value: 1
+      - name: nochange_trips
+        value: 3
+      - name: baddriving_trips
+        value: 5
+      - name: badroute_trips
+        value: 6
+      - name: carcondition_trips
+        value: 10
+      - name: rudedriver_trips
+        value: 20
+      - name: notcute_trips
+        value: 2
+    category_priority:
+      - name: Ultimate
+        value: 1
+      - name: Premium
+        value: 5
+      - name: Personal_driver
+        value: 10
+      - name: Business
+        value: 12
+      - name: Business_van
+        value: 15
+      - name: Comfort_plus
+        value: 20
+      - name: Child
+        value: 25
+      - name: Van
+        value: 27
+      - name: Courier
+        value: 32
+      - name: Cargo
+        value: 31
+      - name: Comfort
+        value: 35
+      - name: Economy
+        value: 50
+      - name: Start
+        value: 70
+    threshold:
+      - name: cancel_orders
+        none_max_abs: 0
+        none_percent: 0
+        rare_max_abs: 4
+        rare_percent: 0.5
+        percent_field: orders
+      - name: customer_driver_deal_orders
+        none_max_abs: 0
+        none_percent: 0
+        rare_max_abs: 4
+        rare_percent: 0.5
+        percent_field: trips
+      - name: baddriving_telemtry_trips
+        none_max_abs: 0
+        none_percent: 0
+        rare_max_abs: 4
+        rare_percent: 0.5
+        percent_field: trips
+      - name: high_speed_trips
+        none_max_abs: 0
+        none_percent: 0
+        rare_max_abs: 4
+        rare_percent: 0.5
+        percent_field: trips
+description: Тонкая настройка функционирования отчета по отзывам, как отдельно, так
+    и в рамках водителя
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - view
+      - complaint_priority
+      - category_priority
+      - threshold
+    properties:
+        view:
+            description: Настройки отображения
+            $ref: '#/definitions/view'
+        complaint_priority:
+            description: Список приоритетов сортировки списка жалоб при равных количествах
+                (от меньшего к большему)
+            $ref: '#/definitions/complaint_priority'
+        category_priority:
+            description: Список приоритетов сортировки по категориям водителей (от
+                меньшего к большему)
+            $ref: '#/definitions/category_priority'
+        threshold:
+            description: Список
+            $ref: '#/definitions/threshold'
+    definitions:
+        string_array:
+            type: array
+            items:
+                type: string
+        view:
+            type: object
+            additionalProperties: false
+            required:
+              - completed_orders
+              - complaint_count
+            properties:
+                completed_orders:
+                    description: Минимальное число поездок для отображения (0 - не
+                        учитывается)
+                    type: integer
+                    minimum: 0
+                complaint_count:
+                    description: Количество отображаемых жалоб
+                    type: integer
+                    minimum: 1
+        priority_item:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - value
+            properties:
+                name:
+                    description: Название
+                    type: string
+                value:
+                    description: Значение
+                    type: integer
+                    minimum: 1
+        threshold_item:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+              - none_max_abs
+              - none_percent
+              - rare_max_abs
+              - rare_percent
+              - percent_field
+            properties:
+                name:
+                    description: Название
+                    type: string
+                none_max_abs:
+                    description: Абсолютное значение для слова Нет/Было
+                    type: integer
+                    minimum: 0
+                none_percent:
+                    description: Относительное значение для слова Нет/Было
+                    type: number
+                    format: float
+                    minimum: 0
+                rare_max_abs:
+                    description: Абсолютное значение для слова Было/Часто
+                    type: integer
+                    minimum: 0
+                rare_percent:
+                    description: Относительное значение для слова Было/Часто
+                    type: number
+                    format: float
+                    minimum: 0
+                percent_field:
+                    description: Поле для расчёта относительного значения
+                    type: string
+        complaint_priority:
+            type: array
+            items:
+                $ref: '#/definitions/priority_item'
+        category_priority:
+            type: array
+            items:
+                $ref: '#/definitions/priority_item'
+        threshold:
+            description: Список лимитов
+            type: array
+            items:
+                $ref: '#/definitions/threshold_item'
+samples:
+  - view: {completed_orders: 10, complaint_count: 2}
+    complaint_priority:
+      - name: "test"
+        value: 1
+      - name: "test"
+        value: 2
+    category_priority:
+      - name: "test"
+        value: 1
+      - name: "test"
+        value: 2
+    threshold:
+      - name: "test"
+        none_max_abs: 0
+        none_percent: 0
+        rare_max_abs: 5
+        rare_percent: 0.7
+        percent_field: "test_total"
+      - name: "test1"
+        none_max_abs: 2
+        none_percent: 0.1
+        rare_max_abs: 10
+        rare_percent: 2.7
+        percent_field: "test_total1"

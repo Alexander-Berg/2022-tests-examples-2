@@ -1,0 +1,61 @@
+default:
+    interval-ms: 5000
+    chunk-size: 1000
+    lagging-cursor-delay: 300
+    mode: disabled
+description: |
+    Параметры работы процедуры импортов unique_drivers;
+    interval-ms - период работы процедуры;
+    chunk-size - максимальное число обработанных документов в рамках одного интервала;
+    full-update-delay-ms - определяет тротлинг работы процедуры полного обновления;
+    full-updates-limit-per-iteration - максимальное число итераций full-update в рамках итерации процедуры (используется в тестах);
+    lagging-cursor-delay - отставание корректирующего курсора;
+    license-pd-id - deprecated, не используется;
+    log-skipped - если присутствует, то логируются причины пропуска водителя;
+    mode - режим работы процедуры:
+      - disabled - процедура выключена;
+      - enabled - процедура выключена;
+    pg-timeout-ms - разрешенный таймаут запросов к pg в миллисекундах.
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        interval-ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+        chunk-size:
+            type: integer
+            x-taxi-cpp-type: unsigned
+            minimum: 1
+        full-update-delay-ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 0
+        full-updates-limit-per-iteration:
+            type: integer
+            x-taxi-cpp-type: unsigned
+            minimum: 0
+        lagging-cursor-delay:
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+            minimum: 0
+        license-source-pd-id:
+            type: boolean
+        log-skipped:
+            type: boolean
+        mode:
+            type: string
+            enum:
+              - disabled
+              - enabled
+        pg-timeout-ms:
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 0
+    required:
+      - interval-ms
+      - chunk-size
+      - lagging-cursor-delay
+      - mode

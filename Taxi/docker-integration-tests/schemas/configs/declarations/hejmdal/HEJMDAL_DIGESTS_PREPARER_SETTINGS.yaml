@@ -1,0 +1,61 @@
+default:
+    enabled: true
+    period_min: 30
+    get_digests_command_control:
+        network_timeout_ms: 300
+        statement_timeout_ms: 300
+    get_incidents_command_control:
+        network_timeout_ms: 300
+        statement_timeout_ms: 300
+    update_last_broadcast_command_control:
+        network_timeout_ms: 300
+        statement_timeout_ms: 300
+
+description: Настройки периодической задачи по созданию дайджестов
+tags: []
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        enabled:
+            type: boolean
+            description: Включен ли запуск периодической задачи
+        period_min:
+            type: integer
+            x-taxi-cpp-type: std::chrono::minutes
+            description: Период запуска в минутах
+        get_digests_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        get_incidents_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        update_last_broadcast_command_control:
+            $ref: '#/definitions/DbCommandControl'
+        minimal_incident_duration_min:
+            type: integer
+            x-taxi-cpp-type: std::chrono::minutes
+            description: Порог продолжительности инцидента для включения в дайджест
+    required:
+      - enabled
+      - period_min
+      - get_digests_command_control
+      - get_incidents_command_control
+      - update_last_broadcast_command_control
+
+    definitions:
+        DbCommandControl:
+            type: object
+            properties:
+                network_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout_ms:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout_ms
+              - statement_timeout_ms

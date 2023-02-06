@@ -1,0 +1,267 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi cargo-claims Service
+    title: Yandex Taxi cargo-claims Service
+    version: '1.0'
+servers:
+  - url: cargo-claims.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: CARGO_CLAIMS_CLIENT_QOS
+
+paths:
+    /v1/test/claim/full:
+        get:
+            operationId: GetFromDenorm
+            description: Ручка для тестирования чтения из denorm
+            parameters:
+              - in: query
+                description: uuid_id
+                name: claim_id
+                schema:
+                    type: string
+                required: true
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions/pg-denorm.yaml#/components/schemas/ClaimDenorm'
+                '404':
+                    description: Не найдена
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions/error-with-message.yaml#/components/schemas/ErrorWithMessage'
+    /v1/test/claim/cut:
+        post:
+            operationId: GetCutFromDenorm
+            description: Ручка для тестирования чтения из denorm
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - uuids
+                            properties:
+                                uuids:
+                                    type: array
+                                    items:
+                                        type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - claims
+                                properties:
+                                    claims:
+                                        type: array
+                                        items:
+                                            $ref: '../definitions/pg-denorm.yaml#/components/schemas/ClaimDenorm'
+
+
+    /v1/test/claim/search:
+        post:
+            operationId: SearchFromDenorm
+            description: Ручка для тестирования поиска из denorm
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions/admin-search-request.yaml#/components/schemas/SearchClaimsRequestAdmin'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestSearchResponse'
+
+    /v1/test/cargo-order/features:
+        post:
+            operationId: GetCargoOrderFeatures
+            description: Ручка для тестирования получения фич из denorm
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - cargo_order_ids
+                            properties:
+                                cargo_order_ids:
+                                    type: array
+                                    items:
+                                        $ref: 'cargo-claims/definitions.yaml#/components/schemas/CargoOrderId'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - features
+                                properties:
+                                    features:
+                                        type: array
+                                        items:
+                                            type: object
+                                            additionalProperties: false
+                                            required:
+                                              - cargo_order_id
+                                              - claim_id
+                                            properties:
+                                                cargo_order_id:
+                                                    type: string
+                                                claim_id:
+                                                    type: string
+                                                features:
+                                                    type: array
+                                                    items:
+                                                        $ref: '../definitions/pg-denorm.yaml#/components/schemas/ClaimFeaturesData'
+
+    /v1/test/claim/recovery:
+        post:
+            operationId: ClaimRecovery
+            description: Ручка для тестирования восстановления данных из архива
+            parameters:
+              - in: query
+                description: uuid_id
+                name: claim_id
+                schema:
+                    type: string
+                required: true
+            responses:
+                '200':
+                    description: OK
+                '404':
+                    description: Не найдена
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions/error-with-message.yaml#/components/schemas/ErrorWithMessage'
+
+    /v1/test/claim/redis-full:
+        get:
+            operationId: GetRedisFromDenorm
+            description: Ручка для тестирования чтения из denorm
+            parameters:
+              - in: query
+                description: claim_uuid
+                name: claim_id
+                schema:
+                    type: string
+                required: true
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions/pg-denorm.yaml#/components/schemas/ClaimDenorm'
+                '404':
+                    description: Не найдена
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions/error-with-message.yaml#/components/schemas/ErrorWithMessage'
+
+components:
+    schemas:
+        TestSearchResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - claims
+              - diagnostics
+            properties:
+                claims:
+                    type: array
+                    items:
+                        $ref: '../definitions/pg-denorm.yaml#/components/schemas/ClaimDenorm'
+                diagnostics:
+                    $ref: '#/components/schemas/TestSearchDiagnostics'
+
+        TestSearchDiagnostics:
+            type: object
+            additionalProperties: false
+            required:
+              - retrieved_claims
+              - retriever_function
+              - filtration_info
+            properties:
+                retrieved_claims:
+                    type: array
+                    items:
+                        type: string
+                retriever_function:
+                    $ref: '#/components/schemas/TestSearchFunction'
+                filtration_info:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TestSearchFilterInfo'
+
+        TestSearchFunction:
+            type: string
+            enum:
+              - by_claim_id
+              - by_external_order_id
+              - by_payment_id
+              - by_performer_phone
+              - by_phone
+              - by_status
+              - by_corp_client_id
+              - by_none
+              - by_phone_and_corp_client_id
+              - by_state_and_corp_client_id
+              - by_status_and_corp_client_id
+              - by_due_and_corp_client_id
+              - by_performer_phone_and_status
+              - by_phone_and_status
+              - by_phone_and_status_and_corp_client_id
+              - by_phone_and_state_and_corp_client_id
+
+        TestSearchFilterInfo:
+            type: object
+            additionalProperties: false
+            required:
+              - filter
+              - claim
+              - result
+            properties:
+                filter:
+                    type: object
+                    additionalProperties: false
+                    required:
+                      - type
+                    properties:
+                        type:
+                            type: string
+                        value:
+                            type: string
+                claim:
+                    type: string
+                result:
+                    type: string
+                    enum:
+                      - filtered
+                      - passed
+                      - skipped

@@ -1,0 +1,68 @@
+description: |
+    Мапа из названий городов в настройки
+default:
+    task_period_s: 60
+    cities:
+        __default__: {}
+
+tags:
+  - notfallback
+
+maintainers:
+  - nknv-roman
+
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        task_period_s:
+            description: Раз в сколько секунд обрабатывать новые заявки
+            type: integer
+            x-taxi-cpp-type: std::chrono::seconds
+        cities:
+            description: Настройки по городам
+            type: object
+            properties:
+                __default__:
+                    $ref: '#/definitions/CitySettings'
+            required:
+              - __default__
+            additionalProperties:
+                $ref: '#/definitions/CitySettings'
+    required:
+      - task_period_s
+      - cities
+
+    definitions:
+        CitySettings:
+            description: Специфичные для города настройки
+            type: object
+            additionalProperties: false
+            properties:
+                run_at:
+                    description: |
+                        Время запуска планирования в этом городе в день X-1.
+                        Задается в локальной таймзоне соответствующего geoid
+                    type: string
+                    pattern: '^\d{2}:\d{2}$'
+                    example: '18:45'
+                confirmation_deadline:
+                    description: |
+                        Крайний срок подтверждения готовности пройти тест в день X.
+                        Задается в локальной таймзоне соответствующего geoid
+                    type: string
+                    pattern: '^\d{2}:\d{2}$'
+                    example: '18:45'
+                    # Или так:
+                    # type: object
+                    # properties:
+                    #     h:
+                    #         description: Часы
+                    #         type: integer
+                    #         minimum: 0
+                    #         maximum: 23
+                    #     m:
+                    #         description: Минуты
+                    #         type: integer
+                    #         minimum: 0
+                    #         maximum: 59

@@ -1,0 +1,89 @@
+#!/bin/bash
+
+. $TESTSUITE_LIB_UTILS
+
+YTLOCAL_EXTRA_START_ARGS=""
+
+if [ "x$TESTSUITE_YTLOCAL_RAMDISK_ENABLED" != "x" ]; then
+    # Use ramdisk if available
+    RAMDISK=/mnt/ramdisk/$USER
+    if mkdir -p $RAMDISK 2> /dev/null; then
+        echo "Testsuite yt-local uses ramdisk"
+        YT_RAMDISK=$RAMDISK/_ytlocal${WORKER_SUFFIX_PATH}
+        YTLOCAL_EXTRA_START_ARGS+=" --tmpfs-path $YT_RAMDISK"
+    fi
+fi
+
+if [ "x$YT_TMPDIR" = "x" ]; then
+    die "YT_TMPDIR must be set"
+fi
+
+YTLOCAL_BASEDIR=$YT_TMPDIR/ytlocal
+YTLOCAL_DATADIR=$YTLOCAL_BASEDIR/testsuite
+YTLOCAL_CYPRESSDIR=$YTLOCAL_BASEDIR/cypress
+
+if [ "x$TESTSUITE_YTLOCAL_DEBUG" != "x" ]; then
+    echo "Testsuite yt-local debug logging enabled"
+    YTLOCAL_EXTRA_START_ARGS+=" --enable-debug-logging"
+fi
+
+if [ "x$TESTSUITE_YTLOCAL_PORTS_RANGE" != "x" ]; then
+    echo "Testsuite yt-local use ports from continuous range"
+    YTLOCAL_EXTRA_START_ARGS+=" --ports-range-start $YT_PORTS_RANGE_START"
+fi
+
+
+YTLOCAL_START=/usr/lib/yandex/taxi-yt-local/bin/yt-local-start
+YTLOCAL_STOP=/usr/lib/yandex/taxi-yt-local/bin/yt-local-stop
+
+if [ "$(uname -s)" != "Linux" ]; then
+    die "Native yt-local is only supported on GNU/Linux systems.
+
+Please use docker to start yt-local on macOS:
+
+  git clone git@github.yandex-team.ru:yt/docker.git yt-docker
+  cd yt-docker
+  docker-compose up -d ytbackend
+
+Then re-run testsuite with yt proxy address specified:
+
+  PYTEST_ARGS += --yt-proxy=localhost:8000
+
+For more info please visit https://wiki.yandex-team.ru/taxi/backend/testsuite/yt/"
+fi
+
+if [ ! -x $YTLOCAL_START -o ! -x $YTLOCAL_STOP ]; then
+    die "Please install yandex-taxi-yt-local package.
+
+$ sudo apt-get install yandex-taxi-yt-local
+
+For more info please visit https://wiki.yandex-team.ru/taxi/backend/testsuite/yt/"
+fi
+
+start() {
+    echo "Testsuite yt-local directory: $YTLOCAL_BASEDIR"
+
+    rm -rf "$YTLOCAL_DATADIR"
+    mkdir -p "$YTLOCAL_DATADIR" "$YTLOCAL_CYPRESSDIR"
+    cd "$YTLOCAL_DATADIR"
+
+    $YTLOCAL_START \
+        --fqdn $YT_HOSTNAME \
+        --id testsuite \
+        --proxy-config "{address_resolver={enable_ipv4=%true;enable_ipv6=%false;};coordinator={public_fqdn=\"${YT_HOSTNAME}:${YT_HTTP_PROXY_PORT}\"}}" \
+        --local-cypress-dir "$YTLOCAL_CYPRESSDIR" \
+        --proxy-port $YT_HTTP_PROXY_PORT --rpc-proxy-port $YT_RPC_PROXY_PORT \
+        --wait-tablet-cell-initialization \
+        --watcher-config "{logs_rotate_max_part_count=10;logs_rotate_size=\"100M\";logs_rotate_interval=\"60\"}" \
+        $YTLOCAL_EXTRA_START_ARGS
+
+    $YT_HEALTHCHECK_SCRIPT
+}
+
+stop() {
+    cd "$YTLOCAL_DATADIR"
+    $YTLOCAL_STOP testsuite
+    rm -rf "$YTLOCAL_DATADIR"
+}
+
+script_main "$@"

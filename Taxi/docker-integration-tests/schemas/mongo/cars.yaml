@@ -1,0 +1,50 @@
+description: Don't use this collection any more, see TAXIACCESSDATA-100 - cars, identified
+    by registration plates (deprecated)
+settings:
+    collection: cars
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: is_blacklisted
+    sparse: true
+  - key: updated
+  - key: updated_ts
+    sparse: true
+    unique: true
+wiki_info: |
+    ####dbtaxi.cars - автомобили
+
+    ```python
+    doc = {
+        # Note: коллекция подлежит разбору. Добавление новых полей в коллекцию запрещено. Выпиливание старых поощряется.
+
+
+        # Поля, которые проставляются в fleet-vehicles
+        '_id': 'string',                   # нормализованный номер автомобиля taxi.util.helpers.clean_number
+        'created_ts': 'mongo::Timestamp',  # mongo timestamp создания документа
+        'updated': 'datetime',             # время внесения последней правки в документ
+        'updated_ts': 'mongo::Timestamp',  # mongo timestampпоследней правки в документ
+
+
+        # Поля, которые пишутся в коллекцию напрямую.
+        #  Эти поля нужно изводить из коллекции, их семантику переносить в отдельные микросервисы
+        'is_blacklisted': boolean,  # optional, занесен ли в черный список
+        'blacklist_details': {
+            'at': datetime,               # время внесения в черный список
+            'login': 'operator',          # логин оператора
+            'reason': 'faruder',          # причина блокировки
+            'otrs_ticket': '123',         # номер тикета в OTRS
+            'till': datetime,             # опциональное поле, срок окончания действия блокировки
+        },
+        'classifier_exceptions': [       # optional, список исключений из классификатора для данного госномера (замена старому полю classes)
+            {
+                'categories': ['vip'],   # список категорий, которые явно нужно присвоить этой машине
+                'zones': ['moscow'],     # список зон, в которых действует это правило (если поле отсутствует, то правило действует везде)
+                'start': 'datetime',     # время начала действия правила
+                'end': 'datetime',       # время окончания действия правила
+                'id': uuid.uuid4().hex   # id правила (используется для идентификации в админке при редактировании)
+            },
+            ...
+        ]
+    }
+    ```

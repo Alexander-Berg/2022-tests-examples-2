@@ -1,0 +1,33 @@
+---
+# Высокий уровень таймаутов при походе routestats в driver-eta
+# для разделения heavy/lightweight, нужно добавить в selectors
+# 'reason'='heavy' или 'reason'='lightweight' соответственно
+- service: driver-eta-timeouts-in-routestats-testing
+  alert_type: expression
+  program: |
+    let bad_requests_selector = {
+        cluster="testing",
+        project="taxi",
+        sensor="eta_exceptions",
+        service="app",
+        host=="cluster"
+    };
+    let ok_requests_selector = {
+        cluster="testing",
+        project="taxi",
+        sensor="eta_ok_requests",
+        service="app",
+        host=="cluster"
+    };
+
+    let bad_requests_count = sum(series_sum(bad_requests_selector));
+    let ok_requests_count = sum(series_sum(ok_requests_selector));
+
+    let total_requests = bad_requests_count + ok_requests_count;
+    let bad_requests_share =
+        total_requests == 0 ? 0 : bad_requests_count / total_requests;
+
+    alarm_if(bad_requests_share > 0.05);
+    warn_if(bad_requests_share > 0.01);
+  checkExpression: 'false'
+  period: 60

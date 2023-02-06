@@ -1,0 +1,34 @@
+INSERT INTO forwardings.forwardings
+(
+  id,
+  external_ref_id,
+  gateway_id,
+  consumer_id,
+  state,
+  created_at,
+  expires_at,
+  src_type,
+  dst_type,
+  caller_phone,
+  callee_phone,
+  nonce,
+  call_location,
+  region_id
+)
+VALUES
+(
+  'forwarding_id_1',
+  '',
+  'gateway_id_1',
+  0,
+  'created',
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP,
+  'passenger',
+  'passenger',
+  '',
+  '',
+  '',
+  (0.0, 0.0),
+  100
+);

@@ -1,0 +1,27 @@
+data:
+    name: ChangeQuotaBranchMDB
+    provider_name: clownductor
+    job_vars:
+      - cluster_id
+      - destination_folder_id
+      - db_type
+    stages:
+      - name: InternalGenerateIdempotencyToken
+        provider_name: clownductor
+        output:
+            uuid_token: uuid_token
+
+      - name: MDBMoveCluster
+        provider_name: clownductor
+        input:
+            cluster_id: cluster_id
+            destination_folder_id: destination_folder_id
+            db_type: db_type
+            idempotency_token: uuid_token
+        output:
+            operation_id: operation_id
+
+      - name: MDBCubeWaitForOperation
+        provider_name: clownductor
+        input:
+            operation_id: operation_id

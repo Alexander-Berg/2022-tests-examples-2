@@ -1,0 +1,126 @@
+swagger: '2.0'
+info:
+    version: '1.0'
+    title: Yet Another Service
+    description: Forms format testing
+
+basePath: /test_forms
+
+x-taxi-timeout:
+    ms:
+        taxi-config: YET_ANOTHER_SERVICE_TIMEOUT_MS
+x-taxi-retries:
+    taxi-config: SAFETY_CENTER_ACCIDENTS_RETRIES
+
+paths:
+    /happy-multipart:
+        post:
+            x-taxi-retries:
+                taxi-config: GEOTRACKS_GET_RETRIES
+            consumes:
+              - multipart/form-data
+            produces:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: formData
+                name: name
+                required: true
+                type: string
+              - in: formData
+                name: age
+                type: integer
+                required: true
+              - in: formData
+                name: cars
+                type: array
+                required: true
+                items:
+                    type: string
+                collectionFormat: multi
+              - in: formData
+                name: colors
+                type: array
+                required: true
+                items:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: integer
+
+    /happy-urlencoded:
+        post:
+            consumes:
+              - application/x-www-form-urlencoded
+            produces:
+              - text/plain; charset=utf-8
+            parameters:
+              - in: formData
+                name: name
+                required: true
+                type: string
+              - in: formData
+                name: age
+                type: integer
+                required: true
+              - in: formData
+                name: cars
+                type: array
+                required: true
+                items:
+                    type: string
+                collectionFormat: multi
+              - in: formData
+                name: colors
+                type: array
+                required: true
+                items:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: integer
+
+    /save-file-report:
+        post:
+            consumes:
+              - multipart/form-data
+            parameters:
+              - in: formData
+                name: report
+                type: file
+                required: true
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: object
+                        required:
+                          - size
+                          - filename
+                        properties:
+                            size:
+                                type: integer
+                            filename:
+                                type: string
+                        additionalProperties: false
+
+    /binary-multipart:
+        post:
+            consumes:
+              - multipart/form-data
+            parameters:
+              - in: formData
+                name: binary_data
+                type: string
+                format: binary
+                required: true
+            produces:
+              - text/plain; charset=utf-8
+            responses:
+                200:
+                    description: OK
+                    schema:
+                        type: string

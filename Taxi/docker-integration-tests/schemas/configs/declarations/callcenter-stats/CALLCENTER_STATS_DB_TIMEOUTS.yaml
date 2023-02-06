@@ -1,0 +1,41 @@
+default:
+    default:
+        network_timeout: 1200
+        statement_timeout: 1000
+    admin_timeouts:
+        network_timeout: 1200
+        statement_timeout: 1000
+description: Конфиги запросов к БД сервиса callcenter-stats
+tags: [notfallback]
+maintainers: [kisonmaks, mstepa]
+schema:
+    type: object
+    properties:
+        default:
+            description: настройки таймаутов по-умолчанию
+            $ref: '#/definitions/db_requests_settings'
+        admin_timeouts:
+            description: настройки таймаутов получения данных в админке
+            $ref: '#/definitions/db_requests_settings'
+    required:
+      - default
+      - admin_timeouts
+    additionalProperties: false
+    definitions:
+        db_requests_settings:
+            type: object
+            properties:
+                network_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: network таймаут запроса в БД
+                statement_timeout:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 1
+                    description: statement таймаут запроса в БД
+            additionalProperties: false
+            required:
+              - network_timeout
+              - statement_timeout

@@ -1,0 +1,78 @@
+group:
+  type: rtc
+  name: some_dorblu_name
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  some.test.hostname.net:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/__ping_GET:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/ping" }
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/courier-shifts/{courier_shift_id}_GET:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - Regex: { request_url: "/courier-shifts/[^/]+/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  some.test.hostname.net/courier-shifts/{courier_shift_id}/start_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/courier-shifts/[^/]+/start/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request
+
+  some.test.hostname.net/courier-shifts/{param1}/pause/{param2}_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/courier-shifts/[^/]+/pause/[^/]+/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 499 # Client closed request

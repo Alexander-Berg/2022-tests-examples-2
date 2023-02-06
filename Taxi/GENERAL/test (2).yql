@@ -1,0 +1,44 @@
+USE hahn;
+
+--------------------------------------------------------------------------------
+-- Task: Save SELECT results to a table at the specified path.
+--
+-- The following line builds table path including your username so there's
+-- no conflicts between different people going through this tutorial.
+--------------------------------------------------------------------------------
+$path = "tmp/" || CurrentAuthenticatedUser() || "/" || cast(CurrentUtcTimestamp() as String) || "/yql_tmp_for_insert_drop_example";
+
+DROP TABLE $path;
+
+commit;
+
+INSERT INTO $path
+WITH TRUNCATE -- by default INSERT INTO on MapReduce clusters just
+              -- appends to the table. Optional WITH TRUNCATE modifier clears
+              -- the contents of the table before adding new rows
+(
+    name, -- in case of inserting literal values
+    age,  -- you have to specify column names first
+    ip
+)
+VALUES
+(
+    "Somebody",         -- values are matched with columns in order;
+    CAST(77 AS Uint64), -- CAST is used to convert a value into a
+            -- different type; in this case literal 77 is
+            -- considered to be signed while "age" column
+            -- where we are appending to is unsigned
+    "127.0.0.1"
+),
+(   -- you can insert multiple rows at once separated by commas,
+    -- but beware that the total size of request is limited by
+    -- hundreds of kilobytes
+    "Someone else",
+    33ul, -- you can make unsigned integer literal using suffix
+          -- instead of casting the signed one, see https://nda.ya.ru/3SYyyD
+    "::1"
+);
+
+COMMIT;
+
+select * from $path;

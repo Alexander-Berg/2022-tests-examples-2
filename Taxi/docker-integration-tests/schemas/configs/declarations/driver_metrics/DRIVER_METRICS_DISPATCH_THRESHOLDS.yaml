@@ -1,0 +1,52 @@
+default:
+    __default__:
+        __default__:
+            distance: [1000, 2000]
+            time: [180, 360]
+description: Границы режима дальности диспатча по зонам и классам
+tags: []
+schema:
+    additionalProperties:
+        $ref: '#/definitions/tariff_zone_settings'
+    properties:
+        __default__:
+            $ref: '#/definitions/tariff_zone_settings'
+            properties:
+                __default__:
+                    $ref: '#/definitions/tariff_class_settings'
+            required:
+              - __default__
+    required:
+      - __default__
+    type: object
+    definitions:
+
+        tariff_zone_settings:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/tariff_class_settings'
+
+        tariff_class_settings:
+            type: object
+            additionalProperties: false
+            properties:
+                distance:
+                    $ref: '#/definitions/pair_of_values'
+                time:
+                    $ref: '#/definitions/pair_of_values'
+                aggregation_type:
+                    type: string
+                    enum:
+                      - min
+                      - max
+            required:
+              - distance
+              - time
+
+        pair_of_values:
+            type: array
+            items:
+                type: integer
+                minimum: 0
+            minItems: 2
+            maxItems: 2

@@ -1,0 +1,52 @@
+INSERT INTO fleet_drivers_scoring.checks
+(
+    park_id,
+    check_id,
+    idempotency_token,
+    created_at,
+    updated_at,
+    license_pd_id,
+    status,
+    status_meta_info
+)
+VALUES
+(
+    'park1',
+    'req_pending',
+    '1',
+    '2020-08-01T00:00:00.000000Z',
+    '2020-08-01T00:00:00.000000Z',
+    'license_pd_id',
+    'pending',
+    NULL
+),
+(
+    'park1',
+    'req_done',
+    '2',
+    '2020-08-01T00:00:00.000000Z',
+    '2020-08-01T00:00:00.000000Z',
+    'license_pd_id',
+    'done',
+    NULL
+),
+(
+    'park1',
+    'req_internal_error',
+    '3',
+    '2020-08-01T00:00:00.000000Z',
+    '2020-08-01T00:00:00.000000Z',
+    'license_pd_id',
+    'internal_error',
+    NULL
+),
+(
+    'park1',
+    'req_failed',
+    '4',
+    '2020-08-01T00:00:00.000000Z',
+    '2020-08-01T00:00:00.000000Z',
+    'license_pd_id',
+    'failed',
+    '{"reason": "not_enough_money"}'::jsonb
+)

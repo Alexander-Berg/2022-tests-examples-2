@@ -1,0 +1,20 @@
+INSERT INTO telegram_managers (
+    uuid,
+    place_id,
+    telegram_login_id,
+    deleted_at
+)
+VALUES
+(
+     'manager_uuid_1',
+     'place_id__1',
+     'personal_telegram_login_id_1',
+     NULL
+),
+(
+     'manager_uuid_2',
+     'place_id__1',
+     'personal_telegram_login_id_2',
+     NOW()
+)
+;

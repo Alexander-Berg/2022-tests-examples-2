@@ -1,0 +1,58 @@
+if (fix.payment_type as payment_type) {
+  if (payment_type == "cash") {
+    return ride.price;  // платной отмены за наличные быть не может
+  }
+}
+
+let paid_supply_disabled = (fix.category_data.disable_paid_supply as disable_paid_supply) ? disable_paid_supply : false;
+
+let paid_supply_paid_cancel = (fix.paid_supply_price as paid_supply_price)
+    ? (!paid_supply_disabled && paid_supply_price >= fix.category_data.min_paid_supply_price_for_paid_cancel)
+    : false;
+
+if (paid_supply_paid_cancel) {
+  if (fix.paid_supply_price as paid_supply_price) {  // этот if разыменовывает уже проверенный выше optional
+    let meta1 = [
+        "paid_supply_paid_cancel_in_driving_price": round_to(paid_supply_price, fix.rounding_factor)
+    ];
+    if(fix.payment_type as payment_type) {
+      let corp_type = payment_type == "corp";
+      let wallet_type = payment_type == "personal_wallet";
+      let corp_acc_type = payment_type == "coop_account";
+      let good_type = !corp_type && !wallet_type && !corp_acc_type;
+      if (fix.user_data.has_yaplus && !fix.user_data.has_cashback_plus && good_type) {
+        if (fix.category_data.yaplus_coeff as yaplus_coeff) {
+          let meta2 = [
+            "paid_supply_paid_cancel_in_driving_price": round_to(paid_supply_price * yaplus_coeff, fix.rounding_factor)
+          ];
+          return { metadata = meta1 + meta2 };
+        }
+      }
+    }
+    return { metadata = meta1 };
+  }
+} else if ("driving_paid_cancel" in fix.user_tags) {
+  let boarding = fix.tariff.boarding_price;
+
+  let meta1 = [
+    "paid_cancel_in_driving_price": round_to(boarding, fix.rounding_factor)
+  ];
+
+  if(fix.payment_type as payment_type) {
+    let corp_type = payment_type == "corp";
+    let wallet_type = payment_type == "personal_wallet";
+    let corp_acc_type = payment_type == "coop_account";
+    let good_type = !corp_type && !wallet_type && !corp_acc_type;
+    if (fix.user_data.has_yaplus && !fix.user_data.has_cashback_plus && good_type) {
+      if (fix.category_data.yaplus_coeff as yaplus_coeff) {
+        let meta2 = [
+            "paid_cancel_in_driving_price": round_to(boarding * yaplus_coeff, fix.rounding_factor)
+        ];
+        return { metadata = meta1 + meta2};
+      }
+    }
+  }
+  return { metadata = meta1 };
+}
+
+return ride.price;

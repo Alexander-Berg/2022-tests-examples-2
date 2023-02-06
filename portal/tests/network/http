@@ -1,0 +1,23 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+__author__ = "Zasimov Alexey"
+__email__ = "zasimov-a@yandex-team.ru"
+
+
+from httplib2 import Http
+from wp7desktop.share.network import get_page, NetworkError
+
+if __name__ == "__main__":
+    http = Http()
+    get_page(http, "http://stocks-dev.yandex.net")
+    # 302 redirect 
+    # TODO: Нужен специальный сервер, генерирующий ошибки
+    # разных видов =)
+    get_page(http, "http://yandex.ru")
+    try:
+        get_page(http, "http://unknown.server.in.unknown.network.bee")
+        print "Expected NetworkError"
+        exit(1)
+    except NetworkError:
+        pass

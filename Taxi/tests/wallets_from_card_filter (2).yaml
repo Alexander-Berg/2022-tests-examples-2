@@ -1,0 +1,76 @@
+id: wallets_from_card_filter
+title: Используем кошельки из ответа card-filter
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                corp:
+                    available_accounts: []
+                    payment_available: false
+                card:
+                    payment_available: true
+                    available_cards: []
+                    unverified_cards: []
+                personal_wallet:
+                    available_accounts:
+                      - id: "wallet"
+                        name: "Plus"
+                        availability:
+                            available: true
+                            disabled_reason: ''
+                        money_left_as_str: "123"
+                        money_left_as_decimal: "123"
+
+mocks:
+  - resource: card-filter-v1-filteredcards-legacy
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+            wallets:
+              - id: "wallet"
+                name: "Plus"
+                availability:
+                    available: true
+                    disabled_reason: ''
+                money_left_as_str: "123"
+                money_left_as_decimal: "123"
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: shared-internal-stats
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: personal-v1-available-accounts
+    response:
+        status-code: 500
+    expectations:
+        call-count: 0
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: true
+experiments:
+    values:
+        card_filter_legacy_enabled:
+            enabled: true
+        card_filter_process_wallets:
+            enabled: true
+        personal_wallet:
+            enabled: true

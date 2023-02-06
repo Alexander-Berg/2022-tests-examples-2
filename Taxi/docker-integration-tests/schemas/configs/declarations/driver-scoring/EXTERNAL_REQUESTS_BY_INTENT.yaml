@@ -1,0 +1,69 @@
+description: >
+    'Настройки запросов в ручки других сервисов для разных intent-ов.
+    {intent: {service: {handle: {config}}}}'
+default:
+    __default__:
+        __default__:
+            __default__:
+                enabled: false
+                disable_on_fallbacks: []
+tags: []
+schema:
+    type: object
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/IntentConfig'
+    additionalProperties:
+        $ref: '#/definitions/IntentConfig'
+
+    definitions:
+        HandleConfig:
+            description: Параметры похода в ручку для данного intent-а
+            type: object
+            required:
+              - enabled
+              - disable_on_fallbacks
+            properties:
+                enabled:
+                    description: Рубильник похода в ручку
+                    type: boolean
+                disable_on_fallbacks:
+                    description: Названия фолбеков, при которых поход в ручку запрещен
+                    type: array
+                    items:
+                        description: Название фолбека
+                        type: string
+                retries:
+                    description: Оверрайд количества ретраев клиента по-умолчанию
+                    type: integer
+                    minimum: 1
+                timeout:
+                    description: Оверрайд таймаута клиента по-умолчанию (мс)
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            additionalProperties: false
+
+        ServiceConfig:
+            description: Параметры походов в ручки сервиса для данного intent-а
+            type: object
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/HandleConfig'
+            additionalProperties:
+                $ref: '#/definitions/HandleConfig'
+
+        IntentConfig:
+            description: Параметры походов в сервисы для данного intent-а
+            type: object
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/ServiceConfig'
+            additionalProperties:
+                $ref: '#/definitions/ServiceConfig'

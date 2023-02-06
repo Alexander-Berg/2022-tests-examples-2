@@ -1,0 +1,87 @@
+unit_tests_linux_and_win:
+  build_types:
+    - Browser_Tests_UnitTestsLinuxGn
+    - Browser_Tests_UnitTestsWinGn
+    - Browser_Tests_UnitTestsWin64
+  parameters:
+    reverse.dep.Browser_Tests_Build_Win.sandbox_threshold: "%sandbox_threshold_regular%"
+    reverse.dep.*.sandbox.mds_expire_master: "2d"
+  branches:
+    - +:master
+    - +:master-next
+    - +:master-([0-9.]+)/rc
+    - +:master-([0-9.]+)/rush/(\d)
+    - +:master-([0-9.]+)/corp/(\d)
+  run_with_no_changes: false
+
+unit_tests_mac:
+  build_types:
+    - Browser_Tests_UnitTestsMac
+  parameters:
+    reverse.dep.*.sandbox.mds_expire_master: "2d"
+  branches:
+    - +:master
+    - +:master-next
+    - +:
+        milestone_gte: branch
+        milestone_lt: release:rc
+        platforms:
+          - mac
+    - +:master-([0-9.]+)\.0/rc
+    - +:master-([0-9.]+)\.0/rush/(\d)
+  run_with_no_changes: false
+
+unit_tests_android:
+  build_types:
+    - Browser_Tests_UnitTestsAndroid
+  parameters:
+    reverse.dep.*.sandbox.mds_expire_master: "2d"
+  branches:
+    - +:master
+    - +:master-next
+  run_with_no_changes: false
+
+unit_tests_release_android:
+  build_types:
+    - Browser_Tests_UnitTestsLinuxGn
+    - Browser_Tests_UnitTestsAndroid
+  parameters:
+    reverse.dep.*.sandbox.mds_expire_master: "2d"
+  branches:
+    - +:master-(.*)/android/rc
+    - +:master-(.*)/android/pre
+  run_with_no_changes: false
+
+unit_tests_ios:
+  build_types:
+    - Browser_Tests_UnitTestsIos
+  parameters:
+    reverse.dep.*.sandbox.mds_expire_master: "2d"
+  branches:
+    - +:master
+    - +:master-next
+    - +:master-(.*)/ios/rc
+  run_with_no_changes: false
+
+ios_ui_tests:
+  build_types:
+    - Browser_Tests_UnitTestsIos
+  parameters:
+    reverse.dep.*.sandbox.mds_expire_master: "2d"
+    browser.tests.extra_args: "--test-tags slow_uitests"
+  branches:
+    - +:master
+  run_with_no_changes: false
+
+# It's not really a unit_tests build, but placed here to be run once per
+# several hours, and not every commit as build_checkout does.
+# Most of errors are catched by build_tests.ios build, so it's OK to run
+# ios.static more rarely.
+build_static_ios:
+  build_types:
+    - Browser_Tests_IosStatic
+  parameters:
+    sandbox.mds_expire_master: "1d"
+  branches:
+    - +:master
+  run_with_no_changes: false

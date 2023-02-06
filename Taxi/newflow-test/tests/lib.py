@@ -1,0 +1,3 @@
+
+class NoPointsLeft(Exception):
+    pass

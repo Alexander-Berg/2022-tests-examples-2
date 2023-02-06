@@ -1,0 +1,77 @@
+default:
+    __default__:
+        enabled: false
+        dump_restore_enabled: true
+        dump_interval: 300
+        valid_restore_interval: 1800
+        request_interval: 100
+        request_size: 8192
+description: |
+    Настройки кеша тегов по сервисам. Настраивает кеш в backend-cpp, для настройки в uservices см UTAGS_CACHE_SETTINGS.
+    - enabled - включение/выключение кеширования, при значении false кеши очищаются, походы в сервис тегов прекращаются,
+      у клиента пропадают теги (default: false);
+    - dump_restore_enabled - включение/выключение сохранения и восстановление из файла (default: true);
+    - dump_interval - период сохранения данных в секундах (default: 300);
+    - valid_restore_interval - максимальный интервал (в секундах) восстановления, между текущем временем и временем
+      записи файла с данными (default: 1800);
+    - request_interval - интервал между запросами (в миллисекундах) (default: 100);
+    - request_size - размер запрашиваемых данных (default: 8192).
+tags: [notfallback]
+maintainers: [mordeth, kokhanov, andrewchen, nikitaevg]
+schema:
+    definitions:
+        settings:
+            type: object
+            description: Настройки сохранения и восстановление данных кеша тегов
+            additionalProperties: false
+            properties:
+                enabled:
+                    type: boolean
+                    default: false
+                dump_restore_enabled:
+                    type: boolean
+                    default: true
+                dump_interval:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 1
+                    default: 300
+                valid_restore_interval:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 1
+                    default: 1800
+                request_interval:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 0
+                    default: 100
+                request_size:
+                    type: integer
+                    minimum: 1
+                    default: 8192
+
+    type: object
+    properties:
+        __default__:
+            $ref: '#/definitions/settings'
+    required:
+      - __default__
+    additionalProperties:
+        $ref: '#/definitions/settings'
+
+samples:
+  - __default__:
+        enabled: true
+        dump_restore_enabled: true
+        dump_interval: 300
+        valid_restore_interval: 1800
+        request_interval: 100
+        request_size: 8192
+    tracker:
+        enabled: true
+        dump_restore_enabled: false
+        dump_interval: 180
+        valid_restore_interval: 900
+        request_interval: 0
+        request_size: 4096

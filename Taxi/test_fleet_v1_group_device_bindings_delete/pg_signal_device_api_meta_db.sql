@@ -1,0 +1,223 @@
+INSERT INTO signal_device_api.device_groups (
+    group_id,
+    park_id,
+    group_name,
+    parent_group_id,
+    idempotency_token
+) VALUES (
+    '635ffb7b-8c06-476d-a30a-4bc9ae65d272',
+    'p1',
+    '2pac',
+    NULL,
+    'some_token01'
+),
+(
+    '3bd269aa-3aca-494b-8bbb-88f99847464a',
+    'p1',
+    'Shakur',
+    '635ffb7b-8c06-476d-a30a-4bc9ae65d272',
+    'some_token02'
+),
+(
+    '29a168a6-2fe3-401d-9959-ba1b14fd4862',
+    'p2',
+    'South',
+    NULL,
+    'some_token1'
+),
+(
+    '1db9bcc6-982c-46ff-a161-78fa1817be01',
+    'p2',
+    'SouthWestHam',
+    '29a168a6-2fe3-401d-9959-ba1b14fd4862',
+    'some_token2'
+),
+(
+    '51035bca-2011-4306-b148-8ff08c6f7a31',
+    'p2',
+    'SouthEast',
+    '29a168a6-2fe3-401d-9959-ba1b14fd4862',
+    'some_token3'
+),
+(
+    '12bb68a6-aae3-421d-9119-ca1c14fd4862',
+    'p3',
+    'North',
+    NULL,
+    'some_token4'
+),
+(
+    '2480430f-8dc2-4217-b2d4-1e9806c3bd2a',
+    'p3',
+    'SouthWest',
+    NULL,
+    'some_token5'
+);
+
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+), (
+    2,
+    NULL,
+    TRUE,
+    '4306de3dfd82406d81ea3c098c80e9ba',
+    'pub_key_2',
+    '351756051523999',
+    'a5:90:c5:98:95:48',
+    '78:ff:28:f2:69:b1',
+    NULL,
+    'AB12FE45DD',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    65536,
+    '{}',
+    2,
+    '2019-12-17T08:38:54',
+    '2019-12-17T08:38:54'
+), (
+    4,
+    NULL,
+    FALSE,
+    '77748dae0a3244ebb9e1b8d244982c28',
+    'pub_key_4',
+    NULL,
+    '32:41:27:d5:fb:ed',
+    'fb:43:3c:cd:1e:8f',
+    '23:5f:72:1c:04:39',
+    'FFFDEAD4',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+), (
+    7,
+    NULL,
+    TRUE,
+    '12349fbd4c7760578456c4a123456789',
+    'pub_key_1',
+    '190000862471854',
+    '12:41:27:d5:ab:ed',
+    NULL,
+    NULL,
+    'FFFFF4666',
+    '2.06',
+    '1ogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    '1XpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '1hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    6,
+    '2019-12-17T11:49:54',
+    '2019-12-17T12:50:54'
+), (
+    8,
+    NULL,
+    TRUE,
+    '11449fbd4c7760578456c4a123456789',
+    'pub_key_112',
+    '190000862471854',
+    '12:41:17:d5:ab:ed',
+    NULL,
+    NULL,
+    'FFF2F4666',
+    '2.06',
+    '1o2mkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    '1XpxYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '1hf1R2DEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    6,
+    '2019-12-17T11:49:54',
+    '2019-12-17T12:50:54'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active,
+    group_id
+) 
+VALUES
+(
+    'p1',
+    1,
+    '2020-02-25T22:30:00+03',
+    '2020-02-26T02:00:00+03',
+    TRUE,
+    NULL
+),
+(
+    'p1',
+    2,
+    '2020-02-27T00:00:00+03',
+    '2020-02-27T00:00:00+03',
+    FALSE,
+    NULL
+),
+(
+    'p2',
+    4,
+    '2020-02-27T00:00:00+03',
+    '2020-02-27T00:00:00+03',
+    TRUE,
+    '1db9bcc6-982c-46ff-a161-78fa1817be01'
+),
+(
+    'p3',
+    8,
+    '2020-02-27T00:00:00+03',
+    '2020-02-27T00:00:00+03',
+    TRUE,
+    '2480430f-8dc2-4217-b2d4-1e9806c3bd2a'
+);

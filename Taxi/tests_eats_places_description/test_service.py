@@ -1,0 +1,15 @@
+import pytest
+
+
+# Every service must have this handler
+@pytest.mark.servicetest
+async def test_ping(taxi_eats_places_description):
+    response = await taxi_eats_places_description.get('ping')
+    # Status code must be checked for every request
+    assert response.status_code == 200
+    # Response content (even empty) must be checked for every request
+    assert response.content == b''
+
+
+async def test_incremental_cache_update(taxi_eats_places_description):
+    await taxi_eats_places_description.invalidate_caches(clean_update=False)

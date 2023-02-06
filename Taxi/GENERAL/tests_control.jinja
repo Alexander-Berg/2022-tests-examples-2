@@ -1,0 +1,19 @@
+{{ common_linters_disables }}
+
+from aiohttp import web
+
+from taxi.util import dates
+
+
+# pylint: disable=protected-access
+async def handle(request: web.Request) -> web.Response:
+    data = await request.json()
+    if data.get('now'):
+        dates._set_now_stamp(dates.parse_timestring(data['now']))
+    else:
+        dates._set_now_stamp()
+    if data.get('invalidate_caches', False):
+        if data.get('cache_clean_update', False):
+            await request.app['context'].clean_caches()
+        await request.app['context'].refresh_caches()
+    return web.json_response({})

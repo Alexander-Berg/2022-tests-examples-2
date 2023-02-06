@@ -1,0 +1,51 @@
+test:
+    name: "Тестирование billing-subventions (комиссии)"
+    description: |
+        В сервисе billing-orders размещается завершенный заказ (c типом order_completed).
+        Выполняется расчет комиссий по заказу в сервисе billing-subventions.
+        Проверяется, что суммы на счетах постоянны.
+    prerequests:
+        stq3:
+            billing_rollup_balances:
+                queue: "billing_rollup_balances"
+                task_id: "1"
+                eta: 0
+        configs:
+            BILLING_ACCOUNTS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_ACCOUNTS_PGAAS_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_CALCULATORS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_DOCS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_DOCS_PGAAS_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_ORDERS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_REPORTS_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            BILLING_SUBVENTIONS_USERVICES_CLIENT_QOS: {'__default__': {'attempts': 3,
+                    'timeout-ms': 3000}}
+            ANTIFRAUD_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 3000}}
+            STQ_AGENT_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 10000}}
+            BILLING_REPLICATION_CLIENT_QOS: {'__default__': {'attempts': 3, 'timeout-ms': 10000}}
+            BILLING_DOCS_PAYLOAD_LIMIT: 102400
+            BILLING_PROCESS_ORDER_READY_FOR_BILLING_DOC: true
+            BILLING_SUBVENTIONS_PROCESS_COMMISSION: true
+            TAXI_TERRITORIES_TIMEOUT_MS: 2500
+            BILLING_OLD_JOURNAL_LIMIT_DAYS: 4096
+            BILLING_CALCULATORS_BYPASS_USE_V2_EXECUTE_DUE_SELECTOR: '2019-01-01T00:00:00+00:00'
+            BILLING_SUBVENTIONS_USE_BILLING_COMMISSIONS: {"default_for_all": "full_usage"}
+            BILLING_REPLICATION_EXT_REQUEST_TIMEOUT_MS: 2500
+        services:
+          - url: http://billing-docs.taxi.yandex.net/ping
+          - url: http://billing-accounts.taxi.yandex.net/ping
+          - url: http://billing-subventions.taxi.yandex.net/ping
+          - url: http://billing-orders.taxi.yandex.net/ping
+          - url: http://stq-agent.taxi.yandex.net/ping
+        mongo:
+            dbtaxi:
+                conn: taxi
+                restore: true
+            dbsubvention_reasons:
+                conn: subvention_reasons
+                restore: true
+        postgres:
+            billing_commissions:
+                conn: billing_commissions
+                shard: 0
+                import: true

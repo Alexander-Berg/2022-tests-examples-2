@@ -1,0 +1,80 @@
+id: test_restaurant_menu
+title: Проверяем что был поход только в сервис eats-restaurant-menu-modify
+
+source:
+    request:
+        method: get
+        query:
+            aaa: bbb
+        url: /api/v2/menu/retrieve/ccc
+        headers:
+            X-aaa: x-bbb
+            X-Device-Id: deice_id
+            X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+    expectations:
+        response:
+            status-code: 200
+            body:
+                resp: data
+
+mocks:
+  - resource: eats-core-menu-retrieve
+    response:
+        status-code: 200
+        body:
+            resp1: data1
+    expectations:
+        call-count: 0
+        request:
+            query:
+                aaa: bbb
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+  - resource: eats-restaurant-menu-modify
+    response:
+        status-code: 200
+        body:
+            resp: data
+    expectations:
+        call-count: 0
+        request:
+            body:
+                resp1: data1
+                slug: ccc
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+  - resource: eats-restaurant-menu-retrieve
+    response:
+        status-code: 200
+        body:
+            resp: data
+    expectations:
+        call-count: 1
+        request:
+            query:
+                aaa: bbb
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+experiments:
+    values#object:
+      - key: use_eats_restaurant_menu_reterive
+        value:
+            enabled: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: device_id
+            type: string
+            value: deice_id
+          - key: personal_phone_id
+            type: string
+            value: phone_id

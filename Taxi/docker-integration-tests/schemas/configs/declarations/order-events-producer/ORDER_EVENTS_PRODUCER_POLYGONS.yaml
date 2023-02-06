@@ -1,0 +1,43 @@
+default: []
+description: |
+    Полигоны с местоположением кампаний для сервиса
+    order-events-producer. Любой полигон попадает в группу 'any' по умолчанию.
+
+tags: []
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/polygon'
+    definitions:
+
+        point:
+            type: object
+            additionalProperties: false
+            properties:
+                coordinates:
+                    type: array
+                    minItems: 2
+                    maxItems: 2
+                    items:
+                        type: number
+            required:
+              - coordinates
+
+        polygon:
+            type: object
+            additionalProperties: false
+            properties:
+                groups:
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set
+                    items:
+                        type: string
+                points:
+                    description: |
+                        Точки в урезанном формате GeoJson, описывающего внешний полигон.
+                    type: array
+                    items:
+                        $ref: '#/definitions/point'
+            required:
+              - points
+

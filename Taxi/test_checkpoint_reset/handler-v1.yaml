@@ -1,0 +1,116 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        state-manager:
+            initial:
+                status:
+            mutators:
+              - name: init-mutator
+                condition#and:
+                  - value#xempty: /state/current/status
+                  - value#equal:
+                      - value#xget:
+                            path: /event/payload/action
+                            default-value:
+                      - value#string: init
+                  - value#xhas: /event/payload/draft-id
+                effects:
+                    status: init
+                    draft-id#xget: /event/payload/draft-id
+              - name: polling-mutator
+                condition#and:
+                  - value#equal:
+                      - value#xget: /state/current/status
+                      - value#string: init
+                  - value#equal:
+                      - value#xget:
+                            path: /event/payload/action
+                            default-value:
+                      - value#string: polling
+                effects:
+                    status: polling
+              - name: finish-mutator
+                condition#and:
+                  - value#equal:
+                      - value#xget: /state/current/status
+                      - value#string: polling
+                  - value#equal:
+                      - value#xget:
+                            path: /event/payload/action
+                            default-value:
+                      - value#string: finish
+                effects:
+                    status: finish
+
+        keys-mapping:
+            rules:
+              - condition#and:
+                  - value#equal:
+                      - value#xget: /state/current/status
+                      - value#string: init
+                keys:
+                  - handle-init
+              - condition#and:
+                  - value#equal:
+                      - value#xget: /state/current/status
+                      - value#string: polling
+                keys:
+                  - handle-polling
+              - condition#and:
+                  - value#equal:
+                      - value#xget:
+                            path: /event/payload/action
+                            default-value:
+                      - value#string: finish
+                keys:
+                  - handle-finish
+            default-keys: [handle-default]
+        event-processor:
+          - id: polling-pipeline
+            conditions:
+              - key: handle-polling
+            stages:
+              - id: start-task-stage
+                handlers:
+                  - id: starter-handler
+                    requests:
+                      - id: starter-api-src
+                        resource: starter-api-res
+                        query:
+                            draft-id#xget: /state/current/draft-id
+                    resources:
+                      - id: starter-api-res
+                        url: $starter_api_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        job-id#concat-strings:
+                          - value#xget: /sources/starter-api-src/response/body/job-id
+              - id: poll-long-task-stage
+                handlers:
+                  - id: poll-handler
+                    requests:
+                      - id: pool-api-src
+                        resource: pool-api-res
+                        query:
+                            job-id#xget: /shared-state/job-id
+                    resources:
+                      - id: pool-api-res
+                        url: $pool_api_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        job-result#xget: /sources/pool-api-src/response/body
+          - id: noop-pipeline
+            conditions:
+              - key: handle-default
+              - key: handle-init
+              - key: handle-finish
+            stages: []

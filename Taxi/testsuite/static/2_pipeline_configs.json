@@ -1,0 +1,127 @@
+{
+  "test": {
+    "channels-list": {
+      "pp-test-adjusted": {
+        "address": "channel:test:adjusted",
+        "channel-type": "adjusted",
+        "protocol": "edge",
+        "redis-name": "taxi-passing"
+      },
+      "pp-test-positions": {
+        "address": "channel:test:positions",
+        "channel-type": "positions",
+        "protocol": "positions",
+        "redis-name": "taxi-passing"
+      },
+      "pp-test-predicted": {
+        "address": "channel:test:predicted",
+        "channel-type": "predicted",
+        "protocol": "edge",
+        "redis-name": "taxi-passing"
+      }
+    },
+    "yaga": {
+      "subpipelines": [
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              0,
+              10
+            ]
+          },
+          "destinations": [
+            {
+              "filters": [
+                {
+                  "filter": "in-time-boundaries",
+                  "operation-type": "include"
+                }
+              ],
+              "geobus-channels": [
+                "pp-test-adjusted"
+              ],
+              "logbroker-topics": [],
+              "processes": []
+            },
+            {
+              "filters": [
+                {
+                  "filter": "in-time-boundaries",
+                  "operation-type": "exclude"
+                }
+              ],
+              "geobus-channels": [
+                "pp-test-predicted"
+              ],
+              "logbroker-topics": [],
+              "processes": []
+            }
+          ],
+          "input": "pp-test-positions"
+        }
+      ]
+    }
+  },
+  "test2": {
+    "channels-list": {
+      "pp-test-adjusted": {
+        "address": "channel:test2:adjusted",
+        "channel-type": "adjusted",
+        "protocol": "edge",
+        "redis-name": "taxi-passing"
+      },
+      "pp-test-positions": {
+        "address": "channel:test2:positions",
+        "channel-type": "positions",
+        "protocol": "positions",
+        "redis-name": "taxi-passing"
+      },
+      "pp-test-predicted": {
+        "address": "channel:test2:predicted",
+        "channel-type": "predicted",
+        "protocol": "edge",
+        "redis-name": "taxi-passing"
+      }
+    },
+    "yaga": {
+      "subpipelines": [
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              0
+            ]
+          },
+          "destinations": [
+            {
+              "filters": [],
+              "geobus-channels": [
+                "pp-test-adjusted"
+              ],
+              "logbroker-topics": [],
+              "processes": []
+            }
+          ],
+          "input": "pp-test-positions"
+        },
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              10
+            ]
+          },
+          "destinations": [
+            {
+              "filters": [],
+              "geobus-channels": [
+                "pp-test-predicted"
+              ],
+              "logbroker-topics": [],
+              "processes": []
+            }
+          ],
+          "input": "pp-test-positions"
+        }
+      ]
+    }
+  }
+}

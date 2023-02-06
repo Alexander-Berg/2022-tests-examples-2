@@ -1,0 +1,38 @@
+default:
+  - handler: __default__
+    retries: 3
+    timeout_ms: 100
+  - handler: '2.0/pickup_points'
+    retries: 2
+    timeout_ms: 500
+  - handler: 'personal_conversion/v1'
+    retries: 2
+    timeout_ms: 500
+  - handler: 'user_order_fakeness'
+    retries: 1
+    timeout_ms: 100
+
+description: Настройки для http-запросов в mlaas. retries=1 значит не делать перезапрос
+    при ошибках
+tags: []
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/handler_settings'
+    definitions:
+        handler_settings:
+            type: object
+            properties:
+                handler:
+                    type: string
+                retries:
+                    type: integer
+                    minimum: 1
+                timeout_ms:
+                    type: integer
+                    minimum: 0
+            additionalProperties: false
+            required:
+              - handler
+              - retries
+              - timeout_ms

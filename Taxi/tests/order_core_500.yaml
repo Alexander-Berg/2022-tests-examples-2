@@ -1,0 +1,61 @@
+id: order_core_500
+title: 500-ка от /order-core/order-info не приводит к ошибкам в случае доступности
+    протокола
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                cancel_disabled: false
+                allowed_changes:
+                  - name: 'destinations'
+                  - name: 'payment'
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            cancel_disabled: false
+            allowed_changes:
+              - name: 'destinations'
+              - name: 'payment'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 500
+        body: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'
+  - resource: cargo-claims-v1-passenger-changes
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 0

@@ -1,0 +1,41 @@
+console: {enabled: false, package: yandextank.plugins.Console}
+telegraf: {enabled: false, package: yandextank.plugins.Telegraf}
+phantom: {enabled: false, package: yandextank.plugins.Phantom}
+pandora:
+  package: yandextank.plugins.Pandora
+  enabled: true
+  config_content:
+    pools:
+      - id: HTTP pool                    # pool name (for your choice)
+        gun:
+          type: http                    # gun type
+          target: localhost:80
+        ammo:
+          type: uri                      # ammo format
+          file: /data/pandora_cases/pandora_cases_uri.ammo               # ammo file path
+        result:
+          type: phout                    # report format (phout is compatible for Yandex.Tank)
+          destination: ./phout.log       # report file name
+        rps:                             # RPS scheduler - controls throughput over test
+          type: line                     # linear growth load
+          from: 10                        # from 10 requests per second
+          to: 100                          # to 100 requests per second
+          duration: 30s                   # for 60 seconds
+        startup:                         # startup scheduler - control the level of parallelism
+          type: once                     # start 100 instances
+          times: 100
+    log:
+      level: error
+    monitoring:
+      expvar:
+        enabled: true
+        port: 1234
+monitoring:
+  enabled: false
+  package: yandextank.plugins.YASM
+uploader:
+  api_address: https://lunapark.yandex-team.ru/
+  task: YANDEXTANK-1
+  job_name: '[pandora][uri][cases]'
+  operator: lunapark
+  ignore_target_lock: true

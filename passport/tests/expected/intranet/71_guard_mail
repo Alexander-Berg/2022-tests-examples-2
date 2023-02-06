@@ -1,0 +1,46 @@
+server {
+    # SLB IP
+    listen 213.180.193.24:443 ssl;
+    listen [2a02:6b8::1:24]:443 ssl;
+
+    # Server IP
+    listen [1::2:3:4]:443 ssl;
+    listen 127.0.0.1:443 ssl;
+    listen [::1]:443 ssl;
+
+    server_name guard.mail.yandex-team.ru;
+    root /srv;
+
+    ssl_certificate             /etc/nginx/certs/guard.mail.yandex-team.ru.crt;
+    ssl_certificate_key         /etc/nginx/certs/guard.mail.yandex-team.ru.key;
+    ssl_session_cache           shared:SSL:256m;
+    ssl_session_timeout         28h;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 kEECDH+AES128:kEECDH:-3DES:kRSA+AES128:DES-CBC3-SHA:!kEDH:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers   on;
+
+    add_header Strict-Transport-Security "max-age=315360000; includeSubDomains";
+
+    access_log /var/log/nginx/guard.access.log main;
+    error_log /var/log/nginx/guard.error.log;
+
+    set $global_request_id $request_id;
+
+    location /st/ {
+        alias /usr/lib/yandex/passport-frontend/public/;
+        gzip_static on;
+        brotli_static on;
+    }
+
+    location = /robots.txt {
+        root /usr/lib/yandex/passport-frontend/public/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header X-Request-Id $global_request_id;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

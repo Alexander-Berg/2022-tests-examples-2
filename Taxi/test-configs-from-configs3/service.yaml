@@ -1,0 +1,83 @@
+project-name: yandex-taxi-test-configs-from-configs3
+short-name: test-configs-from-configs3
+wiki: https://wiki.yandex-team.ru/taxi/backend/userver/libraries/experiments3/#configs-from-configs3
+maintainers:
+  - Alexey Ivanov <alexey-ivanov@yandex-team.ru>
+  - Ksenia Lukashevichus <luxenia@yandex-team.ru>
+libraries:
+  - yandex-userver-core
+  - yandex-taxi-library-configs-from-configs3
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy:
+    os-name: bionic
+
+target-os:
+  - bionic
+
+debian:
+    source_package_name: yandex-taxi-test-configs-from-configs3
+    maintainer_name: Alexey Ivanov
+    maintainer_login: alexey-ivanov
+
+tvm2:
+    secdist-service-name: test-configs-from-configs3
+
+configs:
+    names:
+      # test configs
+      - EXPERIMENTS3_CACHE_BULK_SIZE_LIMIT
+      - EXPERIMENTS3_CLIENT_DISABLE_API_KEY
+      - EXPERIMENTS3_COMMON_LIBRARY_SETTINGS
+
+uservice_unit:
+    description: test service for configs-from-configs3 library
+
+    hostname:
+        production:
+          - test-configs-from-configs3.taxi.yandex.net
+        testing:
+          - test-configs-from-configs3.taxi.tst.yandex.net
+
+    nginx:
+        set_x_real_ip: false
+
+    grafana:
+        production: TODO
+        testing: TODO
+
+dashboards:
+    service_group:
+        rtc:
+            name: test-configs-from-configs3
+    grafana_additional_layouts:
+      - userver_common:
+            collapsed: true
+            uservice_name: test-configs-from-configs3
+
+linters:
+    extra-application-package-names:
+      - test_configs_from_configs3_plugins
+
+
+clownductor_service_info:
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    design_review: https://st.yandex-team.ru/TAXIARCHREVIEW-0000
+    disk_profile: ssd-default
+    duty_group_id: 5fd0fffa398be3389d0487ed
+    clownductor_project: taxi-infra
+
+ya-make:
+    enabled: true
+    owners:
+      - g:taxi-core-infra
+
+pytest:
+    api-coverage:
+        enabled: true

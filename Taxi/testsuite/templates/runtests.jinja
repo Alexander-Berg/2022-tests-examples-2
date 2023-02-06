@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PYTHONPATH={{ testsuite_pythonpath }}
+
+export PYTHONPATH
+
+if [ "x$*" = "x" ]; then
+    PYTEST_DEFAULT_ARGS="-vv {{testsuite_source_dir}}/tests"
+else
+    PYTEST_DEFAULT_ARGS=""
+fi
+
+if [ -z "$API_COVERAGE_ARGS" ]; then
+    API_COVERAGE_ARGS="--api-coverage-notification-mode=silent"
+fi
+
+TIMEOUT="timeout --signal=SIGINT --foreground 2450s"
+PYTEST_BASE_ARGS="{{testsuite_python_binary}} -m pytest
+  --rootdir={{root_dir}}
+  --build-dir={{root_build_dir}}"
+
+if [[ -n "$DOCKERTEST_WORKER" ]]; then
+    exec $TIMEOUT $PYTEST_BASE_ARGS  \
+         --mongo="mongodb://$DOCKERTEST_ENV_HOST:$TESTSUITE_MONGOS_PORT/"                                \
+         --redis-host="$DOCKERTEST_ENV_HOST"                                                             \
+         --redis-sentinel-port=$TESTSUITE_REDIS_SENTINEL_PORT                                            \
+         --postgresql="host=$DOCKERTEST_ENV_HOST port=$TESTSUITE_POSTGRESQL_PORT user=testsuite dbname=" \
+         --yt-proxy="$DOCKERTEST_ENV_HOST:$TESTSUITE_YT_HTTP_PORT"                                       \
+         --ydb-host="$DOCKERTEST_ENV_HOST"                                                               \
+         --ydb-grpc-port="$TESTSUITE_YDB_GRPC_PORT"                                                      \
+         --ydb-mon-port="$TESTSUITE_YDB_MON_PORT"                                                        \
+         --ydb-ic-port="$TESTSUITE_YDB_IC_PORT"                                                          \
+         --api-coverage-notification-mode=error                                                          \
+         $PYTEST_ARGS $PYTEST_DEFAULT_ARGS "$@"
+else
+    exec $PYTEST_BASE_ARGS $API_COVERAGE_ARGS $PYTEST_ARGS $PYTEST_DEFAULT_ARGS "$@"
+fi

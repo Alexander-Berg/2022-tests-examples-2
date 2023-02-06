@@ -1,0 +1,111 @@
+---
+- service: eats-pics_testing_old-unprocessed-urls
+  description: |-
+    Есть необработанные url'ы, которые пребывают в этом статусе слишком долго.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-pics",
+      sensor="images-metrics.old_new_urls",
+      group="*",
+      host="*.*|*-*"
+    }
+  period: 300
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+
+- service: eats-pics_testing_old-not-forwarded-urls
+  description: |-
+    Есть url'ы, по которым должны отправится оповещения клиентам, которые пребывают в этом статусе слишком долго.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-pics",
+      sensor="images-metrics.old_forward_urls",
+      group="*",
+      host="*.*|*-*"
+    }
+  period: 300
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+
+- service: eats-pics_testing_not-viewed-nonretryable-errors
+  description: |-
+    Есть картинки с непросмотренными вечными ошибками в source_images.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-pics",
+      sensor="images-metrics.urls_with_nonretryable_errors.total",
+      group="*",
+      host="*.*|*-*"
+    }
+  period: 300
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+
+- service: eats-pics_testing_not-updated-for-a-long-time 
+  description: |-
+    Есть картинки, которые слишком давно не обновлялись.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-pics",
+      sensor="images-metrics.old_done_urls",
+      group="*",
+      host="*.*|*-*"
+    }
+  period: 300
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN
+
+- service: eats-pics_testing-images-metrics-periodic-fails
+  description: |-
+    Произошли ошибки во время выполнения периодика images-metrics-periodic.
+    Ответственные theqwertiest@, emyachenkov@.
+  alert_type: threshold
+  selectors: |
+    {
+      project="taxi",
+      cluster="testing_uservices",
+      service="uservices",
+      application="eats-pics",
+      sensor="periodic-data.fails",
+      periodic_name="images-metrics-periodic",
+      group="*",
+      host="*.*|*-*"
+    }
+  period: 300
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GT
+    threshold: 0
+    targetStatus: WARN

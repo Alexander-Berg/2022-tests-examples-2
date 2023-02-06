@@ -1,0 +1,131 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %]
+[% ttppspace_in_html_tag=1 %]
+[% space_in_html_tag=1 %]
+
+<head>
+    <title>Stories</title>
+	<link href="/test/st/stories/css/style.css" rel="stylesheet" />
+    <script src="/test/st/stories/js/script.js"> </script>
+</head>
+<body>
+<div class="st__showcase">
+<div class="st__header">
+    <h1 class="st__title"><em><span>S</span>tories</em> Витрина</h1>
+    <div class="st__controlls">
+        <select class="st__phone-select">
+            <option value="none">Нет</option>
+            <option value="iphone11">iPhone 11</option>
+            <option value="iphone8">iPhone 8</option>
+            <option value="iphone5">iPhone 5</option>
+        </select>
+        <a class="st__switcher st__switcher_active" data-switch="guidelines" data-type="video">Гайдлайны <span class="st__switcher-counter"></span></a>
+        <div class="st__control_sep">||</div>
+        <a class="st__collapse_all">Свернуть все</a>
+        <a class="st__open_all">Развернуть все</a>
+        <div class="st__control_sep">||</div>
+        <a class="st__switcher st__switcher_active" data-switch="service" data-service="content">Контентные <span class="st__switcher-counter"></span></a>
+        <a class="st__switcher st__switcher_active" data-switch="service" data-service="maps_content">Карточные <span class="st__switcher-counter"></span></a>
+        <div class="st__control_sep">||</div>
+        <a class="st__switcher st__switcher_active" data-switch="type" data-type="photo">Фото <span class="st__switcher-counter"></span> </a>
+        <a class="st__switcher st__switcher_active" data-switch="type" data-type="video">Видео <span class="st__switcher-counter"></span></a>
+        <a class="st__switcher st__switcher_active" data-switch="type" data-type="mix">Смешанные <span class="st__switcher-counter"></span></a>
+        <div class="st__control_sep">||</div>
+        <a class="st__switcher st__switcher_alert st__switcher_active" data-switch="normal">Нормальные <span class="st__switcher-counter"></span> </a>
+        <em> Отфильтрованные: (<span class="st__skipped-counter"></span>) </em>
+        <a class="st__switcher st__switcher_alert" data-switch="skipped">По ID <span class="st__switcher-counter"></span> </a>
+        <a class="st__switcher st__switcher_alert" data-switch="skipped_geo">По GEO <span class="st__switcher-counter"></span> </a>
+        <a class="st__switcher st__switcher_alert" data-switch="skipped_type">По типу <span class="st__switcher-counter"></span> </a>
+        <div class="st__control_sep"> || </div>
+        <a class="st__selected-counter">Выбрано <span class="st__switcher-counter st__switcher-counter_active">0</span> Story</a>
+<!--        <a class="st__switcher st__switcher_alert" data-switch="bad_video">Неподдерживаемые видео <span class="st__switcher-counter"></span> </a>-->
+    </div>
+</div>
+<div class="st__wrapper st__inactive_bad_video st__inactive_skipped st__inactive_skipped_geo st__skipped_type st__phone_none" data-model="none">
+    [% FOR story IN stories %]
+    <div class="st__story st__story_collapsed st__hide-helper [% IF story.skip %] st__story_skipped[% END %] [% IF story.skip_geo %] st__story_skipped_geo[% END %] [% IF story.skip_type %] st__story_skipped_type[% END %]" id="[% story.id %]">
+        [% IF story.skip %]SKIPPED[% END %]
+        [% IF story.skip_geo %]SKIPPED_GEO[% END %]
+        [% IF story.skip_type %]SKIPPED_TYPE_([% story.skip_type %])[% END %]
+        <div class="st__story-header">
+            <div class="st__story-header-text">
+                <p class="st__story-title">[% story.title %]</p>
+                <p class="st__story-subtitle"> [% story.subtitle %] </p>
+                <p class="st__story-age"> [% story.age %] дней </p>
+                [% IF story.geo %]
+                <p class="st__story-geo"> [% story.geo %] гео </p>
+                [% END %]
+            </div>
+
+            <div class="st__story-header-info">
+                <div class="st__info-block">
+                    <em>смотреть Story - </em> <a class="st__info-link" target="_blank"
+                                                  href="/portal/stories?ids=[% story.id %]">[% story.id %]</a> <br>
+                </div>
+                <div class="st__info-block">
+                    <em>смотреть данные - </em> <a class="st__info-link" target="_blank"
+                                                   href="/portal/stories?ids=[% story.id %]&cleanvars=1">cleanvars</a>
+                </div>
+                [% IF story.source %]
+                <div class="st__info-block">
+                    <p class="st__story-source"> [% story.source %] </p>
+                </div>
+                [% END %]
+
+            </div>
+            <img class="st__story-preview" src="[% story.background.item('2x') %]"/>
+        </div>
+        <a class="st__slides-show">
+            <span class="st__slides-show_collapse">Свернуть ↑</span>
+            <span class="st__slides-show_open">Развернуть ↓</span>
+        </a>
+        <ul class="st__slides">
+            [% FOR slide IN story.slides %]
+            <li class="st__slide">
+                <div class="st__slide-info">
+                    [% IF slide.id %]
+                    <div class="st__slide-id">[% slide.id %]</div>
+                    [% END %]
+                    <div class="st__slide-type">[% slide.type %]</div>
+                </div>
+
+                <div class="st__phone-mask">
+                    <div class="st__phone-inner">
+                        <div class="st__phone-content">
+                            <div class="st__phone-guidelines"> <div class="st__guidelines-lines"></div> </div>
+                                <div class="st__phone-screen">
+                                    [% IF slide.type == 'photo' %]
+                                    <picture><img class="st__slide-img"
+                                                  src="[% IF slide.url.svg; slide.url.svg; ELSIF slide.url.item('2x'); slide.url.item('2x'); ELSIF slide.url.item('3x'); slide.url.item('3x'); ELSIF slide.url; slide.url; END %]"/>
+                                    </picture>
+                                    [% ELSIF slide.type == 'video' %]
+                                    [% # TODO! %]
+                                    [% IF slide.url_mp4 %]
+                                    <video class="stories__slide-video" loop controls autoplay width="100%">
+                                        <source class="stories__slide-video-source" data-src="[% slide.url_mp4 %]"
+                                                type='video/mp4'>
+                                        Тег video не поддерживается вашим браузером.<a href="[% slide.url_mp4 %]">Скачайте
+                                        видео</a>.
+                                    </video>
+                                    [% END %]
+                                    [% END %]
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                [% IF slide.button %]
+                <div class="st__slide-button">
+                    <div class="st__slide-button-text">[% slide.button.text %]</div>
+                    <div class="st__slide-button-url"><a href="[% slide.button.url %]">[% slide.button.url %]</a>
+                    </div>
+                </div>
+                [% END %]
+            </li>
+            [% END %]
+        </ul>
+    </div>
+    <div class="st__hr"></div>
+    [% END %]
+</div>
+</div>
+</body>

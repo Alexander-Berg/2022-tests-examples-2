@@ -1,0 +1,268 @@
+type: apitest
+version: 0
+service: taxi_cashback_int_api
+
+marks:
+  - name: pgsql
+    args:
+      - cashback_int_api
+    kwargs:
+        files:
+          - cashback_int_api_user_bindings.sql
+          - cashback_int_api_orders.sql
+  - name: config
+    kwargs:
+        CASHBACK_INT_API_TRANSACTIONS_NG_ID_NAMESPACE:
+            mango: "mango"
+        CASHBACK_INT_API_IGNORE_LIST_FEATURE_BUNDLES:
+          - "basic-music"
+        CASHBACK_INT_API_BILLING_INFO_BY_SERVICE:
+            mango:
+                billing_service: "card"
+                billing_service_id: "124"
+                cashback_service: "taxi_paid"
+                cashback_type: "transaction"
+                legal_entity_id: "13"
+                issuer: "marketing"
+                campaign_name: "mango_insuarance"
+                product_id: "some_product_id"
+
+mockserver:
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+  - url: /fast-prices-notify/billing/user/state
+    response:
+        body:
+            activeIntervals:
+              - featureBundle: "new-plus"
+                end: "2021-01-07T18:21:26Z"
+                orderType: "native-auto-subscription"
+            uid: 111111
+
+  - url: /transactions-ng/v2/invoice/retrieve
+    response:
+        body:
+            id: 1_mango_invoice_id
+            invoice_due: "2019-05-01T06:00:00+03:00"
+            created: "2019-05-01T06:00:00+03:00"
+            currency: "RUB"
+            status: "init"
+            operation_info:
+                version: 1
+            sum_to_pay: []
+            held: []
+            cleared: []
+            debt: []
+            transactions: []
+            yandex_uid: "yandex_uid_1"
+            payment_types:
+              - "card"
+            service: "mango"
+            cashback:
+                status: "init"
+                version: 1
+                rewarded: []
+                transactions: []
+                commit_version: 1
+                operations: []
+
+  - url: /transactions-ng/v2/invoice/create
+    response:
+        status: 200
+        body: {}
+
+  - url: /transactions-ng/v2/cashback/update
+    response:
+        status: 200
+        body: {}
+
+tests:
+  - name: points_limit_has_been_reached
+    marks:
+      - name: now
+        args:
+          - '2020-02-02T12:00:00+00:00'
+      - name: config
+        kwargs:
+            CASHBACK_INT_API_LIMITS_BY_SERVICE:
+                mango:
+                    limit_per_service:
+                        limit_days_interval: 1
+                        max_new_orders_count: 100
+                        max_cashaback_per_order:
+                            RUB: "1500"
+                    limit_per_user:
+                        limit_days_interval: 20
+                        max_new_orders_count: 2
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/update
+        headers:
+            X-YaTaxi-External-Service: mango
+            X-Remote-IP: 192.168.1.1
+        body:
+        # yandex_uid = 'yandex_uid_1'
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "exist_order_id_1"
+            operation_id: "operations_id_1"
+            amount: "2000"
+            currency: "RUB"
+            version: 1
+    response:
+        status: 400
+        body:
+            code: "REACHED_SERVICE_LIMIT_CASHBACK_AMOUNT_PER_ORDER"
+            message: "Service limit for cashback amount per order has been reached"
+
+
+  - name: amount_orders_per_service_limit_has_been_reached
+    marks:
+      - name: now
+        args:
+          - '2020-02-02T12:00:00+00:00'
+      - name: config
+        kwargs:
+            CASHBACK_INT_API_LIMITS_BY_SERVICE:
+                mango:
+                    limit_per_service:
+                        limit_days_interval: 1
+                        max_new_orders_count: 5
+                        max_cashaback_per_order:
+                            RUB: "1500"
+                    limit_per_user:
+                        limit_days_interval: 20
+                        max_new_orders_count: 2
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/update
+        headers:
+            X-YaTaxi-External-Service: mango
+            X-Remote-IP: 192.168.1.1
+        body:
+        # yandex_uid = 'yandex_uid_2'
+            binding_id: "c30c0444-fc24-465e-a5d2-5e8173ddfbce"
+            order_id: "new_order_id"
+            operation_id: "operations_id_1"
+            amount: "1500"
+            currency: "RUB"
+            version: 1
+    response:
+        status: 400
+        body:
+            code: "REACHED_SERVICE_LIMIT_NEW_ORDERS"
+            message: "Service limit for creating new orders has been reached"
+
+
+  - name: success_limit_per_service
+    marks:
+      - name: now
+        args:
+          - '2020-02-02T12:00:00+00:00'
+      - name: config
+        kwargs:
+            CASHBACK_INT_API_LIMITS_BY_SERVICE:
+                mango:
+                    limit_per_service:
+                        limit_days_interval: 1
+                        max_new_orders_count: 6
+                        max_cashaback_per_order:
+                            RUB: "1500"
+                    limit_per_user:
+                        limit_days_interval: 20
+                        max_new_orders_count: 2
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/update
+        headers:
+            X-YaTaxi-External-Service: mango
+            X-Remote-IP: 192.168.1.1
+        body:
+        # yandex_uid = 'yandex_uid_2'
+            binding_id: "c30c0444-fc24-465e-a5d2-5e8173ddfbce"
+            order_id: "new_order_id"
+            operation_id: "operations_id_1"
+            amount: "1500"
+            currency: "RUB"
+            version: 1
+    response:
+        status: 200
+        body: {}
+
+
+  - name: amount_orders_per_user_limit_has_been_reached
+    marks:
+      - name: now
+        args:
+          - '2020-02-02T12:00:00+00:00'
+      - name: config
+        kwargs:
+            CASHBACK_INT_API_LIMITS_BY_SERVICE:
+                mango:
+                    limit_per_service:
+                        limit_days_interval: 1
+                        max_new_orders_count: 100
+                        max_cashaback_per_order:
+                            RUB: "1500"
+                    limit_per_user:
+                        limit_days_interval: 20
+                        max_new_orders_count: 2
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/update
+        headers:
+            X-YaTaxi-External-Service: mango
+            X-Remote-IP: 192.168.1.1
+        body:
+        # yandex_uid = 'yandex_uid_1'
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "new_order_id"
+            operation_id: "operations_id_1"
+            amount: "1500"
+            currency: "RUB"
+            version: 1
+    response:
+        status: 400
+        body:
+            code: "REACHED_USER_LIMIT_NEW_ORDERS"
+            message: "User limit for creating new orders has been reached"
+
+  - name: success_limit_per_user
+    marks:
+      - name: now
+        args:
+          - '2020-02-02T12:00:00+00:00'
+      - name: config
+        kwargs:
+            CASHBACK_INT_API_LIMITS_BY_SERVICE:
+                mango:
+                    limit_per_service:
+                        limit_days_interval: 1
+                        max_new_orders_count: 100
+                        max_cashaback_per_order:
+                            RUB: "1500"
+                    limit_per_user:
+                        limit_days_interval: 20
+                        max_new_orders_count: 3
+    request:
+        method: POST
+        path: /4.0/cashback-int-api/v1/cashback/update
+        headers:
+            X-YaTaxi-External-Service: mango
+            X-Remote-IP: 192.168.1.1
+        body:
+        # yandex_uid = 'yandex_uid_1'
+            binding_id: "c30c0444-fc23-465e-a5d2-5e8173ddfbce"
+            order_id: "new_order_id"
+            operation_id: "operations_id_1"
+            amount: "1500"
+            currency: "RUB"
+            version: 1
+    response:
+        status: 200
+        body: {}

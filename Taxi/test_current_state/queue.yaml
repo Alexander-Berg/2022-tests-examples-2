@@ -1,0 +1,38 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create#xget: /event/payload/is-create
+        keys-mapping:
+            rules: []
+            default-keys: [handle-default]
+        state-manager:
+            initial:
+                foo: 42
+                bar: 100500
+                counter: +
+            mutators:
+              - name: update-foo
+                condition#xhas: /event/payload/new-foo
+                effects:
+                    foo#xget: /event/payload/new-foo
+                    counter#concat-strings:
+                      - value#xget: /state/current/counter
+                      - value#string: +
+              - name: update-bar
+                condition#xhas: /event/payload/new-bar
+                effects:
+                    bar#xget: /event/payload/new-bar
+                    counter#concat-strings:
+                      - value#xget: /state/current/counter
+                      - value#string: +
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages: []

@@ -1,0 +1,120 @@
+id: available_payment_types_from_payment_methods
+title: Проверяем запрос в available_payment_types из payment-methods
+
+parameters:
+  - payment:
+      - type: applepay
+        mocked:
+            type: applepay
+        expected:
+            type: applepay
+      - type: googlepay
+        mocked:
+            type: googlepay
+        expected:
+            type: googlepay
+      - type: cash
+        mocked:
+            type: cash
+        expected:
+            type: cash
+      - type: cibus
+        mocked:
+            type: cibus
+            id: cibus
+        expected:
+            type: cibus
+            id: cibus
+      - type: sbp
+        mocked:
+            type: sbp
+            id: sbp_qr
+        expected:
+            type: sbp
+            id: sbp_qr
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 10
+              - 20
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - merchant_id_list:
+                  - id1
+              - payment_methods:
+                  - value#xget: /test-params/payment/expected
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards:
+              - card_id: valid_card_id
+                system: visa
+                number: '****1111'
+                bin: '4000000'
+                currency: RUR
+                busy: false
+                valid: true
+                expiration_year: 2025
+                expiration_month: 11
+                expiration_time: '2020-10-31T00:00:00+0000'
+                updated_at: '2020-11-12T14:49:21.971+00:00'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: shared-internal-stats
+    response:
+        status-code: 200
+        body:
+            payment_methods:
+              - id: coop_id
+                type: family
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payment_types:
+              - value#xget: /test-params/payment/type
+            merchant_ids:
+              - id1
+            payments#object:
+              - key#xget: /test-params/payment/type
+                value#xget: /test-params/payment/mocked
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                location: [10, 20]
+                destination_point: [10, 20]
+            headers:
+                X-YaTaxi-PhoneId: phone_id
+                X-YaTaxi-UserId: user_id
+                X-Request-Application: app_brand=yango,app_name=yango_android
+                X-Yandex-UID: yandex_uid
+                X-YaTaxi-Pass-Flags: portal
+            content-type: application/json
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false

@@ -1,0 +1,44 @@
+settings:
+    collection: notifications_queue
+    connection: noncritical
+    database: dbprocessing
+indexes:
+  - key:
+      - name: group_key
+        type: ascending
+      - name: status
+        type: ascending
+      - name: index
+        type: ascending
+  - key:
+      - name: payload.id
+        type: ascending
+      - name: user_id
+        type: ascending
+    sparse: true
+  - key: received
+    sparse: true
+  - expireAfterSeconds: 129600
+    key: registered
+wiki_info: |
+    #### dbprocessing.notifications_queue - очередь нотификаций
+    Очередь нотификаций, куда попадают задачи на отправеку сообщений клиентам после изменения статуса заказа
+    ```python
+    'notifications_queue': {
+        '_id': ObjectId(),          # уникальный идентификатор события
+        'group_key': 'xx',          # общий ключ всех нотификаций под задачей
+        'index': 2,                 # номер события в последовательности событий под задачей
+        'registered': utcnow(),     # время постановки задачи
+        'event': 'waiting',         # completed, canceled, etc - тип нотификации; может быть использован для вычисления ключа танкера и постановки приоритетов
+        'destination_type': 'apns', # mpns, wns, sms, gcm, etc - тип устройства
+        'destination': token_str(), # номер телефона, APNS/GCM Token, MPNS/WNS url etc
+        'status': 'new',            # sent, canceled - что происходит с сообщением:
+                                    # * new - ожидает отправки
+                                    # * sent  - отправлено (не значит, что доставлено!)
+                                    # * canceled - отправка отменена (например, уже не надо)
+        'payload': dict()           # произвольный набор ключей-значений, генерируется тем, кто ставит задачу в очередь
+        'user_id': 'user_id'        # ID пользователя
+        'text' : string()           # текст сообщения
+        'received': true            # пришёл pushack или нет
+    }
+    ```

@@ -1,0 +1,77 @@
+openapi: 3.0.0
+info:
+  description: Test additional properties with all of
+  title: Test additional properties with all of
+  version: '1.0'
+
+paths:
+  /test/inlinebuiltin:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_inline_builtin
+      responses:
+        '200':
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuiltInResponse'
+
+  /test/atol:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_inline_builtin_alloff
+      responses:
+        '200':
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AtolOnlineWithSecrets'
+
+components:
+  schemas:
+    AtolOnlineBase:
+      required:
+        - group_code
+      type: object
+      properties:
+        group_code:
+          minLength: 1
+          type: string
+      x-taxi-additional-properties-true-reason: for allOf
+    AtolOnlineWithSecrets:
+      allOf:
+        - $ref: '#/components/schemas/AtolOnlineBase'
+        - required:
+            - login
+            - password
+          type: object
+          properties:
+            login:
+              $ref: '#/components/schemas/Login'
+            password:
+              $ref: '#/components/schemas/Password'
+
+    Login:
+      type: string
+    Password:
+      type: string
+    Payload:
+      type: string
+
+    BuiltInResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+        payload:
+          $ref: '#/components/schemas/Payload'
+      required:
+        - payload
+        - count

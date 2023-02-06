@@ -1,0 +1,37 @@
+import: ./test_common.yml
+
+storages:
+  - name: main
+    plugin: fs
+    config:
+      directory: ./data/storage
+      max_partition_size: 10mb
+      data_retention:
+        by_size: max
+
+routes:
+  - input:
+      plugin: grpc
+      config:
+        uri: "unix:///tmp/unified_agent_rthub.sock"
+    channel:
+      pipe:
+        - storage_ref:
+            name: main
+      output:
+        plugin: logbroker
+        config:
+          endpoint: localhost
+          port: LOGBROKER_PORT
+          topic: tacc/ttopic
+          codec: raw
+#
+#      output:
+#        plugin: dev_null
+#
+#      output:
+#        plugin: debug
+#        id: test_file_output
+#        config:
+#          file_name: ./data/output
+#          delimiter: "\n===\n"

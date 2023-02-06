@@ -1,0 +1,172 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+  - name: config
+    kwargs:
+        PLUS_SWEET_HOME_GROUP_TO_TARIFFS:
+            comfort:
+              - comfort
+              - comfort+
+            ultima:
+              - business
+              - elite
+
+tests:
+  - name: test_happy_path
+    mockserver:
+      - url: /user-statistics/v1/orders
+        request:
+            method: POST
+            body:
+                filters:
+                  - name: tariff_class
+                    values:
+                      - business
+                      - comfort
+                      - comfort+
+                      - elite
+                  - name: brand
+                    values: [yataxi]
+                group_by: [tariff_class]
+                identities:
+                  - type: yandex_uid
+                    value: yandex_uid1
+
+                  - type: yandex_uid
+                    value: yandex_uid2
+        response:
+            status: 200
+            body:
+                data:
+                  - counters:
+                      - value: 2
+                        properties:
+                          - name: tariff_class
+                            value: comfort
+                        counted_from: "2020-03-30T13:31:27+0000"
+                        counted_to: "2021-05-01T15:42:47.129+0000"
+                    identity:
+                        type: "yandex_uid"
+                        value: "yandex_uid1"
+
+                  - counters:
+                      - value: 1
+                        properties:
+                          - name: tariff_class
+                            value: comfort+
+                        counted_from: "2020-03-30T13:31:27+0000"
+                        counted_to: "2021-05-01T15:42:47.129+0000"
+                    identity:
+                        type: "yandex_uid"
+                        value: "yandex_uid2"
+    request:
+        method: POST
+        path: /internal/taxi/user-info
+        body:
+            uids: ["yandex_uid1", "yandex_uid2"]
+
+    response:
+        status: 200
+        body:
+            by_tariffs:
+                comfort:
+                    has_first_ride: true
+                ultima:
+                    has_first_ride: false
+
+  - name: test_zero_counters
+    mockserver:
+      - url: /user-statistics/v1/orders
+        request:
+            method: POST
+            body:
+                filters:
+                  - name: tariff_class
+                    values:
+                      - business
+                      - comfort
+                      - comfort+
+                      - elite
+                  - name: brand
+                    values: [yataxi]
+                group_by: [tariff_class]
+                identities:
+                  - type: yandex_uid
+                    value: yandex_uid1
+        response:
+            status: 200
+            body:
+                data:
+                  - counters:
+                      - value: 0
+                        properties:
+                          - name: tariff_class
+                            value: comfort
+                        counted_from: "2020-03-30T13:31:27+0000"
+                        counted_to: "2021-05-01T15:42:47.129+0000"
+
+                      - value: 1
+                        properties:
+                          - name: tariff_class
+                            value: business
+                        counted_from: "2020-03-30T13:31:27+0000"
+                        counted_to: "2021-05-01T15:42:47.129+0000"
+                    identity:
+                        type: "yandex_uid"
+                        value: "yandex_uid1"
+    request:
+        method: POST
+        path: /internal/taxi/user-info
+        body:
+            uids: ["yandex_uid1"]
+
+    response:
+        status: 200
+        body:
+            by_tariffs:
+                comfort:
+                    has_first_ride: false
+                ultima:
+                    has_first_ride: true
+  - name: test_empty_uids
+    request:
+        method: POST
+        path: /internal/taxi/user-info
+        body:
+            uids: []
+    response:
+        status: 400
+
+  - name: test_disabled_service
+    marks:
+      - name: config
+        kwargs:
+            PLUS_SWEET_HOME_USER_INFO_ENABLED: false
+
+    mockserver:
+      - url: /user-statistics/v1/orders
+        response:
+            status: 200
+            body:
+                data:
+                  - counters:
+                      - value: 0
+                        properties:
+                          - name: tariff_class
+                            value: comfort
+                        counted_from: "2020-03-30T13:31:27+0000"
+                        counted_to: "2021-05-01T15:42:47.129+0000"
+                    identity:
+                        type: "yandex_uid"
+                        value: "yandex_uid1"
+
+    request:
+        method: POST
+        path: /internal/taxi/user-info
+        body:
+            uids: ["yandex_uid1"]
+
+    response:
+        status: 500

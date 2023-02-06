@@ -1,0 +1,106 @@
+openapi: 3.0.0
+info:
+    version: '1.0'
+    title: 'Dummy API'
+
+x-taxi-client-qos:
+    taxi-config: PRO_TEST_ORDER_MAKER_CLIENT_QOS
+
+
+x-taxi-middlewares:
+    tvm: false
+
+paths:
+    /ptom/driver/v1/make-order:
+        post:
+            operationId: driver_v1_make_order_post
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1MakeOrderRequest'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1MakeOrderResponse'
+                '410':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1OrderStatusResponse'
+
+
+components:
+    schemas:
+        GeoPoint:
+            type: object
+            additionalProperties: false
+            required:
+              - lat
+              - lon
+            properties:
+                lat:
+                    type: number
+                lon:
+                    type: number
+
+        V1MakeOrderRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - user_phone
+              - payment_type
+              - category
+              - route
+              - driver_id
+              - park_id
+            properties:
+                user_phone:
+                    type: string
+                payment_type:
+                    type: string
+                category:
+                    type: string
+                route:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GeoPoint'
+                driver_id:
+                    type: string
+                park_id:
+                    type: string
+                requirements:
+                    type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: Дополнительные требования
+                        для создания заказа
+                order_extra:
+                    type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: Дополнительные значения
+                        для создания заказа
+        V1MakeOrderResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - order_id
+            properties:
+                order_id:
+                    type: string
+
+        V1OrderStatusResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - status
+            properties:
+                status:
+                    type: string
+                    description: ok or fail
+                message:
+                    type: string

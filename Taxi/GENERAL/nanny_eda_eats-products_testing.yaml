@@ -1,0 +1,57 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: eda:eats-products:testing
+
+awacs_namespace: eats-products-lb.eda.tst.yandex.net
+http_hosts:
+  - eats-products.eda.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - userver_common:
+        collapsed: true
+        uservice_name: eats-products
+  - include:
+        path: eats_products/mapping_errors.json
+        title: Mapping errors
+        variables:
+          - cluster: testing_uservices
+  - include:
+        path: eats_products/empty_response_errors.json
+        title: Empty menu responses
+        variables:
+          - cluster: testing_uservices
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: eats-products-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - include:
+        collapsed: true
+        path: eats_discounts_applicator/timings.json
+        title: eats-discounts-applicator GetDiscountsForItems timings
+        variables:
+          - application: eats-products
+          - cluster: testing_uservices
+          - sensor: get_discounts_for_items
+  - include:
+        collapsed: true
+        path: eats_discounts_applicator/timings.json
+        title: eats-discounts-applicator GetDiscountsFetcher timings
+        variables:
+          - application: eats-products
+          - cluster: testing_uservices
+          - sensor: get_discounts_fetcher
+  - include:
+        collapsed: true
+        path: lib-eats-adverts-goods/adverts_cache.json
+        title: adverts-cache
+        variables:
+          - cluster: testing_uservices
+          - application: eats-products
+  - stq:
+        queues:
+          - eats_products_update_discount_products
+          - eats_products_update_mapping
+          - eats_products_update_nomenclature_product_mapping
+  - http

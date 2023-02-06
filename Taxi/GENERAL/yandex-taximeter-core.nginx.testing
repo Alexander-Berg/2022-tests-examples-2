@@ -1,0 +1,132 @@
+upstream taxi_upstream {
+    server taximeter-api.taxi.tst.yandex.net;
+}
+
+upstream mds_download_upstream {
+    server storage.mdst.yandex.net;
+}
+
+upstream static_upstream {
+    server static.taxi.tst.yandex.net;
+}
+
+proxy_cache_path /etc/nginx/cache levels=1:2 keys_zone=surge_cache:10m max_size=300m inactive=3m use_temp_path=off;
+
+upstream taximeter_upstream {
+    server 127.0.0.1:7001 fail_timeout=2s;
+    keepalive 32;
+}
+
+map $http_x_real_ip $real_ip_header {
+    "" $remote_addr;
+    default $http_x_real_ip;
+}
+
+server {
+
+    include listen;
+    include listen_https;
+
+    server_name core-yandex.taxi.tst.yandex.net;
+    server_name taximeter-core.taxi.tst.yandex.net;
+    server_name taximeter-core.tst.mobile.yandex.net;
+    server_name ~taximeter-core(\w+).taxi.tst.yandex.net;
+
+    # Minor cluster
+    server_name taximeter-basis-minor.taxi.tst.yandex.net;
+
+    #for client to core mapped handles
+    server_name taximeter-client.taxi.tst.yandex-team.ru;
+    server_name taximeter-client.taxi.tst.yandex.ru;
+    server_name taximeter-client-az.taxi.tst.yandex.net;      # For Azerbaijan
+    server_name taximeter-client-az.taxi.tst.yandex-team.ru;  # For Azerbaijan
+
+    client_max_body_size 20m;
+
+    large_client_header_buffers 4 32k;
+
+    location = /favicon.ico {
+        return 200;
+    }
+
+    location /get-taximeter {
+        proxy_set_header X-Real-IP $real_ip_header;
+        proxy_set_header Host storage.mdst.yandex.net;
+        proxy_http_version 1.1;
+        proxy_pass http://mds_download_upstream;
+    }
+            
+    location /driver/taxi {
+        proxy_set_header X-Real-IP $real_ip_header;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host taximeter-api.taxi.tst.yandex.net;
+        proxy_http_version 1.1;
+        proxy_set_header connection "";
+        proxy_pass http://taxi_upstream/taximeter;
+    }
+
+    location /geosuggest {
+        set $new_args part=$arg_part&highlight=0&local_only=0&bases=house,street&v=7&spn=0.1%2C0.1&callback=;
+        if ($arg_ll) {
+            set $new_args $new_args&ll=$arg_ll;
+        }
+            
+        set $args $new_args;
+        proxy_pass http://suggest-maps.yandex.net/suggest-geo;
+    }
+
+    location /clientapi/core/map/items {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $real_ip_header;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header connection keep-alive;
+        proxy_http_version 1.1;
+        proxy_read_timeout 18s;
+        proxy_pass http://taximeter_upstream/clientapi/core/map/items;
+    }
+
+	location /surge/zones {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $real_ip_header;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header connection keep-alive;
+        proxy_http_version 1.1;
+        proxy_read_timeout 180s;
+        proxy_cache surge_cache;
+        proxy_pass http://taximeter_upstream/surge/zones;
+        proxy_cache_key "$uri?hash=$arg_hash";
+        add_header X-Cache-Status $upstream_cache_status;
+    }
+       
+    location /surge/tile {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $real_ip_header;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header connection keep-alive;
+        proxy_http_version 1.1;
+        proxy_read_timeout 180s;
+        proxy_cache surge_cache;
+        proxy_pass http://taximeter_upstream/surge/tile;
+        proxy_cache_key "$uri?v=$arg_v&x=$arg_x&y=$arg_y&z=$arg_z";
+        add_header X-Cache-Status $upstream_cache_status;
+    }
+
+    location /img {
+        proxy_http_version 1.1;
+        proxy_set_header Host static.taxi.tst.yandex.net;
+        proxy_pass http://static_upstream/img;
+    }
+
+    location /ping/gc_collect {
+        return 404;
+    }
+
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $real_ip_header;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header connection keep-alive;
+        proxy_http_version 1.1;
+        proxy_pass http://taximeter_upstream/;
+    }
+}

@@ -1,0 +1,369 @@
+<test>
+
+    <variables>
+
+        <path>
+            <instance id="accounts">accounts</instance>
+            <instance id="allaccounts">all_accounts</instance>
+        </path>
+
+        <cookie name="Session_id" func="gensessid">
+            <arg name="version">3</arg>
+
+            <!-- users for /accounts tests:
+            70495 - ordinary user, no staff, no Plus
+            70496 - beta tester
+            70499 - user with Plus subscription
+            70502 - staff user, no Plus
+            71011 - child
+            113   - non-existing user
+            1130000000035962 - PDD with Plus
+            1130000000000015 - PDD with staff, no Plus and no mail suid
+            -->
+            <instance id="ru_70495_70502_70499_1130000000035962_1130000000000015_71011">
+                <arg name="uid">70495</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authdelta">-1000</arg>
+                <arg name="time">-10</arg>
+                <arg name="uid_1">70502</arg>
+                <arg name="flags_1">202</arg>
+                <arg name="socprofile_1">333221</arg>
+                <arg name="pwdtime_1">777</arg>
+                <arg name="uid_2">70499</arg>
+                <arg name="pwdtime_2">-1</arg>
+                <arg name="uid_3">1130000000035962</arg>
+                <arg name="uid_4">1130000000000015</arg>
+                <arg name="uid_5">71011</arg>
+            </instance>
+            <instance id="ru_70496_113">
+                <arg name="uid">70496</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authdelta">-1000</arg>
+                <arg name="time">-10</arg>
+                <arg name="uid_1">113</arg>
+                <arg name="flags_1">2</arg>
+            </instance>
+            <instance id="ru_113">
+                <arg name="uid">113</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authdelta">-1000</arg>
+                <arg name="time">-10</arg>
+            </instance>
+            <instance id="ru_70500">
+                <arg name="uid">70500</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authdelta">-1000</arg>
+                <arg name="time">-10</arg>
+            </instance>
+        </cookie>
+
+        <header name="Host">
+            <instance id="api.passport.yandex.ru">api.my-passport.yandex.ru</instance>
+        </header>
+
+        <header name="X-Real-IP">
+            <instance id="yandex_internal">95.108.132.35</instance>
+        </header>
+
+        <result name="empty_accs">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">0</arg>
+            </body>
+        </result>
+        <result name="acc_70495_70502_70499_1130000000035962_1130000000000015_71011">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">3</arg>
+                <arg name="/default_uid">70495</arg>
+                <arg name="/accounts" res_mod="array_size">6</arg>
+                <arg name="/accounts/0/uid">70495</arg>
+                <arg name="/accounts/0/login">malice</arg>
+                <arg name="/accounts/0/defaultEmail">malice-gs@galatasaray.net</arg>
+                <arg name="/accounts/0/displayName/name">malice</arg>
+                <arg name="/accounts/0/displayName/firstname">Denis</arg>
+                <arg name="/accounts/0/displayName/lastname">Bartolome</arg>
+                <arg name="/accounts/0/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/0/attributes" res_mod="key_count">3</arg>
+                <arg name="/accounts/0/attributes/plus_available">true</arg>
+                <arg name="/accounts/0/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/0/attributes/weak_account_protection">true</arg>
+                <arg name="/accounts/1/uid">70502</arg>
+                <arg name="/accounts/1/login">bbtst_staff</arg>
+                <arg name="/accounts/1/defaultEmail">bbtst_staff@yandex.ru</arg>
+                <arg name="/accounts/1/displayName/name">bbtst_staff</arg>
+                <arg name="/accounts/1/displayName/firstname">a</arg>
+                <arg name="/accounts/1/displayName/lastname">b</arg>
+                <arg name="/accounts/1/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/1/attributes" res_mod="key_count">6</arg>
+                <arg name="/accounts/1/attributes/plus_available">true</arg>
+                <arg name="/accounts/1/attributes/staff">true</arg>
+                <arg name="/accounts/1/attributes/staff-login">bbtst_yateam</arg>
+                <arg name="/accounts/1/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/1/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/1/attributes/weak_account_protection">true</arg>
+                <arg name="/accounts/2/uid">70499</arg>
+                <arg name="/accounts/2/login">bbtst_Disabled</arg>
+                <arg name="/accounts/2/defaultEmail">bbtst_Disabled@yandex.ru</arg>
+                <arg name="/accounts/2/displayName/name">bbtst_Disabled</arg>
+                <arg name="/accounts/2/displayName/firstname">dontmatch</arg>
+                <arg name="/accounts/2/displayName/lastname">dontmatch</arg>
+                <arg name="/accounts/2/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/2/attributes" res_mod="key_count">1</arg>
+                <arg name="/accounts/2/attributes/has_plus">true</arg>
+                <arg name="/accounts/3/uid">1130000000035962</arg>
+                <arg name="/accounts/3/login">blocked-pdd-u@mellior.ru</arg>
+                <arg name="/accounts/3/defaultEmail">blocked-pdd-u@mellior.ru</arg>
+                <arg name="/accounts/3/displayName/name">blocked-pdd-u@mellior.ru</arg>
+                <arg name="/accounts/3/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/3/attributes" res_mod="key_count">1</arg>
+                <arg name="/accounts/3/attributes/has_plus">true</arg>
+                <arg name="/accounts/4/uid">1130000000000015</arg>
+                <arg name="/accounts/4/login">killed1@okna.ru</arg>
+                <arg name="/accounts/4/defaultEmail"></arg>
+                <arg name="/accounts/4/displayName/name">killed1@okna.ru</arg>
+                <arg name="/accounts/4/displayName/firstname"></arg>
+                <arg name="/accounts/4/displayName/lastname"></arg>
+                <arg name="/accounts/4/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/4/attributes" res_mod="key_count">4</arg>
+                <arg name="/accounts/4/attributes/staff">true</arg>
+                <arg name="/accounts/4/attributes/staff-login">killed1</arg>
+                <arg name="/accounts/4/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/4/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/5/uid">71011</arg>
+                <arg name="/accounts/5/login">Child007</arg>
+                <arg name="/accounts/5/defaultEmail"></arg>
+                <arg name="/accounts/5/displayName/name">Child007</arg>
+                <arg name="/accounts/5/displayName/firstname"></arg>
+                <arg name="/accounts/5/displayName/lastname"></arg>
+                <arg name="/accounts/5/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/5/attributes" res_mod="key_count">5</arg>
+                <arg name="/accounts/5/attributes/content_rating">15</arg>
+                <arg name="/accounts/5/attributes/is_child">true</arg>
+                <arg name="/accounts/5/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/5/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/5/attributes/weak_account_protection">true</arg>
+            </body>
+        </result>
+        <result name="acc_70495_70502_1130000000000015_71011">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">3</arg>
+                <arg name="/default_uid">70495</arg>
+                <arg name="/accounts" res_mod="array_size">4</arg>
+                <arg name="/accounts/0/uid">70495</arg>
+                <arg name="/accounts/0/login">malice</arg>
+                <arg name="/accounts/0/defaultEmail">malice-gs@galatasaray.net</arg>
+                <arg name="/accounts/0/displayName/name">malice</arg>
+                <arg name="/accounts/0/displayName/firstname">Denis</arg>
+                <arg name="/accounts/0/displayName/lastname">Bartolome</arg>
+                <arg name="/accounts/0/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/0/attributes" res_mod="key_count">3</arg>
+                <arg name="/accounts/0/attributes/plus_available">true</arg>
+                <arg name="/accounts/0/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/0/attributes/weak_account_protection">true</arg>
+                <arg name="/accounts/1/uid">70502</arg>
+                <arg name="/accounts/1/login">bbtst_staff</arg>
+                <arg name="/accounts/1/defaultEmail">bbtst_staff@yandex.ru</arg>
+                <arg name="/accounts/1/displayName/name">bbtst_staff</arg>
+                <arg name="/accounts/1/displayName/firstname">a</arg>
+                <arg name="/accounts/1/displayName/lastname">b</arg>
+                <arg name="/accounts/1/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/1/attributes" res_mod="key_count">6</arg>
+                <arg name="/accounts/1/attributes/plus_available">true</arg>
+                <arg name="/accounts/1/attributes/staff">true</arg>
+                <arg name="/accounts/1/attributes/staff-login">bbtst_yateam</arg>
+                <arg name="/accounts/1/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/1/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/1/attributes/weak_account_protection">true</arg>
+                <arg name="/accounts/2/uid">1130000000000015</arg>
+                <arg name="/accounts/2/login">killed1@okna.ru</arg>
+                <arg name="/accounts/2/defaultEmail"></arg>
+                <arg name="/accounts/2/displayName/name">killed1@okna.ru</arg>
+                <arg name="/accounts/2/displayName/firstname"></arg>
+                <arg name="/accounts/2/displayName/lastname"></arg>
+                <arg name="/accounts/2/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/2/attributes" res_mod="key_count">4</arg>
+                <arg name="/accounts/2/attributes/staff">true</arg>
+                <arg name="/accounts/2/attributes/staff-login">killed1</arg>
+                <arg name="/accounts/2/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/2/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/3/uid">71011</arg>
+                <arg name="/accounts/3/login">Child007</arg>
+                <arg name="/accounts/3/defaultEmail"></arg>
+                <arg name="/accounts/3/displayName/name">Child007</arg>
+                <arg name="/accounts/3/displayName/firstname"></arg>
+                <arg name="/accounts/3/displayName/lastname"></arg>
+                <arg name="/accounts/3/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/3/attributes" res_mod="key_count">5</arg>
+                <arg name="/accounts/3/attributes/content_rating">15</arg>
+                <arg name="/accounts/3/attributes/is_child">true</arg>
+                <arg name="/accounts/3/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/3/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/3/attributes/weak_account_protection">true</arg>
+            </body>
+        </result>
+        <result name="acc_70496_113">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">3</arg>
+                <arg name="/default_uid">70496</arg>
+                <arg name="/can-add-more">true</arg>
+                <arg name="/accounts" res_mod="array_size">2</arg>
+                <arg name="/accounts/0/uid">70496</arg>
+                <arg name="/accounts/0/login">Malice2</arg>
+                <arg name="/accounts/0/defaultEmail">malice@yandex.ru</arg>
+                <arg name="/accounts/0/displayName/name">Malice2</arg>
+                <arg name="/accounts/0/displayName/firstname">None Нет</arg>
+                <arg name="/accounts/0/displayName/lastname">Malice</arg>
+                <arg name="/accounts/0/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/0/attributes" res_mod="key_count">5</arg>
+                <arg name="/accounts/0/attributes/plus_available">true</arg>
+                <arg name="/accounts/0/attributes/beta-tester">true</arg>
+                <arg name="/accounts/0/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/0/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/0/attributes/weak_account_protection">true</arg>
+                <arg name="/accounts/1/uid">113</arg>
+                <arg name="/accounts/1/login"></arg>
+                <arg name="/accounts/1/defaultEmail"></arg>
+                <arg name="/accounts/1/displayName/name"></arg>
+                <arg name="/accounts/1/displayName/firstname">dontmatch</arg>
+                <arg name="/accounts/1/displayName/lastname">dontmatch</arg>
+                <arg name="/accounts/1/displayName/default_avatar"></arg>
+                <arg name="/accounts/1/attributes" res_mod="key_count">0</arg>
+            </body>
+        </result>
+        <result name="acc_70496">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">3</arg>
+                <arg name="/default_uid">70496</arg>
+                <arg name="/can-add-more">true</arg>
+                <arg name="/accounts" res_mod="array_size">1</arg>
+                <arg name="/accounts/0/uid">70496</arg>
+                <arg name="/accounts/0/login">Malice2</arg>
+                <arg name="/accounts/0/defaultEmail">malice@yandex.ru</arg>
+                <arg name="/accounts/0/displayName/name">Malice2</arg>
+                <arg name="/accounts/0/displayName/firstname">None Нет</arg>
+                <arg name="/accounts/0/displayName/lastname">Malice</arg>
+                <arg name="/accounts/0/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/0/attributes" res_mod="key_count">5</arg>
+                <arg name="/accounts/0/attributes/plus_available">true</arg>
+                <arg name="/accounts/0/attributes/beta-tester">true</arg>
+                <arg name="/accounts/0/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/0/attributes/weak_account_protection">true</arg>
+                <arg name="/accounts/0/attributes/missing_2fa">true</arg>
+            </body>
+        </result>
+        <result name="acc_113">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">3</arg>
+                <arg name="/default_uid">113</arg>
+                <arg name="/can-add-more">true</arg>
+                <arg name="/accounts" res_mod="array_size">1</arg>
+                <arg name="/accounts/0/uid">113</arg>
+                <arg name="/accounts/0/login"></arg>
+                <arg name="/accounts/0/defaultEmail"></arg>
+                <arg name="/accounts/0/displayName/name"></arg>
+                <arg name="/accounts/0/displayName/firstname">dontmatch</arg>
+                <arg name="/accounts/0/displayName/lastname">dontmatch</arg>
+                <arg name="/accounts/0/displayName/default_avatar"></arg>
+                <arg name="/accounts/0/attributes" res_mod="key_count">0</arg>
+            </body>
+        </result>
+        <result name="acc_70500">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">3</arg>
+                <arg name="/default_uid">70500</arg>
+                <arg name="/can-add-more">true</arg>
+                <arg name="/accounts" res_mod="array_size">1</arg>
+                <arg name="/accounts/0/uid">70500</arg>
+                <arg name="/accounts/0/login">Junit-Test</arg>
+                <arg name="/accounts/0/defaultEmail">Junit-Test@yandex.com</arg>
+                <arg name="/accounts/0/displayName/name">😂 Я 'Тестовый" / &amp;&lt;тестер&gt;</arg>
+                <arg name="/accounts/0/displayName/firstname">😂&amp;Вася</arg>
+                <arg name="/accounts/0/displayName/lastname">@ &lt;html&gt;</arg>
+                <arg name="/accounts/0/displayName/default_avatar">0/0-0</arg>
+                <arg name="/accounts/0/attributes" res_mod="key_count">5</arg>
+                <arg name="/accounts/0/attributes/plus_available">true</arg>
+                <arg name="/accounts/0/attributes/has_organization">true</arg>
+                <arg name="/accounts/0/attributes/missing_2fa">true</arg>
+                <arg name="/accounts/0/attributes/missing_confirmed_phone">true</arg>
+                <arg name="/accounts/0/attributes/weak_account_protection">true</arg>
+            </body>
+        </result>
+    </variables>
+
+    <node>
+        <description>Sezamapi: accounts</description>
+
+        <case>
+            <description>Account info (valid accounts only)</description>
+            <path>accounts</path>
+            <cookie name="Session_id" withnull="1">*</cookie>
+            <header name="Host">*</header>
+            <header name="X-Real-IP">*</header>
+
+            <check>
+                <cookie name="Session_id" withnull="1">ru_113</cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_70495_70502_70499_1130000000035962_1130000000000015_71011</cookie>
+                <result>acc_70495_70502_1130000000000015_71011</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_70496_113</cookie>
+                <result>acc_70496</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_70500</cookie>
+                <result>acc_70500</result>
+            </check>
+        </case>
+
+        <case>
+            <description>Account info (all accounts)</description>
+            <path>allaccounts</path>
+            <cookie name="Session_id" withnull="1">*</cookie>
+            <header name="Host">*</header>
+            <header name="X-Real-IP">*</header>
+
+            <check>
+                <cookie name="Session_id" withnull="1"></cookie>
+                <result>empty_accs</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_70495_70502_70499_1130000000035962_1130000000000015_71011</cookie>
+                <result>acc_70495_70502_70499_1130000000035962_1130000000000015_71011</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_70496_113</cookie>
+                <result>acc_70496_113</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_113</cookie>
+                <result>acc_113</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_70500</cookie>
+                <result>acc_70500</result>
+            </check>
+        </case>
+    </node>
+
+</test>

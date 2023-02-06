@@ -1,0 +1,30 @@
+---
+host: taxi_taxi-exp_testing
+telegram: warn_default
+type: rtc
+services:
+- service: taxi-exp-file-cache-consistency-monitoring
+  # Проверяются файлы в кэше для раздачи (размеры и хэш)
+  ttl: 10800
+  telegram: taxi-core-infra-testing-alerts
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 101%
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 101%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 101%
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+  telegram: taxi-core-infra-testing-alerts
+- template: test_vhost-500
+  telegram: taxi-core-infra-testing-alerts
+- template: test_virtual-meta

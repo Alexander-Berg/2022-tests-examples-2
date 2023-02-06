@@ -1,0 +1,36 @@
+id: unauthorized
+title: unauthorized request and exp is off
+
+parameters:
+  - headers:
+      - headers_value#object_simple:
+            X-Yandex-UID: test_yandex_uid
+            X-YaTaxi-UserId: test_user_id
+      - headers_value#object_simple:
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+            X-YaTaxi-UserId: test_user_id
+      - headers_value#object_simple:
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+            X-Yandex-UID: test_yandex_uid
+
+source:
+    request:
+        method: post
+        url: /integration/turboapp/v1/orders/estimate
+        headers#xget: /test-params/headers/headers_value
+        body:
+            some: other
+            fields: values
+    expectations:
+        response:
+            status-code#integer: 401
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body:
+            response: fields
+            values: here
+    expectations:
+        call-count: 0

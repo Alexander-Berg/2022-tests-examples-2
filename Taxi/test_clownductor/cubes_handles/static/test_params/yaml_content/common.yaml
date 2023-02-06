@@ -1,0 +1,74 @@
+meta:
+    service_name: common-service
+    maintainers:
+      - Dmitrii Karachev <karachevda@yandex-team.ru>
+    wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/common-service/
+
+units:
+  - name: web
+  - name: stq3
+    some_key: some_value
+  - name: eda_web
+    some_key: some_value
+    tvm:
+        service_name: common-service-eda
+  - name: eda_stq3
+    tvm:
+        service_name: common-service-eda
+        some_key: some_value
+
+clownductor_service_info:
+    aliases:
+      - description: Same as main alias, yet different instance. Other fields will
+            be derived from main alias.
+        name: common-service-critical
+      - clownductor_project: eda
+        deploy_callback_url: http://frontend-dev-api.taxi.yandex.net/api/webhook/clownductor/deploy
+        description: Eda
+        duty_group_id: common-service-eda-id
+        grafana:
+            production: https://grafana.yandex-team.ru/d/LVu3OitWk/nanny_common_service_eda_stable
+        has_balancers: true
+        has_unstable: true
+        name: common-service-eda
+        preset:
+            name: x2nano
+            overrides:
+                ram: 1
+        units:
+          - eda_web
+          - eda_stq3
+          - eda_cron
+        yt_log_replications:
+          - table: taxi-api-yandex-taxi-protocol-cxx-log
+            url: https://yt.yandex-team.ru/hahn/navigation?path=//logs/taxi-api-yandex-taxi-protocol-cxx-log
+    service:
+        clownductor_project: taxi
+        description: Main alias. Name would be taken from meta.service_name if not
+            overrided.
+        design_review: https://st.yandex-team.ru/TAXIADMIN-9711
+        disk_profile:
+            name: default
+            overrides:
+              - path: /var/cache/yandex
+                size: 10240
+                type: ssd
+              - path: /var/custom
+                size: 1024
+                type: hdd
+              - path: /cores
+                size: 0
+                type: hdd
+        preset:
+            production:
+                name: x2micro
+                overrides:
+                    cpu: 4
+            testing:
+                name: x2micro
+                overrides:
+                    cpu: 4
+            unstable:
+                name: x2micro
+                overrides:
+                    cpu: 4

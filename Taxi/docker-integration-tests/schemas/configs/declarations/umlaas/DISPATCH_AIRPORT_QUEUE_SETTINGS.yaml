@@ -1,0 +1,42 @@
+default: {}
+description: Настройки очередей в аэропортах
+tags: [notfallback]
+maintainers: [rmnleb]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/AirportQueueSettings'
+
+    definitions:
+        CompositeClasses:
+            type: array
+            items:
+                type: string
+        AirportQueueSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - main_area
+              - ml_model_name
+              - ml_whitelist_classes
+              - ml_composite_classes
+            properties:
+                main_area:
+                    description: Домашняя зона аэропорта
+                    type: string
+                ml_model_name:
+                    description: Название модели ml для обработки аэропорта
+                    type: string
+                ml_whitelist_classes:
+                    description: Учитываемые в прогнозе классы
+                    type: array
+                    items:
+                        type: string
+                    x-taxi-cpp-type: std::unordered_set
+                ml_composite_classes:
+                    description: Объединение классов в моделях ML
+                    example:
+                        econom: ['econom', 'uberx']
+                    type: object
+                    additionalProperties:
+                        $ref: '#/definitions/CompositeClasses'

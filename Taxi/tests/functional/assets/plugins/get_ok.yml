@@ -1,0 +1,64 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: /base.html
+  - _inner_test: [True, Passed common case.]
+  - url:
+      is: http://nginx/base.html
+  - _inner_test: [True, Really loaded the page.]
+
+  - get_ok:
+      url: base1.html
+  - _inner_test:
+      success: True
+      tap_description: Passed even with wrong url.
+  - url:
+      is: http://nginx/base1.html
+  - _inner_test: [True, Really tried to load the page.]
+
+  - get_ok:
+      url: http://wrong-url/base.html
+  - _inner_test:
+      success: False
+      when:
+        # don't test firefox.
+        # It emits success True/False for wrong urls randomly
+        browser: chrome
+      tap_description: Passed even with wrong domain.
+  - url:
+      is: http://wrong-url/base.html
+  - _inner_test: [True, Really tried to load the page with wrong domain.]
+
+  - get_ok: base.html
+  - _inner_test: [True, Passed for short notation.]
+  - url:
+      is: http://nginx/base.html
+  - _inner_test: [True, Really loaded the page with short notation.]
+
+  - get_ok: [base.html, Short notation with desc.]
+  - _inner_test: [True, Passed for short notation with desc.]
+  - url:
+      is: http://nginx/base.html
+  - _inner_test: [True, Really loaded the page with short notation and desc.]
+
+  - get_ok:
+      url: base.html
+      timeout: 10.0
+  - _inner_test: [True, Passed with timeout.]
+  - url: base.html
+  - _inner_test: [True, Really loaded page with timeout.]
+
+  - get_ok:
+      url: base.html
+      timeout: 0.00000000001  # 1^-12
+  - _inner_test:
+      success: False
+      message: Timeout exceeded.
+      tap_description: Failed with zero timeout.

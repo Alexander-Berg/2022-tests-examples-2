@@ -1,0 +1,45 @@
+logging:
+    type: file
+    level: debug
+    path: cctv-mvp.log
+
+streams:
+  - name: default_camera
+    description: Камера ноутбука
+    type: camera
+
+signature_index:
+    path: ../tests/data/signatures_stub.json
+    threshold: 0.5
+    insertion_threshold: 0.15
+    find_limit: 1
+
+storage:
+    path: /tmp/yandex/cctv-mvp
+    store_detected_box: true
+
+handlers:
+  - name: show_whats_going_on
+    description: Вывод обрабатываемого кадра на экран
+    type: display
+
+  - name: find_signature
+    description: Обнаружение объектов в кадре
+    type: find_signature
+    detection_model_path: engine-models/face-detection/scrfd_10g_bnkps_shape480x640.onnx
+    signature_model_path: engine-models/face-identification/r50webface_shape112x112.onnx
+
+  - name: identify_person
+    description: Обнаружение и идентификация объектов в кадре
+    type: identify_person
+    detection_model_path: engine-models/face-detection/scrfd_10g_bnkps_shape480x640.onnx
+    signature_model_path: engine-models/face-identification/r50webface_shape112x112.onnx
+
+processors:
+  - name: demo
+    description: Демонстрационный стенд с распознаванием
+    streams:
+      - default_camera
+    handlers:
+      - show_whats_going_on
+      - identify_person

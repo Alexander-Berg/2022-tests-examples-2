@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+</head>
+<body>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
+<script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+<script type="text/javascript">
+    var sock = new SockJS('http://xiva.wdevx.yandex.net/xiva', null, {debug: true});
+    sock.onopen = function() {
+        $('#connection_status').text('Connected!');
+        command = {subscribe: {news_1: 0, wether_1: 0, auto_1: 0, holodilnik_1: 0}};
+        sock.send(JSON.stringify(command));
+    };
+    sock.onmessage = function(e) {
+        try{
+            var new_widget = JSON.parse(e.data);
+            $('#' + new_widget.widget_id.toString()).text(new_widget.content);
+        }
+        catch(err){
+            console.log('exception while command', err);
+        }
+    };
+    sock.onclose = function() {
+        $('#connection_status').text('Disconnected :(');
+    };
+
+    function send_some_data(){
+        command = {get_info: ''};
+        sock.send(JSON.stringify(command));
+    }
+
+</script>
+<div id='status'>
+    <h2>Status:</h2>
+    <pre>
+    Connection: <span id="connection_status">disconnected</span>;<br>
+    Last message: <span id="last_message_status"></span><br>
+    </pre>
+</div>
+<input type="button" onclick="send_some_data();" name="some label" value="some value" />
+<table width=100% border="2" cellspacing="0" align=center bgcolor="#CCCCCC">
+    <tr>
+        <td align=center><div id='news'>виджет раз</div></td>
+        <td align=center><div id='wether'>виджет два</div></td>
+    </tr>
+    <tr>
+        <td align=center><div id='auto'>три</div></td>
+        <td align=center><div id='holodilnik'>четыре</div></td>
+    </tr>
+</table>
+
+
+</body>
+</html>

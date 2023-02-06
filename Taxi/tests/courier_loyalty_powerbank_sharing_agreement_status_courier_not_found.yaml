@@ -1,0 +1,49 @@
+id: courier_loyalty_powerbank_sharing_agreement_status_courier_not_found
+title: Запрос с корректными данными, курьер не найден
+
+source:
+    request:
+        method: post
+        body:
+            phone#string: '+79999999999'
+        headers:
+            X-Authorization: expected_token
+            X-Remote-IP: 127.0.0.1
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: is_active
+                value#boolean: false
+
+taxi_config:
+    EDA_CORE_COURIER_LOYALTY_POWERBANK_SHARING_API_AVAILABLE_IP:
+        available_ips:
+          - 127.0.0.1
+          - 127.0.0.2
+
+mocks:
+  - resource: eats-core-v1-general-information-couriers-catalog-search-get
+    response:
+        status-code: 200
+        body#object:
+          - key: couriers
+            value#array: []
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query#object:
+              - key: phone
+                value#string: '+79999999999'
+  - resource: eats-v1-courier-loyalty-power-bank-sharing-agreement-check
+    response:
+        status-code: 200
+    expectations:
+        call-count: 0
+        request:
+            method: post
+
+secdist:
+    settings_override:
+        EATS_TOKEN_FOR_BERI_ZARYAD: expected_token

@@ -1,0 +1,74 @@
+{
+  "name": "default",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "layer_meta"
+        }
+      ],
+      "name": "fetch_candidates",
+      "resources": [
+        {
+          "field": "candidates",
+          "name": "count_by_categories"
+        }
+      ],
+      "source_code": "log.info('test log'); return {candidates: {request: {point: [1.0, 2.0], allowed_classes: [], limit: 400, max_distance: 2500}, layer_meta: layer_meta}}"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        },
+        {
+          "domain": "resource",
+          "query": "candidates.generic[tariff].total"
+        }
+      ],
+      "name": "read_candidates",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[tariff]"
+        }
+      ],
+      "source_code": "return {data: {name: tariff, calculation_meta: {counts: {total: total, free: 0, free_chain: 0, pins: 0, radius: 1000}}}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:tariff}"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.experiment.rules[tariff].surge_value"
+        }
+      ],
+      "name": "read_zone",
+      "out_bindings": [
+        {
+          "children": [
+            {
+              "alias": "value_raw",
+              "query": "value_raw"
+            },
+            {
+              "alias": "surge",
+              "query": "surge"
+            }
+          ],
+          "query": "classes[tariff]"
+        }
+      ],
+      "source_code": "return {value_raw: 1.0, surge: {value: surge_value}};"
+    }
+  ],
+  "state": "active"
+}

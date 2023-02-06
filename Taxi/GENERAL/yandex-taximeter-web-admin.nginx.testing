@@ -1,0 +1,105 @@
+upstream taximeter_admin_upstream {
+    server 127.0.0.1:7001 fail_timeout=2s;
+
+    keepalive 32;
+}
+
+map $http_x_real_ip $real_ip_header {
+    "" $remote_addr;
+    default $http_x_real_ip;
+}
+
+server {
+        include listen;
+        include listen_https;
+
+        #testing
+        server_name taximeter-admin.taxi.tst.yandex-team.ru;
+        server_name taximeter-admin.taxi.tst.yandex.net;
+        
+        #for PING
+        server_name taximeter-admin.taxi.yandex.net;
+        server_name taximeter-admin-lb.taxi.tst.yandex.net;
+        
+        location /static/ {
+            alias /usr/share/taximeter-web-admin/www/;
+            autoindex off;
+        }
+        
+        location /ping/gc_collect {
+            return 404;
+        }
+
+        location / {
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $real_ip_header;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header connection keep-alive;
+            proxy_http_version 1.1;
+            proxy_pass http://taximeter_admin_upstream/;
+        }
+
+        location /idm/ {
+            return 404;
+        }
+        
+        location /csv/chair {
+            proxy_read_timeout 180s;
+            proxy_set_header X-Real-IP $real_ip_header;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header connection keep-alive;
+            proxy_http_version 1.1;
+            proxy_pass http://taximeter_admin_upstream/csv/chair;
+        }
+
+        location /manager/spam/csv {
+            client_max_body_size 100m;
+            proxy_set_header X-Real-IP $real_ip_header;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header connection keep-alive;
+            proxy_http_version 1.1;
+            proxy_pass http://taximeter_admin_upstream/manager/spam/csv;
+        }
+
+        location /api/news {
+            client_max_body_size 100m;
+            proxy_set_header X-Real-IP $real_ip_header;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header connection keep-alive;
+            proxy_http_version 1.1;
+            proxy_pass http://taximeter_admin_upstream/api/news;
+        }
+        
+        location /blacklist/item/add/ {
+            client_max_body_size 100m;
+            proxy_set_header X-Real-IP $real_ip_header;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header connection keep-alive;
+            proxy_http_version 1.1;
+            proxy_pass http://taximeter_admin_upstream/blacklist/item/add;
+        }
+}
+
+server {
+        include listen;
+        include listen_https;
+
+        server_name ~taximeter-idm.taxi.tst.yandex-team.ru;
+
+        ssl_verify_client optional;
+        ssl_verify_depth 3;
+
+        location / {
+            
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $real_ip_header;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header connection keep-alive;
+            proxy_http_version 1.1;
+            proxy_pass http://taximeter_admin_upstream/idm/;
+        }
+}

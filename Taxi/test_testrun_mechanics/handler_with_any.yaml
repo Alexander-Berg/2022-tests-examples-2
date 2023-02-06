@@ -1,0 +1,110 @@
+aliases:
+    user_id#xget: /sources/zalogin-launch-auth/response/body/id
+    phone_id#xget: /sources/zalogin-launch-auth/response/body/phone_id
+    user_authorized#xget: /sources/zalogin-launch-auth/response/body/authorized
+enabled: true
+sources:
+  - id: zalogin-launch-auth
+    resource: zalogin-v1-launch-auth
+    validation:
+        content-type: application/json
+    content-type: application/json
+    body#request-body: {}
+    query#request-args: {}
+    headers#request-headers: {}
+  - id: typed-experiments-service
+    resource: exp3-matcher-typed-experiments
+    content-type: application/json
+    headers#object:
+      - key: X-Request-Application
+        value#request-header: X-Request-Application
+    body#object:
+      - key: consumer
+        value#string: client_protocol/launch
+      - key: locale
+        value#request-header: X-Request-Language
+      - key: user_agent
+        value#request-header: User-Agent
+      - key: args
+        value#array:
+          - value:
+                name: x_remote_ip
+                type: string
+                value#request-header: X-Remote-IP
+          - value:
+                name: accept_language
+                type: string
+                value#request-header: X-Request-Language
+          - value:
+                name: application
+                type: application
+                value#request-application: type
+          - value:
+                name: device_id
+                type: string
+                value#request-header: X-AppMetrica-DeviceId
+          - value:
+                name: launch_id
+                type: string
+                value#uuid4:
+          - value:
+                name: phone_id
+                type: string
+                value#xget:
+                    path: /sources/zalogin-launch-auth/response/body/phone_id
+                    default-value#string: ''
+          - value:
+                name: personal_phone_id
+                type: string
+                value#xget:
+                    path: /request/passenger-authorizer/user-personal/personal_phone_id
+                    default-value#string: ''
+          - value:
+                name: remote_ip
+                type: string
+                value#request-header: X-Remote-IP
+          - value:
+                name: uid
+                type: string
+                value#request-header: X-Yandex-UID
+          - value:
+                name: user_id
+                type: string
+                value#xget:
+                    path: /sources/zalogin-launch-auth/response/body/id
+                    default-value#string: ''
+          - value:
+                name: yandex_uuid
+                type: string
+                value#request-header: X-AppMetrica-UUID
+          - value:
+                name: is_fallback
+                type: bool
+                value#boolean: true
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#concat-objects:
+      - value#concat-objects:
+          - value:
+                id#xget: /sources/zalogin-launch-auth/response/body/id
+                authorized#xget: /sources/zalogin-launch-auth/response/body/authorized
+          - value:
+                phones#xget: /sources/zalogin-launch-auth/response/body/phones
+            enabled#contains:
+                key: phones
+                object#source-response-body: zalogin-launch-auth
+          - value:
+                token_valid#xget: /sources/zalogin-launch-auth/response/body/token_valid
+            enabled#contains:
+                key: token_valid
+                object#source-response-body: zalogin-launch-auth
+      - value#object:
+          - key: typed_experiments
+            enabled#and:
+              - value#source-enabled: typed-experiments-service
+            value#source-response-body: typed-experiments-service
+validation:
+    content-type: application/json
+default-response: resp-ok
+allow-unauthorized: true

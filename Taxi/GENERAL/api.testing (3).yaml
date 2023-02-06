@@ -1,0 +1,106 @@
+- file:
+    path: "/var/log/yandex/taxi*/taxi.log"
+    sincedb_path: "/var/cache/taxi-pilorama/yandex-taxi-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+    read_interval: 500ms
+  filter: &main_filter
+    removals:
+      - timestamp
+      - metadata
+      - host
+      - timezone
+      - coro_id
+      - task_id
+      - thread_id
+    put_message: True
+    renames:
+        - from: _type
+          to: type
+    additions: '"tags":["_pilorama_parsed"]'
+    defaults:
+      - key: type
+        value: log
+    time_formats:
+      - "%Y-%m-%d %H:%M:%S,%E*f"
+      - "%Y-%m-%dT%H:%M:%S.%E*f"
+      - "%Y-%m-%d %H:%M:%S.%E*f"
+    transform_date: true
+    timezone: 'Europe/Moscow'
+    cgroups: false
+    add_from_env:
+      - from: NANNY_SERVICE_ID
+        to: ngroups
+    drop_empty_fields: true
+    max_read_size: 16777216
+  output: &main_output
+    elastic_version: 7
+    send_timeout: 120s
+    max_retries: 5
+    initial_retry_delay: 500ms
+    max_retry_delay: 5s
+    limit_all_retries: false
+    index: "taximeter-logs-%Y.%m.%d.%H"
+    error_index: "errors-taximeter-logs-%Y.%m.%d"
+    balancing_group: main
+    max_in_flight_requests: 5
+    hosts:
+      - http://elastic-logs-vla-04.taxi.tst.yandex.net:9200/_bulk
+      - http://elastic-logs-sas-04.taxi.tst.yandex.net:9200/_bulk
+      - http://elastic-logs-vla-05.taxi.tst.yandex.net:9200/_bulk
+      - http://elastic-logs-sas-05.taxi.tst.yandex.net:9200/_bulk
+
+- file:
+    path: "/var/log/yandex/taxi*/server.log"
+    sincedb_path: "/var/cache/taxi-pilorama/userver-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+  filter: *main_filter
+  output: *main_output
+
+- file:
+    path: ["/var/log/fastcgi2/*.log", "/var/log/fastcgi2/*/*.log"]
+    sincedb_path: "/var/cache/taxi-pilorama/fastcgi2-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+  filter: *main_filter
+  output: *main_output
+
+- file:
+    path: ["/var/log/yandex/taxi-frontend/stdout.log"]
+    sincedb_path: "/var/cache/taxi-pilorama/taxi-frontend-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+  filter: *main_filter
+  output: *main_output
+
+- file:
+    path: ["/var/log/yandex/pymlaas-protocol/taxi.log"]
+    sincedb_path: "/var/cache/taxi-pilorama/pymlaas-protocol-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+  filter: *main_filter
+  output: *main_output
+
+- file:
+    path: "/var/log/yandex/taximeter-*/taximeter-*.log"
+    sincedb_path: "/var/cache/taxi-pilorama/taximeter-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+  filter: *main_filter
+  output: *main_output
+
+- file:
+    path: "/var/log/taxidwh/log/*-tskv.log"
+    sincedb_path: "/var/cache/taxi-pilorama/taxidwh-logs.sincedb"
+    start_from_begin: false
+    ignore_older: 1d
+    discover_interval: 60s
+  filter: *main_filter
+  output: *main_output

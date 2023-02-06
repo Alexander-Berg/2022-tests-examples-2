@@ -1,0 +1,144 @@
+#!/bin/bash
+
+. $TESTSUITE_LIB_UTILS
+
+YDB_LOCAL_BASEDIR=$YDB_TMPDIR/ydb-local
+YDB_LOCAL_DATADIR=$YDB_LOCAL_BASEDIR/testsuite
+YDB_CONFIGS_PATH=/usr/lib/yandex/taxi-ydb-local/etc/ydb
+
+YDB_LOCAL_EXEC=/usr/lib/yandex/taxi-ydb-local/bin/kikimr
+PYTHON_EXEC=/usr/lib/yandex/taxi-py3-2/bin/python3
+
+if [ "$(uname -s)" != "Linux" ]; then
+    die "Native ydb-local is only supported on GNU/Linux systems.
+
+Please use docker to start ydb-local on macOS: TODO
+
+For more info please visit https://wiki.yandex-team.ru/taxi/backend/testsuite/ydb/"
+fi
+
+if [ ! -x $YDB_LOCAL_EXEC ]; then
+    die "Please install yandex-taxi-ydb-local package.
+
+$ sudo apt-get install yandex-taxi-ydb-local
+
+For more info please visit https://wiki.yandex-team.ru/taxi/backend/testsuite/ydb/"
+fi
+
+start() {
+    echo "Testsuite ydb-local directory: $YDB_LOCAL_BASEDIR"
+
+    rm -rf "$YDB_LOCAL_DATADIR"
+    mkdir -p "$YDB_LOCAL_DATADIR"
+
+    # Wait configs from templates
+    $PYTHON_EXEC \
+        $YDB_SCRIPTS_DIR/prepare_configs.py \
+        --working-dir=$YDB_TMPDIR \
+        --grpc-port=$YDB_GRPC_PORT \
+        --ic-port=$YDB_IC_PORT \
+        || die "YDB Error: cannot prepare configs from templates"
+
+    # Prepare blobstorage config
+    $YDB_LOCAL_EXEC \
+        admin \
+        bs \
+        genconfig \
+        static \
+        --bs-format-file $YDB_TMPDIR/bs_format.txt \
+        --erasure none \
+        --avdomain 1 \
+        --faildomains 1 \
+        --vdisks 1 \
+        --pdisktype ROT \
+        --vdiskkind Default \
+        --dx rack \
+        > $YDB_TMPDIR/bs.txt \
+        || die "YDB Error: cannot prepare blobstorage config"
+
+    # Format node disk
+    #$YDB_LOCAL_EXEC \
+    #    admin \
+    #    blobstorage \
+    #    disk \
+    #    format \
+    #    --disk-size=$YDB_PDISK_SIZE \
+    #    --chunk-size=$YDB_PDISK_CHUNK_SIZE \
+    #    --sector-size=$YDB_PDISK_SECTOR_SIZE \
+    #    --guid=1 \
+    #    --main-key=$YDB_PDISK_MASTER_KEY \
+    #    --text-message="Disk formatted" \
+    #    $YDB_LOCAL_DATADIR/pdisk1tmp.data \
+    #    || die "YDB Error: cannot format pdisk"
+
+    # Start node as daemon
+    $YDB_LOCAL_EXEC \
+        server \
+        --log-level=1 \
+        --tcp \
+        --sys-file=$YDB_CONFIGS_PATH/sys.txt \
+        --domains-file=$YDB_CONFIGS_PATH/domains.txt \
+        --bs-file=$YDB_TMPDIR/bs.txt \
+        --channels-file=$YDB_CONFIGS_PATH/channels.txt \
+        --log-file=$YDB_CONFIGS_PATH/log.txt \
+        --ic-file=$YDB_CONFIGS_PATH/ic.txt \
+        --kqp-file=$YDB_CONFIGS_PATH/kqp.txt \
+        --pq-file=$YDB_CONFIGS_PATH/pq.txt \
+        --pqcd-file=$YDB_CONFIGS_PATH/pqcd.txt \
+        --netclassifier-file=$YDB_CONFIGS_PATH/netclassifier.txt \
+        --sqs-file=$YDB_CONFIGS_PATH/sqs.txt \
+        --grpc-file=$YDB_TMPDIR/grpc.txt \
+        --feature-flags-file=$YDB_CONFIGS_PATH/feature-flags.txt \
+        --bootstrap-file=$YDB_CONFIGS_PATH/boot.txt \
+        --naming-file=$YDB_TMPDIR/names.txt \
+        --log-file-name=$YDB_LOCAL_DATADIR/log.txt \
+        --node=1 \
+        --grpc-port=$YDB_GRPC_PORT \
+        --mon-port=$YDB_MON_PORT \
+        --ic-port=$YDB_IC_PORT \
+        &
+
+    # Wait for node is ready
+    $PYTHON_EXEC \
+        $YDB_SCRIPTS_DIR/wait_node.py \
+        --host=$YDB_HOST \
+        --monitor-port=$YDB_MON_PORT \
+        || die "YDB Error: cannot wait for node"
+
+    # Define node configs
+    $YDB_LOCAL_EXEC \
+        --server="grpc://$YDB_HOST:$YDB_GRPC_PORT" \
+        admin \
+        blobstorage \
+        config \
+        invoke \
+        --proto="`cat $YDB_TMPDIR/bs_config.txt`" \
+        || die "YDB Error: cannot set config settings"
+
+    # Create database 'local'
+    $YDB_LOCAL_EXEC \
+        --server="grpc://$YDB_HOST:$YDB_GRPC_PORT" \
+        db \
+        schema \
+        init \
+        'local' \
+        || die "YDB Error: cannot create database"
+
+    # Init database 'local'
+    $PYTHON_EXEC \
+        $YDB_SCRIPTS_DIR/init_database.py \
+        --host=$YDB_HOST \
+        --grpc-port=$YDB_GRPC_PORT \
+        --profile-path=$YDB_CONFIGS_PATH/default_profile.txt \
+        || die "YDB Error: cannot init database"
+}
+
+stop() {
+    while $(pkill -9 kikimr 2>/dev/null); do
+        sleep 0.1
+    done
+
+    rm -rf "$YDB_LOCAL_DATADIR"
+}
+
+script_main "$@"

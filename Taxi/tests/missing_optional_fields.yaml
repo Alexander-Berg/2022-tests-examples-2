@@ -1,0 +1,55 @@
+id: missing_optional_fields
+title: В запросе отсутствуют все необязательные поля
+source:
+    request:
+        method: post
+        body:
+            id: 'some_user_id'
+            orderid: 'some_order_id'
+    expectations:
+        response:
+            status-code: 200
+
+taxi_config:
+    FEEDBACK_SAVE_WITH_API_PROXY: true
+
+mocks:
+  - resource: order-v1-tc-order-fields
+    expectations:
+        request:
+            body:
+                order_id: some_order_id
+                fields:
+                  - order.created
+                  - order.nz
+                  - order.performer.driver_license_personal_id
+                  - order.performer.tariff.currency
+                  - order.personal_phone_id
+                  - order.status
+                  - order.taxi_status
+                  - order.user_phone_id
+                  - reorder.id
+    response:
+        status-code: 200
+        body:
+            fields:
+                order:
+                    created: some_created_dt
+                    status: finished
+                    taxi_status: complete
+                    user_phone_id: some_phone_id
+                    personal_phone_id: p_some_phone_id
+
+  - resource: passenger-feedback-v2-feedback
+    expectations:
+        request:
+            body:
+                id: some_user_id
+                order_id: some_order_id
+                phone_id: some_phone_id
+                personal_phone_id: p_some_phone_id
+                order_created_time: some_created_dt
+                order_status: finished
+                order_taxi_status: complete
+    response:
+        status-code: 200

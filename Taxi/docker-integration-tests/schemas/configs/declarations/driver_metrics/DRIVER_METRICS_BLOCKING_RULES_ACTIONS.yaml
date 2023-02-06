@@ -1,0 +1,76 @@
+default:
+    __default__:
+      - blocking_duration_sec: 1200
+        events:
+          - name: offer_timeout
+        events_period_sec: 3600
+        events_to_block_cnt: 3
+        rule_name: default
+        tanker_key_template: DriverMetricsTooManyOfferTimeoutsTempBlock
+description: Настройки блокировки водителей за последовательность действий для сервиса
+    driver_metrics(Активность).
+tags: []
+validators:
+  - $default_dict:
+        key_validators:
+          - $string
+        value_validators:
+          - $sequence_of:
+              - $dictionary:
+                    extra_ok: false
+                    missing_ok: false
+                    optional_keys:
+                      - max_blocked_cnt
+                      - tag
+                      - tags
+                      - kick_from_airport_queue
+                    scheme:
+                        blocking_duration_sec:
+                          - $number
+                          - $gte: 0
+                        events:
+                          - $sequence_of:
+                              - $dictionary:
+                                    extra_ok: false
+                                    missing_ok: false
+                                    optional_keys:
+                                      - tags
+                                    scheme:
+                                        name:
+                                          - $enum:
+                                              - auto_reorder
+                                              - seen_timeout
+                                              - offer_timeout
+                                              - reject_manual
+                                              - reject_auto_cancel
+                                              - reject_missing_tariff
+                                              - reject_seen_impossible
+                                              - reject_wrong_way
+                                              - reject_bad_position
+                                              - complete
+                                              - user_cancel
+                                              - park_cancel
+                                              - park_fail
+                                        tags:
+                                          - $sequence_of:
+                                              - $not_empty_string
+                          - $min_len: 1
+                        events_period_sec:
+                          - $number
+                          - $gte: 1
+                        events_to_block_cnt:
+                          - $number
+                          - $gte: 1
+                        max_blocked_cnt:
+                          - $number
+                          - $gte: 1
+                        rule_name:
+                          - $string
+                        tanker_key_template:
+                          - $not_empty_string
+                        tag:
+                          - $not_empty_string
+                        tags:
+                          - $not_empty_string
+                        kick_from_airport_queue:
+                          - $boolean

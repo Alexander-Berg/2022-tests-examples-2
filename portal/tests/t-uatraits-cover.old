@@ -1,0 +1,159 @@
+#!/usr/bin/perl
+
+use common::sense;
+
+use lib::abs qw(. ../lib);
+
+use Test::More;
+use XML::Simple; 
+
+use MordaTest;
+
+use MordaX::Logit qw(logit dumpit);
+#!use MordaX::Uatraits;
+use Getopt::Long;
+
+exit; #not working
+
+#my $cover_base = "/usr/share/uatraits/tests.xml";
+my $cover      = "/opt/www/bases/cover.xml";
+unless( -f $cover ){
+    $cover ="/usr/share/uatraits/cover.xml";
+}
+
+my $cover_new  = $cover;
+my $cover_old  = $cover;
+
+
+my $base        ;# "/usr/share/uatraits/browser.xml";
+
+if( $ARGV[0] && $ARGV[0] !~/^--/ ){
+    $base = shift @ARGV;
+}
+if( $ARGV[0] && $ARGV[0] !~/^--/){
+    $cover_new = shift @ARGV;
+}
+
+our ($help, $debug )= (0,0);
+GetOptions (
+     'help' => \$help,
+     'debug'=> \$debug,
+ );  
+if( $help ){
+    print " $0 [ path to browser.xml  [ path to cover test file ]] [ --help ] [ --debug ]";
+    exit 10;
+}
+
+#dumpit( \@ARGV );
+
+#uatraits_test( $cover_base , "core test on current uatraits 100%");
+uatraits_test( $cover_old , "cover old test on current uatraits 100%");
+
+uatraits_test( $cover_new , "cover new test on current uatraits 75%", require => 75 );
+
+#all old test passed on current uatriats
+#all core tests passted on curente
+#75% new tests passed on current uatraits
+#
+if( $base ){
+    ok( MordaX::Uatraits::init( $base ), 'uatraits renew with ' . $base );
+
+    #uatraits_test( $cover_base , "core test on new uatraits 100%");
+    uatraits_test( $cover_new , "cover new test on new uatraits 100%");
+    uatraits_test( $cover_old , "cover old test on new uatraits 75%", require => 75 );
+}
+
+done_testing();
+
+
+sub uatraits_test {
+    my( $file, $m, %args ) = @_; 
+    diag("testing: ". $file);
+
+    unless( -f $file ){
+        fail( $m . " - file $file not found ");
+        return
+    }
+    my $xml;
+    eval {
+       $xml = XMLin( $file ); 
+    };
+    if( $@ ){
+        fail( $m . " - xml error: $@ ");
+        return 
+    }
+
+    MordaX::Logit::enable_dumpit();
+    #dumpit( $xml );
+
+    my $tests = $xml->{test};
+    my $tx = 0;
+    my $okx = 0;
+    my $Px  =0;
+    for my $test ( @$tests ){
+        $tx ++;
+        my $ok = 1;
+        my $P  = 0;
+
+        my $ua = $test->{question};
+        if( $test->{answer}->{field}->{content} ){
+            my $x = $test->{answer}->{field};
+            $test->{answer}->{field}= {
+                 $test->{answer}->{field}->{name} => $x
+            };
+        }
+
+        my @fields = keys %{ $test->{answer}->{field} };
+        # dumpit( $test->{answer}->{field}, @fields );
+        my $field = { map { $_ => $test->{answer}->{field}->{$_}->{content} }  @fields };
+        foreach( values %$field ){
+            $_ = 1 if $_ eq 'true';
+            $_ = 0 if $_ eq 'false';
+        }
+
+        next unless $ua;
+
+        my $keys = scalar keys %$field;
+
+        unless( $keys ){
+            diag("UA: $ua - NO TESTS");
+            next;
+        }
+        my $desc = MordaX::Uatraits::ua_detect( $ua );
+        for my $key ( keys %$field ){
+            if( ($desc->{$key}||'') ne ($field->{$key}||'') ){
+                $ok = 0;
+                diag("UA: $ua, for $key expected '$field->{$key}' get '$desc->{$key}'") if $debug;
+            } else {
+                $P += 1/$keys;
+            }
+        }
+        $okx += $ok;
+        $Px  += $P;
+
+    }
+
+    if( $tx < 40 ){
+        fail( $m . " too small number of tests: $tx in $file");
+        return;
+    }
+
+    my $prc_required = $args{require} || 100;
+
+    $Px = int( $Px * 100 ) / 100;
+
+    if( $okx * 100 >= $tx * $prc_required ){
+        pass( $m . " ( $Px of $tx )");
+    } else {
+        fail( $m . " ( $Px of $tx )");
+    }
+
+    #exit 1;
+
+    
+}
+
+
+ 
+
+

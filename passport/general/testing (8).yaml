@@ -1,0 +1,28 @@
+emitter:
+  args:
+    balancer_host: '%(dc)s.logbroker.yandex.net:8999'
+    client: passport-oauth
+    data_port: 8999
+    ident: historydb2@testing
+    per_host_config:
+      .*?:
+        dc: myt
+        topics:
+        - rt3.man--historydb2@testing--bb_auth
+        - rt3.myt--historydb2@testing--bb_auth
+    workers_count: 4
+  class: passport.backend.logbroker_client.core.consumers.simple.emitter.PartitionsCountEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/oauth/
+workers:
+  args:
+    handler:
+      args:
+        host: http://oauth-test-internal.yandex.ru
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.oauth.handler.OAuthHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.worker.AutoBalancedLogbrokerWorker
+  count: 4
+

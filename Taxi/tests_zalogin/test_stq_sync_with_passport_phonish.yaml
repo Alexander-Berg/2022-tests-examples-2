@@ -1,0 +1,345 @@
+type: apitest
+version: 0
+service: taxi_zalogin
+
+marks:
+  - name: now
+    args:
+      - "2019-10-31T11:30:00+0300"
+  - name: config
+    kwargs:
+        PORTAL_AUTH_PHONE_CONFIRMATION_PERIODS_SECONDS:
+            __default__: 315360000
+
+mockserver:
+  - url: /blackbox
+    request:
+        query_params:
+            method: "userinfo"
+            format: "json"
+            dbfields: "subscription.suid.669"
+            aliases: "all"
+            uid: "12345"
+            userip: "127.0.0.1"
+            getphones: "bound"
+            phone_attributes: "102,107,4,108"
+    response:
+        body:
+            users:
+              - uid:
+                    value: "12345"
+                aliases:
+                    10: "phonish-account"
+                dbfields:
+                    subscription.suid.669: ""
+                phones:
+                  - id: "2222"
+                    attributes:
+                        102: "+72222222222"
+                        107: "1"
+                        4:
+                            $param:
+                                name: "bb_confirmation_time"
+                                default: "1556681858"
+
+  - url: /user-api/user_phones
+    request:
+        body:
+            phone: "+72222222222"
+            type: "yandex"
+            validate_phone: false
+    response:
+        body:
+            id:
+                $param:
+                    name: "user_phone_id"
+                    default: "000000000000000000000000"
+            phone: "+72222222222"
+            type: "yandex"
+            personal_phone_id: "my-personal-id"
+            stat:
+                big_first_discounts: 0
+                complete: 0
+                complete_card: 0
+                complete_apple: 0
+                complete_google: 0
+                fake: 0
+                total: 0
+            is_loyal: false
+            is_yandex_staff: false
+            is_taxi_staff: false
+
+  - url: /user-api/user_emails/bind_yandex_uid
+    request:
+        body:
+            phone_id:
+                $param:
+                    name: "user_phone_id"
+                    default: "000000000000000000000000"
+            yandex_uid: "12345"
+    response:
+        body: {}
+
+  - url: /user-api/user_phones/bind_yandex_uid
+    request:
+        body:
+            phone_id:
+                $param:
+                    name: "user_phone_id"
+                    default: "000000000000000000000000"
+            yandex_uid: "12345"
+    response:
+        body: {}
+
+tests:
+  - name: migrations-already-done
+    mockserver:
+      - url: /user-api/user_phones
+        request:
+            body:
+                phone: "+72222222222"
+                type: "yandex"
+                validate_phone: false
+        response:
+            body:
+                id: "000000000000000000000000"
+                phone: "+72222222222"
+                type: "yandex"
+                personal_phone_id: "my-personal-id"
+                stat:
+                    big_first_discounts: 0
+                    complete: 0
+                    complete_card: 0
+                    complete_apple: 0
+                    complete_google: 0
+                    fake: 0
+                    total: 0
+                is_loyal: false
+                is_yandex_staff: false
+                is_taxi_staff: false
+                bound_uid: "12345"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+        times: 0
+
+  - name: migrations-success-save-confirm-success
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+
+  - name: migrations-success-save-confirm-error
+    mockserver:
+      - url: /user-api/user_phones/bind_yandex_uid
+        request:
+            body:
+                phone_id: "000000000000000000000000"
+                yandex_uid: "12345"
+        response:
+            status: 500
+            body: {}
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+
+  - name: migrations-error
+    mockserver:
+      - url: /user-api/user_emails/bind_yandex_uid
+        request:
+            body:
+                phone_id: "000000000000000000000000"
+                yandex_uid: "12345"
+        response:
+            status: 500
+            body: {}
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+        times: 0
+
+  - name: migrations-no-confirmed
+    params:
+        bb_confirmation_time: "1257080862"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+        times: 0
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+        times: 0
+
+  - name: create-new-phones-confirmations
+    params:
+        user_phone_id: "0e4de44b15b9000000000000"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "phonish"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "0e4de44b15b9000000000000"}
+            uid: "12345"
+            uid_type: "phonish"
+            created: {$date: "2019-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}
+
+  - name: update-existing-phones-confirmations
+    params:
+        user_phone_id: "0e4de44b15b9000000001000"
+    request:
+        method: POST
+        path: testsuite/stq
+        body:
+            queue_name: "zalogin_sync_with_passport"
+            task_id: "12345"
+            args: []
+            kwargs:
+                remote_ip: "127.0.0.1"
+    response:
+        status: 200
+        body:
+            failed: false
+    assertions:
+      - type: mockserver-called
+        url: /blackbox
+      - type: mockserver-called
+        url: /user-api/user_phones
+      - type: mockserver-called
+        url: /user-api/user_emails/bind_yandex_uid
+      - type: mockserver-called
+        url: /user-api/user_phones/bind_yandex_uid
+      - type: mongo
+        collection: phones_confirmations
+        operation: find
+        query:
+            uid: "12345"
+            uid_type: "phonish"
+        projection:
+            _id: false
+            updated: false
+        expected:
+          - phone_id: {$oid: "0e4de44b15b9000000001000"}
+            uid: "12345"
+            uid_type: "phonish"
+            created: {$date: "2018-10-31T11:30:00.0+03:00"}
+            last_confirmed: {$date: "2019-05-01T06:37:38.0+03:00"}

@@ -1,0 +1,60 @@
+description: personal states of users
+settings:
+    collection: personal_state
+    connection: userhistory
+    database: dbuserhistory
+indexes:
+  - expireAfterSeconds: 31536000
+    key: updated
+  - key:
+      - name: yandex_uid
+        type: ascending
+      - name: nearest_zone
+        type: ascending
+      - name: brand
+        type: ascending
+    unique: true
+jsonschema:
+    _id:
+        type: object_id
+    nearest_zone:
+        description: ближайшая геозона
+        type: string
+    revision_id:
+        description: номер ревизии
+        type: number
+    selected_class:
+        description: выбранный тариф
+        type: string
+    tariffs:
+        description: список требований с разбивкой по тарифам
+        items:
+            description: требования для тарифа
+            properties:
+                class:
+                    description: тариф
+                    type: string
+                requirements:
+                    description: требования для тарифа
+                    type: object
+            type: object
+        type: array
+    type: object
+    yandex_uid:
+        description: uid пользователя
+        type: string
+wiki_info: |
+    ####Персональное состояние юзера
+    ```python
+    personal_state = {
+        '_id': 'oid',                        # Идентификатор
+        'nearest_zone': string,              # Ближайшая геозона
+        'revision_id': integer,              # Идентификатор ревизии клиента
+        'selected_class': integer,           # Выбранный тариф
+        'yandex_uid': string,                # UID пользователя
+        'tariffs': [{                        # Список требований с разбивкой по тарифам
+            'class': integer,                # Тариф, для которого сохраняются требования
+            'requirements': {},              # Требования
+        }]
+    }
+    ```

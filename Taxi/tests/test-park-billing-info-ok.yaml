@@ -1,0 +1,175 @@
+id: test-park-billing-info-ok
+title: Тест для ручки park-billing-info-v1 (GET)
+source:
+    request:
+        method: get
+        query:
+            park_clid: 12345678
+            timestamp: 2022-03-02T12:25:08.928723
+            service_id: 128,139
+    expectations:
+        response:
+            status-code: 200
+            body:
+                park_clid: 12345678
+                raw_data:
+                  - entity_id: parks-activation
+                    data:
+                        parks_activation:
+                          - revision: 1
+                            last_modified: 2022-01-27T15:59:18.313000
+                            park_id: 12345678
+                            city_id: Москва
+                            data:
+                                deactivated: false
+                                can_cash: true
+                                can_card: true
+                                can_corp: false
+                                can_coupon: true
+                                can_subsidy: true
+                                can_logistic: true
+                                logistic_deactivated: true
+                                logistic_deactivated_reason: active contract is absent
+                                logistic_can_cash: false
+                                logistic_can_card: false
+                                logistic_can_subsidy: false
+                  - entity_id: parks-replica-retrieve
+                    data:
+                        parks:
+                          - data:
+                                city: Москва
+                                corp_vats:
+                                  - value#object:
+                                      - begin: 2021-08-03T21:00:00
+                                      - key: value
+                                        value: 10000
+                                requirements:
+                                    corp: false
+                                    coupon: true
+                                    creditcard: true
+                                threshold: -1999
+                            park_id: 12345678
+                  - entity_id: parks-replica-billing-client-id
+                    data:
+                        billing_client_id: 87654321
+                  - entity_id: billing-replication
+                    data:
+                      - ID: 1111
+                        SERVICES:
+                          - 128
+                          - 111
+                        DT: 2021-08-04 00:00:00
+                      - ID: 2222
+                        SERVICES:
+                          - 128
+                          - 156
+                        DT: 2021-08-04 00:00:00
+                      - ID: 3333
+                        SERVICES:
+                          - 139
+                        DT: 2021-08-04 00:00:00
+
+mocks:
+  - resource: v2-parks-activation-retrieve
+    expectations:
+        call-count: 1
+        request:
+            body:
+                ids_in_set:
+                  - 12345678
+    response:
+        status-code: 200
+        body:
+            parks_activation:
+              - revision: 1
+                last_modified: 2022-01-27T15:59:18.313000
+                park_id: 12345678
+                city_id: Москва
+                data:
+                    deactivated: false
+                    can_cash: true
+                    can_card: true
+                    can_corp: false
+                    can_coupon: true
+                    can_subsidy: true
+                    can_logistic: true
+                    logistic_deactivated: true
+                    logistic_deactivated_reason: active contract is absent
+                    logistic_can_cash: false
+                    logistic_can_card: false
+                    logistic_can_subsidy: false
+
+  - resource: parks-replica-v1-retrieve
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id_in_set:
+                  - 12345678
+                projection:
+                  - park_id
+                  - data.city
+                  - data.threshold
+                  - data.promised_payment_till
+                  - data.requirements
+                  - data.corp_vats
+    response:
+        status-code: 200
+        body:
+            parks:
+              - data:
+                    city: Москва
+                    corp_vats:
+                      - value#object:
+                          - begin: 2021-08-03T21:00:00
+                          - key: value
+                            value: 10000
+                    requirements:
+                        corp: false
+                        coupon: true
+                        creditcard: true
+                    threshold: -1999
+                park_id: 12345678
+
+  - resource: parks-replica-v1-billing-client-id-retrieve
+    expectations:
+        call-count: 1
+        called-before:
+          - billing-replication-v1-active-contracts
+        request:
+            query:
+                park_id#string: 12345678
+                consumer: api-proxy
+    response:
+        status-code: 200
+        body:
+            billing_client_id: 87654321
+  - resource: billing-replication-v1-active-contracts
+    expectations:
+        call-count: 1
+        called-after:
+          - parks-replica-v1-billing-client-id-retrieve
+        request:
+            query:
+                client_id#string: 87654321
+                actual_ts#string: 2022-03-02T12:25:08.928723
+                active_ts#string: 2022-03-02T12:25:08.928723
+                service_id#string: 128,139
+
+    response:
+        status-code: 200
+        body:
+          - ID: 1111
+            SERVICES:
+              - 128
+              - 111
+            DT: 2021-08-04 00:00:00
+          - ID: 2222
+            SERVICES:
+              - 128
+              - 156
+            DT: 2021-08-04 00:00:00
+          - ID: 3333
+            SERVICES:
+              - 139
+            DT: 2021-08-04 00:00:00

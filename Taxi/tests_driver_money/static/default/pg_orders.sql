@@ -1,0 +1,378 @@
+INSERT INTO orders_0 (
+  park_id,
+  id,
+  number,
+  driver_id,
+  date_booking,
+  date_create,
+  date_drive,
+  status,
+  payment,
+  provider,
+  address_from,
+  cost_total,
+  cost_full,
+  csv_commission_agg,
+  csv_commission_park,
+  csv_commission_yandex,
+  csv_commission_callcenter,
+  csv_commission_firstline,
+  csv_tips,
+  csv_subsidy,
+  csv_subsidy_no_commission,
+  csv_rebate_yandex,
+  rule_work_id,
+  cost_commission,
+  receipt_data
+)
+VALUES (
+  'park_id_0',--park_id
+  'order1',--id
+  '1',--number
+  'driver',--driver_id
+  '2019-05-01T16:18:00',--date_booking
+  '2019-05-01T16:18:00',--date_create
+  '2019-05-01T16:18:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Вильнюсская улица, 7к2","Porch":"","Region":"","Lat":55.6022246645,"Lon":37.5224489641}',--address_from,
+  126.0,--cost_total,
+  126.0,--cost_full,
+  12.6000,--csv_commission_agg,
+  4.1958,--csv_commission_park,
+  21.70384100,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  0.0,--csv_commission_firstline,
+  18.9000,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule1-all-enabled',--rule_work_id
+  38.499641,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+(
+  'park_id_0',--park_id
+  'order2',--id
+  '2',--number
+  'driver',--driver_id
+  '2019-05-01T12:28:00',--date_booking
+  '2019-05-01T12:28:00',--date_create
+  '2019-05-01T12:28:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  157.0,--cost_total,
+  NULL,--cost_full,
+  15.7000,--csv_commission_agg,
+  5.2281,--csv_commission_park,
+  20.0400,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  1.5700,--csv_commission_firstline,
+  0.0,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule1-all-enabled',--rule_work_id
+  40.9681,--cost_commission
+  '{"waiting_sum":56.4,"waiting_time":376.0,"waiting_cost":9.0,"total_distance":0.993930481845542}'--receipt_data
+),
+(
+  'park_id_0',--park_id
+  'order3',--id
+  '3',--number
+  'driver',--driver_id
+  '2019-05-01T12:26:00',--date_booking
+  '2019-05-01T12:26:00',--date_create
+  '2019-05-01T12:26:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Вильнюсская улица, 7к2","Porch":"","Region":"","Lat":55.6022246645,"Lon":37.5224489641}',--address_from,
+  245.0,--cost_total,
+  245.0,--cost_full,
+  24.5000,--csv_commission_agg,
+  8.1585,--csv_commission_park,
+  30.6000,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  2.4500,--csv_commission_firstline,
+  0.0,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule1-all-enabled',--rule_work_id
+  63.2585,--cost_commission
+  NULL--receipt_data
+),
+(
+  'park_id_0',--park_id
+  'order4',--id
+  '4',--number
+  'driver',--driver_id
+  '2019-05-01T12:24:00.177041',--date_booking
+  '2019-05-01T12:24:00.177041',--date_create
+  '2019-05-01T12:24:00.177041',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  202.0,--cost_total,
+  202.0,--cost_full,
+  20.2000,--csv_commission_agg,
+  6.7266,--csv_commission_park,
+  25.4400,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  2.0200,--csv_commission_firstline,
+  0.0,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule1-all-enabled',--rule_work_id
+  52.3666,--cost_commission
+  '{}'--receipt_data
+),
+(
+  'park_id_0',--park_id
+  'order5',--id
+  '5',--number
+  'driver',--driver_id
+  '2019-05-02T12:22:00',--date_booking
+  '2019-05-02T12:22:00',--date_create
+  '2019-05-02T12:22:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Вильнюсская улица, 7к2","Porch":"","Region":"","Lat":55.6022246645,"Lon":37.5224489641}',--address_from,
+  239.0,--cost_total,
+  239.0,--cost_full,
+  23.9000,--csv_commission_agg,
+  7.9587,--csv_commission_park,
+  29.8800,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  2.3900,--csv_commission_firstline,
+  0.0,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule1-all-enabled',--rule_work_id
+  61.7387,--cost_commission
+  '{"waiting_sum":56.4}'--receipt_data
+),
+( -- fits into week
+  'park_id_0',--park_id
+  'order6',--id
+  '6',--number
+  'driver',--driver_id
+  '2019-05-07T10:18:00.577041Z',--date_booking
+  '2019-05-07T10:18:00.577041Z',--date_create
+  '2019-05-07T10:18:00.577041Z',--date_drive
+  50,--status
+  1,--payment, cashless
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  212.0,--cost_total,
+  212.0,--cost_full,
+  21.2000,--csv_commission_agg,
+  7.0596,--csv_commission_park,
+  35.28516800,--csv_commission_yandex,
+  3.0,--csv_commission_callcenter,
+  0.0,--csv_commission_firstline,
+  31.8000,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule3-disabled',--rule_work_id
+  63.544768,--cost_commission
+  NULL--receipt_data
+),
+(
+  'park_id_0',--park_id
+  'order7',--id
+  '7',--number
+  'driver',--driver_id
+  '2019-05-08T12:22:00.577041',--date_booking
+  '2019-05-08T12:22:00.577041',--date_create
+  '2019-05-08T12:22:00.577041',--date_drive
+  70,--status
+  0,--payment
+  2,--provider
+  '{"incorrect TRASH ',--address_from,
+  0.0,--cost_total,
+  NULL,--cost_full,
+  NULL,--csv_commission_agg,
+  NULL,--csv_commission_park,
+  30.0,--csv_commission_yandex,
+  NULL,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  0.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  'rule1-all-enabled',--rule_work_id
+  30.0,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+( -- order with rebate, fits into week
+  'park_id_0',--park_id
+  'order8',--id
+  '8',--number
+  'driver',--driver_id
+  '2019-05-09T12:24:00',--date_booking
+  '2019-05-09T12:24:00',--date_create
+  '2019-05-09T12:24:00',--date_drive
+  50,--status
+  1,--payment, cashless
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  202.0,--cost_total,
+  202.0,--cost_full,
+  20.2000,--csv_commission_agg,
+  6.7266,--csv_commission_park,
+  0.0,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  50.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  15.3666,--csv_rebate_yandex
+  'unknown rule',--rule_work_id
+  26.9266,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+( -- order with rebate,  fits into week
+  'park_id_0',--park_id
+  'order9',--id
+  '9',--number
+  'driver',--driver_id
+  '2019-05-09T09:24:00',--date_booking
+  '2019-05-09T09:24:00',--date_create
+  '2019-05-09T09:24:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  202.0,--cost_total,
+  202.0,--cost_full,
+  20.2000,--csv_commission_agg,
+  6.7266,--csv_commission_park,
+  30.0,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  50.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  15.3666,--csv_rebate_yandex
+  'rule2-commission-disabled',--rule_work_id
+  26.9266,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+( -- order with rebate
+  'park_id_0',--park_id
+  'order11',--id
+  '11',--number
+  'driver',--driver_id
+  '2019-05-28T09:24:00',--date_booking
+  '2019-05-28T09:24:00',--date_create
+  '2019-05-28T09:24:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  202.0,--cost_total,
+  202.0,--cost_full,
+  20.2000,--csv_commission_agg,
+  6.7266,--csv_commission_park,
+  30.0,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  50.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  15.3666,--csv_rebate_yandex
+  'rule2-commission-disabled',--rule_work_id
+  26.9266,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+( -- order with rebate
+  'park_id_0',--park_id
+  'order12',--id
+  '12',--number
+  'driver',--driver_id
+  '2019-05-30T09:24:00',--date_booking
+  '2019-05-30T09:24:00',--date_create
+  '2019-05-30T09:24:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"Рядом с: улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  202.0,--cost_total,
+  202.0,--cost_full,
+  20.2000,--csv_commission_agg,
+  6.7266,--csv_commission_park,
+  30.0,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  50.0,--csv_subsidy,
+  NULL,--csv_subsidy_no_commission,
+  15.3666,--csv_rebate_yandex
+  'rule2-commission-disabled',--rule_work_id
+  26.9266,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+(
+  'park_id_0',--park_id
+  'order10',--id
+  '10',--number
+  'driver',--driver_id
+  '2019-06-01T22:30:00',--date_booking
+  '2019-06-01T22:30:00',--date_create
+  '2019-06-01T22:30:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"улица Островитянова, 47","Porch":"","Region":"","Lat":55.6348324304,"Lon":37.541191945}',--address_from,
+  302.0,--cost_total,
+  302.0,--cost_full,
+  20.2000,--csv_commission_agg,
+  6.7266,--csv_commission_park,
+  0.0,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  50.0,--csv_subsidy,
+  70.0,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  '',--rule_work_id
+  26.9266,--cost_commission
+  '{"total_distance":3808.34572221865}'--receipt_data
+),
+( -- original order for uber
+  'park_orig',--park_id
+  'order11',--id
+  '11',--number
+  'driver_orig',--driver_id
+  '2019-05-12T00:00:00',--date_booking
+  '2019-05-12T00:00:00',--date_create
+  '2019-05-12T00:00:00',--date_drive
+  50,--status
+  0,--payment
+  2,--provider
+  '{"Street":"улица Улюлю, 11","Porch":"","Region":"","Lat":10.10,"Lon":20.20}',--address_from,
+  777.0,--cost_total,
+  777.0,--cost_full,
+  0.0,--csv_commission_agg,
+  20.0,--csv_commission_park,
+  30.0,--csv_commission_yandex,
+  0.0,--csv_commission_callcenter,
+  NULL,--csv_commission_firstline,
+  0.0,--csv_tips,
+  0.0,--csv_subsidy,
+  0.0,--csv_subsidy_no_commission,
+  NULL,--csv_rebate_yandex
+  '',--rule_work_id
+  50.0,--cost_commission
+  '{"total_distance":100.500}'--receipt_data
+);

@@ -1,0 +1,38 @@
+service: relev_tools
+title: PRIEMKA_EMBEDDING_BINARY sandbox task
+ci:
+  release-title-source: flow
+  secret: sec-01ekhpsw8fjkpytc50w1x1yh14
+  runtime:
+    sandbox-owner: WEB_RELEVANCE
+  flows:
+    deploy_binary_task:
+      title: Build and release PRIEMKA_EMBEDDING_BINARY sandbox task binary
+      jobs:
+        build:
+          title: Build PRIEMKA_EMBEDDING_BINARY sandbox task binary
+          stage: single
+          task: common/sandbox/deploy_binary_task
+          input:
+            target: sandbox/projects/websearch/basesearch/TestEmbedding/bin/bin
+            attrs:
+              task_type: PRIEMKA_EMBEDDING_BINARY
+              taskbox_enabled: true
+            release_ttl: inf
+        release:
+          title: Release PRIEMKA_EMBEDDING_BINARY sandbox task binary
+          needs: build
+          task: common/releases/release_to_sandbox
+          input:
+            config:
+              sandbox_resource_type: SANDBOX_TASKS_BINARY
+              common_release_data:
+                release_stage: stable
+  releases:
+    deploy_binary_task:
+      title: Build and release PRIEMKA_EMBEDDING_BINARY sandbox task binary
+      flow: deploy_binary_task
+      auto: true
+      stages:
+        single:
+          title: Single

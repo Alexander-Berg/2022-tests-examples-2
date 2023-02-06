@@ -1,0 +1,40 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: default
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: handler-1
+                    dev-team: test-team
+                    requests:
+                      - id: fallback-src
+                        resource: fallback-resource
+                    resources:
+                      - id: fallback-resource
+                        url: $fallback_resource_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        first-handler-result#xget: /sources/fallback-src/response/body
+                    handler-fallback-policy:
+                        strategy: ignore
+                        result:
+                            first-handler-result: {"result": "fallback"}
+                  - id: handler-2
+                    dev-team: test-team
+                    result:
+                        second-handler-result: {"result": "ok"}

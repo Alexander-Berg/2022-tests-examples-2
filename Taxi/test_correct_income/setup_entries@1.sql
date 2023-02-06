@@ -1,0 +1,47 @@
+INSERT INTO se_income.entries
+(id, park_id, contractor_id,
+ agreement_id, sub_account, doc_ref, event_at,
+ inn_pd_id, is_own_park, do_send_receipt,
+ status, amount, order_id, reverse_entry_id,
+ receipt_id, receipt_url)
+VALUES
+    (1, 'p1', 'c1',
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'PROCESSED', '1.815', 'order1', NULL,
+     'rec1', 'fns/rec1'),
+    (2, 'p1', 'c1',  -- corrected fully
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'NEW', '-1.815', 'order1', 1,
+     NULL, NULL),
+    (3, 'p1', 'c1',
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'PROCESSED', '1.815', 'order1', NULL,
+     'rec3', 'fns/rec3'),
+    (4, 'p1', 'c1',  -- corrected partially
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'NEW', '-1.0', 'order1', 3,
+     NULL, NULL),
+    (5, 'p1', 'c1',
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'NEW', '1.815', 'order1', NULL,
+     NULL, NULL),
+    (6, 'p1', 'c1',  -- failed to correct - rescheduled
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'NEW', '-1.815', 'order1', 5,
+     NULL, NULL),
+    (7, 'p1', 'c1',
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'NEW', '1.815', 'order1', NULL,
+     NULL, NULL),
+    (8, 'p1', 'c1',  -- failed to correct - dropped
+     'agreement1', 'subaccount1', 101, '2022-02-02T02:02+02',
+     'inn1_pd_id', TRUE, TRUE,
+     'NEW', '-1.815', 'order1', 7,
+     NULL, NULL);

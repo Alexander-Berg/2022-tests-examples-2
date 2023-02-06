@@ -1,0 +1,46 @@
+import {call as callRenamed, select} from 'typed-redux-saga';
+import {fork} from 'redux-saga/effects';
+
+const typedPromise = Promise.resolve(1);
+const anyPromise: any = Promise.resolve(1);
+
+const obj = {
+    *method() {
+
+    }
+}
+
+export function * onLoad() {
+    yield* select();
+
+    yield* fork();
+
+    yield call();
+
+    yield* call();
+
+    yield select();
+    ~~~~~~~~~~~~~~ [yield]
+
+    yield callRenamed();
+    ~~~~~~~~~~~~~~~~~~~ [yield]
+
+    yield callRenamed(typedPromise)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ [yield]
+
+    yield obj.method(typedPromise);
+
+    yield typedPromise;
+
+    yield anyPromise;
+
+    yield callRenamed(function * () {
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        yield select();
+~~~~~~~~~~~~~~~~~~~~~~~
+        ~~~~~~~~~~~~~~ [yield]
+    })
+~~~~~~ [yield]
+}
+
+[yield]: yield -> yield*

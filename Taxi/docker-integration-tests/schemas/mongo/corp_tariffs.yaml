@@ -1,0 +1,213 @@
+settings:
+    collection: tariffs
+    connection: corp
+    database: dbcorp
+indexes:
+  - key:
+      - name: date_to
+        type: ascending
+      - name: updated
+        type: ascending
+  - key:
+      - name: tariff_series_id
+        type: ascending
+      - name: date_to
+        type: ascending
+wiki_info: |
+    #### corp_tariffs
+
+    *Назначение:* тарифы корпоративных клиентов
+
+    *Структура документа:*
+    ```python
+    {
+      # id документа
+      '_id': u'db0c8219744148959abca69a892c8970',
+
+      # "сквозной" идентификатор тарифа
+      # при редактировании тарифа создается документ с уникальным _id и неизменным tariff_series_id
+      'tariff_series_id': u'b4eb650a633f4e289c895306fd37c1a9',
+
+      # имя тарифа
+      'name': 'Москва',
+
+      # зона действия тарифа
+      # null для многозонного тарифа
+      'home_zone': 'moscow'
+
+      # время начала действия
+      'date_from': datetime.datetime(2018, 12, 27, 10, 10, 10),
+
+      # время окончания действия
+      # null для документа, действующего в настоящее время
+      'date_to': None,
+
+      # тарифная политика
+      # параметры, специфичные для тарифов корпоративных клиентов (сурж, множитель, ...)
+      'policy': {
+        'disable_surge': True,
+        'multiplier': 1.2
+      },
+
+      # список категорий(подтарифов)
+      # совместимо с dbtaxi.tariffs.categories
+      'categories': [
+        {
+          # имя класса обслуживания [econom, business, etc.]
+          'category_name': 'econom',
+
+          # наименование типа тарифа [application, call_center]
+          'category_type': 'application',
+
+          # время начала
+          'time_from': '00:00',
+
+          # время окончания
+          'time_to': '23:59',
+
+          # название тарифа в танкере
+          'name_key': 'interval.day',
+
+          # day type: 0 категория применяется по рабочим дням, 1 - по выходным, 2 - ежедневно
+          'day_type': 2,
+
+          # валюта, в которой указаны цены в тарифе
+          'currency': 'RUB',
+
+          # Цена подачи
+          'minimal': 100,
+
+          # фиксированная стоимость отмены заказа
+          'paid_cancel_fix': 50,
+
+          # добавлять 'minimal' к цене отмены заказа
+          'add_minimal_to_paid_cancel': True,
+
+          # число включенных минут ожидания (бесплатного)
+          'waiting_included': 10,
+
+          # цена за единицу времени платного ожидания (если per_minute)
+          # или фиксированная цена ожидания (если fixed)
+          'waiting_price': 10,
+
+          # Тип платного ожидания
+          'waiting_price_type': 'fixed',
+
+          # массив счетчиков, один на категорию,
+          # на которые ссылаются все time_price_intervals_meter_id, distance_price_intervals_meter_id, pddmi внутри категории
+          'meters': [
+            {
+              # когда включать счетчик:
+              # 0 - при наступлении статуса driving,
+              # 1 - waiting,
+              # 2 - transporting,
+              # 3 - когда ссылающийся на нас калькулятор активизировался первый раз
+              # 4 - каждый раз когда активизируется ссылающийся на нас калькулятор
+              'trigger': 3
+            }
+          ],
+
+          # список 'особых таксометров' - когда поездка по зоне
+          # оплачивается иначе
+          'special_taximeters': [
+            {
+              # Информация о цене
+              "price": {
+
+                # номер счетчика из массива 'meters', с которым синхронизуется distance_price_intervals
+                "distance_price_intervals_meter_id": 0,
+
+                # правила тарификации езды по одометру
+                "distance_price_intervals": TariffInterval,
+
+                # Номер счетчика из массива 'meters', с которым синхронизуется time_price_intervals
+                "time_price_intervals_meter_id": 1,
+
+                # Правила тарификации езды по секундомеру
+                "time_price_intervals": TariffInterval,
+              },
+
+              # название зоны
+              "zone_name": "suburb"
+            }
+          ],
+
+          # список трансферов
+          'zonal_prices': [
+
+            # зона начала трансфера
+            'source': 'moscow'
+
+            # зона окончания трансфера
+            'destination': 'dme',
+
+            # производить расчет без учета пробок
+            'route_without_jams': False,
+
+            # информация о цене
+            'price' : {
+
+              # минимальная цена поездки
+              'minimal': 100,
+
+              # цена посадки
+              'once': 100,
+
+              # число включенных минут ожидания (бесплатного)
+              'waiting': 10,
+
+              # цена дополнительного ожидания
+              'waiting_price': 10,
+
+              # номер счетчика из массива 'meters', с которым синхронизуется distance_price_intervals
+              "distance_price_intervals_meter_id": 0,
+
+              # правила тарификации езды по одометру
+              "distance_price_intervals": TariffInterval,
+
+              # Номер счетчика из массива 'meters', с которым синхронизуется time_price_intervals
+              "time_price_intervals_meter_id": 1,
+
+              # Правила тарификации езды по секундомеру
+              "time_price_intervals": TariffInterval,
+            }
+          ],
+
+          # правила тарификации платной подачи
+          'paid_dispatch_distance_price_intervals': TariffInterval,
+
+          # номер счетчика из массива 'meters',
+          # с которым синхронизуется pddpi
+          'paid_dispatch_distance_price_intervals_meter_id': 2,
+
+        }
+      ]
+    }
+    ```
+
+    *TariffInterval:*
+    ```python
+    # это список объектов, записывающих некоторую ступенчатую функцию
+    [
+      {
+        # начало интервала
+        "begin": 2,
+
+        # конец интервала
+        "end": 4,
+
+        # метод начисления стоимости проеханного step,
+        #  до начала очередного step-интервала пишем prepay,
+        #  иначе postpay
+        "mode": "prepay",
+
+        # цена
+        "price": 10,
+
+        # шаг, step, с которым надо снимать деньги за поездку,
+        #  в единицах тех же что и 'begin', 'end',
+        #  то есть например 2 (километра) или 5 (минут)
+        "step": 1
+      }
+    ]
+    ```

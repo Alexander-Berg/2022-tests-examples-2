@@ -1,0 +1,79 @@
+id: user_phone_info_disabled
+title: Источник user_phone_info отключен
+source:
+    request:
+        method: post
+        body: {"state": {}, "shortcuts": {"grids_support": [{"width": 6, "unit_width": 54.5}],
+                "supported_features": [{"type": "taxi:route-input", "services": [],
+                        "prefetch_strategies": []}], "ndash_width": 9, "mdash_width": 14},
+            "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: user-api-v2-user_phones-get
+    expectations:
+        call-count: 0

@@ -1,0 +1,42 @@
+id: client-notify-subscribe-post-android
+title: Тест для проверки client-notify-subscribe (POST)
+source:
+    request:
+        method: post
+        headers:
+            Content-Type: 'application/x-www-form-urlencoded'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+        query:
+            device_id: '95FC5D7F-26F2'
+            token_type: 'fcm'
+        body:
+            token: TOKEN
+    expectations:
+        response:
+            status-code#integer: 200
+            body: {}
+
+mocks:
+  - resource: client-notify-v1-subscribe
+    response:
+        status-code: 200
+        body: {}
+
+    expectations:
+        request:
+            body:
+                channel:
+                    name: 'fcm'
+                    token: 'TOKEN'
+                service: 'taximeter'
+                client:
+                    client_id: 'dbid-uuid'
+                    device_id: '95FC5D7F-26F2'
+                    device_type: 'android'
+                    app_name: 'ru.yandex.unstable.taximeter'
+        call-count: 1
+
+taxi_config:
+    COMMUNICATIONS_TAXIMETER_DEFAULT_APPNAME: 'ru.yandex.unstable.taximeter'

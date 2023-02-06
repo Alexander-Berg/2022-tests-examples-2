@@ -1,0 +1,49 @@
+id: test_get
+title: Проверяем что нормально прокинем данные в get запросах
+
+parameters:
+  - group:
+      - response#integer: 200
+      - response#integer: 400
+      - response#integer: 500
+
+source:
+    request:
+        method: get
+        url: /4.0/restapp-front/api/v1/client/restaurants/42/feedback/summary
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+            X-App-Version#string: 10.0.0
+        query:
+            some_param1: some text1
+            some_param2: some text2
+    expectations:
+        response:
+            status-code#xget: /test-params/group/response
+            body:
+                items#array:
+                  - item1
+                  - item2
+
+mocks:
+  - resource: backend-service-vendor-v1-client-restaurants-common-get
+    response:
+        status-code#xget: /test-params/group/response
+        body:
+            items#array:
+              - item1
+              - item2
+    expectations:
+        call-count: 1
+        request:
+            path-params:
+                place_id#string: 42
+                path#string: feedback/summary
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+                X-App-Version#string: 10.0.0
+            query:
+                some_param1: some text1
+                some_param2: some text2

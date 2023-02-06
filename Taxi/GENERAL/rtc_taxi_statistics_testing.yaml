@@ -1,0 +1,87 @@
+# Алерты показывают о наличие проблем у источников ручки 4.0/mlutp/v1/products
+- service: mlutp_v1_products
+  alert_type: expression
+  checkExpression: 'false'
+  period: 120
+  program: |-
+    let eda_shortcuts_v1_tops_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.eda-shortcuts-v1-tops.error.*"}) by metric_name;
+    let eda_shortcuts_v1_tops_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.eda-shortcuts-v1-tops.*"}) by metric_name;
+    let eda_shortcuts_v1_tops_error_rate = avg(eda_shortcuts_v1_tops_fail / eda_shortcuts_v1_tops_all * 100);
+
+    let superapp_misc_v1_availability_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.superapp-misc-v1-availability.error.*"}) by metric_name;
+    let superapp_misc_v1_availability_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.superapp-misc-v1-availability.*"}) by metric_name;
+    let superapp_misc_v1_availability_error_rate = avg(superapp_misc_v1_availability_fail / superapp_misc_v1_availability_all * 100);
+
+    let superapp_misc_v1_services_positions_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.superapp-misc-v1-services-positions.error.*"}) by metric_name;
+    let superapp_misc_v1_services_positions_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.superapp-misc-v1-services-positions.*"}) by metric_name;
+    let superapp_misc_v1_services_positions_error_rate = avg(superapp_misc_v1_services_positions_fail / superapp_misc_v1_services_positions_all * 100);
+
+    let persuggest_4_0_v1_shortcuts_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.persuggest-4_0-v1-shortcuts.error.*"}) by metric_name;
+    let persuggest_4_0_v1_shortcuts_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.persuggest-4_0-v1-shortcuts.*"}) by metric_name;
+    let persuggest_4_0_v1_shortcuts_error_rate = avg(persuggest_4_0_v1_shortcuts_fail / persuggest_4_0_v1_shortcuts_all * 100);
+
+    let blender_v1_shortcuts_grid_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.blender-v1-shortcuts-grid.error.*"}) by metric_name;
+    let blender_v1_shortcuts_grid_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.blender-v1-shortcuts-grid.*"}) by metric_name;
+    let blender_v1_shortcuts_grid_error_rate = avg(blender_v1_shortcuts_grid_fail / blender_v1_shortcuts_grid_all * 100);
+
+    let shortcuts_v1_blender_shortcuts_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.shortcuts-v1-blender-shortcuts.error.*"}) by metric_name;
+    let shortcuts_v1_blender_shortcuts_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.shortcuts-v1-blender-shortcuts.*"}) by metric_name;
+    let shortcuts_v1_blender_shortcuts_error_rate = avg(shortcuts_v1_blender_shortcuts_fail / shortcuts_v1_blender_shortcuts_all * 100);
+
+    let eda_availability_fail = sum({
+        project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.eda-availability.error.*"}) by metric_name;
+    let eda_availability_all = sum({project="taxi", cluster="testing_uservices", service="uservices",
+        host="taxi-statistics-*", application="statistics", "client-service"="*",
+        "client-metric"="resource.eda-availability.*"}) by metric_name;
+    let eda_availability_error_rate = avg(eda_availability_fail / eda_availability_all * 100);
+
+    alarm_if(
+        (eda_shortcuts_v1_tops_error_rate >= 50) ||
+        (superapp_misc_v1_availability_error_rate >= 50) ||
+        (superapp_misc_v1_services_positions_error_rate >= 50) ||
+        (persuggest_4_0_v1_shortcuts_error_rate >= 50) ||
+        (blender_v1_shortcuts_grid_error_rate >= 50) ||
+        (shortcuts_v1_blender_shortcuts_error_rate >= 50) ||
+        (eda_availability_error_rate >= 50)
+    );
+    warn_if(
+        (eda_shortcuts_v1_tops_error_rate >= 15) ||
+        (superapp_misc_v1_availability_error_rate >= 15) ||
+        (superapp_misc_v1_services_positions_error_rate >= 15) ||
+        (persuggest_4_0_v1_shortcuts_error_rate >= 15) ||
+        (blender_v1_shortcuts_grid_error_rate >= 15) ||
+        (shortcuts_v1_blender_shortcuts_error_rate >= 15) ||
+        (eda_availability_error_rate >= 15)
+    );

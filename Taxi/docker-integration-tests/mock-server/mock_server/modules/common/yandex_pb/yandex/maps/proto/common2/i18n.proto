@@ -1,0 +1,92 @@
+package yandex.maps.proto.common2.i18n;
+
+message LocalizedValue
+{
+    // value in SI for distance, speed and duration
+    required double value = 1;
+
+    // localized text, e.g. "15 ft" or "42 км"
+    // with rounding of numbers applied
+    required string text = 2;
+}
+
+// value always comes in SI units
+// text depends on locale requested
+//
+// Example: distance
+//   locale ru_RU
+//   value: 34123 (meters)
+//   text: 34,1 км
+//
+//   locale en_US
+//   value: 34123 (meters)
+//   text: 21.1 mi
+//
+// Example: duration
+//   locale ru_RU
+//   value: 32820 (seconds)
+//   text: 9 ч 7 мин
+//
+//   locale en_US
+//   value: 32820 (seconds)
+//   text: 9h 7 min
+//
+// Example: speed
+//   locale: ru_RU
+//   value: 65 (meters per second)
+//   text: 234 км/ч
+//
+//   locale: en_US
+//   value: 65 (meters per second)
+//   text: 145 mph
+
+
+message Time
+{
+    // number of seconds since epoch
+    required int64 value = 1;
+    // timezone offset (in seconds)
+    required sint32 tz_offset = 2 [default = 0];
+    // unspecified text representation
+    required string text = 3;
+}
+
+// Examples
+//
+// value: 1329308258
+// text: 12:17 PM
+// tz_offset: 0
+//
+// text already contains localized time, timezone offset taken into account
+// value: 1329308258
+// text: 12:17 PM
+// tz_offset: 7200
+
+
+message Money
+{
+    // amount
+    required double value = 1;
+
+    // localized text, e.g. "10$"
+    required string text = 2;
+
+    // ISO 4217 format currency, e.g. "USD" or "RUB"
+    // https://ru.wikipedia.org/wiki/ISO_4217
+    required string currency = 3;
+}
+
+// currency & value are locale-independent
+// text depends on locale, it includes numbers formatting
+// and currency translation (not conversion!)
+//
+// Examples
+//   locale ru_RU
+//   value: 123
+//   text: 123 руб
+//   currency: RUB
+//
+//   locale en_US
+//   value: 123
+//   text: 123 rub
+//   currency: RUB

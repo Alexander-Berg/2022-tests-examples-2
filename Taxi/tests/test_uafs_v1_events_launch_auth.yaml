@@ -1,0 +1,116 @@
+id: test_uafs_v1_events_launch_auth
+title: title
+
+source:
+    request:
+        method: post
+        body:
+            id: user_id1
+            device_id: '7AABE445-2C95-4A3B-90EA-6E22804A61AD'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+            X-Login-Id: login_id1
+            X-YaTaxi-UserId: user_id1
+            X-Yandex-UID: yandex_uid1
+            X-AppMetrica-DeviceId: device_id1
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                ask_feedback: {}
+                typed_experiments:
+                    any: json
+                orders: []
+                authorized: true
+                orders_state:
+                    orders: []
+                client_geo_params:
+                    enabled: false
+                id: user_id1
+
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+
+experiments:
+    values:
+        uafs_v1_events_launch_enabled: {}
+
+mocks:
+  - resource: uantifraud-v1-events-launch
+    expectations:
+        request:
+            method: post
+            body:
+                user_id: user_id1
+                phone_id: phone_id1
+                yandex_uid: yandex_uid1
+                metrica_device_id: device_id1
+                device_id: '7AABE445-2C95-4A3B-90EA-6E22804A61AD'
+            headers:
+                X-Login-Id: login_id1
+                X-AppMetrica-DeviceId: device_id1
+                X-YaTaxi-User: personal_phone_id=personal_123
+                X-Yandex-UID: yandex_uid1
+                X-YaTaxi-UserId: user_id1
+            content-type: application/json
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+    response:
+        status-code: 200
+        body: {}
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: user_id1
+            phone_id: phone_id1
+            authorized: true
+        headers:
+            content-type: application/json
+  - resource: feedback-wanted
+    expectations:
+        request:
+            method: post
+            body:
+                id: user_id1
+                phone_id: phone_id1
+            content-type: application/json
+        call-count: 1
+    response:
+        status-code: 200
+        body:
+            ask_feedback: {}
+            orders: []
+        headers:
+            content-type: application/json
+  - resource: taxi-3.0-launch
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post
+    response:
+        status-code: 200
+        body: {}
+        headers:
+            content-type: application/json
+  - resource: order-v1-tc-active-orders
+    response:
+        status-code: 200
+        body:
+            orders: []
+            orders_state:
+                orders: []
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body:
+            any: 'json'
+        headers:
+            content-type: 'application/json'

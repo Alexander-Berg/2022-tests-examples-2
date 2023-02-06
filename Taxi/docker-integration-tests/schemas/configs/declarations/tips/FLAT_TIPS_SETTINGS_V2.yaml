@@ -1,0 +1,127 @@
+default: {}
+description: Настройки для чаевых по тарифам в валюте. Флаг disabled для тарифа не
+    является обязательным. Если его нет, то disabled=true
+tags: []
+schema:
+    type: object
+    patternProperties:
+        ^[a-z]{3}$:
+            $ref: '#/definitions/Tariff'
+    additionalProperties: false
+    definitions:
+        Tariff:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/TariffSettings'
+            properties:
+                __default__:
+                    $ref: '#/definitions/TariffSettings'
+            required:
+              - __default__
+        TariffSettings:
+            type: object
+            additionalProperties: false
+            properties:
+                additional_constant:
+                    type: number
+                base_denominator:
+                    type: number
+                    minimum: 0
+                    exclusiveMinimum: true
+                base_numerator:
+                    type: number
+                    minimum: 0
+                    exclusiveMinimum: true
+                decimal_digits:
+                    type: integer
+                    minimum: 0
+                log_base:
+                    type: number
+                    minimum: 1
+                    exclusiveMinimum: true
+                manual_entry_allowed:
+                    type: boolean
+                max_tips_value:
+                    type: number
+                    minimum: 0
+                    exclusiveMinimum: true
+                min_tips_value:
+                    type: number
+                    minimum: 0
+                percents:
+                    type: array
+                    items:
+                        type: number
+                        minimum: 0
+                        exclusiveMinimum: true
+                disabled:
+                    type: boolean
+            required:
+              - additional_constant
+              - base_denominator
+              - base_numerator
+              - decimal_digits
+              - log_base
+              - manual_entry_allowed
+              - max_tips_value
+              - min_tips_value
+              - percents
+samples:
+  - rus:
+        __default__:
+            additional_constant: 12
+            base_denominator: 10
+            base_numerator: 13
+            decimal_digits: 0
+            log_base: 14
+            manual_entry_allowed: true
+            max_tips_value: 20
+            min_tips_value: 1
+            percents:
+              - 4
+              - 8
+              - 13
+  - civ:
+        __default__:
+            additional_constant: 12
+            base_denominator: 10
+            base_numerator: 13
+            decimal_digits: 0
+            log_base: 14
+            manual_entry_allowed: true
+            max_tips_value: 20
+            min_tips_value: 1
+            percents:
+              - 4
+              - 8
+              - 13
+            disabled: true
+invalid-samples:
+  - rus:
+    __default__:
+        additional_constant: 12
+        base_denominator: 10
+        base_numerator: 13
+        decimal_digits: 0
+        manual_entry_allowed: true
+        max_tips_value: 20
+        min_tips_value: 1
+        percents:
+          - 4
+          - 8
+          - 13
+  - civ:
+        __default__:
+            additional_constant: 12
+            base_denominator: 10
+            base_numerator: 13
+            decimal_digits: 0
+            log_base: 0
+            manual_entry_allowed: true
+            max_tips_value: 20
+            min_tips_value: 1
+            percents:
+              - 4
+              - 8
+              - 13
+            disabled: true

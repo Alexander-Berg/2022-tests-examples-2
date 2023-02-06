@@ -1,0 +1,28 @@
+{%- import 'base_macros.j2' as base with context -%}
+{%- import 'custom_macros.j2' as custom with context -%}
+
+server {
+    {{ base.listen(443, is_ssl=True) }}
+    {{ base.server_name() }}
+    root /srv;
+
+    {{ custom.ssl_params() }}
+
+    {{ custom.add_hsts() }}
+
+    {{ custom.setup_request_id() }}
+
+    location /st/ {
+        alias /usr/lib/yandex/passport-sso-frontend/public/;
+        gzip_static on;
+        brotli_static on;
+    }
+
+    location = /robots.txt {
+        root /usr/lib/yandex/passport-sso-frontend/public/;
+    }
+
+    location / {
+        {{ custom.proxy_pass('http://127.0.0.1:3030') }}
+    }
+}

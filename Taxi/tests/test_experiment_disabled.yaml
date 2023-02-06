@@ -1,0 +1,46 @@
+id: test_experiment_disabled
+title: Проверяем ответ при отключенном эксперменте
+
+source:
+    request:
+        method: get
+        query:
+            longitude#string: 123.4
+            latitude#string: 234.5
+            currency#string: RUB
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaTaxi-User: personal_phone_id=personal_123,eats_user_id=eater_id1
+            X-Request-Application: app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2
+    expectations:
+        response:
+            status-code: 200
+            body:
+                subscription_status: inactive
+
+mocks:
+  - resource: persey-payments-v1-charity-ride_donation-check
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats_cart_persey
+        value:
+            enabled: false
+            amount_text: текст_1
+            subscribe_text: текст_2
+            title_with_subscribe: тест_3
+            title_without_subscribe: тест_4
+    expectations:
+        consumer: api-proxy/eats-persey
+        kwargs:
+          - key: device_id
+            type: string
+            value: SomeDevice
+          - key: eater_id
+            type: string
+            value: eater_id1
+          - key: personal_phone_id
+            type: string
+            value: personal_123

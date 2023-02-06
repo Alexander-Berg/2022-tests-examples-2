@@ -1,0 +1,107 @@
+conductor_group: taxi_test_reposition
+
+http_hosts:
+  - reposition.taxi.tst.yandex.net
+
+layout:
+  - system:
+      collapsed: true
+  - lxc_container
+  - rps_share
+  - fastcgi_pools:
+      service_name: taxi-reposition
+      pools:
+      - work_pool
+      - statistics_pool
+      - state_modes_pool
+      - offered_modes_pool
+  - external_requests:
+      service_name: reposition
+      response_count_groups:
+      - - router_yamaps
+        - router_tigraph
+        - tracker
+        - tags
+        - driver-metrics-storage
+  - include:
+      collapsed: true
+      path: system_resources.json
+      title: system resources
+      variables:
+          cluster: reposition
+  - include:
+      collapsed: true
+      path: psql_connections.json
+      title: psql connections
+      variables:
+        - cluster: reposition
+        - db_name: reposition
+        - env_name: testing
+        - - role: master
+          - role: slave
+  - include:
+      collapsed: true
+      path: psql_queues.json
+      title: psql queues
+      variables:
+        - cluster: reposition
+        - db_name: reposition
+        - env_name: testing
+        - - queue: queries
+          - queue: transactions
+        - - role: master
+          - role: slave
+  - include:
+      collapsed: true
+      path: psql_ping_time.json
+      title: psql ping
+      variables:
+        - cluster: reposition
+        - db_name: reposition
+        - env_name: testing
+        - - role: master
+          - role: slave
+  - include:
+      collapsed: true
+      path: psql_replication_lag.json
+      title: psql replication lag
+      variables:
+          cluster: reposition
+          db_name: reposition
+          env_name: testing
+  - include:
+      collapsed: true
+      path: psql_latency.json
+      title: psql latency
+      variables:
+        - cluster: reposition
+        - db_name: reposition
+        - env_name: testing
+        - - role: master
+          - role: slave
+  - include:
+      collapsed: true
+      path: psql_alive_count.json
+      title: psql alive nodes
+      variables:
+        - cluster: reposition
+        - db_name: reposition
+        - env_name: testing
+        - - role: master
+          - role: slave
+  - include:
+      collapsed: true
+      path: taxi_reposition_stop_reasons.json
+      title: Stop session reasons
+      variables:
+        env_name: testing
+        cluster: reposition
+  - include:
+      collapsed: true
+      path: taxi_reposition_cron_tasks.json
+      title: reposition cron tasks
+      variables:
+          cluster: reposition
+          env_name: testing
+  - http:
+      collapsed: true

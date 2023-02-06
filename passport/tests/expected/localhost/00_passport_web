@@ -1,0 +1,315 @@
+upstream order_history {
+    server prod.ohio-www.yandex.ru:443;
+    keepalive 16;
+}
+
+upstream antirobot {
+    server antirobot.yandex.ru:80 max_fails=0;
+    keepalive 2;
+}
+
+proxy_cache_path /var/lib/nginx/proxy_cache/sso_metadata levels=1:2 keys_zone=metadata_cache:1M max_size=10M;
+
+map $support_chat_alias $support_chat_id {
+    afisha "23fe7556-efee-420c-8b76-55dfb2733225";
+    business "5cb78286-a944-4c0f-bf33-b5c282eae053";
+    direct "840c4ce4-ed25-4c66-a7c7-ba8c001e02d9";
+    disk "45d1ee03-5306-98da-4e0e-276737c17d34";
+    id "e0271d00-30f7-9cf7-4c16-c3f95d5b10cd";
+    invest "1e560e75-4d04-4fd1-ae38-670a778fda79";
+    kinopoisk "9394b605-89aa-957e-5cd1-5fc7d79a9034";
+    main "0b66fc05-62f8-9d2b-46f4-9b4cb742a1ab";
+    messenger "5d8e56bb-08ab-4fe8-ac54-7d9e7d4f6b5c";
+    music "ee219503-b69b-9484-405b-6877a510e13c";
+    o "2d001e07-0165-9004-5972-3c2857a2ac80";
+    plus "80027008-e39a-986b-5f64-822d65ab117c";
+    q "efcf11b5-ffc2-4ff6-ae6d-79190d7c5419";
+    station "bde37cf3-eb59-4f93-8e5b-1809858a9ac1";
+    surveys "41c58a75-35e3-4f16-82ea-3420759a8af0";
+    tv "2dfbe86d-09dc-4441-a68b-6e591a7abda6";
+    uslugi "3ea8c303-761b-9ce6-7a27-1a6cafa572f2";
+    zapravki "3d8f0007-f610-914e-45f7-3eddaf3cc441";
+}
+
+
+server {
+    # SLB IP
+    listen 213.180.204.24:443 ssl default_server backlog=1024;
+    listen [2a02:6b8::24]:443 ssl default_server backlog=1024;
+
+    # Server IP
+    listen [1::2:3:4]:443 ssl default_server backlog=1024;
+    listen 127.0.0.1:443 ssl default_server backlog=1024;
+    listen [::1]:443 ssl default_server backlog=1024;
+
+
+    ssl_certificate             /etc/nginx/certs/passport.yandex.ru.crt;
+    ssl_certificate_key         /etc/nginx/certs/passport.yandex.ru.key;
+    ssl_session_cache           shared:SSL:256m;
+    ssl_session_timeout         28h;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 kEECDH+AES128:kEECDH:-3DES:kRSA+AES128:DES-CBC3-SHA:!kEDH:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers   on;
+
+    access_log /var/log/nginx/passport.access.log main;
+    error_log /var/log/nginx/passport.error.log;
+
+    rewrite ^(.*)$ https://passport.yandex.ru? permanent;
+}
+
+
+server {
+    # SLB IP
+    listen 213.180.204.24:443 ssl;
+    listen [2a02:6b8::24]:443 ssl;
+
+    # Server IP
+    listen [1::2:3:4]:443 ssl;
+    listen 127.0.0.1:443 ssl;
+    listen [::1]:443 ssl;
+
+    server_name pda-passport.yandex.az pda-passport.yandex.by pda-passport.yandex.co.il pda-passport.yandex.com pda-passport.yandex.com.am pda-passport.yandex.com.ge pda-passport.yandex.com.tr pda-passport.yandex.ee pda-passport.yandex.eu pda-passport.yandex.fi pda-passport.yandex.fr pda-passport.yandex.kg pda-passport.yandex.kz pda-passport.yandex.lt pda-passport.yandex.lv pda-passport.yandex.md pda-passport.yandex.pl pda-passport.yandex.ru pda-passport.yandex.tj pda-passport.yandex.tm pda-passport.yandex.ua pda-passport.yandex.uz;
+
+    ssl_certificate             /etc/nginx/certs/passport.yandex.ru.crt;
+    ssl_certificate_key         /etc/nginx/certs/passport.yandex.ru.key;
+    ssl_session_cache           shared:SSL:256m;
+    ssl_session_timeout         28h;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 kEECDH+AES128:kEECDH:-3DES:kRSA+AES128:DES-CBC3-SHA:!kEDH:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers   on;
+
+    access_log /var/log/nginx/passport.access.log main;
+    error_log /var/log/nginx/passport.error.log;
+
+    if ($host ~ pda-(.*)) {
+        set $host_without_pda $1;
+        return 301 $scheme://$host_without_pda$request_uri;
+    }
+}
+
+
+server {
+    # SLB IP
+    listen 213.180.204.24:443 ssl;
+    listen [2a02:6b8::24]:443 ssl;
+
+    # Server IP
+    listen [1::2:3:4]:443 ssl;
+    listen 127.0.0.1:443 ssl;
+    listen [::1]:443 ssl;
+
+    server_name passport.yandex.az passport.yandex.by passport.yandex.co.il passport.yandex.com passport.yandex.com.am passport.yandex.com.ge passport.yandex.com.tr passport.yandex.ee passport.yandex.eu passport.yandex.fi passport.yandex.fr passport.yandex.kg passport.yandex.kz passport.yandex.lt passport.yandex.lv passport.yandex.md passport.yandex.pl passport.yandex.ru passport.yandex.tj passport.yandex.tm passport.yandex.ua passport.yandex.uz;
+
+    ssl_certificate             /etc/nginx/certs/passport.yandex.ru.crt;
+    ssl_certificate_key         /etc/nginx/certs/passport.yandex.ru.key;
+    ssl_session_cache           shared:SSL:256m;
+    ssl_session_timeout         28h;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 kEECDH+AES128:kEECDH:-3DES:kRSA+AES128:DES-CBC3-SHA:!kEDH:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers   on;
+
+    add_header Strict-Transport-Security "max-age=315360000; includeSubDomains; preload";
+
+    access_log /var/log/nginx/passport.access.log main;
+    error_log /var/log/nginx/passport.error.log;
+
+    set $global_request_id $request_id;
+
+    if ($request_uri ~ "[\x00-\x20\x7F]") {
+        return 400;
+    }
+
+    if ($http_host ~ (.*)\.ua) {
+        return 301 $scheme://$1.fr$request_uri;
+    }
+
+    proxy_set_header Host               $host;
+    proxy_set_header X-Real-IP          $remote_addr;
+    proxy_set_header X-Real-Scheme      $scheme;
+    proxy_set_header Ya-Host            $host;
+    proxy_set_header X-PyPa             "";
+    proxy_set_header X-Request-Id       $global_request_id;
+    proxy_set_header X-HTTPS-Req        on;
+    proxy_set_header X-YProxy-Header-Ip $http_x_yproxy_header_ip;
+    proxy_set_header X-Wh-Cache         "";
+
+    proxy_store       off;
+    keepalive_timeout 120 120;
+    charset           utf-8;
+
+    error_page 404 https://$http_host/passport?mode=passport;
+    error_page 413 =200 /413.html;
+
+    if ($arg_mode) {
+        rewrite ^/$ /passport redirect;
+    }
+    rewrite ^/js/(\d+)/(.*)  /js/$2  break;
+    rewrite ^/css/(\d+)/(.*) /css/$2 break;
+
+    if ($arg_mode = 'remember') {
+        rewrite ^(.*)$ https://$http_host/passport?mode=restore?;
+    }
+
+    if ($arg_mode = 'services') {
+        rewrite ^(.*)$ https://$http_host/passport?mode=passport?;
+    }
+
+    location ~ ^/support/(afisha|business|direct|disk|id|invest|kinopoisk|main|messenger|music|o|plus|q|station|surveys|tv|uslugi|zapravki)$ {
+        set $support_chat_alias $1;
+        rewrite ^/support/(.*)$ /support/$support_chat_id last;
+    }
+
+    location ~ "^/(a/|2fa|d31337d|auth|profile|registration|register/link|restoration|redirect|for/[^/]+/(?:finish|profile|migrate)|suggest|support|account|info|closewebview|phoneconfirm|xhr|am|for|passport)" {
+        set $antirobot "/antirobot";
+        if ( $request_method != "GET" ) {
+            set $antirobot "/nocaptcha-antirobot";
+        }
+        antirobot_request $antirobot;
+        proxy_pass http://127.0.0.1:3000;
+    }
+
+    location = /push {
+        antirobot_request /nocaptcha-antirobot;
+        proxy_pass http://127.0.0.1:3030;
+    }
+
+    location = /pull {
+        antirobot_request /nocaptcha-antirobot;
+        proxy_pass http://127.0.0.1:3030;
+    }
+
+
+    location ~ "^/(cspreport|monitoring)" {
+        proxy_pass http://127.0.0.1:3020;
+    }
+
+
+    location /order-history/api/bills/transactions/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+
+        proxy_read_timeout 20s;
+        proxy_send_timeout 1s;
+        proxy_connect_timeout 100ms;
+
+        proxy_pass https://order_history;
+    }
+
+    location /order-history/api/bills/orders/ {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+
+        proxy_read_timeout 20s;
+        proxy_send_timeout 1s;
+        proxy_connect_timeout 100ms;
+
+        proxy_pass https://order_history;
+    }
+
+    location = /order-history/api/bills/orders {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+
+        proxy_read_timeout 20s;
+        proxy_send_timeout 1s;
+        proxy_connect_timeout 100ms;
+
+        proxy_pass https://order_history;
+    }
+
+    location /order-history {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+
+        proxy_read_timeout 5s;
+        proxy_send_timeout 1s;
+        proxy_connect_timeout 100ms;
+
+        proxy_pass https://order_history;
+    }
+
+    location ~ ^/(?:$|_next/|family|finance|helpdesk|iframe/|pay|personal|security) {
+        access_log /var/log/nginx/id-front.access.log main;
+        error_log /var/log/nginx/id-front.error.log;
+
+        proxy_pass http://127.0.0.1:3012;
+    }
+
+    location /st {
+        rewrite ^/st(.*)$ $1 break;
+        root /usr/lib/yandex/passport-frontend/public;
+    }
+
+    location ~ (?:/\.svn|^/fonts) {
+        error_page 404 https://$http_host/passport?mode=passport;
+    }
+
+    location /bar.txt {
+        error_page 404 =404 /bar.txt;
+        return 404;
+    }
+
+    location = /apple-app-site-association {
+        types { }
+        default_type application/pkcs7-mime;
+        root /usr/lib/yandex/passport-front-web-data/data;
+    }
+
+    location = /.well-known/apple-app-site-association {
+        rewrite ^/\.well-known/apple-app-site-association$ /apple-app-site-association last;
+    }
+
+    location = /.well-known/assetlinks.json {
+        alias /usr/lib/yandex/passport-front-web-data/data/assetlinks.json;
+    }
+
+    location = /.well-known/change-password {
+        rewrite ^/\.well-known/change-password$ /profile/password redirect;
+    }
+
+    location = /mc/pixel {
+        types { }
+        default_type image/gif;
+        add_header Strict-Transport-Security "max-age=315360000; includeSubDomains; preload";
+        add_header "Access-Control-Allow-Origin" "*";
+        root /usr/lib/yandex/passport-front-web-data/data;
+    }
+
+    location / {
+        expires 7d;
+        root /usr/lib/yandex/passport-front-web-data/data;
+    }
+
+    location = /ping.html {
+        proxy_set_header Host '';
+        proxy_pass http://127.0.0.1:6000/ping?check=blackbox,frontend,redis;
+        add_header Strict-Transport-Security "max-age=315360000; includeSubDomains; preload";
+        add_header RS-Weight 16;
+    }
+
+    location = /auth/sso/metadata {
+        proxy_set_header Host '';
+        proxy_pass http://127.0.0.1:6000/1/bundle/auth/sso/metadata/get/?consumer=passport;
+        proxy_cache metadata_cache;
+        proxy_cache_key $scheme$proxy_host$uri;
+        proxy_cache_valid 1h;
+        add_header Strict-Transport-Security "max-age=315360000; includeSubDomains; preload";
+    }
+
+    location = /stub-status {
+        allow ::1;
+        allow 127.0.0.1;
+        deny all;
+        stub_status on;
+    }
+
+    include /etc/nginx/conf.d/antirobot_locations;
+}

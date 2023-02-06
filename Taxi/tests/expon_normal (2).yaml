@@ -1,0 +1,50 @@
+id: expon_normal
+title: Эксперимент включен, ходим и в core и в новый сервис. Эмулируется успешный
+    ответ.
+
+source:
+    request:
+        method: post
+        query:
+            order_nr: 270721-3148
+        body:
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 204
+            body: {}
+            headers: {"X-Eats-Service-Source": "eats-feedback"}
+
+mocks:
+  - resource: eats-feedback-cancel
+    response:
+        status-code: 204
+        body: {}
+        content-type: application/json
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: eats-core-feedback-cancel
+    expectations:
+        call-count: 0
+  - resource: grocery-eats-gateway-feedback-cancel
+    response:
+        status-code: 200
+        body: {}
+        content-type: application/json
+    expectations:
+        call-count: 0
+        request:
+            method: post
+experiments:
+    values#object:
+      - key: eats_feedback_cancel
+        value:
+        enabled: true

@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+use Test::More;
+use lib::abs qw( . ../lib );
+use 5.010;
+
+use_ok( InitBase );
+use MordaX::Logit qw(dmp);
+use MP::Time;
+#use MordaX::Utils;
+
+
+use_ok( Geo );
+ok( $Geo::geobase , "Geobase inited");
+
+#old stype
+#ok( $Geo::geobasepm, "Geobase pm ok");
+#ok( $Geo::geobasepm->{213}, 'Moscow in geobase pm');
+
+ok( geo(146, 'name'), "Simf has name" );
+ok( (geo(977, 'parents'))[0], "Moscow has non zerro parents");
+
+is( geo(146, 'timezone') , 'Europe/Simferopol', 'Simf timezone' );
+is( geo(977, 'timezone') , 'Europe/Simferopol', 'krim timezone' );
+
+#dmp( time );
+my $ts= 1395653711;
+my $tz= 'Europe/Simferopol';
+my $lt = MP::Time::ts_to_ltime($ts, $tz);
+my $lt2 = MP::Time::ts_to_ltime($ts + 24 * 3600 * 7, $tz);
+
+is( $lt->{min} , $lt2->{min}, 'Min');
+is( $lt2->{hour} , $lt->{hour}+ 2, "Hour to MSK +2h");
+
+
+my $ts= 1396134000;
+my $lt3 = MP::Time::ts_to_ltime($ts, $tz);
+is( $lt3->{hour} , 1);
+my $lt4 = MP::Time::ts_to_ltime($ts + 3600, $tz);
+is( $lt4->{hour}, 4);
+#dmp( $lt3);
+
+#Preparing to replace tzdata 2012e-0ubuntu0.10.04 (using .../tzdata_2014a-0ubuntu0.10.04_all.deb)
+#geobase-tzdata 1.1-54 (using .../geobase-tzdata_1.1-55_all.deb)
+
+
+done_testing();
+
+#

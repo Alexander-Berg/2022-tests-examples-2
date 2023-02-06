@@ -1,0 +1,749 @@
+openapi: 3.0.0
+info:
+    version: '2.0'
+    title: 'admin-pipeline frontend specific API'
+
+x-taxi-client-qos:
+    taxi-config: ADMIN_PIPELINE_CLIENT_QOS
+
+paths:
+    /v2/test/:
+        get:
+            summary: Получить тест расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: false
+                description: Id теста алгоритма
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/PipelineTest'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Test not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        post:
+            summary: Создать новый тест алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: 'js-pipeline/definitions.yaml#/definitions/PipelineTest'
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        put:
+            summary: Редактировать тест алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: false
+                description: Id теста алгоритма
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: 'js-pipeline/definitions.yaml#/definitions/PipelineTest'
+
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Test not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        delete:
+            summary: Удалить тест алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                required: true
+                description: Id удаляемого теста
+                schema:
+                    type: string
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Test not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+
+    /v2/tests/enumerate/:
+        post:
+            summary: Получить список всех тестов консьюмера
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/TestsEnumerateResponse'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+
+    /v2/test/mock/:
+        get:
+            summary: Получить мок для тестов расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: true
+                description: Id мока ресурса алгоритма
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/Mock'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Mock not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        post:
+            summary: Создать новый мок для тестов алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/Mock'
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        put:
+            summary: Редактировать мок для тестов алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: true
+                description: Id мока ресурса алгоритма
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/Mock'
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer or bad update request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Мок не найден
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        delete:
+            summary: Удалить мок для тестов алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор мока ресурса алгоритма
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Мок не найден
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+
+    /v2/test/mocks/enumerate/:
+        post:
+            summary: Получить список всех моков для тестов консьюмера
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/TestMocksEnumerateResponse'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+
+    /v2/test/check/:
+        get:
+            summary: Получить проверку для тестов расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: true
+                description: Id проверки
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/Check'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Check not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        post:
+            summary: Создать новую проверку тестов алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/Check'
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        put:
+            summary: Редактировать проверку для тестов алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: true
+                description: Id проверки
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/Check'
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer or bad update request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Проверка не найдена
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+        delete:
+            summary: Удалить проверку для тестов алгоритма расчета
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: id
+                schema:
+                    type: string
+                required: true
+                description: Id проверки
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+                404:
+                    description: Проверка не найдена
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+
+    /v2/test/checks/enumerate/:
+        post:
+            summary: Получить список всех проверок для тестов консьюмера
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/TestChecksEnumerateResponse'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+                            schema:
+                                type: string
+
+    /v2/pipeline/tests/enumerate/:
+        post:
+            summary: Получить список всех тестов пайплайна
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: pipeline_name
+                schema:
+                    type: string
+                required: true
+                description: Название пайплайна
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/TestsEnumerateResponse'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            schema:
+                                type: string
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+
+    /v2/pipeline/tests/enable/:
+        post:
+            summary: Включить тесты для алгоритмов расчёта
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: pipeline_name
+                schema:
+                    type: string
+                required: true
+                description: Название пайплайна
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/PipelineEnableTestsRequest'
+            responses:
+                200:
+                    description: OK
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            schema:
+                                type: string
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+
+    /v2/pipeline/tests/results/:
+        get:
+            summary: Получить результаты запуска тестов пайплайна
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+              - in: query
+                name: pipeline_id
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор пайплайна
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/PipelineTestResultsResponse'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            schema:
+                                type: string
+                            description: В этом заголовке дублируется значение поля
+                                'code'
+
+    /v2/pipeline/test/:
+        post:
+            summary: Выполнить тесты пайплайна
+            parameters:
+              - in: query
+                name: consumer
+                schema:
+                    type: string
+                required: true
+                description: Идентификатор консьюмера
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '../definitions.yaml#/components/schemas/PerformPipelineTestRequest'
+            responses:
+                200:
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../definitions.yaml#/components/schemas/PipelineTestResultsResponse'
+                400:
+                    description: Unexpected consumer
+                    content:
+                        application/json:
+                            schema:
+                                $ref: 'js-pipeline/definitions.yaml#/definitions/ErrorResponse'
+                    headers:
+                        X-YaTaxi-Error-Code:
+                            schema:
+                                type: string
+                            description: В этом заголовке дублируется значение поля
+                                'code'

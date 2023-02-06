@@ -1,0 +1,36 @@
+id: ok
+title: happy path
+
+source:
+    request:
+        method: post
+        url: /integration/turboapp/v1/orders/draft
+        headers:
+            X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+            X-Yandex-UID: test_yandex_uid
+        body#object:
+          - key: some
+            value: request
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                test: data
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body:
+            test: data
+    expectations:
+        request:
+            body:
+                some: request
+                yandex_uid: test_yandex_uid
+                callcenter:
+                    personal_phone_id: test_personal_phone_id
+            headers:
+                X-YaTaxi-User: 'personal_phone_id=test_personal_phone_id'
+                X-Yandex-UID: test_yandex_uid
+        call-count: 1

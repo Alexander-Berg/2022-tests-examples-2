@@ -1,0 +1,8 @@
+START TRANSACTION;
+
+ALTER TABLE
+    clownductor.projects
+ADD COLUMN
+    yt_topic JSONB NOT NULL DEFAULT '{}'::JSONB;
+
+COMMIT;

@@ -1,0 +1,216 @@
+group:
+    type: rtc
+    name: taxi_crons_testing
+
+graphs:
+    Monitoring:
+        vhost-500:
+            Blacklist:
+              - Equals: {request_url: "/ping"}
+
+    crons.taxi.tst.yandex.net:
+        Or:
+          - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+          - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 423
+              - 429
+
+    crons.taxi.tst.yandex.net/ping_GET:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # ping                             
+              - StartsWith: {request_url: "/ping"}
+
+    crons_taxi_tst_yandex_net_v1_lock_aquire:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/v1/task"}
+          - Or:
+              - EndsWith: {request_url: "/lock/aquire/"}
+              - EndsWith: {request_url: "/lock/aquire"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 423
+              - 429
+
+    crons_taxi_tst_yandex_net_v1_lock_prolong:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/v1/task"}
+          - Or:
+              - EndsWith: {request_url: "/lock/prolong/"}
+              - EndsWith: {request_url: "/lock/prolong"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_v1_lock_release:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/v1/task"}
+          - Or:
+              - EndsWith: {request_url: "/lock/release/"}
+              - EndsWith: {request_url: "/lock/release"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_locks_v2_is_acquired:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/locks/v2/is-acquired"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_v1_task_is_enabled:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/v1/task"}
+          - Or:
+              - EndsWith: {request_url: "/is-enabled/"}
+              - EndsWith: {request_url: "/is-enabled"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_v1_task_start:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/v1/task"}
+          - Or:
+              - EndsWith: {request_url: "/start/"}
+              - EndsWith: {request_url: "/start"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_v1_task_finish:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/v1/task"}
+          - Or:
+              - EndsWith: {request_url: "/finish/"}
+              - EndsWith: {request_url: "/finish"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_utils_v1_get_finished_tasks_count:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/utils/v1/get-finished-tasks-count"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_commands_v1_get-next:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/commands/v1/get-next"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_commands_v1_kill_check:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/commands/v1/kill/check"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429
+
+    crons_taxi_tst_yandex_net_commands_v1_kill_apply:
+        And:
+          - Or:
+              - Equals: {http_host: "crons.taxi.tst.yandex.net"}
+              - Equals: {http_host: "crons-lb.taxi.tst.yandex.net"}
+          - StartsWith: {request_url: "/commands/v1/kill/apply"}
+        Options:
+            CustomHttp:
+              - 401
+              - 403
+              - 406
+              - 409
+              - 410
+              - 429

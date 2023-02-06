@@ -1,0 +1,661 @@
+<test>
+
+    <![CDATA[
+    This test scenario is not exhaustive. It covers just most important
+    aspects of method login for API ver=1 and ver=2.
+
+    Each of the test cases assumes either "clean" or "dirty" state
+    badauth_login and badauth_ip tables for logins and IPs used in the test.
+    Each test case also relies on bruteforce resist capabilities specified
+    in grants.conf (<can_captcha>, <can_delay> or nothing).
+
+    Therefore before executuing a test case environment must be prepared:
+    accordingly badauth_* cleared or filled and grants updated.
+
+    login.greed - valid login with revoked app_pwd (uid:4001166905)
+    login.generous - valid login with revoked oauth_tokens and web_session (uid:4001169151)
+    ]]>
+
+    <variables>
+
+        <path>
+            <instance id="blackbox">blackbox</instance>
+        </path>
+
+        <cgi name="ver">
+            <instance id="1">1</instance>
+            <instance id="2">2</instance>
+        </cgi>
+
+        <cgi name="userip">
+            <instance id="good">123.45.67.89</instance>
+            <instance id="good2">123.45.67.90</instance>
+            <instance id="good3">123.45.67.91</instance>
+            <instance id="good4">123.46.67.91</instance>
+        </cgi>
+
+        <cgi name="method">
+            <instance id="login">login</instance>
+         </cgi>
+
+        <cgi name="login">
+            <instance id="good">ko.shaki</instance>
+            <instance id="changereq">bbtst_changerequired</instance>
+            <instance id="bad">missing.login</instance>
+            <instance id="bad2">malformed@.уандех.ру</instance>
+            <instance id="disabled">bbtst_disabled</instance>
+            <instance id="revoked_app_pwd">login.greed</instance> <!--has token in oauthdbshard1-->
+            <instance id="revoked_others">login.generous</instance>
+            <instance id="need_pwd_change">need.pwd.change</instance>
+            <instance id="need_pwd_create">need.pwd.create</instance>
+            <instance id="just_app_pwd">pp.user</instance> <!--has token in oauthdbshard2-->
+            <instance id="malice">malice</instance>
+            <instance id="malice2">malice2</instance>
+
+            <instance id="scholar">ТестоВЫйШкольНИК</instance>
+        </cgi>
+
+        <cgi name="uid">
+            <instance id="scholar">71012</instance>
+        </cgi>
+
+        <cgi name="password">
+            <instance id="good">shshshsh</instance>
+            <instance id="bad0">wrongwrong</instance>
+            <instance id="bad1">wrongwrong</instance>
+            <instance id="bad2">wrongwrong</instance>
+            <instance id="bad3">wrongwrong</instance>
+            <instance id="bad4">wrongwrong</instance>
+            <instance id="good_revokers">!Q@W#E$R%T</instance>
+            <instance id="revoked_app_pwd">nahocccdqqszxpqx</instance> <!--oauthdbshard1-->
+            <instance id="just_good_app_pwd">ddjxlscnjpkuqeze</instance> <!--oauthdbshard2-->
+            <instance id="qwerty">qwerty</instance>
+        </cgi>
+
+        <cgi name="full_info">
+            <instance id="true">True</instance>
+            <instance id="false">false</instance>
+        </cgi>
+
+        <cgi name="dbfields">
+            <instance id="accounts">accounts.login.uid</instance>
+        </cgi>
+
+        <cgi name="authtype">
+            <instance id="empty"></instance>
+            <instance id="web">web</instance>
+            <instance id="oauthcreate">oauthcreate</instance>
+            <instance id="pop">pop</instance>
+            <instance id="smtp">smtp</instance>
+            <instance id="imap">imap</instance>
+            <instance id="webdav">webdav</instance>
+            <instance id="calendar">calendar</instance>
+            <instance id="unknown">mail</instance>
+        </cgi>
+
+        <cgi name="allow_scholar">
+            <instance id="yes">yes</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <!-- API ver=1 -->
+
+        <result name="valid_1">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">ko-shaki</arg>
+            </body>
+        </result>
+
+        <result name="valid_changereq">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70504</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bbtst_changerequired</arg>
+            </body>
+        </result>
+
+        <result name="valid_malice">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70495</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice</arg>
+            </body>
+        </result>
+
+        <result name="valid_malice2">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='0']">VALID</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">70496</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">malice2</arg>
+            </body>
+        </result>
+
+        <result name="not_found">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error">Login not found</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="bad_passwd">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error" comp="starts_with">Bad password</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="bad_passwd_full">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error">Bad password</arg>
+                <arg name="/doc/uid[@hosted='0']">70497</arg>
+                <arg name="/doc/login">ko-shaki</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">ko-shaki</arg>
+            </body>
+        </result>
+
+        <result name="bad_passwd_changereq_full">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error">Bad password</arg>
+                <arg name="/doc/uid[@hosted='0']">70504</arg>
+                <arg name="/doc/login">bbtst_changerequired</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bbtst_changerequired</arg>
+            </body>
+        </result>
+
+        <result name="bad_passwd_disabled_full">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error">Bad password; account disabled</arg>
+                <arg name="/doc/uid[@hosted='0']">70499</arg>
+                <arg name="/doc/login">bbtst_Disabled</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bbtst_disabled</arg>
+            </body>
+        </result>
+
+        <result name="disabled">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='1']">DISABLED</arg>
+                <arg name="/doc/error">Account disabled</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="disabled_full">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='1']">DISABLED</arg>
+                <arg name="/doc/error">Account disabled</arg>
+                <arg name="/doc/uid[@hosted='0']">70499</arg>
+                <arg name="/doc/login">bbtst_Disabled</arg>
+                <arg name="count(/doc/dbfield)">1</arg>
+                <arg name="/doc/dbfield[@id='accounts.login.uid']">bbtst_disabled</arg>
+            </body>
+        </result>
+
+        <result name="show_captcha">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='3']">SHOW_CAPTCHA</arg>
+                <arg name="/doc/error" comp="starts_with">auth attempt blocked: Too many login failures</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+        </result>
+
+        <!-- API ver=2, POLICY=DELAY -->
+
+        <result name="bad_authtype">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: unsupported authtype: '\~`cgi:authtype`'</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="bad_scope">
+            <body func="matchxpath">
+                <arg name="/doc/status[@id='2']">INVALID</arg>
+                <arg name="/doc/error" substitute="1">Bad password: Application password doesn't have scope app_password:\~`cgi:authtype`</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="count(/doc/dbfield)">0</arg>
+                <arg name="/doc/dbfield">dontmatch</arg>
+            </body>
+        </result>
+        <result name="revoked_app_pwd">
+            <body func="matchxpath">
+                <arg name="/doc/status">INVALID</arg>
+                <arg name="/doc/status/@id">2</arg>
+                <arg name="/doc/error">Bad password: Application password expired - user globally revoked app passwords</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+        <result name="greed_good">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/status/@id">0</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">4001166905</arg>
+            </body>
+        </result>
+        <result name="generous_good">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/status/@id">0</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">4001169151</arg>
+            </body>
+        </result>
+
+        <result name="need_pwd_change_good">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/status/@id">0</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">4001734381</arg>
+            </body>
+        </result>
+        <result name="need_pwd_create_good">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/status/@id">0</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">4001734377</arg>
+            </body>
+        </result>
+
+        <result name="just_app_pwd_ok">
+            <body func="matchxpath">
+                <arg name="/doc/status">VALID</arg>
+                <arg name="/doc/status/@id">0</arg>
+                <arg name="/doc/error">OK</arg>
+                <arg name="/doc/uid">4023288754</arg>
+            </body>
+        </result>
+
+        <result name="scholar_not_supported">
+            <body func="matchxpath">
+                <arg name="/doc/exception[@id='2']">INVALID_PARAMS</arg>
+                <arg name="/doc/error" comp="starts_with" substitute="1">BlackBox error: Scholar authorization is not supported for ver=1</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="scholar_valid_v2">
+            <body func="matchxpath">
+                <arg name="/doc/status">dontmatch</arg>
+                <arg name="/doc/login_status">VALID</arg>
+                <arg name="/doc/password_status">VALID</arg>
+                <arg name="/doc/comment">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">71012</arg>
+                <arg name="/doc/login">тестовыйшкольник</arg>
+                <arg name="/doc/is_scholar_session">1</arg>
+            </body>
+        </result>
+        <result name="scholar_valid_v2_uid">
+            <body func="matchxpath">
+                <arg name="/doc/status">dontmatch</arg>
+                <arg name="/doc/login_status">VALID</arg>
+                <arg name="/doc/password_status">VALID</arg>
+                <arg name="/doc/comment">OK</arg>
+                <arg name="/doc/uid[@hosted='0']">71012</arg>
+                <arg name="/doc/login">тестовыйшкольник</arg>
+                <arg name="/doc/is_scholar_session">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="scholar_invalid_v2_full">
+            <body func="matchxpath">
+                <arg name="/doc/status">dontmatch</arg>
+                <arg name="/doc/login_status">VALID</arg>
+                <arg name="/doc/password_status">BAD</arg>
+                <arg name="/doc/comment">Bad password</arg>
+                <arg name="/doc/uid[@hosted='0']">71012</arg>
+                <arg name="/doc/login">тестовыйшкольник</arg>
+                <arg name="/doc/is_scholar_session">1</arg>
+            </body>
+        </result>
+        <result name="scholar_invalid_v2_full_uid">
+            <body func="matchxpath">
+                <arg name="/doc/status">dontmatch</arg>
+                <arg name="/doc/login_status">VALID</arg>
+                <arg name="/doc/password_status">BAD</arg>
+                <arg name="/doc/comment" comp="starts_with">Bad password</arg>
+                <arg name="/doc/uid[@hosted='0']">71012</arg>
+                <arg name="/doc/login">тестовыйшкольник</arg>
+                <arg name="/doc/is_scholar_session">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="scholar_invalid_v2">
+            <body func="matchxpath">
+                <arg name="/doc/status">dontmatch</arg>
+                <arg name="/doc/login_status">VALID</arg>
+                <arg name="/doc/password_status">BAD</arg>
+                <arg name="/doc/comment" comp="starts_with">Bad password</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/is_scholar_session">dontmatch</arg>
+            </body>
+        </result>
+
+        <result name="scholar_not_found_v2">
+            <body func="matchxpath">
+                <arg name="/doc/status">dontmatch</arg>
+                <arg name="/doc/login_status">NOT_FOUND</arg>
+                <arg name="/doc/password_status">UNKNOWN</arg>
+                <arg name="/doc/comment">Login not found</arg>
+                <arg name="/doc/uid">dontmatch</arg>
+                <arg name="/doc/login">dontmatch</arg>
+                <arg name="/doc/is_scholar_session">dontmatch</arg>
+            </body>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>BlackBox</description>
+        <url>http://passdev2.yandex.ru</url>
+        <pre-test>
+        set -e
+        if [ -z "$RECIPE_KOLMOGOR_PORT" ]; then sudo /etc/init.d/kolmogor restart; fi
+        </pre-test>
+        <single_thread_only>1</single_thread_only>
+
+        <case lastid="revoke_app">
+            <description>Revoke app password</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good</cgi>
+            <cgi name="login">revoked_app_pwd; revoked_others; just_app_pwd</cgi>
+            <cgi name="password">revoked_app_pwd;good_revokers; just_good_app_pwd</cgi>
+            <cgi name="authtype">web;calendar;smtp;pop;unknown</cgi>
+
+            <check>
+                <cgi name="authtype">pop;unknown</cgi>
+                <result>bad_authtype</result>
+            </check>
+
+            <check>
+                <cgi name="login">revoked_app_pwd</cgi>
+                <cgi name="password">good_revokers</cgi>
+                <cgi name="authtype">web</cgi>
+                <result>greed_good</result>
+            </check>
+            <check>
+                <cgi name="login">revoked_app_pwd</cgi>
+                <cgi name="password">revoked_app_pwd</cgi>
+                <cgi name="authtype">calendar</cgi>
+                <result>bad_scope</result>
+            </check>
+            <check>
+                <cgi name="login">revoked_app_pwd</cgi>
+                <cgi name="password">revoked_app_pwd</cgi>
+                <cgi name="authtype">smtp</cgi>
+                <result>revoked_app_pwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">revoked_others</cgi>
+                <cgi name="password">good_revokers</cgi>
+                <cgi name="authtype">web</cgi>
+                <result>generous_good</result>
+            </check>
+
+            <check>
+                <cgi name="login">just_app_pwd</cgi>
+                <cgi name="password">good_revokers</cgi>
+                <cgi name="authtype">web</cgi>
+                <result>just_app_pwd_ok</result>
+            </check>
+            <check>
+                <cgi name="login">just_app_pwd</cgi>
+                <cgi name="password">just_good_app_pwd</cgi>
+                <cgi name="authtype">smtp</cgi>
+                <result>just_app_pwd_ok</result>
+            </check>
+            <check>
+                <result>bad_passwd</result>
+            </check>
+        </case>
+
+        <case lastid="changereq">
+            <description>Method 'login': allow only web if password change required</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good</cgi>
+            <cgi name="login">changereq</cgi>
+            <cgi name="password">good</cgi>
+            <cgi name="authtype">empty;web;calendar;smtp;imap;oauthcreate</cgi>
+            <cgi name="dbfields">*</cgi>
+
+            <check>
+                <cgi name="authtype">web;oauthcreate</cgi>
+                <cgi name="password">good</cgi>
+                <result>valid_changereq</result>
+            </check>
+            <check>
+                <result>bad_passwd</result>
+            </check>
+        </case>
+
+        <case lastid="need_pwd">
+            <description>Method 'login' for users with troubles in pwd</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good</cgi>
+            <cgi name="login">need_pwd_change;need_pwd_create</cgi>
+            <cgi name="password">good_revokers</cgi>
+            <cgi name="authtype">empty;web;imap;oauthcreate</cgi>
+
+            <check>
+                <cgi name="authtype">web;oauthcreate</cgi>
+                <cgi name="login">need_pwd_change</cgi>
+                <cgi name="password">good_revokers</cgi>
+                <result>need_pwd_change_good</result>
+            </check>
+            <check>
+                <cgi name="authtype">web;oauthcreate</cgi>
+                <cgi name="login">need_pwd_create</cgi>
+                <cgi name="password">good_revokers</cgi>
+                <result>need_pwd_create_good</result>
+            </check>
+
+            <check>
+                <result>bad_passwd</result>
+            </check>
+        </case>
+
+        <case lastid="authtype_block">
+            <description>Method 'login': check how webdav and calendar authtypes blocked</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good</cgi>
+            <cgi name="login">malice; malice2</cgi>
+            <cgi name="password">qwerty</cgi>
+            <cgi name="authtype">empty;web;webdav;calendar</cgi>
+            <cgi name="dbfields">*</cgi>
+
+            <check>
+                <cgi name="authtype">empty;web;webdav</cgi>
+                <cgi name="login">malice</cgi>
+                <result>valid_malice</result>
+            </check>
+            <check>
+                <cgi name="authtype">empty;web;calendar</cgi>
+                <cgi name="login">malice2</cgi>
+                <result>valid_malice2</result>
+            </check>
+
+            <check>
+                <result>bad_passwd</result>
+            </check>
+        </case>
+
+        <case lastid="clean1">
+            <description>Method 'login': API ver=1, clear badauth</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good2</cgi>
+            <cgi name="login">good;changereq;bad;bad2;disabled</cgi>
+            <cgi name="password">good;bad0;good_revokers</cgi>
+            <cgi name="dbfields">*</cgi>
+            <cgi name="full_info">*</cgi>
+
+            <check>
+                <cgi name="login">bad; bad2</cgi>
+                <result>not_found</result>
+            </check>
+
+            <check>
+                <cgi name="login">good</cgi>
+                <cgi name="password">good</cgi>
+                <result>valid_1</result>
+            </check>
+
+            <check>
+                <cgi name="login">good</cgi>
+                <cgi name="full_info">true</cgi>
+                <result>bad_passwd_full</result>
+            </check>
+
+            <check>
+                <cgi name="login">good</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">changereq</cgi>
+                <cgi name="full_info">true</cgi>
+                <result>bad_passwd_changereq_full</result>
+            </check>
+
+            <check>
+                <cgi name="login">changereq</cgi>
+                <cgi name="password">good</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">changereq</cgi>
+                <result>bad_passwd</result>
+            </check>
+
+            <check>
+                <cgi name="login">disabled</cgi>
+                <cgi name="password">good</cgi>
+                <cgi name="full_info">true</cgi>
+                <result>disabled_full</result>
+            </check>
+            <check>
+                <cgi name="login">disabled</cgi>
+                <cgi name="password">good</cgi>
+                <result>disabled</result>
+            </check>
+
+            <check>
+                <cgi name="login">disabled</cgi>
+                <cgi name="full_info">true</cgi>
+                <result>bad_passwd_disabled_full</result>
+            </check>
+            <check>
+                <cgi name="login">disabled</cgi>
+                <result>bad_passwd</result>
+            </check>
+        </case>
+
+        <case lastid="scholar_login">
+            <description>Method 'login' for scholar user</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good4</cgi>
+            <cgi name="login">scholar</cgi>
+            <cgi name="password">good;qwerty;bad0;revoked_app_pwd</cgi>
+            <cgi name="allow_scholar" withnull="1">*</cgi>
+            <cgi name="full_info">*</cgi>
+            <cgi name="ver">*</cgi>
+
+            <check>
+                <cgi name="ver" withnull="1">1</cgi>
+                <cgi name="allow_scholar">yes;empty</cgi>
+                <result>scholar_not_supported</result>
+            </check>
+
+            <check>
+                <cgi name="login">scholar</cgi>
+                <cgi name="password">qwerty</cgi>
+                <cgi name="allow_scholar">yes;empty</cgi>
+                <result>scholar_valid_v2</result>
+            </check>
+            <check>
+                <cgi name="login">scholar</cgi>
+                <cgi name="allow_scholar">yes;empty</cgi>
+                <cgi name="full_info">true</cgi>
+                <result>scholar_invalid_v2_full</result>
+            </check>
+            <check>
+                <cgi name="login">scholar</cgi>
+                <cgi name="allow_scholar">yes;empty</cgi>
+                <result>scholar_invalid_v2</result>
+            </check>
+            <check>
+                <cgi name="login">scholar</cgi>
+                <cgi name="ver">2</cgi>
+                <result>scholar_not_found_v2</result>
+            </check>
+            <check>
+                <cgi name="login">scholar</cgi>
+                <result>not_found</result>
+            </check>
+        </case>
+
+        <case lastid="scholar_uid">
+            <description>Method 'login' for scholar user by uid</description>
+            <path>blackbox</path>
+            <cgi name="method">login</cgi>
+            <cgi name="userip">good4</cgi>
+            <cgi name="uid">scholar</cgi>
+            <cgi name="password">good;qwerty</cgi>
+            <cgi name="full_info">*</cgi>
+            <cgi name="ver">2</cgi>
+
+            <check>
+                <cgi name="uid">scholar</cgi>
+                <cgi name="password">good</cgi>
+                <result>scholar_valid_v2_uid</result>
+            </check>
+            <check>
+                <cgi name="uid">scholar</cgi>
+                <cgi name="full_info">true</cgi>
+                <result>scholar_invalid_v2_full_uid</result>
+            </check>
+            <check>
+                <cgi name="uid">scholar</cgi>
+                <result>scholar_invalid_v2</result>
+            </check>
+        </case>
+
+    </node>
+
+</test>

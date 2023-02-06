@@ -1,0 +1,178 @@
+clownductor_config: taxi:lookup:testing
+awacs_namespace: lookup.taxi.tst.yandex.net
+http_hosts:
+  - lookup.taxi.tst.yandex.net
+
+dashboard_update:
+  templating:
+    list:
+      - label: dispatch_type
+        name: dispatch_type
+        allValue: '*'
+        allFormat: 'glob'
+        current:
+          text: All
+          value: $__all
+        datasource: Solomon
+        hide: 0
+        multi: true
+        includeAll: true
+        query: "{'application'='lookup',
+                 'cluster'='testing_uservices',
+                 'project'='taxi',
+                 'service'='uservices',
+                 'group'='taxi_lookup_testing',
+                 'dispatch_type'='*'} #dispatch_type"
+        refresh: 1
+        sort: 1
+        type: query
+
+layout:
+  - system
+  - rps_share
+  - http_basic
+  - http:
+      methods:
+      - id: ping
+        title: /ping
+      - id: order-event
+        title: /order-event
+      - id: enrich-candidates
+        title: /enrich-candidates
+      - id: v2/event
+        title: /v2/event
+  - statistics_rps_limiter:
+      service_name: rate-limiter-proxy
+      limiter_name: lookup-nginx-rate-limiter
+      panel_name: Nginx rps limiter
+      version: 2
+      collapsed: true
+  - include:
+      title: 'lookup class: manual-dispatch'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: manual-dispatch/v1/lookup
+        handler: http://manual-dispatch.taxi.tst.yandex.net/v1/lookup
+        class_name: manual-dispatch
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: forced-performer'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: candidates/order-satisfy
+        handler: http://candidates.taxi.tst.yandex.net/order-satisfy
+        class_name: forced_performer
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: logistic-dispatcher'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: logistic-dispatcher/driver-for-order
+        handler: http://logistic-dispatcher.taxi.tst.yandex.net/driver-for-order
+        class_name: logistic-dispatcher
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: united-dispatch'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: united-dispatch/performer-for-order
+        handler: http://united-dispatch.taxi.tst.yandex.net/performer-for-order
+        class_name: united-dispatch
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: combo-matcher'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: /performer-for-order
+        handler: http://combo-matcher.taxi.tst.yandex.net/performer-for-order
+        class_name: combo-matcher
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: dispatch-buffer'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: /performer-for-order
+        handler: http://dispatch-buffer.taxi.tst.yandex.net/performer-for-order
+        class_name: dispatch-buffer
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: direct'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: candidates/order-search
+        handler: http://candidates.taxi.tst.yandex.net/order-search|http://driver-scoring.taxi.tst.yandex.net/driver-scoring
+        class_name: direct
+        cluster_name: testing_uservices
+  - include:
+      title: 'lookup class: multioffer'
+      path: taxi_lookup/external.json
+      variables:
+        group_name: taxi_lookup_testing
+        title: multioffer/contractor-for-order
+        handler: http://contractor-orders-multioffer.taxi.tst.yandex.net/v1/contractor-for-order
+        class_name: multioffer
+        cluster_name: testing_uservices
+  - include:
+      title: Summary data
+      path: taxi_lookup/external_summary.json
+      collapsed: true
+      variables:
+        group_name: taxi_test_lookup
+        cluster_name: testing_uservices
+  - include:
+      title: Fallbacks (dispatch-buffer-assignment)
+      path: taxi_lookup/fallback.json
+      variables:
+        buffer_title: by lookup host
+        group_name: taxi_lookup_testing
+        stats_title: by agglomeration
+        class_name: dispatch-buffer
+        client_service: lookup
+        cluster_name: testing
+  - fallback_error_rates:
+      fallback_names:
+        - 'lookup-classes.dispatch-buffer.agglomerations.*'
+        - 'lookup-classes.multioffer.agglomerations.*'
+  - metrics:
+      metrics_list:
+      - client_service: 'lookup'
+        prefix: 'lookup-classes.dispatch-buffer.agglomerations.moscow.*'
+        name: moscow
+      - client_service: 'lookup'
+        prefix: 'lookup-classes.dispatch-buffer.agglomerations.spb.*'
+        name: spb
+  - include:
+      collapsed: true
+      title: pgaas
+      path: taxi_lookup/pgaas.json
+      variables:
+        group_name: taxi_lookup_testing
+        cluster_name: testing_uservices
+  - stq:
+      collapsed: true
+      queues:
+        - lookup_contractor
+  - include:
+      title: 'Order sources'
+      path: taxi_lookup/order_source.json
+      variables:
+        title: rps
+        group_name: taxi_lookup_testing
+        cluster_name: testing_uservices
+  - include:
+      path: taxi_lookup/reasons.json
+      title: 'Order satisfy reasons'
+      variables:
+        group_name: taxi_lookup_testing
+        cluster_name: testing_uservices
+  - userver_common:
+      collapsed: true
+      uservice_name: lookup
+

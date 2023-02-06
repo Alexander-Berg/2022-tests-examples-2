@@ -1,0 +1,37 @@
+# This file is generated automatically, do not edit it by hand!
+group:
+    type: rtc
+    name: taxi_test-service-2_stable
+graphs:
+    test-service-2.taxi.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "test-service-2.taxi.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    test-service-2.taxi.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "test-service-2.taxi.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # None
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    Monitoring:
+        vhost-500:
+            Blacklist:
+              - Equals: {request_url: "/ping"}

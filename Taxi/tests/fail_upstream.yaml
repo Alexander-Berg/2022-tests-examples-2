@@ -1,0 +1,27 @@
+id: fail_upstream
+title: В случае префикса order/ ожидается upstream cargo-orders
+source:
+    request:
+        method: post
+        body:
+            cargo_ref_id: 'order/123'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 404
+            body:
+                id: 'bad'
+
+mocks:
+  - resource: cargo-orders-protocol-handlers-post
+    response:
+        status-code: 404
+        body:
+            id: 'bad'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post

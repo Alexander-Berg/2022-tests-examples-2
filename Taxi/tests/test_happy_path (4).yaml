@@ -1,0 +1,45 @@
+id: test_happy_path
+title: Happy path
+source:
+    request:
+        method: get
+        query:
+            code: some_code_for_reg
+            state: parkid_parktin
+            some_param: some_param
+        headers:
+            Content-Type: application/json
+    expectations:
+        response:
+            status-code: 200
+            body:
+                code: request_processed
+                message: Request accepted for processing.
+
+mocks:
+  - resource: py2-delivery-fetch-fiscal-data-post
+    response:
+        status-code: 200
+        body:
+            nds_for_receipt: nds_none
+            inn_for_receipt: parktin
+            inn_for_receipt_id: parktinid
+    expectations:
+        request:
+            method: post
+            body:
+                park_clid: parkid
+
+  - resource: cargo-fiscal-internal-cargo-fiscal-receipts-consumer-domain-register-post
+    response:
+        status-code: 200
+    expectations:
+        request:
+            path-params:
+                consumer: delivery
+                domain: taxiorders
+            method: post
+            body:
+                provider: ez_count
+                tin: parktin
+                code: some_code_for_reg

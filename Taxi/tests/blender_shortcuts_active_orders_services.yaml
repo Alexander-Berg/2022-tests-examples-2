@@ -1,0 +1,131 @@
+id: blender_shortcuts_active_orders_services
+title: Создание и передача списка сервисов с активными заказами в v1/blender-shortcuts
+
+parameters:
+  - case:
+      - disable: true
+        mlutp-state: {"known_orders_info": [{"service": "taxi", "orderid": "order_id"},
+                "service": "eats"]}
+        shortcuts-state: {"active_orders_services": ["taxi", "eats"], "known_orders_info": [
+                {"service": "taxi", "orderid": "order_id"}, "service": "eats"]}
+        blender-scenario-tops: []
+        known_orders_info: [{"service": "taxi", "orderid": "order_id"}, "service": "eats"]
+      - disable: true
+        mlutp-state: {}
+        shortcuts-state: {}
+        blender-scenario-tops: [{"scenario": "taxi_expected_destination", "shortcuts": []}]
+      - disable: false
+        mlutp-state: {"known_orders_info": [{"service": "taxi", "orderid": "order_id"},
+                "service": "eats"]}
+        shortcuts-state: {"active_orders_services": ["taxi", "eats"], "known_orders_info": [
+                {"service": "taxi", "orderid": "order_id"}, "service": "eats"]}
+        blender-scenario-tops: [{"scenario": "taxi_expected_destination", "shortcuts": []}]
+        known_orders_info: [{"service": "taxi", "orderid": "order_id"}, "service": "eats"]
+      - disable: false
+        mlutp-state: {}
+        shortcuts-state: {}
+        blender-scenario-tops: [{"scenario": "taxi_expected_destination", "shortcuts": []}]
+
+experiments:
+    values:
+        disable_taxi_shortcuts_in_multiorder:
+            enabled#xget: /test-params/case/disable
+
+source:
+    request:
+        method: post
+        body:
+            state#xget: /test-params/case/mlutp-state
+            shortcuts: {"grids_support": [{"width": 6, "unit_width": 54.5}], "supported_features": [
+                    {"type": "taxi:route-input", "services": [], "prefetch_strategies": []},
+                    {"type": "media-stories", "services": [], "prefetch_strategies": []}],
+                "ndash_width": 9, "mdash_width": 14}
+            position: [1, 2]
+    expectations:
+        response:
+            status-code#integer: 200
+
+mocks:
+  - resource: umlaas-geo-v1-scenario-prediction
+    expectations:
+        call-count: 0
+  - resource: coupons-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+            typed_experiments: {"items": []}
+            region_id: 332
+    expectations:
+        call-count: 1
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: [{"scenario": "taxi_expected_destination", "shortcuts": []}]
+    expectations:
+        call-count: 1
+  - resource: eda-shortcuts-v1-tops
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 1
+  - resource: invites-v1-shortcuts
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: maas-v1-products
+    response:
+        status-code: 200
+        body:
+            scenario_tops: []
+    expectations:
+        call-count: 0
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"header": [], "items": []}, "layout": {"grid_id": "some_grid_id",
+                "width": 6, "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                scenario_tops#xget: /test-params/case/blender-scenario-tops
+                user_context#any:
+                scenario_predictions: []
+                grid_restriction#any:
+                showcases: []
+                state#object:
+                  - key: services_availability
+                    value: [{"parameters": {"available": true, "product_tag": "taxi"},
+                            "mode": "taxi"}]
+                  - key: nz
+                    value: "moscow"
+                  - key: known_orders_info
+                    enabled#xhas: /test-params/case/known_orders_info
+                    value#xget: /test-params/case/known_orders_info
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body: {"scenario_tops": []}

@@ -1,0 +1,73 @@
+INSERT INTO persey_payments.lab
+    (
+        lab_id,
+        partner_uid,
+        operator_uid,
+        trust_product_id_delivery,
+        trust_product_id_test,
+        trust_partner_id,
+        balance_client_id,
+        balance_client_person_id,
+        balance_contract_id,
+        status
+    )
+VALUES
+    (
+        'some_lab',
+        'partner_uid',
+        'operator_uid',
+        'trust_product_id_delivery',
+        'trust_product_id_test',
+        'trust_partner_id',
+        'balance_client_id',
+        'balance_client_person_id',
+        'balance_contract_id',
+        'ready'
+    );
+
+INSERT INTO persey_payments.order
+    (
+        order_id,
+        payment_method_id,
+        need_free,
+        status
+    )
+VALUES
+    (
+        'some_order',
+        NULL,
+        TRUE,
+        'in_progress'
+    );
+
+
+INSERT INTO persey_payments.basket
+    (
+        purchase_token,
+        order_id,
+        mark,
+        trust_payment_id,
+        trust_order_id_delivery,
+        trust_order_id_test,
+        user_uid,
+        test_cost,
+        delivery_cost,
+        hold_amount,
+        status,
+        created_at
+    )
+VALUES
+    (
+        'trust-basket-token',
+        'some_order',
+        'main',
+        'trust-payment-id',
+        'some_order_delivery',
+        'some_order_test',
+        'some_user_uid',
+        '321',
+        '123',
+        '777.7',
+        'started',
+        '2019-01-11T22:49:56+0300'
+    );

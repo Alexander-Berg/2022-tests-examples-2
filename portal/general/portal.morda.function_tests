@@ -1,0 +1,160 @@
+<% set schemas = list_signals(pattern='push-morda_api_search_2_(?P<service>.+)_schema_android_(?P<version>.+)_failed_tttt', itype='portal-yasm-proxy', hosts='ASEARCH') %>
+
+<% set schema_list = [] %>
+
+[
+    <% for schema in schemas|sort if schema.sub('service') not in schema_list %>
+        <% set schema_name = schema.sub('service') %>
+        <% do schema_list.append(schema_name) %>
+        <% set failed_signals = list_signals(pattern='push-morda_api_search_2_' + schema_name + '_schema_(?P<version>.+)_failed_tttt', itype='portal-yasm-proxy', hosts='ASEARCH') %>
+        <% set signals = [] %>
+        <% for failed_signal in failed_signals %>
+            <% set schema_version = failed_signal.sub('version') %>
+            <% do signals.append('push-morda_api_search_2_' + schema_name + '_schema_' + schema_version+ '_failed_tttt') %>
+        <% endfor %>
+        <% set http_codes = [] %>
+        <% set http_signals = list_signals(pattern='push-morda_api_search_2_' + schema_name + '_http_code_(?P<http_code>.+)_tttt', itype='portal-yasm-proxy', hosts='ASEARCH') %>
+        <% for http_signal in http_signals %>
+            <% set http_code = http_signal.sub('http_code') %>
+            <% if http_code == '2xx' %>
+              <% continue %>
+            <% endif %>
+            << Alert(signal='push-morda_api_search_2_' + schema_name + '_http_code_' + http_code + '_tttt', 
+                warn=[0.1, 1],
+                crit=[1, None],
+                name='schema.' + schema_name + '.' + http_code,
+                tags={
+                    'itype': [
+                        'portal-yasm-proxy'
+                    ],
+                },
+                mgroups=[ 'ASEARCH' ],
+                juggler_check = {
+                    'host': 'portal.morda.function_tests',
+                    'namespace': 'portal',
+                    'service': 'schema.' + schema_name + '.' + http_code,
+                    'aggregator': 'logic_or',
+                    'refresh_time': '10',
+                    'ttl': '900',
+                    'tags': ['morda-product-information'],
+                    'flaps': {
+                        'critical': 120,
+                        'boost': 0,
+                        'stable': 30
+                    },
+                }
+            ) >>,
+           
+            <% endfor %>
+            <% set http_static_signals = list_signals(pattern='push-morda_api_search_2_' + schema_name + '_static_code_(?P<http_static_code>.+)_tttt', itype='portal-yasm-proxy', hosts='ASEARCH') %>
+            <% for http_static_signal in http_static_signals %>
+                <% set http_static_code = http_static_signal.sub('http_static_code') %>
+
+                << Alert(signal='push-morda_api_search_2_' + schema_name + '_static_code_' + http_static_code + '_tttt', 
+                    warn=[0.1, 1],
+                    crit=[1, None],
+                    name='schema.' + schema_name + '_static.' + http_static_code,
+                    tags={
+                        'itype': [
+                            'portal-yasm-proxy'
+                        ],
+                    },
+                    mgroups=[ 'ASEARCH' ],
+                    juggler_check = {
+                        'host': 'portal.morda.function_tests',
+                        'namespace': 'portal',
+                        'service': 'schema.' + schema_name + '_static.' + http_static_code,
+                        'aggregator': 'logic_or',
+                        'refresh_time': '10',
+                        'ttl': '900',
+                        'tags': ['morda-product-information'],
+                        'flaps': {
+                            'critical': 120,
+                            'boost': 0,
+                            'stable': 30
+                        },
+                    }
+                ) >>,
+            <% endfor %>
+            <% set failed_signals = ','.join(signals) %>
+            << Alert(signal='sum(' + failed_signals + ', push-morda_' + schema_name + '_failed_tttt, push-morda_' + schema_name + '_skipped_tttt)', 
+                warn=[0.1, 1],
+                crit=[1, None],
+                name='schema.' + schema_name + '.failed',
+                tags={
+                    'itype': [
+                        'portal-yasm-proxy'
+                    ],
+                },
+                mgroups=[ 'ASEARCH' ],
+                juggler_check = {
+                    'host': 'portal.morda.function_tests',
+                    'namespace': 'portal',
+                    'service': 'schema.' + schema_name + '.failed',
+                    'aggregator': 'logic_or',
+                    'refresh_time': '10',
+                    'ttl': '900',
+                    'tags': ['morda-product-information'],
+                    'flaps': {
+                        'critical': 120,
+                        'boost': 0,
+                        'stable': 30
+                    },
+                }
+            ) >>,
+
+    <% endfor %>
+
+    << Alert(signal='push-api_search_schema_tests_coverage_android_tttt',
+        warn=[0.1, 0.5],
+        crit=[0.5, None],
+        name='schema.api_search_schema_tests_coverage_android.failed',
+        tags={
+            'itype': [
+                'portal-yasm-proxy'
+            ],
+        },
+        mgroups=[ 'ASEARCH' ],
+        juggler_check = {
+            'host': 'portal.morda.function_tests',
+            'namespace': 'portal',
+            'service': 'schema.api_search_schema_tests_coverage_android.failed',
+            'aggregator_kwargs': { 'crit_desc': 'https://wiki.yandex-team.ru/morda/monitoring-pokrytija-sxema-testami/'},
+            'aggregator': 'logic_or',
+            'refresh_time': '10',
+            'ttl': '900',
+            'tags': ['morda-product-warning'],
+            'flaps': {
+                'critical': 120,
+                'boost': 0,
+                'stable': 30
+            },
+        }
+    ) >>,
+    << Alert(signal='push-api_search_rf_works_tttt',
+        warn=[0.5, 0.9],
+        crit=[None, 0.5],
+        name='schema.api_search_rf_works.failed',
+        tags={
+            'itype': [
+                'portal-yasm-proxy'
+            ],
+        },
+        mgroups=[ 'ASEARCH' ],
+        juggler_check = {
+            'host': 'portal.morda.function_tests',
+            'namespace': 'portal',
+            'service': 'schema.api_search_rf_works.failed',
+            'aggregator_kwargs': { 'crit_desc': 'https://docs.yandex-team.ru/portal/devops/monitoring_instructions#portal.morda.function_tests:schema.api_search_rf_works.failed'},
+            'aggregator': 'logic_or',
+            'refresh_time': '10',
+            'ttl': '900',
+            'tags': ['morda-product-warning'],
+            'flaps': {
+                'critical': 120,
+                'boost': 0,
+                'stable': 30
+            },
+        }
+    ) >>,
+]

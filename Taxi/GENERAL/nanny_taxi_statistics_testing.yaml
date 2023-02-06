@@ -1,0 +1,66 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:statistics:testing
+awacs_namespace: statistics-lb.taxi.tst.yandex.net
+
+http_hosts:
+  - statistics.taxi.tst.yandex.net
+
+layout:
+  - system
+  - rps_share
+  - userver_common:
+        collapsed: true
+        uservice_name: statistics
+  - http
+  - include:
+        path: taxi_statistics/db_stats.json
+        title: DB Operations
+        variables:
+          - cluster: testing_uservices
+
+  - include:
+        path: taxi_statistics/metrics_chunked_write.json
+        title: DB Chunked Operations
+        variables:
+          - cluster: testing_uservices
+          -   - group: taxi_statistics_testing
+
+  - include:
+        title: 'PGAAS Clients: master timings'
+        path: pgaas/transactions_timings.json
+        collapsed: true
+        variables:
+          - application: statistics
+          - cluster_name: testing_uservices
+          - database: statistics
+          -   - percentile: p95
+              - percentile: p98
+          -   - shard: shard_0
+
+  - include:
+        title: 'PGAAS Clients: master stats'
+        path: pgaas/client_metrics.json
+        collapsed: true
+        variables:
+          - application: statistics
+          - cluster_name: testing_uservices
+          - metric_name: Transaction errors
+          -   - sensor: postgresql.transactions.total
+              - sensor: postgresql.transactions.rolled-back
+              - sensor: postgresql.errors
+          - database: statistics
+          -   - shard: shard_0
+
+  - include:
+        title: 'PGAAS Server'
+        path: pgaas/server.json
+        collapsed: true
+        variables:
+          - yc_folder: fool7uu7nmqgmd05n61b
+          - db: {"mdb": "mdbs6u1vap6jlta1i19k", "shard": "shard_0"}
+
+  - include:
+        path: taxi_statistics/client_metrics.json
+        title: Client Metrics
+        variables:
+          - cluster: testing_uservices

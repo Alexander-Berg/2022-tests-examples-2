@@ -1,0 +1,34 @@
+clownductor_config: taxi:subventions-events-filter:testing
+http_hosts:
+  - subventions-events-filter.taxi.tst.yandex.net
+layout:
+  - http_basic
+  - system
+  - include:
+      path: taxi_subventions_events_filter_logbroker_consumer.json
+      title: logbroker consumer
+      variables:
+        cluster: testing_uservices
+  - include:
+      path: taxi_subventions_events_filter_events.json
+      title: Subvention events
+      variables:
+        cluster: testing_uservices
+  - include:
+      path: taxi_subventions_events_filter_filtering.json
+      title: Filtering
+      variables:
+        cluster: testing_uservices
+  - include:
+      path: taxi_subventions_events_filter_tag_delivery_worker.json
+      title: Tagging
+      variables:
+        cluster: testing_uservices
+  - stq:
+      queues:
+        - add_order_agglomeration
+        - subventions_driving
+        - subventions_new_driver_found
+  - userver_common:
+      collapsed: true
+      uservice_name: subventions-events-filter

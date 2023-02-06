@@ -1,0 +1,31 @@
+default-response: resp
+enabled: true
+allow-unauthorized: true
+aliases:
+    bar#xget: /sources/upstream/response/body/bar
+sources:
+  - id: upstream
+    resource: upstream
+    content-type: application/json
+responses:
+  - id: resp
+    body#xget: /sources/upstream/response/body
+    content-type: application/json
+
+logging:
+  - tags:
+        meta_order_id#xget: /request/body/order_id
+  - text: 'Start handling...'
+    extra:
+        tag: MYTAG
+  - text: 'Test logging level'
+    level: 'warning'
+  - text#concat-strings:
+      - value: 'Upstream returned foo='
+      - value#xget: /sources/upstream/response/body/foo
+      - value: ', bar: '
+      - value#xget: /aliases/bar/result
+    extra:
+        bar#xget: /sources/upstream/response/body/bar
+
+

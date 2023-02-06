@@ -1,0 +1,78 @@
+id: courier_loyalty_powerbank_sharing_agreement_status_active_courier_active
+title: Запрос с корректными данными, активным курьером и активным соглашением
+
+source:
+    request:
+        method: post
+        body:
+            phone#string: '+79999999999'
+        headers:
+            X-Authorization: expected_token
+            X-Remote-IP: 127.0.0.1
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: is_active
+                value#boolean: true
+
+taxi_config:
+    EDA_CORE_COURIER_LOYALTY_POWERBANK_SHARING_API_AVAILABLE_IP:
+        available_ips:
+          - 127.0.0.1
+          - 127.0.0.2
+
+mocks:
+  - resource: eats-core-v1-general-information-couriers-catalog-search-get
+    response:
+        status-code: 200
+        body#object:
+          - key: couriers
+            value#array:
+              - value#object:
+                  - key: id
+                    value: 42
+                  - key: courier_type
+                    value: pedestrian
+                  - key: work_region
+                    value#object:
+                      - key: id
+                        value: 1
+                  - key: courier_service
+                    value#object:
+                      - key: id
+                        value: 1
+                  - key: work_status
+                    value#string: active
+                  - key: external_id
+                    value:
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query#object:
+              - key: phone
+                value#string: '+79999999999'
+  - resource: eats-v1-courier-loyalty-power-bank-sharing-agreement-check
+    response:
+        status-code: 200
+        body#object:
+          - key: is_active
+            value: true
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#object:
+              - key: courier_id
+                value: 42
+              - key: region_id
+                value: 1
+              - key: courier_type
+                value: pedestrian
+              - key: dbid_uuid
+                value:
+
+secdist:
+    settings_override:
+        EATS_TOKEN_FOR_BERI_ZARYAD: expected_token

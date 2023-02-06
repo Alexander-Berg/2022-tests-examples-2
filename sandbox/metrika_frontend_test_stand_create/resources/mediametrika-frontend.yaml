@@ -1,0 +1,171 @@
+---
+labels:
+  deploy_engine: env_controller
+meta:
+  account_id: abc:service:30740
+  project_id: 'mediametrika-frontend-autobetas'
+spec:
+  deploy_units:
+    frontend:
+      coredump_config:
+        EXPRESS-workload:
+          coredump_processor:
+            aggregator: {}
+            count_limit: 3
+            probability: 100
+            total_size_limit_megabytes: 1024
+            cleanup_ttl_seconds: 100
+      endpoint_sets:
+        - port: 80
+      images_for_boxes:
+        Express:
+          name: metrika/frontend/mediametrika
+          registry_host: registry.yandex.net
+          tag: latest
+      logbroker_config:
+        pod_additional_resources_request:
+          vcpu_guarantee: 0
+          vcpu_limit: 0
+      network_defaults:
+        network_id: _YMETRICTESTNETS_
+      replica_set:
+        replica_set_template:
+          constraints:
+            antiaffinity_constraints:
+              - key: rack
+                max_pods: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+                - id: mediametrika-frontend-testing-disk-0
+                  labels:
+                    used_by_infra: true
+                  quota_policy:
+                    bandwidth_guarantee: 5242880
+                    bandwidth_limit: 10485760
+                    capacity: 5368709120
+                  storage_class: hdd
+              host_infra:
+                monitoring: {}
+              ip6_address_requests:
+                - enable_dns: true
+                  network_id: _YMETRICTESTNETS_
+                  vlan_id: backbone
+                - enable_dns: true
+                  network_id: _YMETRICTESTNETS_
+                  vlan_id: fastbone
+              pod_agent_payload:
+                spec:
+                  boxes:
+                    - id: Express
+                      rootfs: {}
+                      static_resources:
+                        - mount_point: "/static_resources/geobase"
+                          resource_ref: "geobase6"
+                        - mount_point: "/static_resources/tzdata"
+                          resource_ref: "geobase6-tzdata"
+                  mutable_workloads:
+                    - workload_ref: EXPRESS-workload
+                  resources:
+                    static_resources:
+                      # файл геобазы, регулярно генерируется
+                      # https://sandbox.yandex-team.ru/resources?type=GEODATA6BIN_STABLE&limit=20
+                      - id: "geobase6"
+                        verification:
+                          checksum: "EMPTY:" # выключаем верификацию
+                          check_period_ms: 600000 # 10 минут
+                        url: "rbtorrent:f318e8c865138fe0ebe24fbdf01ae907cd28fe82"
+                      # таймзоны для geobase6, регулярно генерируются
+                      # https://sandbox.yandex-team.ru/resources?type=GEODATATZDATA_STABLE&limit=20
+                      - id: "geobase6-tzdata"
+                        verification:
+                          checksum: "EMPTY:"
+                          check_period_ms: 600000 # 10 минут
+                        url: "rbtorrent:c85b8fddf5d3bc0832350155e26be1e95e306704"
+                  workloads:
+                    - box_ref: Express
+                      env:
+                        - name: APPLICATION_HTTP_PORT
+                          value:
+                            literal_env:
+                              value: '80'
+                        - name: BISHOP_ENVIRONMENT_NAME
+                          value:
+                            literal_env:
+                              value: metrika.deploy.frontend.mediametrika.testing.development
+                        - name: BISHOP_PROGRAM_NAME
+                          value:
+                            literal_env:
+                              value: mediametrika-frontend
+                        - name: CONFIG_ENV
+                          value:
+                            literal_env:
+                              value: development
+                        - name: NODE_ENV
+                          value:
+                            literal_env:
+                              value: development
+                        - name: NODE_PID_FILE
+                          value:
+                            literal_env:
+                              value: '/var/run/mediametrika.pid'
+                        - name: BISHOP_OAUTH_TOKEN
+                          value:
+                            secret_env:
+                              alias: robot-metrika-test
+                              id: bishop-token
+                      id: EXPRESS-workload
+                      liveness_check:
+                        http_get:
+                          expected_answer: OK
+                          path: /healthchecks/liveness
+                          port: 80
+                      readiness_check:
+                        http_get:
+                          expected_answer: OK
+                          path: /healthchecks/readiness
+                          port: 80
+                      init:
+                        - command_line: "/app/setupGeobase.sh"
+                      start: {}
+                      stop_policy:
+                        container:
+                          command_line: '/app/stopNodeWorkload.sh'
+                          time_limit:
+                            min_restart_period_ms: 30000
+                            max_restart_period_ms: 30000
+                            max_execution_time_ms: 230000
+                        max_tries: 3
+                      transmit_logs: true
+              resource_requests:
+                memory_guarantee: 1073741824
+                memory_limit: 1073741824
+                vcpu_guarantee: 300
+                vcpu_limit: 300
+              secret_refs:
+                robot-metrika-test:
+                  secret_id: sec-01cq6h5rtj649gg8h94zwqshc8
+                  secret_version: ver-01f8z3028462mxthpb8rtjpeef
+                sensor-frontend-testing:
+                  secret_id: sec-01dqsjq84j1m5vjs05pzm97x8c
+                  secret_version: ver-01dqsjq86wdntz6rhwt548gyb5
+      tvm_config:
+        blackbox_environment: Prod
+        client_port: 32273
+        clients:
+          - destinations:
+              - abc_service_id: '14'
+                alias: blackbox
+                app_id: 239
+              - abc_service_id: '3025'
+                alias: api
+                app_id: 2002274
+            secret_selector:
+              alias: sensor-frontend-testing
+              id: tvmSecret
+            source:
+              abc_service_id: '3025'
+              alias: frontend
+              app_id: 2001526
+        mode: enabled
+  revision_info: {}

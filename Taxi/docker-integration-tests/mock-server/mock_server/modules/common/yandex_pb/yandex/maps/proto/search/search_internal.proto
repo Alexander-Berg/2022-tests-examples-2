@@ -1,0 +1,26 @@
+syntax = "proto2";
+package yandex.maps.proto.search.search_internal;
+
+import "yandex/maps/proto/search/commands.proto";
+import "yandex/maps/proto/search/search.proto";
+
+enum DisplayType
+{
+    SINGLE = 1;                                 // only one result is relevant
+    MULTIPLE = 2;                               // all results are relevant
+}
+
+message ResponseInfo
+{
+    required DisplayType display = 1;           // recommended display style hint
+    required string context = 2;                // opaque context data to use for additional requests
+    required string reqid = 3;                  // unique request id (server-generated)
+    optional string serpid = 4;                 // unique session id (server-generated)
+    optional commands.Commands commands = 6;    // search commands
+    reserved 5;
+}
+
+extend yandex.maps.proto.search.search.ResponseMetadata
+{
+    optional ResponseInfo RESPONSE_INFO = 100;
+}

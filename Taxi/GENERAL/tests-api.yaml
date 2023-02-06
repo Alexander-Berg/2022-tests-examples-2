@@ -1,0 +1,202 @@
+openapi: 3.0.0
+info:
+    title: Processing Tests API
+    version: "1.0"
+    description: >
+        Api for running tests on processing
+paths:
+    /tests/v1/cleanup/{scope}/{queue}:
+        post:
+            description: |
+                Очистить базу для запуска следующего теста. Доступно только в окружении testsuite
+            parameters:
+              - name: scope
+                in: path
+                schema:
+                    type: string
+                required: true
+                description: |
+                    Некоторое бизнес-значимое пространство имен.
+                    Например, `taxi`, `eda`, `lavka`.
+              - in: path
+                name: queue
+                schema:
+                    type: string
+                required: true
+                description: |
+                    Очередь, которую надо очистить.
+                    Например, `order-status_updates`, `order-invoices`, `support-tickets`.
+            responses:
+                '200':
+                    description: 'OK'
+                '404':
+                    description: Везде, кроме окружения testsuite
+
+    /tests/v1/handle-event/{scope}/{queue}:
+        post:
+            description: Обработать заданное события с замоканным состоянием
+            parameters:
+              - name: scope
+                in: path
+                schema:
+                    type: string
+                required: true
+                description: |
+                    Некоторое бизнес-значимое пространство имен.
+                    Например, `taxi`, `eda`, `lavka`.
+              - in: path
+                name: queue
+                schema:
+                    type: string
+                required: true
+                description: |
+                    Очередь, в которую необходимо добавить событие.
+                    Например, `order-status_updates`, `order-invoices`, `support-tickets`.
+              - in: query
+                name: item_id
+                schema:
+                    type: string
+                required: true
+                description: |
+                    Идентификатор сущности, которая подвергается процессингу.
+                    Например, идентификатор заказа.
+                    События в процессинге группируются по `item_id`.
+            responses:
+                '200':
+                    description: 'OK'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SharedState'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/HandleEventRequest'
+
+    /tests/v1/validate:
+        post:
+            description: Обработать заданное события с замоканным состоянием
+            responses:
+                '200':
+                    description: Конифиги валидны
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ConfigsValid'
+                '400':
+                    description: Конфиги невалидны
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ConfigsInvalid'
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ValidateRequest'
+
+components:
+    schemas:
+        HandleEventRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - event
+            properties:
+                event:
+                    description: Current event payload
+                    type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: arbitrary payload
+                current_state:
+                    description: current state (/state/current object)
+                    type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: arbitrary payload
+                prev_state:
+                    description: current state (/state/previous object)
+                    type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: arbitrary payload
+                pipeline:
+                    description: >
+                        ID pipeline-а, который нужно запустить
+                        (в обход keys-mapping)
+                    type: string
+                    minLength: 1
+                stage:
+                    $ref: '#/components/schemas/StageInfo'
+
+        StageInfo:
+            description: Информация о том, какой stage pipeline-a нужно выполнить
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - shared_state
+            properties:
+                id:
+                    description: Stage ID
+                    type: string
+                    minLength: 1
+                shared_state:
+                    $ref: '#/components/schemas/SharedState'
+
+        SharedState:
+            description: >
+                Разделяемое состояние на границе выполнения стадии процессинга
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: arbitrary payload
+
+        ConfigsValid:
+            type: object
+            additionalProperties: false
+            description: Тело ответа при полном успехе операции
+            properties: {}
+
+        ConfigsInvalid:
+            type: object
+            additionalProperties: false
+            description: Тело ответа при полном провале операции
+            required:
+              - code
+              - message
+            properties:
+                code:
+                    type: string
+                    description: Код ошибки
+                    enum:
+                      - bad_config
+                      - "400"
+                message:
+                    type: string
+                    description: Читаемый текст ошибки
+
+        ValidateRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - projects_root
+              - path_offset
+              - resources
+            properties:
+                projects_root:
+                    type: string
+                    description: |
+                        Полный путь к директории с пространствами имен (`taxi`, `eda`)
+                path_offset:
+                    type: string
+                    description: |
+                        Относительный путь к agl модулям внутри пространства имен
+                resources:
+                    type: array
+                    description: |
+                        Перечень некоторых бизнес-значимых пространств имен,
+                        например, `taxi`, `eda`, `lavka`, которые нужно проверить
+                    items:
+                        type: string
+                        description: Пространство имен

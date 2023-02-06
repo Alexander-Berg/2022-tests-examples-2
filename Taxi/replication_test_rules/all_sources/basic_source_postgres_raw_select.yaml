@@ -1,0 +1,21 @@
+name: basic_source_postgres_raw_select
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: updated
+    connection:
+        secret: raw_select
+    replicate_by_type: timestampz
+    primary_key:
+      - cart_id
+    raw_select:
+        data: |
+            SELECT *, (SELECT json_agg(item) from cart.cart_items as item where cart_id=carts.cart_id) as items
+            FROM cart.carts as carts
+                WHERE %(checked_out_where)s
+        data_query_has_conditions: true
+    table: cart.carts
+
+destinations:
+  - basic_source_postgres_raw_select:
+        $update: include/dummy_yt_destination.yaml#

@@ -1,0 +1,59 @@
+id: test_metrics_aggregation_without_optionals
+title: тест с отправкой метрик без опциональных параметров
+
+parameters:
+  - case:
+      - status-code: 200
+        mock-response:
+            key: VALUE
+      - status-code: 402
+        mock-response:
+            error_details:
+                special_info:
+                    error_code: required_deposit_is_not_held
+
+source:
+    request:
+        method: post
+        headers:
+            session_id: SESSION_ID
+        body:
+            tag_name: TAG_NAME
+    expectations:
+        response:
+            status-code#xget: /test-params/case/status-code
+            body#xget: /test-params/case/mock-response
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code#xget: /test-params/case/status-code
+        body#xget: /test-params/case/mock-response
+    expectations:
+        call-count: 1
+
+  - resource: scooters-misc-metrics-aggregate
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            body:
+                metrics_item#object:
+                  - status_code#xget: /test-params/case/status-code
+                  - key: error_code
+                    value#xget: /test-params/case/mock-response/error_details/special_info/error_code
+                    enabled#xhas: /test-params/case/mock-response/error_details/special_info/error_code
+                  - meta:
+                        tag: TAG_NAME
+                        endpoint: tag/evolve
+                        dry_run: false
+                        evolution_mode: default
+                        bluetooth_flow_enabled: false
+                        bluetooth_flow_enabled_forced: false
+                        ble_flow_is_used: false
+
+experiments:
+    values#object:
+      - scooters-metrics-aggregation:
+            enabled: true

@@ -1,0 +1,63 @@
+id: experiment_on
+title: Проверка получения предопределенных комментариев
+
+source:
+    request:
+        method: get
+        query:
+            order_nr: 270721-3148
+        body:
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body: {"dislike_option_ids": [{"comment": "Не понравилась еда", "id": 1},
+                    {"comment": "Неверно собран заказ", "id": 3}]}
+            headers: {"content-type": "application/json; charset=utf-8", "X-Eats-Service-Source": "eats-feedback"}
+
+mocks:
+  - resource: eats-feedback-predefined-comment
+    response:
+        status-code: 200
+        body: {"dislike_option_ids": [{"comment": "Не понравилась еда", "id": 1},
+                {"comment": "Неверно собран заказ", "id": 3}]}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+
+  - resource: eats-core-predefined-comment
+    response:
+        status-code: 200
+        body: {"dislike_option_ids": [{"comment": "Не понравилась еда", "id": 1},
+                {"comment": "Неверно собран заказ", "id": 3}]}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: get
+
+  - resource: grocery-eats-gateway-feedback-comments
+    response:
+        status-code: 200
+        body: {"source": "grocery-eats-gateway"}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 0
+        request:
+            method: get
+experiments:
+    values#object:
+      - key: eats_feedback_predefined_comment
+        value:
+        enabled: true

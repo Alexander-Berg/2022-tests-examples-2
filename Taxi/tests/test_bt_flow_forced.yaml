@@ -1,0 +1,41 @@
+id: test_bt_flow_forced
+title: |
+    тест bluetooth-flow forced (специально не ходим в tag/evolve 
+    c evolution_mode=default, пользуемся bluetooth-flow)
+
+source:
+    request:
+        method: post
+        body:
+            tag_name: TAG_NAME
+            session_id: SESSION_ID
+    expectations:
+        response:
+            status-code: 200
+            body:
+                bluetooth:
+                    password: SESSION_KEY
+                    mac: MAC
+                    imei: IMEI
+                    name: ZK600
+
+mocks:
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body:
+            car:
+                imei: IMEI
+                telematics:
+                    ble_mac: MAC
+                    ble_session_key: SESSION_KEY
+    expectations:
+        call-count: 1
+        request:
+            query:
+                session_id: SESSION_ID
+
+experiments:
+    values#object:
+      - scooters-bluetooth-flow-enabled-forced:
+            backend_switcher_enabled: true

@@ -1,0 +1,42 @@
+id: test_bt_flow_ignore_telematic
+title: |
+    тест bluetooth-flow - tag/evolve c ignore_telematic 
+    после отправки команды с клиента через bluetooth
+
+parameters:
+  - case:
+      - ble_flow_is_used: true
+        expected_evolution_mode: ignore_telematic
+      - ble_flow_is_used: false
+        expected_evolution_mode: default
+
+source:
+    request:
+        method: post
+        body#concat-objects:
+          - value:
+                session_id: SESSION_ID
+                tag_name: TAG_NAME
+          - value:
+                ble_flow_is_used: true
+            enabled#xget: /test-params/case/ble_flow_is_used
+    expectations:
+        response:
+            status-code: 200
+            body:
+                key: VALUE
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code: 200
+        body:
+            key: VALUE
+    expectations:
+        call-count: 1
+        request:
+            query:
+                evolution_mode#xget: /test-params/case/expected_evolution_mode
+            body:
+                tag_name: TAG_NAME
+                session_id: SESSION_ID

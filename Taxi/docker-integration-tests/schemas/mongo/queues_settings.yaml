@@ -1,0 +1,120 @@
+settings:
+    collection: queues_settings
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: zone_id
+    unique: true
+wiki_info: |
+    #### queues_settings
+    *Назначение:* Коллекция содержит настройки для каждой зоны очереди.
+
+    *Структура документа:*
+    ```python
+    queues_settings={
+        # Название зоны, в которой действует электронная очередь (зона с заказами)
+        'zone_id': 'rostovondon_airport',
+        # Время обновления
+        'updated': ISODate('2017-01-26T00:00:00Z'),
+        # Зона активации очереди
+        'activation_area': 'platov_airport',
+        # Использовать таймаут при деактивации
+        'deactivate_in_surrounding': true,
+        # Таймаут деактиваци
+        'deactivate_seconds_gap': 120,
+        # Включение диспатча очереди
+        'enabled': true,
+        # Использовать геофенс
+        'enable_geofence': true,
+        # Включить виртуальную очередь
+        'enable_virtual_queue': true,
+        # Вероятность для грейдового водителя (не для виртуальных очередей)
+        'grade_probability': 0.5,
+        # Не показывать текущее место в очереди
+        'hide_current_place': true,
+        # Не показывать время ожидания заказа
+        'hide_remaining_time': false,
+        # Минимальный грейд грейдового водителя
+        'high_grade': 5,
+        # Домашняя зона аэропорта
+        'home_zone': 'rostovondon',
+        # Максимальное отображаемое время ожидания заказа (далее 'более N часов')
+        'max_minutes_boundary': 120,
+        # Минимальное отображаемое время ожидания заказа (далее 'менее N минут')
+        'min_minutes_boundary': 5,
+        # Отображать наименьшее из мест в очереди
+        'show_best_parking_place': true,
+        # Отображать наименьшее из времен ожиданий
+        'show_best_parking_waiting_time': true,
+        # Отобразить, что очередь не работает
+        'show_queue_off': false,
+        # Зона в которой отображается очередь
+        'surrounding_area': 'platov_waiting',
+        # Использовать новые сообщения
+        'use_new_messages': true,
+        # Отображать очередь в таксометре
+        'view_enabled': true,
+        # Максимальное количество виртуальных мест в очереди
+        'virtual_positions_max': 12,
+
+        # Список зон диспатча
+        'dispatch_areas': ['terminal1, terminal2'],
+        # Настройки диспатча
+        'dispatch_area_settings': {
+            '__default__': {
+                'ml_model_name': 'platov_airport',
+                'ml_whitelist_classes': ['econom'],
+                'parking_penalty_min': {'__default__': 0}
+            },
+            'platov_waiting': { # Название зоны диспатча
+                # Модель прогноза времени ожидания
+                'ml_model_name': 'platov_airport',
+                # Учитываемые в прогнозе классы
+                'ml_whitelist_classes': ['econom'],
+                # Настройки штрафов за нахождение на парковках
+                'parking_penalty_min': {
+                  '__default__': 10     # Название парковки : штраф в минутах
+                }
+            }
+        },
+
+        # Модель прогноза времени ожидания
+        'ml_model_name': 'platov_airport',
+        # Список отображемых классов
+        'ml_visible_classes': ['econom', 'business'],
+        # Список классов учитываемых для прогнозирования времени ожидания
+        'ml_whitelist_classes': [
+            'econom', 'business', 'vip', 'business2', 'comfortplus'],
+        # Дополнительные классы для учета в прогнозе времени ожидания.
+        # если совершен заказ класса из списка, то учитывается класс из ключа
+        'ml_composite_classes': {
+            'econom': ['econom', 'uberx'],
+            'uberx': ['econom', 'uberx']
+        },
+
+        # Настройки парковок
+        'parking_settings': {
+            'platov_waiting': {
+                # Максимальное количество машин на парковке
+                'max_cars': 100,
+                # Вес парковки (чем выше вес тем больше количество
+                # машин от общего числа направляются на эту парковку)
+                'weight': 1,
+                'rfid_only': true,  # Направлять машины только с rfid метками
+                'classes': {        # Настройки классов
+                    'econom': {
+                      'reserv': 10, # Колличство зарезервированных мест для класса
+                    }
+                }
+            }},
+        # Настройки вероятности распределения виртуальных мест в очереди
+        'virtual_positions_probs': [{
+            'probability': 100,   # Вероятность
+            'value': 5,           # Количество генерируемых виртуальных мест
+            # Максимальный размер очереди при котором работает правило
+            'max_size': 2,
+            # Минимальный размер очереди при котором работает правило
+            'min_size': 0,
+        }]
+    }
+    ```

@@ -1,0 +1,113 @@
+INSERT INTO persey_payments.fund
+    (
+        fund_id,
+        name,
+        offer_link,
+        operator_uid,
+        balance_client_id,
+        trust_partner_id,
+        trust_product_id
+    )
+VALUES
+    (
+        'some_fund',
+        'Имя фонда',
+        'http://fund.com',
+        '777',
+        'some_client',
+        'some_partner_id',
+        'some_product_id'
+    );
+
+
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        sum,
+        yandex_uid,
+        user_name,
+        user_email,
+        purchase_token,
+        trust_order_id,
+        subs_id,
+        status
+    )
+VALUES
+    (
+        'some_fund',
+        '123',
+        '41',
+        'some_user_name',
+        'some_user_email',
+        'trust-basket-token',
+        'some_order_id',
+        1,
+        'started'
+    );
+
+INSERT INTO persey_payments.ride_subs
+    (
+        yandex_uid,
+        phone_id,
+        brand,
+        fund_id,
+        mod,
+        locale
+    )
+VALUES
+    (
+        'portal_uid',
+        'cccccccccccccccccccccccc',
+        'yataxi',
+        'some_fund',
+        10,
+        'ru'
+    );
+
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        yandex_uid,
+        sum,
+        status,
+        ride_subs_id,
+        brand,
+        order_id
+    )
+VALUES
+    (
+        'some_fund',
+        'portal_uid',
+        '123',
+        'started',
+        1,
+        'yataxi',
+        'order1'
+    ),
+    (
+        'some_fund',
+        'portal_uid',
+        '321',
+        'started',
+        1,
+        'lavka',
+        'order1'
+    ),
+    (
+        'some_fund',
+        'portal_uid',
+        '231',
+        'started',
+        1,
+        'lavka',
+        'order2'
+    ),
+    (
+        'some_fund',
+        'portal_uid',
+        '123',
+        'started',
+        1,
+        NULL,
+        NULL
+    );

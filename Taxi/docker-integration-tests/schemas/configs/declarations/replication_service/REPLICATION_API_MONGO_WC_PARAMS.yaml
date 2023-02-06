@@ -1,0 +1,35 @@
+default:
+    timeout: 1000
+description: 'Параметры write concern при записи в монгу. timeout: таймаут вставки,
+    nodes: если этого ключа нет, то будет использоваться тип majority; insert_bulk_size:
+    размер балка при записи, равен 1000 если этого ключа нет; confirm_bulk_size: размер
+    балка при подтверждении, равен 1000 если этого ключа нет; confirm_without_wc:
+    выставить true, чтобы писать подтверждения без write_concern'
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: false
+        optional_keys:
+          - nodes
+          - insert_bulk_size
+          - confirm_bulk_size
+          - confirm_without_wc
+        scheme:
+            confirm_bulk_size:
+              - $integer
+              - $gte: 50
+              - $lte: 1000
+            insert_bulk_size:
+              - $integer
+              - $gte: 50
+              - $lte: 1000
+            confirm_without_wc:
+              - $boolean
+            nodes:
+              - $integer
+              - $gte: 1
+              - $lte: 3
+            timeout:
+              - $integer
+              - $gte: 1000

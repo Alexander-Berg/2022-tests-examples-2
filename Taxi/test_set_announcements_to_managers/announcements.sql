@@ -1,0 +1,82 @@
+INSERT INTO corp_announcements.announcements (
+    announcement_id,
+    announcement_type,
+    admin_title,
+    title,
+    text,
+    priority,
+    cta_is_active,
+    cta_title,
+    cta_url,
+    base_image_id,
+    preview_image_id,
+    clients_filter,
+    roles_filter,
+    country_filter,
+    payment_type_filter,
+    common_contract_filter,
+    publish_at,
+    status,
+    created_at,
+    updated_at,
+    approved_at,
+    created_by,
+    approved_by
+)
+VALUES (
+    '12345',
+    'news',
+    'Название в админке',
+    'Заголовок',
+    'Текст новости',
+    0,
+    TRUE,
+    'CTA button title',
+    'https://yandex.ru',
+    NULL,
+    NULL,
+    array['client1_id', 'client2_id', 'client3_id'],
+    array['manager', 'department_manager'],
+    array['rus'],
+    array['prepaid'],
+    array['available_enabled'],
+    '2019-07-24 10:30:00'::timestamp,
+    'need_approval',
+    '2019-08-18 15:30:27'::timestamp,
+    '2019-08-18 15:33:27'::timestamp,
+    '2019-08-18 15:33:27'::timestamp,
+    12345,
+    56789
+),
+(
+    '23456',
+    'news',
+    'Название в админке',
+    'Заголовок',
+    'Текст новости',
+    0,
+    TRUE,
+    'CTA button title',
+    'https://yandex.ru',
+    NULL,
+    NULL,
+    array['client1_id', 'client2_id', 'client3_id'],
+    array['manager', 'department_manager'],
+    array['rus'],
+    array['prepaid'],
+    array['available_enabled'],
+    '2019-07-24 10:30:00'::timestamp,
+    'approved',
+    '2019-08-18 15:30:27'::timestamp,
+    '2019-08-18 15:33:27'::timestamp,
+    '2019-08-18 15:33:27'::timestamp,
+    12345,
+    56789
+);
+
+INSERT INTO corp_announcements.cron (
+    last_created
+)
+VALUES (
+    '2021-07-04 15:33:27'::timestamp
+);

@@ -1,0 +1,338 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi test-service Service
+    title: Yandex Taxi test-service Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: test-service.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: TEST_SERVICE_CLIENT_QOS
+
+paths:
+    /recursive-types/all:
+        post:
+            description: test parse
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RecursiveContainer'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    value:
+                                        $ref: '#/components/schemas/RecursiveContainer'
+                                required:
+                                  - value
+
+
+components:
+    schemas:
+        #####################################
+        ### Upper to Lower and vice versa ###
+        #####################################
+        IndirectUpperToLower:
+            type: object
+            additionalProperties: false
+            properties:
+                a-optional-link:
+                    $ref: '#/components/schemas/LowerToIndirectUpper'
+                    x-taxi-cpp-indirect: true
+                a-required-link:
+                    $ref: '#/components/schemas/LowerToIndirectUpper'
+                    x-taxi-cpp-indirect: true
+                a-field:
+                    type: integer
+            required:
+              - a-required-link
+              - a-field
+
+        LowerToIndirectUpper:
+            type: object
+            additionalProperties: false
+            properties:
+                b-optional-link:
+                    $ref: '#/components/schemas/IndirectUpperToLower'
+                b-field:
+                    type: integer
+            required:
+              - b-field
+
+        UpperToIndirectLower:
+            type: object
+            additionalProperties: false
+            properties:
+                a-optional-link:
+                    $ref: '#/components/schemas/IndirectLowerToUpper'
+                a-field:
+                    type: integer
+            required:
+              - a-field
+
+        IndirectLowerToUpper:
+            type: object
+            additionalProperties: false
+            properties:
+                b-optional-link:
+                    $ref: '#/components/schemas/UpperToIndirectLower'
+                    x-taxi-cpp-indirect: true
+                b-required-link:
+                    $ref: '#/components/schemas/UpperToIndirectLower'
+                    x-taxi-cpp-indirect: true
+                b-field:
+                    type: integer
+            required:
+              - b-required-link
+              - b-field
+
+        ##############################################
+        ### Type to Alias (vice versa not allowed) ###
+        ##############################################
+        IndirectTypeToAlias:
+            type: object
+            additionalProperties: false
+            properties:
+                a-optional-link:
+                    $ref: '#/components/schemas/AliasToIndirectType'
+                    x-taxi-cpp-indirect: true
+                a-field:
+                    type: integer
+            required:
+              - a-field
+
+        AliasToIndirectType:
+            $ref: '#/components/schemas/IndirectTypeToAlias'
+
+        ##############################################
+        ### OneOf to Type (vice versa not allowed) ###
+        ##############################################
+        IndirectOneOfToType:
+            oneOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                    c-field:
+                        type: integer
+                required:
+                  - c-field
+              - $ref: '#/components/schemas/TypeToIndirectOneOfAlpha'
+                x-taxi-cpp-indirect: true
+              - $ref: '#/components/schemas/TypeToIndirectOneOfBravo'
+                x-taxi-cpp-indirect: true
+
+        TypeToIndirectOneOfAlpha:
+            type: object
+            additionalProperties: false
+            properties:
+                a-optional-link:
+                    $ref: '#/components/schemas/IndirectOneOfToType'
+                a-required-link:
+                    $ref: '#/components/schemas/IndirectOneOfToType'
+                a-field:
+                    type: integer
+            required:
+              - a-required-link
+              - a-field
+
+        TypeToIndirectOneOfBravo:
+            type: object
+            additionalProperties: false
+            properties:
+                b-optional-link:
+                    $ref: '#/components/schemas/IndirectOneOfToType'
+                b-required-link:
+                    $ref: '#/components/schemas/IndirectOneOfToType'
+                b-field:
+                    type: integer
+            required:
+              - b-required-link
+              - b-field
+
+        #################################################################
+        ### OneOf with discriminator to Type (vice versa not allowed) ###
+        #################################################################
+        IndirectOneOfDiscrToType:
+            oneOf:
+              - $ref: '#/components/schemas/TypeToIndirectOneOfDiscrAlpha'
+                x-taxi-cpp-indirect: true
+              - $ref: '#/components/schemas/TypeToIndirectOneOfDiscrBravo'
+                x-taxi-cpp-indirect: true
+            discriminator:
+                propertyName: type
+                mapping:
+                    alpha: '#/components/schemas/TypeToIndirectOneOfDiscrAlpha'
+                    bravo: '#/components/schemas/TypeToIndirectOneOfDiscrBravo'
+
+        TypeToIndirectOneOfDiscrAlpha:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - alpha
+                a-optional-link:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrToType'
+                a-field:
+                    type: integer
+            required:
+              - type
+              - a-field
+
+        TypeToIndirectOneOfDiscrBravo:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - bravo
+                b-required-link:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrToType'
+                b-optional-link:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrToType'
+                b-field:
+                    type: integer
+            required:
+              - type
+              - b-required-link
+              - b-field
+
+        #######################################################################
+        ### OneOf with discriminator multi to Type (vice versa not allowed) ###
+        #######################################################################
+        IndirectOneOfDiscrMultiToType:
+            oneOf:
+              - $ref: '#/components/schemas/TypeToIndirectOneOfDiscrMultiAlpha'
+                x-taxi-cpp-indirect: true
+              - $ref: '#/components/schemas/TypeToIndirectOneOfDiscrMultiBravo'
+                x-taxi-cpp-indirect: true
+            discriminator:
+                propertyName: type
+                mapping:
+                    alpha: '#/components/schemas/TypeToIndirectOneOfDiscrMultiAlpha'
+                    bravo: '#/components/schemas/TypeToIndirectOneOfDiscrMultiBravo'
+                    alpha_alt: '#/components/schemas/TypeToIndirectOneOfDiscrMultiAlpha'
+                    bravo_alt: '#/components/schemas/TypeToIndirectOneOfDiscrMultiBravo'
+
+        TypeToIndirectOneOfDiscrMultiAlpha:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - alpha
+                      - alpha_alt
+                a-optional-link:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrMultiToType'
+                a-field:
+                    type: integer
+            required:
+              - type
+              - a-field
+
+        TypeToIndirectOneOfDiscrMultiBravo:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - bravo
+                      - bravo_alt
+                b-required-link:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrMultiToType'
+                b-optional-link:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrMultiToType'
+                b-field:
+                    type: integer
+            required:
+              - type
+              - b-required-link
+              - b-field
+
+        ##############################################
+        ### Type to AllOf (vice versa not allowed) ###
+        ##############################################
+        IndirectTypeToAllOfAlpha:
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: for allOf
+            properties:
+                a-optional-link:
+                    $ref: '#/components/schemas/AllOfToIndirectType'
+                    x-taxi-cpp-indirect: true
+                a-field:
+                    type: integer
+            required:
+              - a-field
+
+        IndirectTypeToAllOfBravo:
+            type: object
+            additionalProperties: true
+            x-taxi-additional-properties-true-reason: for allOf
+            properties:
+                b-optional-link:
+                    $ref: '#/components/schemas/AllOfToIndirectType'
+                    x-taxi-cpp-indirect: true
+                b-field:
+                    type: integer
+            required:
+              - b-field
+
+        AllOfToIndirectType:
+            allOf:
+              - $ref: '#/components/schemas/IndirectTypeToAllOfAlpha'
+              - $ref: '#/components/schemas/IndirectTypeToAllOfBravo'
+
+        RecursiveContainer:
+            type: object
+            additionalProperties: false
+            properties:
+                # upper to lower and vice versa
+                indirect-upper-to-lower:
+                    $ref: '#/components/schemas/IndirectUpperToLower'
+                lower-to-indirect-upper:
+                    $ref: '#/components/schemas/LowerToIndirectUpper'
+                upper-to-indirect-lower:
+                    $ref: '#/components/schemas/UpperToIndirectLower'
+                indirect-lower-to-upper:
+                    $ref: '#/components/schemas/IndirectLowerToUpper'
+                # type to alias
+                indirect-type-to-alias:
+                    $ref: '#/components/schemas/IndirectTypeToAlias'
+                alias-to-indirect-type:
+                    $ref: '#/components/schemas/AliasToIndirectType'
+                # oneof to type
+                indirect-oneof-to-type:
+                    $ref: '#/components/schemas/IndirectOneOfToType'
+                type-to-indirect-oneof-alpha:
+                    $ref: '#/components/schemas/TypeToIndirectOneOfAlpha'
+                # oneof with discriminator to type
+                indirect-oneof-discr-to-type:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrToType'
+                indirect-oneof-discr-multi-to-type:
+                    $ref: '#/components/schemas/IndirectOneOfDiscrMultiToType'
+                type-to-indirect-oneof-discr-bravo:
+                    $ref: '#/components/schemas/TypeToIndirectOneOfDiscrBravo'
+                # type to allof
+                allof-to-indirect-type:
+                    $ref: '#/components/schemas/AllOfToIndirectType'
+                indirect-type-to-allof-alpha:
+                    $ref: '#/components/schemas/IndirectTypeToAllOfAlpha'

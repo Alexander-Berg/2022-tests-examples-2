@@ -1,0 +1,102 @@
+server {
+    # SLB IP
+    listen 213.180.204.24:443 ssl;
+    listen [2a02:6b8::24]:443 ssl;
+
+    # Server IP
+    listen [1::2:3:4]:443 ssl;
+    listen 127.0.0.1:443 ssl;
+    listen [::1]:443 ssl;
+
+    server_name id.yandex.az id.yandex.by id.yandex.co.il id.yandex.com id.yandex.com.am id.yandex.com.ge id.yandex.com.tr id.yandex.ee id.yandex.eu id.yandex.fi id.yandex.fr id.yandex.kg id.yandex.kz id.yandex.lt id.yandex.lv id.yandex.md id.yandex.pl id.yandex.ru id.yandex.tj id.yandex.tm id.yandex.ua id.yandex.uz;
+
+    ssl_certificate             /etc/nginx/certs/id.yandex.ru.crt;
+    ssl_certificate_key         /etc/nginx/certs/id.yandex.ru.key;
+    ssl_session_cache           shared:SSL:256m;
+    ssl_session_timeout         28h;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 kEECDH+AES128:kEECDH:-3DES:kRSA+AES128:DES-CBC3-SHA:!kEDH:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers   on;
+
+    add_header Strict-Transport-Security "max-age=315360000; includeSubDomains; preload";
+
+    access_log /var/log/nginx/passport.access.log main;
+    error_log /var/log/nginx/passport.error.log;
+
+    set $global_request_id $request_id;
+
+    if ($request_uri ~ "[\x00-\x20\x7F]") {
+        return 400;
+    }
+
+    proxy_set_header Host               $host;
+    proxy_set_header X-Real-IP          $remote_addr;
+    proxy_set_header X-Request-Id       $global_request_id;
+    proxy_set_header X-YProxy-Header-Ip $http_x_yproxy_header_ip;
+
+    proxy_store       off;
+    keepalive_timeout 120 120;
+    charset           utf-8;
+
+    set $tld ru;
+    if ($host ~ .+\.([^.]+)) {
+        set $tld $1;
+    }
+
+    location ~ ^/about/?$ {
+        set $host_for_redirect yandex.com;
+        if ($tld ~ ^(by|kg|kz|md|ru|tj|tm|ua|uz)$) {
+            set $host_for_redirect yandex.ru;
+        }
+
+        rewrite ^/(.*)/?$ https://$host_for_redirect/id/$1 permanent;
+    }
+
+    location ~ ^/howtoprotectyourid/?$ {
+        set $host_for_redirect yandex.com;
+        if ($tld ~ ^(by|kg|kz|md|ru|tj|tm|ua|uz)$) {
+            set $host_for_redirect yandex.ru;
+        }
+
+        rewrite ^/(.*)/?$ https://$host_for_redirect/id/protection permanent;
+    }
+
+    location ~ ^/howtoprotectyourid_mobile/?$ {
+        set $host_for_redirect yandex.com;
+        if ($tld ~ ^(by|kg|kz|md|ru|tj|tm|ua|uz)$) {
+            set $host_for_redirect yandex.ru;
+        }
+
+        rewrite ^/(.*)/?$ https://$host_for_redirect/id/protection_mobile permanent;
+    }
+
+    location ~ ^/yafamily/?$ {
+        set $host_for_redirect yandex.com;
+        if ($tld ~ ^(by|kg|kz|md|ru|tj|tm|ua|uz)$) {
+            set $host_for_redirect yandex.ru;
+        }
+
+        rewrite ^/(.*)/?$ https://$host_for_redirect/id/family permanent;
+    }
+
+    location ~ ^/business/?$ {
+        set $host_for_redirect yandex.ru;
+
+        rewrite ^/(.*)/?$ https://$host_for_redirect/id/$1 permanent;
+    }
+
+    location ~ ^/(?:order-history|profile/family/invite/.*|support(?:/.*)?)/?$ {
+        rewrite ^(.*)$ https://passport.yandex.$tld$request_uri;
+    }
+
+    location ~ ^/(?:$|_next/|family|finance|helpdesk|iframe/|pay|personal|security) {
+        access_log /var/log/nginx/id-front.access.log main;
+        error_log /var/log/nginx/id-front.error.log;
+
+        proxy_pass http://127.0.0.1:3012;
+    }
+
+    location / {
+        rewrite ^(.*)$ https://passport.yandex.$tld/profile;
+    }
+}

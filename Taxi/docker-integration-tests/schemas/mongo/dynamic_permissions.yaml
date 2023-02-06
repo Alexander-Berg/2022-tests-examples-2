@@ -1,0 +1,56 @@
+settings:
+    collection: dynamic_permissions
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: created
+  - key:
+      - name: service
+        type: ascending
+      - name: method
+        type: ascending
+      - name: path
+        type: ascending
+    unique: true
+  - key: updated
+  - key: version
+wiki_info: |
+    ####dbtaxi.dynamic_permissions - Коллекция с динамическими пермишенами,
+    которые создаются через API админки без кода (без создания через указание
+    в файле). Преимуществом является то, что их можно заводить в зависимости от
+    передаваемых в ручку агрументов/параметров (много на одну ручку).
+
+    ```python
+    dynamic_permissions = {
+        # идентификатор группы
+        '_id': uuid,
+        # путь ручки, на которую создаются динамические пермишены
+        'path': '/create/'
+        # название сервиса, который подключен через админку без кода
+        'service': 'corp',
+        # метод
+        'method': 'get'
+        # правило для выделения айтемов, для определения динамического пермишена
+        'extract_rule': {
+            # откуда парсить данные (request|query|url)
+            'storage': 'request',
+            # путь до аргумента, который надо вытащить
+            'path': 'drivers.0.driver_id',
+        }
+        # заведенные динамические пермишены
+        'items': {
+            # ключ - имя итема, котоыре будет выделен из запроса, значение -
+            # название динамического пермишена, которым нужно обладать при
+            # прав в запросе
+            'name_1': 'dynamic_perm_name_1',
+            'name_2': 'dynamic_perm_name_2',
+        }
+        #
+        'created': datetime.datetime.utcnow(),
+        # время последнего обновления документа
+        'updated': datetime.datetime.utcnow(),
+        # версия
+        'version': 1,
+
+    }
+    ```

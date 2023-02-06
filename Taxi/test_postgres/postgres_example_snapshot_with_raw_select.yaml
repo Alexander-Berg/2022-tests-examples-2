@@ -1,0 +1,22 @@
+name: postgres_example_snapshot_with_raw_select
+replication_type: queue_snapshot
+source:
+    type: postgres
+    connection:
+        secret: sequence
+    raw_select:
+        data: |
+            SELECT * FROM {table} WHERE "example_value" != 1000
+        data_query_has_conditions: false
+    primary_key:
+      - id
+    table: sequence.table
+
+destinations:
+  - postgres_example_snapshot_with_raw_select:
+        type: yt
+        mapper: dummy
+        target:
+            path: dummy_static_with_raw_select
+            cluster_groups:
+              - map_reduce

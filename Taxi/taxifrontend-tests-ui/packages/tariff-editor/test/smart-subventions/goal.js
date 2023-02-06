@@ -1,0 +1,56 @@
+const auth = require('../../support/auth');
+const sub = require('../../pageobjects/smart-subventions/smart-subventions.js');
+const {type, waitExistSelectorAndReload} = require('../../support/helpers');
+const dayjs = require('dayjs');
+const allureReporter = require('@wdio/allure-reporter').default;
+let tomorrow = dayjs().add(1, 'day');
+let nextTomorrow = dayjs().add(2, 'day');
+
+describe('Создание субсидии goal', () => {
+    it('Создание субсидии', async () => {
+        allureReporter.addTestId('taxiweb-1361');
+        await auth();
+        await sub.openSub();
+        await browser.$(sub.create).click();
+        await browser.$(sub.subventionType).click();
+        await browser.$(sub.subventionTypeGoal).click();
+        await type(sub.geoHierarchyNode, 'boryasvo');
+        await browser.$(sub.geo).click();
+        await browser.$(sub.geoHierarchy).click();
+        await browser.$(sub.orderServiceClass).setValue('Comfort');
+        await browser.keys('Enter');
+        await browser.$(sub.windowSize).setValue('1');
+        await browser.$(sub.budget).setValue('1');
+        await browser.$(sub.total).scrollIntoView();
+        await browser.$(sub.total).setValue('10');
+        await browser.$(sub.endDate).setValue(nextTomorrow.format('DD.MM.YYYY'));
+        await browser.keys('Enter');
+        await browser.$(sub.startDate).setValue(tomorrow.format('DD.MM.YYYY'));
+        await browser.keys('Enter');
+        await browser.$(sub.listStartDay).click();
+        await browser.$(sub.dayOfWeekStart).click();
+        await type(sub.listStartTime, '12:33');
+        await browser.$(sub.listEndDay).click();
+        await browser.$(sub.dayOfWeekEnd).click();
+        await type(sub.listEndTime, '12:33');
+        await browser.$(sub.numberOfRides).setValue('1');
+        await browser.$(sub.amountShown).setValue('1');
+        await browser.$(sub.selectCounter).click();
+        await browser.$(sub.selectMenuOuter).click();
+        await browser.$(sub.ticket).setValue('TAXIRATE-91');
+        await browser.$(sub.submit).click();
+        await browser.$(sub.acceptButton).click();
+        await browser.$(sub.notification).isExisting();
+        //ждем пока выполнится драфт(статус 'Выполнен успешно')
+        await waitExistSelectorAndReload(21000, sub.successLabel);
+        await browser.$(sub.completeGoal).click();
+        await waitExistSelectorAndReload(21000, sub.sidePanelHeaderTitle);
+        await browser.$(sub.closeDate).setValue(tomorrow.format('DD.MM.YYYY'));
+        await browser.keys('Enter');
+        await browser.$(sub.bulkTicket).setValue('TAXIRATE-91');
+        await browser.$(sub.submit).click();
+        await browser.$(sub.acceptButton).click();
+        await browser.$(sub.successLabel).isExisting();
+        await waitExistSelectorAndReload(21000, sub.successLabel);
+    });
+});

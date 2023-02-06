@@ -1,0 +1,11 @@
+DEFAULT_PRICE = 345
+DEFAULT_DEPOT_LOCATION = [10, 20]
+DEFAULT_WMS_DEPOT_ID = 'wms_depot_id'
+TS_DEFAULT_DEPOT_SWITCH_TIME = '2020-03-13T01:00:00+03:00'
+DEFAULT_VAT = '20.00'
+DEFAULT_DEPOT_PERSONAL_TIN_ID = 'personal-tin-123'
+
+DEFAULT_DEPOT_ZONE_WORKING_HOURS = {
+    'from': {'hour': 9, 'minute': 0},
+    'to': {'hour': 20, 'minute': 0},
+}

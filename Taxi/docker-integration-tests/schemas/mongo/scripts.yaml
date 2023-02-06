@@ -1,0 +1,86 @@
+settings:
+    collection: scripts
+    connection: noncritical
+    database: dbprocessing
+indexes:
+  - key: created
+  - key:
+      - name: created_by
+        type: ascending
+      - name: created
+        type: descending
+  - key: execute_type
+  - key: is_reported
+  - key: organization
+  - key: request_id
+    unique: true
+  - key: status
+  - key:
+      - name: status
+        type: ascending
+      - name: created
+        type: descending
+  - key: ticket
+wiki_info: |
+    #### scripts
+    *Назначение:* содержит информацию о заявках на выполнение скриптов.
+    ```python
+    {
+        # id
+        '_id': '0123456789abcdef',
+        # кто создал заявку
+        'created_by': 'aershov182',
+        # когда создали заявку
+        'created': datetime.datetime.utcnow(),
+        # время последнего изменения документа
+        'updated': datetime.datetime.utcnow(),
+        # ссылка на скрипт
+        'url': 'https://github.yandex-team.ru/taxi/tools/migrations/some_migration.py',
+        # значение переменной окружения PYTHONPATH
+        'python_path': '/usr/lib/yandex/taxi-scripts',
+        # аргументы для запуска скрипта
+        'arguments': ['--run'],
+        # тикет
+        'ticket': 'TAXIBACKEND-4326',
+        # комментарий
+        'comment': 'This script is definitely maybe safe to run.',
+        # одобрения заявки
+        'approvals': [
+            {
+              'login': 'estevan',                     # кто одобрил заявку
+              'created': datetime.datetime.utcnow(),  # когда одобрил заявку
+              'group' : 'manager',                    # группа manager|coder
+            }
+        ],
+        # статус
+        'status': 'need_approval|approved|running|failed|succeeded',
+        # версия документа (чтобы не было гоночек)
+        'version': 1,
+        # Отрепортили о запуске скрипта в Стартрек?
+        'is_reported': True,
+        # идентификатор запроса
+        'request_id': '12d9452ba4e0407d86eb05f04d725b62',
+        # необязательные поля
+        # когда начал выполняться скрипт
+        'started_running_at': datetime.datetime.utcnow(),
+        # когда закончил выполняться скрипт
+        'finished_at': datetime.datetime.utcnow(),
+        # значение, которое вернул скрипт
+        'exit_code': 1,
+        # проект к которому относится скрипт
+        'project': 'taxi|taximeter',
+        'local_relative_path': 'src/Yandex.Taximeter.ScriptRunner/Scripts/ValidateCarsScript.cs',
+        # причина фейла
+        'failed_reason': 'script returned non-zero',
+        # не запускать скрипт автоматически
+        'run_manually': True,
+        # лок на выкачивание данных из гитхаба
+        'fetch_lock_expires_at': datetime.datetime.utcnow(),
+        # имя сервера
+        "server_name" : 'taxi-import01d.taxi.tst.yandex.net',
+        # организация, в рамках которой запускается скрипт (taxi, taximeter, taxi-dwh, ...)
+        "organization": 'taxi',
+        # тип запускаемого скрипт (python, psql, ...)
+        "execute_type": 'python',
+    }
+    ```

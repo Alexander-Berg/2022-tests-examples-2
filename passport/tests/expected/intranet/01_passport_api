@@ -1,0 +1,108 @@
+server {
+    # SLB IP
+    listen 5.255.240.43:80 default_server backlog=1024;
+    listen [2a02:6b8:0:3400::1:43]:80 default_server backlog=1024;
+
+    # Server IP
+    listen [1::2:3:4]:80 default_server backlog=1024;
+    listen 127.0.0.1:80 default_server backlog=1024;
+    listen [::1]:80 default_server backlog=1024;
+
+
+    access_log /var/log/nginx/passport-internal.access.log main;
+    error_log /var/log/nginx/passport-internal.error.log;
+
+    return 404;
+}
+
+
+server {
+    # http
+    # SLB IP
+    listen 5.255.240.43:80;
+    listen [2a02:6b8:0:3400::1:43]:80;
+
+    # Server IP
+    listen [1::2:3:4]:80;
+    listen 127.0.0.1:80;
+    listen [::1]:80;
+
+    # https
+    # SLB IP
+    listen 5.255.240.43:443 ssl;
+    listen [2a02:6b8:0:3400::1:43]:443 ssl;
+
+    # Server IP
+    listen [1::2:3:4]:443 ssl;
+    listen 127.0.0.1:443 ssl;
+    listen [::1]:443 ssl;
+
+
+    server_name passport-internal.yandex-team.ru;
+
+    ssl_certificate             /etc/nginx/certs/passport-internal.yandex-team.ru.crt;
+    ssl_certificate_key         /etc/nginx/certs/passport-internal.yandex-team.ru.key;
+    ssl_session_cache           shared:SSL:256m;
+    ssl_session_timeout         28h;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 kEECDH+AES128:kEECDH:-3DES:kRSA+AES128:DES-CBC3-SHA:!kEDH:!RC4:!aNULL:!eNULL:!MD5:!EXPORT:!LOW:!SEED:!CAMELLIA:!IDEA:!PSK:!SRP:!SSLv2;
+    ssl_prefer_server_ciphers   on;
+
+    access_log /var/log/nginx/passport-internal.access.log main;
+    error_log /var/log/nginx/passport-internal.error.log;
+
+    set $global_request_id $request_id;
+    if ($http_x_request_id) {
+        set $global_request_id $http_x_request_id;
+    }
+
+    proxy_set_header Host               $host;
+    proxy_set_header X-Real-IP          $remote_addr;
+    proxy_set_header X-Real-Scheme      $scheme;
+    proxy_set_header Ya-Host            $host;
+    proxy_set_header X-PyPa             "";
+    proxy_set_header X-Request-Id       $global_request_id;
+    proxy_set_header X-YProxy-Header-Ip $http_x_yproxy_header_ip;
+
+    proxy_connect_timeout 1s;
+    proxy_send_timeout 1s;
+    proxy_read_timeout 10s;
+
+    proxy_store       off;
+    keepalive_timeout 59 59;
+    charset           utf-8;
+
+    if ($arg_mode ~ "^(?:adm(?:block|karma|loginrule|subscribe|session|(?:change|simple)?reg)|createautologin|location)$") {
+        rewrite ^.*$ /passport/adm_$arg_mode last;
+    }
+
+    location /passport/adm_ {
+        rewrite ^(/passport)/adm_(.*)$ $1/$2 break;
+        proxy_pass http://127.0.0.1:6000;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:6000;
+    }
+
+    location ~ ^/(?:yasms|email-validator) {
+        proxy_set_header Host          $host;
+        proxy_set_header X-Real-IP     $remote_addr;
+        proxy_set_header X-Real-Scheme $http_ya_consumer_client_scheme;
+        proxy_set_header X-Request-Id  $request_id;
+        proxy_pass http://127.0.0.1:6000;
+    }
+
+    location = /ping.html {
+        proxy_set_header Host '';
+        proxy_pass http://127.0.0.1:6000/ping?check=blackbox,frontend,redis;
+        add_header RS-Weight 16;
+    }
+
+    location = /stub-status {
+        allow ::1;
+        allow 127.0.0.1;
+        deny all;
+        stub_status on;
+    }
+}

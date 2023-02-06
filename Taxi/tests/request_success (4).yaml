@@ -1,0 +1,90 @@
+id: request_success
+title: Successful response
+
+parameters:
+  - test-locale:
+      - language: 'en-US'
+        expected-moscow: 'Moscow'
+        expected-spb: 'St. Petersburg'
+      - language: 'ru-RU'
+        expected-moscow: 'Москва'
+        expected-spb: 'Санкт-Петербург'
+
+source:
+    request:
+        method: get
+        headers:
+            Accept-Language#xget: /test-params/test-locale/language
+            X-Yandex-Login: 'a-andriyanov'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                tariffs:
+                  - name: 'moscow'
+                    translation#xget: /test-params/test-locale/expected-moscow
+                  - name: 'spb'
+                    translation#xget: /test-params/test-locale/expected-spb
+
+mocks:
+  - resource: individual-tariffs-tariff-zones-get
+    response:
+        status-code: 200
+        body:
+            tariffs:
+              - home_zone: 'moscow'
+              - home_zone: 'spb'
+    expectations:
+        call-count#integer: 1
+  - resource: localizations-replica-keyset-get
+    response:
+        status-code: 200
+        body:
+            keyset_name: 'geoareas'
+            keys:
+              - key_id: '__default__'
+                values:
+                  - value#object:
+                      - key: 'value'
+                        value: 'Unknown'
+                      - key: conditions
+                        value:
+                            locale:
+                                language: 'en'
+              - key_id: 'moscow'
+                values:
+                  - value#object:
+                      - key: 'value'
+                        value: 'Moscow'
+                      - key: conditions
+                        value:
+                            locale:
+                                language: 'en'
+                  - value#object:
+                      - key: 'value'
+                        value: 'Москва'
+                      - key: conditions
+                        value:
+                            locale:
+                                language: 'ru'
+              - key_id: 'spb'
+                values:
+                  - value#object:
+                      - key: 'value'
+                        value: 'St. Petersburg'
+                      - key: conditions
+                        value:
+                            locale:
+                                language: 'en'
+                  - value#object:
+                      - key: 'value'
+                        value: 'Санкт-Петербург'
+                      - key: conditions
+                        value:
+                            locale:
+                                language: 'ru'
+    expectations:
+        call-count#integer: 1
+        request:
+            query:
+                name: 'geoareas'

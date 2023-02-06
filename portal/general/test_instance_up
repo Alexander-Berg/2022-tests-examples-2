@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -x
+
+sudo mkdir -p /opt/www/bases
+sudo mkdir -p /var/run/morda-syslog/log.s
+sudo mkdir -p /var/log/nginx/
+sudo mkdir -p /var/log/www/buildfarm
+
+sudo chown www-data /var/log/nginx/ /var/log/www/buildfarm /opt/www/bases /var/run/morda-syslog/log.s
+
+sudo ./madm/scripts/get_ready
+
+#sudo service cacheup_daemon stop ||:
+#sudo service cacheup_daemon start
+sudo service cacheup_daemon restart  || sudo service cacheup_daemon start
+#sudo tools/cron-runner.pl etc/cron.export
+
+#sudo ./scripts/get_geobase
+
+sudo ./scripts/import partner_json -l -u
+sudo ./scripts/export_tv_channels_kubr.pl -l  -d -u
+sudo ./scripts/export_tv_stream_channels.pm -l  -d -u
+sudo ./scripts/export_afisha.pl -l -u
+
+# Olymp 2018 data (its not in crontab)
+#echo "olymp scripts"
+#sudo ./scripts/export_olymp_all_events.pl -l -d --dev-ok 
+#sudo ./scripts/export_olymp_current_events.pl -l -d --dev-ok -u
+#sudo ./scripts/export_olymp_medals.pl -l -d -u
+#sudo ./scripts/export_olymp_medals_our.pl -l -d -u
+###
+
+sudo service nginx restart

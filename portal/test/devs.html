@@ -1,0 +1,63 @@
+[% ttppnomin=1 %]
+[% ttppmobile=1 %] 
+[% ttppspace_in_html_tag=1 %] 
+[% space_in_html_tag=1 %]
+<head>
+    <title>Devs</title>
+    <script type="text/javascript" src="//yandex.st/jquery/2.0.3/jquery.js"></script>
+    <script src="//yandex.st/bootstrap/3.0.2/js/bootstrap.js"></script>
+    <script src="//yandex.st/json2/2011-10-19/json2.js"></script>
+    <link rel="stylesheet" href="//yandex.st/bootstrap/3.0.2/css/bootstrap.css" />
+</head>
+<body>
+
+    <div class="container">
+            <code>perl -E 'my $mr = q{/opt/www/}; opendir(my $dh, $mr); while (readdir $dh) { next if /^\./;  my $f = $mr . $_; next unless -d $f . q{/.git}; system qq{git --git-dir=$f/.git --work-tree=$f fetch --all}; }'</code>
+            <h1>Devs</h1>
+            [% FOR d IN devs %]
+            <div class="row">
+                <div id="[% d.name %]" class="col-md-1">
+                    <a href="//[% d.host_www %]" target="_blank" >[% d.name %]</a>
+                    <script>
+                        $('#[% d.name %]').tooltip({
+                            html : true,
+                            placement: 'left',
+                            title: "[% FOR s IN d.sites %]<a target='_blank' href='[% s.url %]'>[% s.name %]</a><br>[% END %]",
+                            container: "#[% d.name %]",
+                            delay: { "show": 10, "hide": 500 },
+                            animation: false,
+                        }).tooltip();
+                    </script>
+                </div>
+                <div class="col-md-2">
+                    <a href="https://staff.yandex-team.ru/[% d.user %]"><span class="glyphicon glyphicon-user"></span> [% d.user %]</a>
+                    [% d.git_age_days %]
+                </div>
+                <div class="col-md-4">
+                    [% IF d.task %]<a href="https://st.yandex-team.ru/[% d.task %]" target="_blank">ST</a>[% END %]
+                    [% IF d.branch %]<a href="https://github.yandex-team.ru/morda/main/tree/[% d.branch %]" target="_blank">[% d.branch %]</a>[% END %]
+                    [% d.status %]
+                </div>
+                <div class="col-md-5">
+                    [% IF d.commit %]<a href="https://github.yandex-team.ru/morda/main/commit/[% d.commit %]" target="_blank">[% d.describe || 'commit' %]</a>[% END %]
+                </div>
+                [% IF d.unfinished %]?[% END %]
+            </div>
+            &nbsp;&nbsp;&nbsp; 
+                [% IF d.git_st %]
+                <pre>[% d.git_st %]<span>[% d.git_st_more %]</span></pre>
+                [% END %]
+            [% END %]
+            </li>
+
+            [% IF unfinished %]
+                <div> <!-- make me red -->
+                    scan interrupted! in [% unfinished %] seconds. Retrying.
+                    <script>setTimeout(function(){ window.location.reload();}, 2000)</script>
+                </div>
+            [% END %]
+    </div>
+    <script>
+        $('[data-toggle="tooltip"]').tooltip()
+    </script>
+</body>

@@ -1,0 +1,73 @@
+default:
+    mode: disabled
+    work-interval-ms: 5000
+    chunk-size: 100
+    events:
+        merge: false
+        divide: false
+description: Настройки обработчика склейки и расклейки юников
+tags: [notfallback]
+maintainers: [yakov-l]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        mode:
+            description: Вкл/выкл обработчик событий
+            type: string
+            enum:
+              - disabled
+              - enabled
+        work-interval-ms:
+            description: Период работы обработчика событий
+            type: integer
+            x-taxi-cpp-type: std::chrono::milliseconds
+            minimum: 1
+        chunk-size:
+            description: Кол-во событий обрабатываемых за проход
+            type: integer
+            x-taxi-cpp-type: unsigned
+            minimum: 1
+        events:
+            $ref: '#/definitions/Events'
+        lb-events:
+            $ref: '#/definitions/LbEvents'
+    required:
+      - mode
+      - work-interval-ms
+      - chunk-size
+      - events
+    definitions:
+        Events:
+            type: object
+            additionalProperties: false
+            properties:
+                merge:
+                    description: Вкл/выкл склейку через обработчик
+                    type: boolean
+                divide:
+                    description: Вкл/выкл расклейку через обработчик
+                    type: boolean
+                new:
+                    description: Вкл/выкл создание через обработчик
+                    type: boolean
+            required:
+              - merge
+              - divide
+
+        LbEvents:
+            type: object
+            additionalProperties: false
+            properties:
+                merge:
+                    description: Вкл/выкл отправку событий склейки в lb
+                    type: boolean
+                divide:
+                    description: Вкл/выкл отправку событий расклейки в lb
+                    type: boolean
+                new:
+                    description: Вкл/выкл отправку событий создания в lb
+                    type: boolean
+            required:
+              - merge
+              - divide

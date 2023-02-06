@@ -1,0 +1,51 @@
+options:
+  base_url: http://nginx
+  timeout: 5
+
+tests:
+  # long notation tests for active test
+  - get_ok:
+      wait:
+        timeout: 2
+        description: Common case
+        tests:
+          - has: xpath:/html/body/div
+          - has: css:p.text
+  - get_ok:
+      wait:
+        timeout: default
+        description: Takes timeout from options.timeout
+        tests:
+          - has: xpath:/html/body/div
+          - has: css:p.text
+  - get_ok:
+      wait:
+        description: Takes timeout from options.timeout
+        tests:
+          - has: xpath:/html/body/div
+          - has: css:p.text
+  - get_ok:
+      wait:
+        description: Active subtest. Leads to error.
+        tests:
+          - get_ok: /base.html
+  - get_ok:
+      wait: 2
+      description: Such short notation is not allowed in active test
+
+  # short notation for active test
+  - get_ok:
+      wait:
+        - has:
+            xpath: /html/body/div
+            description: Take desc from the first has
+        - has: css:p.text
+
+  # notation for passive test
+  - has:
+      xpath: /html/body/div/p
+      wait: 2  # just seconds in float types
+      description: Common case
+  - has:
+      xpath: /html/body/div/p
+      description: Takes timeout from options.timeout

@@ -1,0 +1,73 @@
+id: request_success
+title: Successful response
+
+source:
+    request:
+        method: get
+        query:
+            active_at_time: '2022-01-01T03:00:00+00:00'
+    expectations:
+        response:
+            status-code: 200
+            body:
+                home_zone: 'spb'
+                activation_zone: 'spb_activation'
+                date_from: '2020-12-01T08:00:00+00:00'
+                date_to: '2021-02-01T08:00:00+00:00'
+                categories:
+                  - category_name: 'econom'
+                    category_type: 'application'
+                    time_from: '00:00'
+                    time_to: '23:59'
+                    name_key: 'interval.day'
+                    day_type: 0
+                    currency: 'RUB'
+                    minimal: 79.0
+                    add_minimal_to_paid_cancel: true
+                  - category_name: 'business'
+                    category_type: 'application'
+                    time_from: '00:00'
+                    time_to: '23:59'
+                    name_key: 'interval.day'
+                    day_type: 0
+                    currency: 'RUB'
+                    minimal: 129.0
+                    add_minimal_to_paid_cancel: true
+
+mocks:
+  - resource: individual-tariffs-v1-tariff-get
+    response:
+        status-code: 200
+        body:
+            id: 'tariff_id'
+            home_zone: 'spb'
+            activation_zone: 'spb_activation'
+            date_from: '2020-12-01T08:00:00+00:00'
+            date_to: '2021-02-01T08:00:00+00:00'
+            updated: '2021-01-01T00:00:00+00:00'
+            categories:
+              - id: 'econom_category_id'
+                category_name: 'econom'
+                category_type: 'application'
+                time_from: '00:00'
+                time_to: '23:59'
+                name_key: 'interval.day'
+                day_type: 0
+                currency: 'RUB'
+                minimal: 79.0
+                add_minimal_to_paid_cancel: true
+              - id: 'business_category_id'
+                category_name: 'business'
+                category_type: 'application'
+                time_from: '00:00'
+                time_to: '23:59'
+                name_key: 'interval.day'
+                day_type: 0
+                currency: 'RUB'
+                minimal: 129.0
+                add_minimal_to_paid_cancel: true
+    expectations:
+        call-count#integer: 1
+        request:
+            query:
+                active_at_time: '2022-01-01T03:00:00+00:00'

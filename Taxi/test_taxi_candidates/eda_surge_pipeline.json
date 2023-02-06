@@ -1,0 +1,58 @@
+{
+  "name": "calc_surge",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [],
+      "name": "fetch_settings",
+      "resources": [
+        {
+          "name": "places_settings"
+        }
+      ],
+      "source_code": "return {places_settings: {}}"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "places"
+        },
+        {
+          "domain": "resource",
+          "query": "places_settings"
+        }
+      ],
+      "name": "fetch_taxi_candidates",
+      "resources": [
+        {
+          "name": "taxi_candidates"
+        }
+      ],
+      "source_code": "let params = []; \n for (let i in places) { \n let place = places[i]; \n params.push({ place_id: place.place_id, zone_id: place.zone_id }); \n } \n return {taxi_candidates: params};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "places.*{idx:place}"
+        },
+        {
+          "domain": "resource",
+          "query": "taxi_candidates[place.place_id][place.zone_id]{candidates}"
+        }
+      ],
+      "name": "save_counters",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "places_out[idx]"
+        }
+      ],
+      "source_code": "const total = candidates.length; let busy = 0; let free = 0;  for (let i in candidates) { const candidate = candidates[i];   switch (candidate['status']) {     case 'online':       free++;       break;     case 'busy':       busy++;       break;   } } const load_level = 1 - free / total;  return { data: { place_id: place.place_id, zone_id: place.zone_id, result: { total: total, free: free, busy: busy, load_level: load_level, extra: { taxi_candidates: candidates } } } };"
+    }
+  ],
+  "state": "active"
+}

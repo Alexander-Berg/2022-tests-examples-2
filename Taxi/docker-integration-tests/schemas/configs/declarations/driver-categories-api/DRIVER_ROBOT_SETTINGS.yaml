@@ -1,0 +1,57 @@
+default:
+    driver_mode_subscription_enable: false
+    econom_limit:
+        enable: false
+        limit: 0
+    child_tarif_settings:
+        enable: false
+description: Настройки робота для управления категориями. Включение и отключение дополнительных
+    проверок при установке категорий.
+maintainers: [dkorgun, unpaleness]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - driver_mode_subscription_enable
+      - econom_limit
+      - child_tarif_settings
+    properties:
+        driver_mode_subscription_enable:
+            description: Включение проверки режима водителя перед изменением категории.
+                Не даёт менять категории в driver-fix.
+            type: boolean
+        econom_limit:
+            description: Лимиты на отключение "Эконома"
+            $ref: '#/definitions/EconomLimit'
+        child_tarif_settings:
+            description: Настройки управления детским тарифом
+            $ref: '#/definitions/ChildTarifSettings'
+
+    definitions:
+        EconomLimit:
+            type: object
+            additionalProperties: false
+            required:
+              - enable
+              - limit
+            properties:
+                enable:
+                    type: boolean
+                limit:
+                    type: integer
+                    minimum: 0
+
+        ChildTarifSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - enable
+            properties:
+                enable:
+                    type: boolean
+                classes:
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set
+                    items:
+                        type: string

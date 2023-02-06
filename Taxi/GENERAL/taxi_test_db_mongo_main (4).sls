@@ -1,0 +1,19 @@
+mongos-taxi:
+    config_path: /etc/mongos/mongos-taxi.conf
+    net:
+        bindIp: ::1,127.0.0.1
+        port: 3017
+    security:
+        keyFile: /etc/mongos/key-main
+    sharding:
+        configDB: taxi_mrs_config/taxi-mrs-vla-01.taxi.tst.yandex.net,taxi-mrs-myt-01.taxi.tst.yandex.net,taxi-mrs-sas-01.taxi.tst.yandex.net
+    systemLog:
+        path: /var/log/mongodb/mongos-taxi.log
+
+yav:
+    templates:
+        /etc/mongos/key-main:
+            mode: '0600'
+            owner: 'mongodb:root'
+            secrets: 'sec-01cs2jefs30p13yvh6rmkxz2vp->MONGO'
+            template: 'mongo-secret-key.tpl'

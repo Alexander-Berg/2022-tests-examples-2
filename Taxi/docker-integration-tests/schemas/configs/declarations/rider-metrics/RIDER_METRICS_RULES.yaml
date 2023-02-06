@@ -1,0 +1,162 @@
+default:
+    __default__: []
+description: Правила коммуникаций.
+tags:
+  - notfallback
+maintainers:
+  - taxibi
+  - zbork
+schema:
+    type: object
+    properties:
+        __default__:
+            $ref: '#/definitions/tariff_zone'
+    additionalProperties:
+        $ref: '#/definitions/tariff_zone'
+    required:
+      - __default__
+
+    definitions:
+        tariff_zone:
+            type: array
+            items:
+                $ref: '#/definitions/rule_entry'
+
+        event:
+            type: object
+            additionalProperties: false
+            properties:
+                topic:
+                    type: string
+                name:
+                    type: string
+                tags:
+                    type: string
+            required:
+              - topic
+
+        actions:
+            type: object
+            additionalProperties: false
+            properties:
+                tags:
+                    type: string
+                    minLength: 1
+                action:
+                    type: array
+                    items:
+                        oneOf:
+                          - $ref: '#/definitions/communication'
+                          - $ref: '#/definitions/tagging'
+                    minItems: 1
+                expr:
+                    type: string
+                    minLength: 1
+            required:
+              - action
+
+        communication:
+            type: object
+            additionalProperties: false
+            properties:
+                entity_type:
+                    type: string
+                    enum:
+                      - user_id
+                      - park_profile_id
+                type:
+                    type: string
+                    minLength: 1
+                campaign_id:
+                    type: string
+                timeout_ms:
+                    type: integer
+            required:
+              - campaign_id
+              - type
+
+        tagging:
+            type: object
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    minLength: 1
+                tags:
+                    type: array
+                    items:
+                        $ref: '#/definitions/tag'
+                    minItems: 1
+                merge_policy:
+                    type: string
+                    enum:
+                      - append
+                      - remove
+                entity_type:
+                    type: string
+                    enum:
+                      - user_phone_id
+                provider_id:
+                    type: string
+            required:
+              - tags
+              - type
+
+        tag:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    minLength: 1
+                ttl:
+                    type: integer
+                    minimum: 1
+            required:
+              - name
+
+        rule_entry:
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                events:
+                    type: array
+                    items:
+                        $ref: '#/definitions/event'
+                    minItems: 1
+                events_period_sec:
+                    type: integer
+                    minimum: 1
+                events_to_trigger_cnt:
+                    type: integer
+                    minimum: 1
+                disabled:
+                    type: boolean
+                tags:
+                    type: string
+                    minLength: 1
+                actions:
+                    type: array
+                    items:
+                        $ref: '#/definitions/actions'
+                    minItems: 1
+                expr:
+                    type: string
+                    minLength: 1
+            required:
+              - name
+              - events
+              - actions
+samples:
+  - "__default__": [{"actions": ["action": [{"tags": [{"name": "TwoDrivingCancelsIn10Minutes",
+                                    "ttl": 3600}], "type": "tagging"}]], "events": [
+                {"name": "user_cancel", "tags": "'event::taxi_status_driving'", "topic": "order"}],
+            "events_period_sec": 600, "events_to_trigger_cnt": 2, "name": "TwoDrivingCancelsIn10Minutes"},
+        {"actions": ["action": [{"campaign_id": "push_transporting_to_lavka_zone",
+                            "timeout_ms": 100, "type": "communications"}]], "events": [
+                {"name": "transporting", "tags": "'transporting_to_lavka_zone' OR\
+                        \ 'event::transporting_to_lavka_zone'", "topic": "order"}],
+            "name": "push_transporting_to_lavka_zone", "tags": "'rider::ya_staff_active'\
+                \ OR 'rider::crm_lavka_target_audience'"}]

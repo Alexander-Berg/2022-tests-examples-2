@@ -1,0 +1,78 @@
+clownductor_config: taxi:cctv-workers:testing
+http_hosts:
+  - cctv-workers.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http
+  - userver_common:
+        collapsed: true
+        uservice_name: cctv-workers
+  - include:
+        collapsed: false
+        path: nanny_taxi_cctv-workers/events_processing_dashboard.json
+        row_panels:
+          - 1
+          - 2
+          - 1
+        title: Detection Event Processing
+        variables:
+          - cluster: testing_uservices
+
+dashboard_update:
+    templating:
+        list:
+          - label: ident_cameras
+            name: ident_cameras
+            allValue:
+            description:
+            datasource: Solomon
+            hide: 0
+            includeAll: true
+            multi: true
+            query: "{'application'='cctv-workers', 'cluster'='testing_uservices',\
+                \ 'host'='cluster', 'project'='taxi', 'service'='uservices', 'ident_cameras'='*',\
+                \ 'sensor'='detection-events-consumer.static_index_statistics.cameras.identified'}#ident_cameras"
+            queryValue: ''
+            refresh: 1
+            regex: ".*"
+            sort: 0
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: "query"
+            current:
+                selected: true
+                text: "All"
+                value: "$__all"
+            useTags: false
+          - name: ident_aggregation_period
+            label: ident_aggregation_period
+            description: "Identification aggregation period"
+            current:
+                selected: true
+                text: 5m
+                value: 5m
+            hide: 0
+            includeAll: false
+            multi: false
+            options:
+              - selected: false
+                text: 1m
+                value: 1m
+              - selected: true
+                text: 5m
+                value: 5m
+              - selected: false
+                text: 10m
+                value: 10m
+              - selected: false
+                text: 15m
+                value: 15m
+              - selected: false
+                text: 1h
+                value: 1h
+            query: "1m, 5m, 10m, 15m, 1h"
+            queryValue: ''
+            skipUrlSync: false
+            type: custom

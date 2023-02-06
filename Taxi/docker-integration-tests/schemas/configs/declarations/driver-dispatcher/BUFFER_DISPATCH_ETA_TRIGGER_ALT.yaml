@@ -1,0 +1,42 @@
+default:
+    __default__:
+        __default__: []
+description: Альтернативное время которое заказ находится в буфере после первого розыгрыша
+    в зависимости от ETA ближайшего подходящего водителя. Включается экспериментом
+    use_alt_dispatch_configs
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: "#/definitions/EtaSettingsByClasses"
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: "#/definitions/EtaSettingsByClasses"
+    definitions:
+        EtaSettings:
+            type: array
+            items:
+                type: object
+                additionalProperties: false
+                required:
+                  - ETA
+                  - TIME_IN_BUFFER
+                properties:
+                    ETA:
+                        type: number
+                        minimum: 0
+                    TIME_IN_BUFFER:
+                        type: integer
+                        minimum: 0
+                        x-taxi-cpp-type: std::chrono::seconds
+        EtaSettingsByClasses:
+            type: object
+            additionalProperties:
+                $ref: "#/definitions/EtaSettings"
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: "#/definitions/EtaSettings"

@@ -1,0 +1,121 @@
+openapi: 3.0.1
+
+info:
+  version: '1.0'
+  title: 'Интерфейс смен для ПРО'
+servers:
+  - url: http://api.lavka.yandex.net
+    description: Боевой сервер
+  - url: http://lavka-api-proxy.lavka.tst.yandex.net
+    description: Тестовый сервер
+
+x-taxi-client-qos:
+  taxi-config: GROCERY_WMS_CLIENT_QOS
+
+x-stall-prepare:
+  - append:
+      path: servers.*.url
+      args: [/api/external/pro]
+  - lreplace_keys:
+      path: paths.*
+      args: ['/api/external/pro/v1', '']
+
+paths:
+  "/courier-shifts/{courier_shift_id}":
+    get:
+      summary: Информация о конкретной смене
+      operationId: "api_external_pro_courier_shifts_load"
+      x-stall-tvm_or_token:
+        tokens: web.external.tokens
+        tvm: tvm
+      x-stall-over:
+        - courier_pro: stall.over.courier_pro
+      parameters:
+        - in: path
+          name: courier_shift_id
+          description: Идентификатор смены
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Успешный ответ с информацией по смене
+        "400":
+          description: Неуспешный ответ
+        "401":
+          description: Неуспешный ответ, ошибка авторизации
+
+  /courier-shifts/{courier_shift_id}/start:
+    post:
+      summary: Начало смены
+      operationId: "api_external_pro_courier_shifts_start"
+      x-stall-tvm_or_token:
+        tokens: web.external.tokens
+        tvm: tvm
+      x-stall-over:
+        - courier_pro: stall.over.courier_pro
+      parameters:
+        - in: header
+          name: X-App-Version
+          description: Версия приложения
+          schema:
+            $ref: "#/components/schemas/AppVersion"
+        - in: path
+          name: courier_shift_id
+          description: Идентификатор смены
+          required: true
+          schema:
+            type: string
+
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Пустой ответ
+        "400":
+          description: Неуспешный ответ
+        "401":
+          description: Неуспешный ответ, ошибка авторизации
+
+  "/courier-shifts/{param1}/pause/{param2}":
+    post:
+      summary: Постановка смены на паузу
+      operationId: "api_external_pro_courier_shifts_pause"
+      x-stall-tvm_or_token:
+        tokens: web.external.tokens
+        tvm: tvm
+      x-stall-over:
+        - courier_pro: stall.over.courier_pro
+      parameters:
+        - in: path
+          name: courier_shift_id
+          description: Идентификатор смены
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ответ с продолжительностью паузы
+        "204":
+          description: Пустой ответ
+        "400":
+          description: Неуспешный ответ
+        "401":
+          description: Неуспешный ответ, ошибка авторизации
+
+  /some-url:
+    post:
+      summary: Еще один URl
+      responses:
+        "200":
+          description: Успех
+        "204":
+          description: Пустой ответ
+        "400":
+          description: Неуспешный ответ
+        "401":
+          description: Неуспешный ответ, ошибка авторизации

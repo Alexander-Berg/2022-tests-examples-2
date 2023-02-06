@@ -1,0 +1,130 @@
+labels:
+  deploy_engine: env_controller
+meta:
+  account_id: abc:service:3283
+  acl:
+  - action: allow
+    permissions:
+    - read
+    - read_secrets
+    - write
+    - create
+    - ssh_access
+    - root_ssh_access
+    subjects:
+    - robot-drug-deploy
+  effective_account_id: null
+  fqid: null
+  id: taxi_coturn_testing
+  inherit_acl: true
+  project_id: coturn
+spec:
+  deploy_units:
+    coturn:
+      endpoint_sets:
+      - port: 3478
+      images_for_boxes:
+        coturn:
+          name: taxi/coturn/testing
+          registry_host: registry.yandex.net
+          tag: 0.0.20210311135355
+      multi_cluster_replica_set:
+        replica_set:
+          clusters:
+          - cluster: sas
+            spec:
+              replica_count: 1
+          - cluster: vla
+            spec:
+              replica_count: 1
+          deployment_strategy:
+            max_unavailable: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+              - id: disk-0
+                labels:
+                  used_by_infra: true
+                quota_policy:
+                  bandwidth_guarantee: 2097152
+                  bandwidth_limit: 4194304
+                  capacity: 10737418240
+                storage_class: hdd
+              ip6_address_requests:
+              - enable_dns: true
+                network_id: _TAXI_COTURN_NETS_
+                vlan_id: backbone
+                ip4_address_pool_id: "1224:1315"
+                virtual_service_ids:
+                - stun.taxi.tst.yandex.net
+              - enable_dns: true
+                network_id: _TAXI_COTURN_NETS_
+                vlan_id: fastbone
+              pod_agent_payload:
+                spec:
+                  boxes:
+                  - id: coturn
+                    env:
+                    - name: POSTGRES_TAXI_COTURN
+                      value:
+                        secret_env:
+                          alias: sec-01ezw6wvvcx1wg2g1jkxw3fqjz:ver-01ezwd5d4qwnfw9dabhb87dx2q
+                          id: connstring_rw
+                  mutable_workloads:
+                  - workload_ref: coturn
+                  - workload_ref: cron
+                  - workload_ref: rsyslogd
+                  workloads:
+                  - box_ref: coturn
+                    id: coturn
+                    liveness_check:
+                      container:
+                        command_line: /usr/bin/coturn_tool.py --check
+                        time_limit:
+                          initial_delay_ms: 10000
+                          min_restart_period_ms: 5000
+                          max_restart_period_ms: 5000
+                          max_execution_time_ms: 10000
+                    start:
+                      command_line: /usr/bin/start_coturn.sh
+                    transmit_logs: true
+                  - box_ref: coturn
+                    id: cron
+                    liveness_check:
+                      container:
+                        command_line: pgrep -F /var/run/crond.pid
+                        time_limit:
+                          initial_delay_ms: 10000
+                          min_restart_period_ms: 5000
+                          max_restart_period_ms: 5000
+                          max_execution_time_ms: 10000
+                    start:
+                      command_line: /usr/bin/start_cron.sh
+                    transmit_logs: true
+                  - box_ref: coturn
+                    id: rsyslogd
+                    liveness_check:
+                      container:
+                        command_line: pgrep -F /var/run/rsyslogd.pid
+                        time_limit:
+                          initial_delay_ms: 10000
+                          min_restart_period_ms: 5000
+                          max_restart_period_ms: 5000
+                          max_execution_time_ms: 10000
+                    start:
+                      command_line: /usr/bin/start_rsyslogd.sh
+                    transmit_logs: true
+              resource_requests:
+                memory_guarantee: 4294967296
+                memory_limit: 4294967296
+                network_bandwidth_guarantee: 31457280
+                network_bandwidth_limit: 31457280
+                vcpu_guarantee: 1000
+                vcpu_limit: 1000
+              secrets:
+                sec-01ezw6wvvcx1wg2g1jkxw3fqjz:ver-01ezwd5d4qwnfw9dabhb87dx2q:
+                  delegation_token: will be generated on fly by dctl
+                  secret_id: sec-01ezw6wvvcx1wg2g1jkxw3fqjz
+                  secret_version: ver-01ezwd5d4qwnfw9dabhb87dx2q
+      network_defaults:
+        network_id: _TAXI_COTURN_NETS_

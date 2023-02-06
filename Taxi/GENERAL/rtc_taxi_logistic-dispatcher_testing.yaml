@@ -1,0 +1,113 @@
+---
+- service: ld_excess_eats_pending_tasks_count_testing
+  description: |-
+    Алерт на количество задач Еды в очереди.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: max(data) >= 5
+  period: 120
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      sensor='p2p_allocation_robot.soon-tasks', host='*',
+      application='logistic-dispatcher', employer='eats',
+      group='taxi_logistic-dispatcher_testing'
+    });
+  groupByLabels:
+  - host
+- service: ld_excess_planner_duration_testing
+  description: |-
+    Алерт на длительность работы планировщика.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: max(data) >= 30000
+  period: 120
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      sensor='p2p_allocation_robot.durations.full',
+      application='logistic-dispatcher', host='*',
+      group='taxi_logistic-dispatcher_testing'
+    });
+  groupByLabels:
+  - host
+- service: ld_rt_robots_failures_testing
+  description: |-
+    Алерт на падения RT-роботов.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: sum(data) >= 0.3
+  period: 300
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      code='fail', sensor='*',
+      application='logistic-dispatcher', host='*',
+      group='taxi_logistic-dispatcher_testing'
+    });
+  groupByLabels:
+  - host
+- service: ld_many_eats_proposition_removals_testing
+  description: |-
+    Алерт на случай большого количества удалений пропозишенов Еды.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: sum(data) >= 0.7
+  period: 600
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      sensor='removed-propositions.eats',
+      application='logistic-dispatcher', host='*',
+      group='taxi_logistic-dispatcher_testing'
+    });
+  groupByLabels:
+  - host
+- service: ld_zero_default_threads_testing
+  description: |-
+    Кончились потоки в default-пуле обработчиков http-запросов.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: min(data) == 0
+  period: 60
+  program: |
+    let data = series_min({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      sensor='threads-count', kind='free', host='*',
+      application='logistic-dispatcher', pool='default',
+      group='taxi_logistic-dispatcher_testing'
+    });
+  groupByLabels:
+  - host
+- service: ld_uncleaned_contractor_profiles_testing
+  description: |-
+    Частые профили курьеров без экшенов.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: sum(data) >= 5
+  period: 120
+  program: |
+    let data = series_sum({
+      cluster='testing_logistics', project='taxi', service='logistics',
+      host='*', metric='inconsistency_profile_with_actions',
+      application='logistic-dispatcher', sensor='fetching.new_contractors',
+      group='taxi_logistic-dispatcher_testing'
+    });
+  groupByLabels:
+  - host
+- service: ld_employer_parsing_error_testing
+  description: |-
+    Не парсится employer.
+    В случае проблем обращаться к ответственным за сервис logistic-dispatcher
+  alert_type: expression
+  checkExpression: max(data) > 0
+  period: 120
+  program: |
+    let data = series_max({
+      cluster='testing_logistics', service='logistics', host='cluster',
+      sensor='fetching.current', application='logistic-dispatcher',
+      group='taxi_logistic-dispatcher_*stable', project='taxi',
+      code='transfers.employers.factors.count'
+    });
+  groupByLabels:
+  - host

@@ -1,0 +1,42 @@
+clownductor_config: taxi:taxi-billing-orders:testing
+http_hosts:
+  - billing-orders.taxi.tst.yandex.net
+awacs_namespace: taxi-billing-orders.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http_basic
+  - http:
+      methods:
+      - id: ping_GET
+        title: /ping
+      - id: v1_process_event
+        title: /v1/process_event
+      - id: v1_antifraud
+        title: /v1/antifraud
+      - id: v1_rebill_order
+        title: /v1/rebill_order
+      - id: v2_process_async
+        title: /v2/process/async
+      - id: v1_execute
+        title: /v1/execute
+      - id: v2_execute
+        title: /v2/execute
+      - id: v1_upload_csv
+        title: /v1/upload/csv/
+      - id: v1_manual_transactions_list
+        title: /v1/manual_transactions/list/
+      - id: v1_manual_transactions_check
+        title: /v1/manual_transactions/check/
+      - id: v1_manual_transactions_create
+        title: /v1/manual_transactions/create/
+  - stq:
+      collapsed: true
+      queues:
+      - process_order_events
+  - statistics_rps_limiter:
+        collapsed: true
+        service_name: rate-limiter-proxy
+        limiter_name: billing_orders-nginx-rate-limiter
+        panel_name: Nginx RPS limiter
+        version: 2

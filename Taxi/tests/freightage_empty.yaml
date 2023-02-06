@@ -1,0 +1,57 @@
+id: freightage_empty
+title: Проверка отсутствия поля freightage при ошибка eulas, отключении эксперимента
+    итд
+
+parameters:
+  - exp:
+      - enabled: true
+      - enabled: false
+  - eulas_response:
+      - status_code: 400
+      - status_code: 500
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+    TOTW_USE_ROUTE_RESPONDER_ETA: false
+
+experiments:
+    values#object:
+      - key: totw_freightage
+        value:
+            enabled#xget: /test-params/exp/enabled
+        enabled: true
+
+source:
+    request:
+        method: post
+        body:
+            id: test_user_id
+            orderid: test_order_id
+    expectations:
+        response:
+            status-code: 200
+            body:
+                additional_buttons: {}
+                feedback: {}
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            status: driving
+            private_data:
+                driver_id: test_driver_id
+  - resource: eulas-internal-v1-freightage
+    response:
+        status-code#xget: /test-params/eulas_response/status_code
+        body: {}
+    expectations:
+        request:
+            method: post
+            body:
+                order_id: test_order_id

@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+    description: Yandex Taxi fts-client-testsuite Service
+    title: Yandex Taxi fts-client-testsuite Service
+    version: '1.0'
+
+# Not used in codegen
+servers:
+  - url: fts-client-testsuite.taxi.yandex.net
+    description: production
+
+x-taxi-middlewares:
+    tvm: true
+
+
+x-taxi-client-qos:
+    taxi-config: YANDEX_FTS_CLIENT_QOS
+
+# TODO: describe your handlers here
+#       you may split handlers to multiple docs/yaml/api/*.yaml files
+#       and store common types in docs/yaml/definitions.yaml
+#
+#       Codegen docs:
+#           https://wiki.yandex-team.ru/taxi/backend/userver/codegen/handlers/
+#           https://wiki.yandex-team.ru/taxi/backend/userver/codegen/types/
+#       API guide:
+#           https://wiki.yandex-team.ru/taxi/backend/Taxi-API-Guide/
+paths:
+    /launch/test/{test_name}:
+        get:
+            description: Launch test by name and return 200 if ok, 500 if not ok
+            parameters:
+              - in: path
+                name: test_name
+                description: Test name
+                required: true
+                schema:
+                    type: string
+                    enum:
+                      - send_positions_1
+
+            responses:
+                '200':
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    message:
+                                        type: string
+                '500':
+                    description: Ill-formed request
+
+components: {}

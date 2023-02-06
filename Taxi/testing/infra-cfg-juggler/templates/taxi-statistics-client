@@ -1,0 +1,41 @@
+---
+services:
+    # Ожидаемые причины срабатывания -
+    # сценарий 1.) Кто-то не сделал дырки или не завел TVM правила - единичный сервис. Вряд ли такое будет стрелять ночью.
+    # сценарий 2.) проблемы у сервиса. Тогда нужно включить override для сбойного сервиса.
+    # сценарий 3.) проблемы у сервиса статистки - массовый отказ. Обращаться к сервису статистики:
+    # - https://staff.yandex-team.ru/vicstepanov
+    # - https://staff.yandex-team.ru/lol4t0
+    # - https://staff.yandex-team.ru/departments/yandex_distproducts_browserdev_mobile_taxi_9720_dep95813
+
+- service: statistics-client-send-metrics-error
+  methods: phone_escalation
+  ignore_nodata: 1
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 0%
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 51%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 51%
+- service: statistics-client-get-fallbacks-error
+  ignore_nodata: 1
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 0%
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 51%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 51%

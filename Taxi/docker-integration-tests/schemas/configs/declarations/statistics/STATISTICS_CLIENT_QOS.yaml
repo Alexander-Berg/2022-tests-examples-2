@@ -1,0 +1,39 @@
+description: Settings for api-cache client
+default:
+    __default__:
+        attempts: 3
+        timeout-ms: 100
+    /v1/rps-quotas:
+        attempts: 1
+        timeout-ms: 50
+    /v1/metrics/store:
+        attempts: 1
+        timeout-ms: 100
+tags: [notfallback]
+maintainers: [alexey-ivanov, lol4t0]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/QosInfo'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/QosInfo'
+        /v1/rps-quotas:
+            $ref: '#/definitions/QosInfo'
+    definitions:
+        QosInfo:
+            type: object
+            properties:
+                attempts:
+                    type: integer
+                    default: 3
+                    minimum: 1
+                timeout-ms:
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+            additionalProperties: false
+            required:
+              - timeout-ms

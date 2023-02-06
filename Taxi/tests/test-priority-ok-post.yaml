@@ -1,0 +1,53 @@
+id: test-priority-ok-post
+title: Тест для ручки driver-v1-partner-priority (POST)
+source:
+    request:
+        method: post
+        headers:
+            X-Request-Application-Version#string: '10.10'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+        body:
+            position: [12.34, 56.7]
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payload:
+                    priority:
+                        stable: 5
+                        temporary: 2
+                        possible: 23
+                version: 'event_1'
+            headers: {}
+
+mocks:
+  - resource: driver-priority-v1-priority-value-post
+    response:
+        status-code: 200
+        body:
+            priority:
+                stable: 5
+                temporary: 2
+                possible: 23
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Request-Application-Version#string: '10.10'
+                X-YaTaxi-Park-Id: 'dbid'
+                X-YaTaxi-Driver-Profile-Id: 'uuid'
+            body:
+                position: [12.34, 56.7]
+  - resource: client-events-push
+    expectations:
+        call-count: 1
+        request:
+            body:
+                service: 'yandex.pro'
+                event: 'priority-change'
+                channel: 'contractor:dbid_uuid'
+    response:
+        status-code: 200
+        body:
+            version: 'event_1'

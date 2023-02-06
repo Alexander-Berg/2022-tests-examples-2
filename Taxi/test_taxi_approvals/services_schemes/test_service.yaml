@@ -1,0 +1,418 @@
+entity: some_entity
+hosts:
+    unstable: http://unstable-host
+    testing: http://testing-host
+    production: http://production-host
+rules:
+  - api_path: test_api
+    check_data_route:
+        url: check/route/test_api
+    apply_route:
+        url: apply/route/test_api
+    apply_audit_action_id: test_apply_audit_action_id
+    object_id_retrieve_settings:
+        storage: request
+        path: test_key
+    custom_change_doc_id: true
+    use_ticket_message: true
+    reapply_allowed_for_failed: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+                  - all_of_permissions:
+                      - permission_type: dynamic_permission_rule
+                        name: put_test_service_/drafts/\d+/approval/
+            group_name: test_name
+            is_audit_group: true
+            audit_self_approval:
+                key_path: test_key
+                allowed:
+                  - allowed_value
+    custom_filters:
+      - path: project_id
+        type: integer
+      - path: name
+        type: string
+      - path: branches.0.branch_id
+        type: integer
+  - api_path: test_api2
+    check_data_route:
+        url: check/route
+    apply_route:
+        url: apply/route
+    apply_audit_action_id: test_apply_audit_action_id
+    object_id_retrieve_settings:
+        storage: request
+        path: test_key
+    use_ticket_message: true
+    approvements_groups:
+        unstable:
+          - approvals_number: 1
+            common_self_approval: true
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        testing:
+          - approvals_number: 1
+            common_self_approval:
+                key_path: test.field
+                allowed:
+                  - test
+                  - test1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        production:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        unittests:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+  - api_path: test/api/new
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            group_name: test_name
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: dynamic_permission_rule
+                        name: put_test_service_/drafts/\d+/approval/
+  - api_path: test/api/new2
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+                  - all_of_permissions:
+                      - permission_type: dynamic_permission_rule
+                        name: put_test_service_/drafts/\d+/approval/
+            group_name: test_name
+  - api_path: test_api_route_options
+    check_data_route:
+        url: check/route
+        method: get
+    apply_route: apply/route
+    route_proxy_options:
+        method: get
+        headers:
+          - X-Test-Header
+    use_ticket_message: true
+    approvements_groups:
+        unstable:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        testing:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        production:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        unittests:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+  - api_path: test_route_several_groups
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    approvements_groups:
+        unstable:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        testing:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        production:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_permission
+            group_name: test_name
+        unittests:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            disable_approval:
+                key_path: managers
+                allowed:
+                  - true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            is_default_group: true
+            disable_approval:
+                key_path: developers
+                allowed:
+                  - true
+  - api_path: test_route_no_default_allowed
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            disable_approval:
+                key_path: developers
+                allowed:
+                  - true
+  - api_path: test_route_no_default_forbidden
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            disable_approval:
+                key_path: developers
+                forbidden:
+                  - true
+  - api_path: test_route_audit_as_default
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            disable_approval:
+                key_path: developers
+                allowed:
+                  - true
+  - api_path: test_route_all_audit
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            is_audit_group: true
+  - api_path: test_draft_get_types
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    entity: another_entity
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            is_audit_group: true
+  - api_path: test_draft_get_types_no_entity
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message: true
+    custom_change_doc_id: true
+    zone_filter: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            is_audit_group: true
+  - api_path: test_draft_summon_managers
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message:
+        enable_manager_summon: true
+    custom_change_doc_id: true
+    zone_filter: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            is_audit_group: true
+  - api_path: test_draft_not_summon_managers
+    check_data_route:
+        url: check/route
+    apply_route: apply/route
+    use_ticket_message:
+        enable_manager_summon: false
+    custom_change_doc_id: true
+    zone_filter: true
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            is_audit_group: true
+

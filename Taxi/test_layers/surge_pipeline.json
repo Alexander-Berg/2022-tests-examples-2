@@ -1,0 +1,88 @@
+{
+  "consumer": "taxi-surge",
+  "name": "default",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories"
+        },
+        {
+          "domain": "input",
+          "query": "request.point_a"
+        },
+        {
+          "domain": "input",
+          "query": "request.tariff_zone"
+        },
+        {
+          "domain": "input",
+          "query": "layer_meta"
+        }
+      ],
+      "name": "fetch_drivers_info",
+      "optional": false,
+      "resources": [
+        {
+          "field": "drivers_info",
+          "name": "count_by_categories"
+        }
+      ],
+      "source_code": "let request = {\n        allowed_classes: required_categories,\n        limit: 400,\n        max_distance: 2500,\n        point: point_a,\n    };\n\n    if (tariff_zone) {\n        request.zone_id = tariff_zone;\n    }\n\n    return {\n        drivers_info: {\n            layer_meta: layer_meta,\n            request: request,\n        }\n    };\n"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories"
+        },
+        {
+          "domain": "input",
+          "query": "request.point_a"
+        },
+        {
+          "domain": "resource",
+          "query": "drivers_info.radius"
+        },
+        {
+          "domain": "input",
+          "query": "layer_meta"
+        }
+      ],
+      "name": "fetch_pins_info",
+      "optional": false,
+      "resources": [
+        {
+          "field": "pins_info",
+          "name": "pin_stats"
+        }
+      ],
+      "source_code": "return {\n        pins_info: {\n            layer_meta: layer_meta,\n            request: {\n                categories: required_categories, point: point_a,\n                radius: radius,\n            }\n        }\n    };\n"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:category}"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.experiment.rules[category]{rules}"
+        }
+      ],
+      "name": "main",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[category]"
+        }
+      ],
+      "source_code": "return {data: {name: category, value_raw: 1.0, surge: {value: rules && rules.surge_value ? rules.surge_value : 1.0}}};"
+    }
+  ],
+  "state": "active"
+}

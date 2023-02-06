@@ -1,0 +1,98 @@
+id: 500_passenger_feedback
+title: Внутренняя ошибка в passenger-feedback
+source:
+    request:
+        method: post
+        body:
+            id: some_user_id
+            orderid: some_order_id
+            rating: 5
+            msg: 'some_msg'
+            tips:
+                type: flat
+                decimal_value#string: 50
+            call_me: true
+            app_comment: true
+            choices:
+                low_rating_reason: [foo, bar]
+                cancelled_reason: [foo, bar]
+                rating_reason: [foo, bar]
+            created_time: 2020-12-14T13:24:59.799127484+0000
+    expectations:
+        response:
+            status-code: 500
+
+taxi_config:
+    FEEDBACK_SAVE_WITH_API_PROXY: true
+
+mocks:
+  - resource: order-v1-tc-order-fields
+    expectations:
+        request:
+            body:
+                order_id: some_order_id
+                fields:
+                  - order.created
+                  - order.nz
+                  - order.performer.driver_license_personal_id
+                  - order.performer.tariff.currency
+                  - order.personal_phone_id
+                  - order.status
+                  - order.taxi_status
+                  - order.user_phone_id
+                  - reorder.id
+    response:
+        status-code: 200
+        body:
+            fields:
+                order:
+                    created: some_created_dt
+                    nz: moscow
+                    performer:
+                        driver_license_personal_id: qwerty123456
+                        tariff:
+                            currency: RUB
+                    status: finished
+                    taxi_status: complete
+                    user_phone_id: some_phone_id
+                    personal_phone_id: p_some_phone_id
+                reorder:
+                    id: some_reorder_id
+
+  - resource: passenger-feedback-v2-feedback
+    expectations:
+        request:
+            body:
+                id: some_user_id
+                order_id: some_order_id
+                rating: 5
+                msg: some_msg
+                call_me: true
+                app_comment: true
+                created_time: 2020-12-14T13:24:59.799127484+0000
+                choices:
+                    low_rating_reason: [foo, bar]
+                    cancelled_reason: [foo, bar]
+                    rating_reason: [foo, bar]
+                phone_id: some_phone_id
+                personal_phone_id: p_some_phone_id
+                reorder_id: some_reorder_id
+                order_zone: moscow
+                order_created_time: some_created_dt
+                order_status: finished
+                order_taxi_status: complete
+                driver_license_pd_id: qwerty123456
+    response:
+        status-code: 500
+
+  - resource: tips-v1-update-tips
+    expectations:
+        request:
+            body:
+                order_id: some_order_id
+                order_is_finished: true
+                tips_type: flat
+                tips_value#string: 50
+                currency: RUB
+    response:
+        status-code: 200

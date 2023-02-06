@@ -1,0 +1,36 @@
+id: client-notify-subscribe-get-selfreg-404
+title: Тест для проверки driver-v1-partner-v1-subscribe (GET) selfreg 404
+source:
+    request:
+        method: get
+        headers:
+            Content-Type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+        query:
+            service: 'taximeter'
+            device_id: '95FC5D7F-26F2'
+            selfreg_token: 'selfreg_token'
+    expectations:
+        response:
+            status-code#integer: 401
+            body:
+                error:
+                    text: 'Unauthorized'
+
+mocks:
+  - resource: selfreg-v1-validate
+    response:
+        status-code: 404
+
+    expectations:
+        request:
+            query:
+                token: 'selfreg_token'
+        call-count: 1
+
+  - resource: client-notify-v1-get-token
+    expectations:
+        call-count: 0
+
+taxi_config:
+    COMMUNICATIONS_TAXIMETER_DEFAULT_APPNAME: 'ru.yandex.unstable.taximeter'

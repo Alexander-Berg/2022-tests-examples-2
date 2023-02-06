@@ -1,0 +1,2 @@
+kernel-modules-all:
+  - overlay

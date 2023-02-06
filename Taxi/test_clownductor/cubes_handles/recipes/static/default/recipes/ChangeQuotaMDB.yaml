@@ -1,0 +1,195 @@
+data:
+    name: ChangeQuotaMDB
+    provider_name: clownductor
+    job_vars:
+      - service_id
+      - db_type
+      - service_abc_old
+      - service_abc_new
+      - st_ticket
+      - project_id
+      - user
+      - end_comment_description
+      - abc_move_role_ids
+    stages:
+      - name: InternalGetLock
+        provider_name: clownductor
+        input:
+            lock_name: service_abc_old
+
+      - name: InternalGetLock
+        provider_name: clownductor
+        input:
+            lock_name: service_abc_new
+
+      - name: AbcGetMembers
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+            role_ids: abc_move_role_ids
+        output:
+            old_members: members
+
+      - name: AbcGetDepartments
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+            role_ids: abc_move_role_ids
+        output:
+            old_departments: departments
+
+      - name: AbcPrepareMembersToAdd
+        provider_name: clownductor
+        input:
+            members: old_members
+            ignore_with_departments: true
+        output:
+            members_to_add: members
+
+      - name: AbcPrepareDepartmentsToAdd
+        provider_name: clownductor
+        input:
+            departments: old_departments
+        output:
+            departments_to_add: departments
+
+      - name: AbcAddMembers
+        provider_name: clownductor
+        input:
+            slug: service_abc_new
+            members: members_to_add
+
+      - name: AbcAddDepartments
+        provider_name: clownductor
+        input:
+            slug: service_abc_new
+            departments: departments_to_add
+
+      - name: MDBGetCloud
+        provider_name: clownductor
+        input:
+            service_abc: service_abc_new
+        output:
+            new_cloud_id: cloud_id
+
+      - name: MDBGetFolder
+        provider_name: clownductor
+        input:
+            cloud_id: new_cloud_id
+        output:
+            new_folder_id: folder_id
+
+      - name: DispenserGetQuotas
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+        output:
+            old_ssd_quota: ssd_quota
+            old_cpu_quota: cpu_quota
+            old_ram_quota: ram_quota
+
+      - name: DispenserGetQuotas
+        provider_name: clownductor
+        input:
+            slug: service_abc_new
+        output:
+            new_ssd_quota: ssd_quota
+            new_cpu_quota: cpu_quota
+            new_ram_quota: ram_quota
+
+      - name: DispenserSumQuotas
+        provider_name: clownductor
+        input:
+            first_cpu_quota: old_cpu_quota
+            first_ram_quota: old_ram_quota
+            first_ssd_quota: old_ssd_quota
+            second_cpu_quota: new_cpu_quota
+            second_ram_quota: new_ram_quota
+            second_ssd_quota: new_ssd_quota
+        output:
+            ssd_quota: ssd_quota
+            cpu_quota: cpu_quota
+            ram_quota: ram_quota
+
+      - name: DispenserCubeSetRAMQuota
+        provider_name: clownductor
+        input:
+            slug: service_abc_new
+            use_raw_ram: true
+            raw_ram: ram_quota
+
+      - name: DispenserCubeSetCPUQuota
+        provider_name: clownductor
+        input:
+            slug: service_abc_new
+            use_raw_cpu: true
+            raw_cpu: cpu_quota
+
+      - name: DispenserCubeSetSSDQuota
+        provider_name: clownductor
+        input:
+            slug: service_abc_new
+            use_raw_disk_size: true
+            raw_disk_size: ssd_quota
+
+      - name: MDBStartChangeQuotaBranches
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            db_type: db_type
+            destination_folder_id: new_folder_id
+            user: user
+        output:
+            job_ids: job_ids
+
+      - name: MetaCubeWaitForJobs
+        provider_name: clownductor
+        input:
+            job_ids: job_ids
+            project_id: project_id
+            service_id: service_id
+            new_service_ticket: st_ticket
+
+      - name: DispenserCubeSetRAMQuota
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+            use_raw_ram: true
+            raw_ram: 0
+
+      - name: DispenserCubeSetCPUQuota
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+            use_raw_cpu: true
+            raw_cpu: 0
+
+      - name: DispenserCubeSetSSDQuota
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+            use_raw_disk_size: true
+            raw_disk_size: 0
+
+      - name: InternalCubeUpdateService
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            direct_link: new_folder_id
+            service_abc_service: service_abc_new
+
+      - name: AbcCubeEditService
+        provider_name: clownductor
+        input:
+            slug: service_abc_old
+            description: end_comment_description
+
+      - name: InternalReleaseLock
+        provider_name: clownductor
+        input:
+            lock_name: service_abc_old
+
+      - name: InternalReleaseLock
+        provider_name: clownductor
+        input:
+            lock_name: service_abc_new

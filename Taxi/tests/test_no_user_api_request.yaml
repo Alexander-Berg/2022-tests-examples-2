@@ -1,0 +1,178 @@
+id: test_no_user_api_request
+title: Данные о пользователе приходят в заголовках, user-api не вызывается
+
+taxi_config:
+    BILLING_SERVICE_NAME_MAP_BY_BRAND:
+        yataxi: "card"
+    APPLICATION_TO_CORP_SOURCE_MAP:
+        alice_app: "call_center"
+    PAYMENTMETHODS_INT_API_APPLEPAY_PARAMETERS_ENABLED: true
+    PAYMENTMETHODS_IPHONE_MERCHANT_LIST: ["MERCHANT_ID"]
+    INTEGRATION_API_PAYMENTMETHODS_FILTERED_CARDS_FOR_SOURCE_IDS: ["alice"]
+    INTEGRATION_API_PAYMENTMETHODS_FILTERED_CARDS_FOR_BRAND: []
+    INTEGRATION_API_PAYMENTMETHODS_SHOW_CARDS_FOR_SOURCE_IDS: ["alice"]
+    INTEGRATION_API_PAYMENTMETHODS_SHOW_CARDS_FOR_BRAND: []
+    CARD_SYSTEMS_MAPPING_V2:
+        CARD_SYSTEM:
+            human_readable: "CARD_SYSTEM_HUMAN_READABLE"
+
+mocks:
+  - resource: user-users-get
+    response:
+        status-code: 500
+        body:
+    expectations:
+        call-count: 0
+  - resource: user-api-v2-user_phones-get
+    response:
+        status-code: 200
+        body:
+            last_payment_method:
+                type: "LPM_TYPE"
+                id: "LPM_ID"
+    expectations:
+        call-count: 1
+  - resource: card-filter-v1-filteredcards-legacy
+    response:
+        status-code: 200
+        body:
+            available_cards#array:
+              - value#object:
+                  - system: "CARD_SYSTEM"
+                  - number: "CARD_NUMBER"
+                  - id: "CARD_ID"
+    expectations:
+        call-count: 1
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+    expectations:
+        call-count: 0
+  - resource: payment-methods-v1-integration-availability
+    response:
+        status-code: 200
+        body:
+            localized_cash_label: "LOCALIZED_CASH_LABEL"
+            availability_map:
+                cash:
+                    in_category: true
+                    in_zone: true
+                corp:
+                    in_category: true
+                    in_zone: true
+                card:
+                    in_category: true
+                    in_zone: true
+    expectations:
+        call-count: 1
+  - resource: corp-v1-corp_paymentmethods
+    response:
+        status-code: 200
+        body:
+            methods#array:
+              - value#object:
+                  - type: "CORP_TYPE"
+                  - id: "CORP_ID"
+                  - label: "CORP_LABEL"
+                  - description: "CORP_DESCRIPTION"
+                  - cost_center: "CORP_COST_CENTER"
+                  - cost_centers#object:
+                      - required: true
+                      - format: mixed
+                      - values#array:
+                          - "командировка"
+                          - "в центральный офис"
+                  - cost_center_fields#array:
+                      - value#object:
+                          - id: "COST_CENTER_FIELDS_ID"
+                          - title: "COST_CENTER_FIELDS_TITLE"
+                          - required: true
+                          - format: mixed
+                          - values:
+                              - "командировка"
+                              - "в центральный офис"
+                          - services:
+                              - taxi
+                              - drive
+                          - order_flows:
+                              - taxi
+                  - hide_user_cost: false
+                  - can_order: true
+                  - order_disable_reason: "CORP_ORDER_DISABLE_REASON"
+                  - zone_available: true
+                  - zone_disable_reason: "CORP_ZONE_DISABLE_REASON"
+    expectations:
+        call-count: 1
+
+source:
+    request:
+        method: post
+        body:
+            point: [37.62, 55.75]
+            sourceid: "alice"
+            user_id: "USER_ID"
+        headers:
+            X-Yandex-UID: YANDEX_UID
+            X-YaTaxi-PhoneId: PHONE_ID
+            X-Request-Application: "app_name=alice_app,app_brand=yataxi,app_ver1=1,app_ver2=1,app_ver3=0"
+            User-Agent: "ru.yandex.taxi.inhouse/550.12.0.68861 (iPhone; iPhone10,6;\
+                \ iOS 13.6.1; Darwin)"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                default_payment_method_id: "cash"
+                last_payment_method:
+                    type: "LPM_TYPE"
+                    id: "LPM_ID"
+                merchant_ids#array:
+                  - value#string: "MERCHANT_ID"
+                methods#array:
+                  - value#object:
+                      - zone_available: true
+                      - can_order: true
+                      - hide_user_cost: false
+                      - label: "LOCALIZED_CASH_LABEL"
+                      - type: "cash"
+                      - id: "cash"
+                  - value#object:
+                      - can_order: true
+                      - cost_center: "CORP_COST_CENTER"
+                      - cost_centers#object:
+                          - required: true
+                          - format: mixed
+                          - items#array:
+                              - name: "командировка"
+                              - name: "в центральный офис"
+                      - cost_center_fields#array:
+                          - value#object:
+                              - id: "COST_CENTER_FIELDS_ID"
+                              - title: "COST_CENTER_FIELDS_TITLE"
+                              - required: true
+                              - format: mixed
+                              - items:
+                                  - name: "командировка"
+                                  - name: "в центральный офис"
+                              - services:
+                                  - taxi
+                                  - drive
+                              - order_flows:
+                                  - taxi
+                      - description: "CORP_DESCRIPTION"
+                      - hide_user_cost: false
+                      - id: "CORP_ID"
+                      - label: "CORP_LABEL"
+                      - order_disable_reason: "CORP_ORDER_DISABLE_REASON"
+                      - type: "CORP_TYPE"
+                      - zone_available: true
+                      - zone_disable_reason: "CORP_ZONE_DISABLE_REASON"
+                  - value#object:
+                      - zone_available: true
+                      - can_order: true
+                      - hide_user_cost: false
+                      - label: "CARD_SYSTEM_HUMAN_READABLE"
+                      - type: "card"
+                      - id: "CARD_ID"
+                      - description: "CARD_NUMBER"

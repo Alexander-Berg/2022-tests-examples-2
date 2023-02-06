@@ -1,0 +1,57 @@
+id: test_exp
+title: Тест для проверки экспериментов 3.0
+source:
+    request:
+        method: post
+        body:
+            key: 'shared_key_1'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                typed_experiments:
+                    version: 123
+                    items: []
+                request:
+                    route: []
+                client_flags: {}
+                driver: {}
+                display_info: {}
+mocks:
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 200
+        body:
+            version: '123'
+            items: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: taxi-3.0-sharedroute
+    response:
+        status-code: 200
+        body:
+            request:
+                route: []
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            content-type: application/json
+            method: post
+            body:
+                key: 'shared_key_1'
+  - resource: order-route-sharing-v1-info
+    response:
+        status-code: 200
+        body:
+            client_flags: {}
+            display_info: {}
+    expectations:
+        call-count: 1

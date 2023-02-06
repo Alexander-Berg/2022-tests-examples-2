@@ -1,0 +1,138 @@
+description: collection with configuration parameters
+settings:
+    collection: config
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: updated
+  - key: it
+wiki_info: |
+    ####dbtaxi.config - Конфиг
+
+    ```python
+    config = {
+      "_id": "PARAM_NAME",  # должен совпадать с названием параметра, как в fallback.(json|py)
+      "v": VALUE,  # значение, зависящее от параметра: число, строка, dict, list, ...
+      "updated": datetime,  # время установки последнего значения
+      "lock_changes_to": datetime,  # время, до которого заблокировано изменение значений конфига (включая сервисные)
+      "c": "имя параметра",  # редактируемый комментарий
+      "t": "TAXIBACKEND-1",  # ключ тикета, связанного с данным конфигом
+      "tm": "devices",  # название команды, которой пренадлежит конфиг
+      "it": false,  # технический ли конфиг (могут ли его менять разработчики)
+      "version": 123,  # версия значения
+    }
+    ```
+
+    ```python
+    list(dbtaxi.static.find()) == [
+        {
+            # Список команд, которые не должны запускаться через run.py
+            '_id': 'disable_run',
+            'commands': {
+                'vgw_monitor': True,
+            },
+        },
+        {
+            # параметры для уведомлений о неработающем софтсвитче
+            '_id': 'vgw_monitor',
+            'responsible_phones': [список телефонов, на которые слать СМС],
+            'thresholds': {
+                # количество переадресаций на телефоне: допустимый период «молчания» (в секундах)
+                500: 60,
+                100: 180,
+                # если на телефоне меньше переадресаций, чем минимальный ключ этого словаря, то его не мониторим
+                # в данном примере телефоны с менее чем 100 переадресациями не будут мониториться
+            },
+        },
+        {
+            # Глобальный конфиг для антифрода
+            '_id': 'antifraud_config',
+            'config': {
+                'paid_orders_count': 3,          # Кол-во оплаченных заказов, чтобы перейти в группу 1
+                'oldschool_completed_count': 5,  # Кол-во завершённых заказов, чтобы попасть в группу 3
+                'debt_timeout': 72 * 3600,       # Время для оплаты долга, по истечению которого переходят в группу 2 (на мороз)
+            },
+        },
+        {
+            # Шаблоны для электронных писем
+            '_id': 'email_XXX',       # Идентификатор шаблона
+            'ru': {                   # Шаблон для локали "ru"
+                'sender': '...',      # Отправитель письма (строка)
+                'subject': '...',     # Тема письма (форматная строка Python)
+                'body': '...',        # Шаблон тела письма (строка-шаблон Genshi)
+                'html_body': '...'    # HTML-тело письма (строка-шаблон Genshi)
+            },
+            'en': {
+                                      # То же самое для английской локали
+            },
+        },
+        {
+            # API key для ДепТранса (проверяется, если передан в ручке deptranscars)
+            '_id': 'deptrans_api_key',
+            'api_key': 'some_secret_hash_token_api_key_that_nobody_knows_and_even_does_not_care_of',
+        },
+        {
+            # Настройки экспериментов
+            '_id': 'experiments',
+            'rules': [{
+              'name': 'myExperiment',
+              'cities': ['Санкт-Петербург'],
+              'order_id_last_digits': ['a', 'f'],  # 2/16 заказов
+              'user_phone_id_last_digits': ['3'],  # 1/16 пользователей
+              'platforms': ['ios', 'android']
+            }]
+        },
+        {
+            # Настройки экспериментов по пользователям
+            '_id': 'user_experiments',
+            'rules': [{
+              'name': 'myExperiment',
+              'cities': ['Санкт-Петербург'],
+              'order_id_last_digits': ['a', 'f'],  # 2/16 заказов
+              'user_phone_id_last_digits': ['3'],  # 1/16 пользователей
+              'platforms': ['ios', 'android']
+            }]
+        },
+        {
+            # Настройки экспериментов по водителям
+            '_id': 'driver_experiments',
+            'rules': [{
+              'name': 'myExperiment',
+              'parks': ['3'],                 # только для парка с clid="3"
+              'version': '>=3.11',            # только для пользователей с версией старше 3.11
+              'driver_id_last_digits': ['3']  # только для водителей чей uuid заканчивается на 3 (тут надо быть аккуратным, распределение оказалось неравномерным)
+            }]
+        },
+        {
+            # Белые списки по лицензиям
+            '_id': 'permit_whitelist',
+            'car_numbers' : [
+            'А821НЕ777',
+            'А822НЕ777',
+                    ...
+            ]
+        },
+        # дефолтные правила для причин отмены и низкой оценки (такая же структура как и в dbtaxi.cities['feedback_choices'])
+        {
+        "_id" : "city_feedback_choices_defaults",
+        "feedback_choices" : {
+            "cancelled_reason" : {
+                "usererror" : true,
+                "longwait" : true,
+                "othertaxi" : true,
+                "driverrequest" : true,
+                "droveaway" : true
+            },
+            "low_rating_reason" : {
+                "smellycar" : true,
+                "rudedriver" : true,
+                "carcondition" : true,
+                "nochange" : true,
+                "badroute" : true,
+                "driverlate" : true
+            }
+            }
+       }
+    }
+    ]
+    ```

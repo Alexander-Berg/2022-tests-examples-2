@@ -1,0 +1,110 @@
+function calcCoeffNormalized(discount: lang::variables::DiscountInfo, base_coeff: double) {
+  let restrictions = discount.restrictions;
+  let coeff_newbie = base_coeff;
+
+  // TODO: check & apply other restrictions: driver_less_coeff, limited_rides
+
+  // normalize to [min, max]
+  let tmp_coeff_normalized = (coeff_newbie > restrictions.max_discount_coeff)
+      ? restrictions.max_discount_coeff
+      : coeff_newbie;
+  let coeff_normalized = (tmp_coeff_normalized < restrictions.min_discount_coeff)
+      ? 0
+      : tmp_coeff_normalized;
+
+  if (restrictions.max_absolute_value as max_absolute_value) {
+    // normalize by absolute value
+    let price = *ride.price - ride.price.waiting
+                            - ride.price.transit_waiting
+                            - ride.price.destination_waiting;
+    if (   (price > 0.0001)  // check division by 0
+        && (price * coeff_normalized > max_absolute_value)) {
+      let tmp_max_coeff = (max_absolute_value / price < 0)
+          ? 0
+          : max_absolute_value / price;
+      let max_coeff = (tmp_max_coeff > 1)
+          ? 1
+          : tmp_max_coeff;
+      return {res = max_coeff};
+    }
+  }
+  if (coeff_normalized <= 0) {
+    return {res = 0};
+  }
+  if (coeff_normalized >= 1) {
+    return {res = 1};
+  }
+  return {res = coeff_normalized};
+}
+
+
+if (fix.discount as discount) {
+  // не применять эту скидку, если она не должна добавлять себя
+  // в разницу между между зачёркнутой ценой и обычной
+  if (discount.is_price_strikethrough as is_price_strikethrough) {
+    if (!is_price_strikethrough) {
+      return ride.price;
+    }
+  }
+
+  // если Финляндия и есть скидка для новичка и есть купон, то не применяем скидку
+  if (fix.coupon as coupon) {
+    if (discount.description as discount_description) {
+      if (coupon.valid && fix.country_code2 == "FI" &&
+          (discount_description == "new_helsinki_disgmv30_1120" ||
+           discount_description == "tampere_launch_16122020" ||
+           discount_description == "turku_launch_16122020")) {
+        return ride.price;
+      }
+    }
+  }
+
+  let restrictions = discount.restrictions;
+
+  if (discount.calc_data_hyperbolas as hyperbolas) {
+    let meta1 = ["discount_price": *ride.price];
+    let price = *ride.price - ride.price.waiting
+                            - ride.price.transit_waiting
+                            - ride.price.destination_waiting;
+
+    let hyperbola = (price < hyperbolas.threshold)
+        ? hyperbolas.hyperbola_lower
+        : hyperbolas.hyperbola_upper;
+    // exclude division by 0
+    if (!(   (price + hyperbola.c > 0)
+          || (price + hyperbola.c < 0))) {
+      return {metadata = meta1};
+    }
+    let coeff = (hyperbola.p
+        + hyperbola.a / (price + hyperbola.c)) * 0.01;  // from percents to fraction
+
+    let coeff_normalized = calcCoeffNormalized(discount = discount, base_coeff = coeff).res;
+
+    if (coeff_normalized < 0.000001) {
+      return {metadata = meta1};
+    }
+
+    let discount_abs = (*ride.price
+                        - ride.price.waiting
+                        - ride.price.transit_waiting
+                        - ride.price.destination_waiting
+                        ) * coeff_normalized;
+    let meta2 = [
+        "discount_abs": discount_abs,
+        "discount_value": coeff_normalized
+    ];
+    let mult = 1 - coeff_normalized;
+    return {
+      boarding = ride.price.boarding * mult,
+      distance = ride.price.distance * mult,
+      time = ride.price.time * mult,
+      requirements = ride.price.requirements * mult,
+      waiting = ride.price.waiting,
+      transit_waiting = ride.price.transit_waiting,
+      destination_waiting = ride.price.destination_waiting,
+      metadata = meta1 + meta2
+    };
+  }
+}
+
+return ride.price;

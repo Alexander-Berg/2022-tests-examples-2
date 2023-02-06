@@ -1,0 +1,84 @@
+MonitoringPort: 8905
+
+SourceConfigPath: "config/test/sources.pb.txt"
+
+ActorSystem {
+    Pools {
+        Id: POOL_DEFAULT
+        Type: PT_BASIC
+        Label: "gate"
+        Threads: 4
+    }
+
+    Monitoring {
+        Activity {
+            Id: 0
+            Label: "gate"
+        }
+    }
+}
+
+SpiderOptions {
+    RoleSelector {
+        YtCluster: "markov"
+        YtPrefix: "//home/zora/spider-test/"
+        YtUser: "robot-zora"
+        YtTokenPath: "zora_secrets/yt.token"
+
+        Config {
+            RefreshPeriod: 30
+            ExpireTime: 90
+            MaxRolesWeight: 0
+
+            Roles {
+                Name: "spider"
+                ShardCount: 30
+                ObserveOnly: true
+            }
+        }
+    }
+
+    DistributionConfig: "config/test/distribution.pb.txt"
+
+    Grpc {
+        ServerUri: "[::]:22234"
+        ClientPort: 22235
+    }
+}
+
+ExecutorRequester {
+    GrpcServerUri: "[::]:22236"
+    ClusterConfigPath: "config/test/rotor_cluster_new.conf"
+}
+
+PDFetchRequester {
+    GrpcServerUri: "[::]:22235"
+    ClusterConfigPath: "config/test/pdfetch_cluster.conf"
+    VideoClusterConfigPath: "config/test/pdfetch_cluster.conf"
+}
+
+DnsProxyConfig {
+    DnsProxyPort: 8080
+    ClusterConfigPath: "config/test/dns_proxy_cluster.pb.txt"
+    FetchCoroutines: 200
+}
+
+Legacy {
+    ZoraMB {
+        ZoraMBPort: 33444
+    }
+
+    ZoraHttp {
+        Port: 8166
+        Threads: 2
+    }
+
+    RotorMB {
+        RotorMBPort: 23655
+    }
+
+    RotorHttp {
+        Port: 23555
+        Threads: 2
+    }
+}

@@ -1,0 +1,53 @@
+id: request_redirect
+title: Тест с неудачным походом в апи-админ и возвратом в py2
+
+taxi_config:
+    API_PROXY_ENABLE_API_ADMIN_USER_INFO: true
+
+source:
+    request:
+        method: get
+        headers:
+            cookies: LONG_COOKIES
+    expectations:
+        response:
+            status-code: 200
+            body:
+                login: elrusso
+                permissions: [A, B, C]
+                filters: {}
+                api_switch:
+                    redirects:
+                      - from:
+                            prefix: /orders
+                            sourse: py2
+                      - from:
+                            prefix: /admin-orders/v1/temp
+                            sourse: py3
+mocks:
+  - resource: api-admin-user-info-get
+    response:
+        status-code: 404
+    expectations:
+        call-count: 1
+        request:
+            method: get
+  - resource: api-admin-user-info-get-old
+    response:
+        status-code: 200
+        body:
+            login: elrusso
+            permissions: [A, B, C]
+            filters: {}
+            api_switch:
+                redirects:
+                  - from:
+                        prefix: /orders
+                        sourse: py2
+                  - from:
+                        prefix: /admin-orders/v1/temp
+                        sourse: py3
+    expectations:
+        call-count: 1
+        request:
+            method: get

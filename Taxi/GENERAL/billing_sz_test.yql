@@ -1,0 +1,399 @@
+use hahn;
+
+$ques =
+@@
+import json
+
+def f(a):
+    return a
+@@;
+
+$form = Python::f("(String)->String?", $ques);
+
+$json_ =
+@@
+import json
+
+def f(a,b,c,d,e):
+    res = json.dumps({'db': a, 'uuid': b, 'scout_name': unicode(c, 'utf-8').encode('utf-8'), 'scout_id': d, 'transaction_id': e}, sort_keys=True,
+        #indent=8,
+        separators=(';', '=')
+        )
+    return res
+@@;
+
+$format = Python::f("(String?, String?, String?, String?)->String?", $json_);
+$format_full = Python::f("(String?, String?, String?, String?,String?)->Yson?", $json_);
+
+
+$hours_before = 2000;
+
+-- $dop_date="home/taxi-infranaim/driver_acquisition/tmp/"|| cast(DateTime::ToDate(CurrentUtcTimestamp()) as string);
+
+$date_for_billing = "["||cast(DateTime::ToDate(CurrentUtcTimestamp()) as string)||"]";
+
+$insert_date = "//home/taxi-infranaim/driver_acquisition/scouts/billing/billing_by_dates/"|| cast(DateTime::ToDate(CurrentUtcTimestamp()) as string);
+--   $insert_date = "//home/taxi-infranaim/driver_acquisition/scouts/tmp/billing_test_sz/"|| cast(DateTime::ToDate(CurrentUtcTimestamp()) as string);
+
+-- $insert_date = "//home/taxi-infranaim/driver_acquisition/scouts/billing/billing_by_dates/"|| cast(DateTime::ToDate(CurrentUtcTimestamp()) as string);
+
+
+--------------------------------------------------------
+--
+--
+-- Проверка на то, что выплаты не были сделаны через Антал
+-- Исторический архаизм времен, когда не были согласованы выплаты кверей
+--
+--------------------------------------------------------
+
+$via_antal_reg = (
+    select
+        list(ticket_id)
+    from [home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/sent_via_antal] as ub
+    where completed_registration != '-'
+);
+
+$via_antal_25 = (
+    select
+        list(ticket_id)
+    from [home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/sent_via_antal] as ub
+    where active_25 != '-'
+);
+
+
+
+--------------------------------------------------------
+--
+--
+-- Смотрим на то, что чтобы таргетная регистрация и поездка (5я/25я) была совершена не ранее установленного времени $hours_before
+-- Из гуглдока подтягиваем в YT `home/taxi-infranaim/driver_acquisition/scouts/mapping/scouts_billing_client_id` таблицу с маршрутизацией, кому куда платить
+-- Далее из таблицы с перформансов скаутов `home/taxi-infranaim/driver_acquisition/sz/report/weekly_report` вытаскиваем нужные нам поля
+-- Проверяем, чтобы у водителя был проставлен флаг проверки селфи flg_driver_acceptance (подтягивается из зендеска)
+-- Скрипт для наливания таблицы `home/taxi-infranaim/driver_acquisition/sz/report/weekly_report`:
+--                                          https://yql.yandex-team.ru/Operations/XVQti59Lnq4q9_HOcEgeJlRubPNlhQOMJwupIcZ2fFc=
+--
+--------------------------------------------------------
+
+
+$scouts = (
+    select
+    -- agent data
+        --user_login as
+        -- user_login??'no_agent_account' as agent_account_
+          raw.user_login??'no_user_login' as user_login
+        , raw.agent_name??'no_agent_name' as agent_name
+        , mentor_login??'no_login' as mentor_login
+        , db_id??'no_db_id' as scout_db
+        , driver_uuid??'no_scout_uuid' as scout_uuid
+        , cast(scout_inn.billing_client_id as string) as client_id
+    -- driver data
+        , driver_license
+        , driver_phone
+        , driver_name
+        , park_name as driver_park_name -- add driver_db_id
+        , raw.driver_city as city
+        , cast(ticket_id as string) as ticket_id
+        , ticket_created_date
+    -- target
+        , week_active_1
+        , DateTime::ToDate(DateTime::FromString(active_1)) as active_1
+        , DateTime::ToDate(DateTime::FromString(active_5)) as active_5
+        , DateTime::ToDate(DateTime::FromString(ww_date_completed_registration)) as completed_registration
+        , DateTime::ToDate(DateTime::FromString(active_25)) as active_25
+        , DateTime::ToDate(DateTime::FromSeconds(DateTime::ToSeconds(CurrentUtcTimestamp()) - $hours_before*3600)) as control_date
+
+    from [home/taxi-infranaim/driver_acquisition/sz/report/weekly_report]  as raw
+    join [home/taxi-infranaim/driver_acquisition/scouts/mapping/scouts_billing_client_id] as scout_inn
+        using(user_login)--=raw.user_login
+    where
+        (DateTime::ToDate(DateTime::FromString(active_5)) >= DateTime::ToDate(DateTime::FromSeconds(DateTime::ToSeconds(CurrentUtcTimestamp()) - $hours_before*3600))
+        or
+        DateTime::ToDate(DateTime::FromString(ww_date_completed_registration)) >= DateTime::ToDate(DateTime::FromSeconds(DateTime::ToSeconds(CurrentUtcTimestamp()) - $hours_before*3600))
+        or
+        DateTime::ToDate(DateTime::FromString(active_25)) >= DateTime::ToDate(DateTime::FromSeconds(DateTime::ToSeconds(CurrentUtcTimestamp()) - $hours_before*3600))
+        or
+        DateTime::ToDate(DateTime::FromString(active_1)) >= DateTime::ToDate(DateTime::FromSeconds(DateTime::ToSeconds(CurrentUtcTimestamp()) - $hours_before*3600)))
+        -- and flg_fraud??false = false
+        and flg_driver_acceptance??false = true
+);
+
+--------------------------------------------------------
+--
+--
+-- Для того, чтобы можно было платить в городах по определенной бонусной программе:
+--      Платим в зависомости от количества привлеченных водителей
+-- Здесь считается кол-во водителей, совершивших 1 поездку на заданной неделе
+--
+--
+--------------------------------------------------------
+
+$spb_extra = (
+SELECT
+    scout_uuid,
+    week_active_1,
+    count(DISTINCT driver_license) as cc
+
+from $scouts
+
+where city = 'Санкт-Петербург'
+    -- and week_active_1 = DateTime::ToDate(DateTime::StartOfWeek((DateTime::ToSeconds(CurrentUtcTimestamp())- 24*7*3600)*1000000))
+group by scout_uuid, week_active_1
+);
+
+
+--------------------------------------------------------
+--
+--
+-- Здесь собираем выплаты
+-- Суммы согласно тикетам с ОКами
+-- Оплата регистрации в разных городах
+--
+--
+--------------------------------------------------------
+
+$sub_result = (
+-- active_5
+    select
+        user_login as agent_account
+        , agent_name
+        , mentor_login
+        , scout_db as db_id
+        , s.scout_uuid as scout_uuid
+        , client_id
+        , driver_license
+        , driver_phone
+        , driver_name
+        , driver_park_name -- add driver_db_id
+        , city
+        , ticket_id
+        , ticket_created_date
+        , completed_registration as date_trip
+
+        , '619' as service_id
+        , 'payment' as transaction_type
+        , 'scout_sz' as payment_type
+        , case when city = 'Москва' and completed_registration <= '2019-02-10' then 300
+                when city = 'Москва' and completed_registration <= '2019-03-10' then 2000
+                when city = 'Москва' then 2300
+                when city = 'Подольск' then 1000
+                else 0 end as amount
+        , 'rub' as currency
+        , 'sz_reg' as target
+        , 'sz_reg' as real_target
+    from $scouts as s
+    -- left join $spb_extra as sp on s.scout_uuid=sp.scout_uuid and sp.week_active_1=DateTime::ToDate(DateTime::StartOfWeek(DateTime::FromString(s.active_1)))
+    where completed_registration >= control_date
+        and ListHas($via_antal_reg,ticket_id) = false
+        and completed_registration is not null
+union all
+
+-- active_25/active_5
+        select
+        user_login as agent_account
+        , agent_name
+        , mentor_login
+        , scout_db as db_id
+        , s.scout_uuid as scout_uuid
+        , client_id
+        , driver_license
+        , driver_phone
+        , driver_name
+        , driver_park_name -- add driver_db_id
+        , city
+        , ticket_id
+        , ticket_created_date
+        , case when city = 'Москва' and completed_registration<='2019-03-10' then active_25 else active_5 end as date_trip
+        , case when city = 'Москва' and completed_registration<='2019-03-10' then 'sz_25' else 'sz_5' end as real_target
+        , '619' as service_id
+        , 'payment' as transaction_type
+        , 'scout_sz' as payment_type
+        , case when city = 'Москва' and completed_registration<='2019-02-10' then 1700
+                when city = 'Москва' then 1000
+                when city = 'Подольск' then 500
+                else 0 end as amount
+        , 'rub' as currency
+        , 'sz_25' as target
+    from $scouts as s
+    -- left join $spb_extra as sp on s.scout_uuid=sp.scout_uuid and sp.week_active_1=DateTime::ToDate(DateTime::StartOfWeek(DateTime::FromString(s.active_1)))
+    where
+            case when city = 'Москва' and completed_registration<='2019-03-10' then active_25 else active_5 end >= control_date
+        and ListHas($via_antal_25,ticket_id) = false
+        and case when city = 'Москва' and completed_registration<='2019-03-10' then active_25 else active_5 end is not null
+
+);
+
+--------------------------------------------------------
+--
+--
+-- Генерация айди каждой транзакции и проверка на дубли
+--
+--
+--------------------------------------------------------
+
+$result = (
+    select
+        agent_account
+        , agent_name
+        , mentor_login
+        , db_id
+        , scout_uuid
+        , driver_license
+        , driver_phone
+        , driver_name
+        , driver_park_name -- add driver_db_id
+        , city
+        , ticket_id
+        , ticket_created_date
+    -- billing fields
+        , service_id
+        , date_trip as event_dttm
+        , client_id
+        , real_target as target
+        , Digest::Md5Hex(service_id||ticket_id||transaction_type||payment_type||currency||target||cast(driver_license as string))
+          as transaction_id
+        , Digest::Md5Hex(service_id||scout_uuid||client_id||transaction_type||payment_type||currency||target||cast(driver_license as string))
+          as transaction_id_1 --из-за первых не очень правильных id
+        , '{"db": "'||db_id||'","scout_id": "'||agent_account||'","scout_name": "'||agent_name||'","uuid": "'||scout_uuid||'","transaction_id": "'||Digest::Md5Hex(service_id||ticket_id||transaction_type||payment_type||currency||target||cast(driver_license as string))||'"}' as payload
+        , $format_full(db_id, scout_uuid, agent_name, agent_account,Digest::Md5Hex(service_id||ticket_id||transaction_type||payment_type||currency||target||cast(driver_license as string))) as payload_full
+        , transaction_type
+        , payment_type
+        , amount
+        , currency
+    from $sub_result
+    where 1=1
+        -- and date_trip >= DateTime::ToDate(DateTime::StartOfWeek((DateTime::ToSeconds(CurrentUtcTimestamp())- 24*7*3600)*1000000))
+        and date_trip < DateTime::ToDate(DateTime::StartOfWeek((DateTime::ToSeconds(CurrentUtcTimestamp())- 0)*1000000))
+        and date_trip > '2018-12-01'
+);
+
+--------------------------------------------------------
+--
+--
+-- Заливаем в фул, в котором детально описаны все транзакции
+-- Проверяем на дубли
+--
+--
+--------------------------------------------------------
+
+
+--   INSERT INTO `home/taxi-infranaim/driver_acquisition/scouts/tmp/billing_test/full_sz`
+INSERT INTO `//home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/full`
+-- WITH TRUNCATE
+
+select
+    agent_account
+    , agent_name
+    , mentor_login
+    , db_id
+    , scout_uuid
+    , driver_license
+    , driver_phone
+    , driver_name
+    , driver_park_name
+    , city
+    , ticket_id
+    , ticket_created_date
+    , target
+    , service_id
+    , event_dttm
+    , client_id
+    , transaction_id
+    , payload
+    , payload_full
+    , transaction_type
+    , payment_type
+    , amount
+    , currency
+from (
+    select
+        agent_account
+        , agent_name
+        , mentor_login
+        , db_id
+        , scout_uuid
+        , driver_license
+        , driver_phone
+        , driver_name
+        , driver_park_name
+        , city
+        , target
+        , ticket_id
+        , ticket_created_date
+        , service_id
+        , event_dttm
+        , client_id
+        , transaction_id
+        , transaction_id_1
+        , payload
+        , payload_full
+        , transaction_type
+        , payment_type
+        , amount
+        , currency
+        , ROW_NUMBER() OVER w as rk
+    from $result
+    window w as
+        (partition by transaction_id order by event_dttm)
+    ) as res
+left only join [home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/full] as ful on ful.transaction_id=res.transaction_id
+left only join [home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/full] as fuli on fuli.ticket_id=res.ticket_id and fuli.target=res.target
+-- left only join [home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/full] as ful_1 on ful_1.transaction_id=res.transaction_id_1
+left only join [home/taxi-infranaim/driver_acquisition/scouts/billing/tmp/old_transaction_ticket] as ful1 on ful1.transaction_id_new=res.transaction_id
+left only join hahn.[home/taxi-infranaim/driver_acquisition/scouts/billing/tmp/old_transaction_ticket_2] as dat_3 on dat_3.transaction_id_new=res.transaction_id
+where 1=1
+    and rk=1
+    and scout_uuid is not null
+;
+
+--------------------------------------------------------
+--
+--
+-- Заливаем в прод биллинг с проверкой на дубли
+--
+--
+--------------------------------------------------------
+
+$for_no_truncate = (
+select
+      res.service_id as service_id
+    , res.dt as dt
+    , res.client_id as client_id
+    , res.transaction_id as transaction_id
+    , res.payload as payload
+    , res.transaction_type as transaction_type
+    , res.payment_type as payment_type
+    , res.amount as amount
+    , res.currency as currency
+-- * WITHOUT rk
+from (
+    select
+          service_id
+        , DateTime::ToStringUpToSeconds(DateTime::FromSeconds(DateTime::ToSeconds(CurrentUtcTimestamp()) + 3*3600)) as dt
+        , client_id
+        , transaction_id
+        , transaction_id_1
+        , payload
+        , transaction_type
+        , payment_type
+        , amount
+        , currency
+        , target
+        , ticket_id
+        , ROW_NUMBER() OVER w as rk
+    from $result
+    window w as
+        (partition by transaction_id order by event_dttm)
+    ) as res
+    left only join range([home/taxi-infranaim/driver_acquisition/scouts/billing/billing_by_dates],[2018-06-04], $date_for_billing) as dat on dat.transaction_id=res.transaction_id
+    left only join [home/taxi-infranaim/driver_acquisition/scouts/billing/scouts_full/full] as fuli on fuli.ticket_id=res.ticket_id and fuli.target=res.target
+    -- left only join range([home/taxi-infranaim/driver_acquisition/scouts/billing/billing_by_dates],[2018-06-04], $date_for_billing) as dat_1 on dat_1.transaction_id=res.transaction_id_1
+    left only join hahn.[home/taxi-infranaim/driver_acquisition/scouts/billing/tmp/old_transaction_ticket_2] as dat_3 on dat_3.transaction_id_new=res.transaction_id
+    left only join hahn.[home/taxi-infranaim/driver_acquisition/scouts/billing/tmp/old_transaction_ticket] as dat_2 on dat_2.transaction_id_new=res.transaction_id
+
+where rk=1
+
+);
+
+insert into $insert_date
+-- WITH TRUNCATE
+select * from $for_no_truncate;

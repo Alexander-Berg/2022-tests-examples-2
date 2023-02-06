@@ -1,0 +1,215 @@
+swagger: '2.0'
+info:
+    description: Yandex Taxi tigraph-router Service
+    title: Yandex Taxi tigraph-router Service
+    version: '1.0'
+host: tigraph-router.taxi.yandex.net
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: TIGRAPH_ROUTER_CLIENT_QOS
+
+paths:
+    /test-router-query:
+        post:
+            description: |
+                Ручка тестирования построения маршрута от A -> ... -> B (не менее двух точек)
+                различными роутерами в зависимости от входных параметров.
+                Поддерживаются матричные маршруты.
+            parameters:
+              - in: body
+                name: body
+                description: body
+                required: true
+                schema:
+                    $ref: '#/definitions/TestRouteRequest'
+            responses:
+                '200':
+                    description: Success.
+                    schema:
+                        $ref: '#/definitions/TestRouteResponse'
+                '404':
+                    description: No route found.
+                    schema:
+                        $ref: '../definitions.yaml#/definitions/PostError'
+
+definitions:
+    TestRouteRequest:
+        description: Формат запроса маршрута.
+        type: object
+        additionalProperties: false
+        properties:
+            router_type:
+                description: |
+                    Тип роутера для запроса.
+                type: string
+                enum:
+                  - car
+                  - pedestrian
+                  - bicycle
+                  - masstransit
+                default: car
+            target:
+                description: |
+                    Тип или цель запроса, используется для выбора роутера по конфигу.
+                type: string
+            id:
+                description: |
+                    Идентификатор зоны, используются для выбора роутера по конфигу.
+                type: string
+            request_type:
+                description: |
+                    Тип запроса (информация, маршрут + информация, матричный запрос).
+                type: string
+                enum:
+                  - summary
+                  - path
+                  - matrix
+                default: summary
+            route:
+                description: |
+                    Координаты точек маршрута от A -> ... -> B (не менее двух).
+                    Для обычного роутера.
+                type: array
+                minItems: 2
+                items:
+                    $ref: '../definitions.yaml#/definitions/Point'
+            points_from:
+                description: |
+                    Координаты начальных точек маршрута [A1, A2, ..., An] (не менее одной).
+                    Для матричного роутера.
+                type: array
+                minItems: 1
+                items:
+                    $ref: '../definitions.yaml#/definitions/Point'
+            points_to:
+                description: |
+                    Координаты конечных точек маршрута [B1, B2, ..., Bn] (не менее одной).
+                    Для матричного роутера.
+                type: array
+                minItems: 1
+                items:
+                    $ref: '../definitions.yaml#/definitions/Point'
+            use_jams:
+                description: |
+                    Использовать информацию о пробках или нет (по умолчанию: true).
+                type: boolean
+                default: true
+            use_tolls:
+                description: |
+                    Строить маршрут через платные дороги или нет (по умолчанию: false).
+                type: boolean
+                default: false
+            avoid_transport:
+                description: |
+                    Попытаться построить маршрут общественного транспорта (при роутере
+                    masstransit) без использования указанных типов общественного транспорта.
+                type: array
+                items:
+                    type: string
+                    enum:
+                      - bus
+                      - minibus
+                      - railway
+                      - suburban
+                      - tramway
+                      - trolleybus
+                      - underground
+            vehicle:
+                description: |
+                    Информация о параметрах грузовой машины (только для роутера карт).
+                type: object
+                additionalProperties: false
+                properties:
+                    type:
+                        description: |
+                            Определяет тип транспорта, для которого ищется маршрут.
+                            Может быть или taxi, или car (по умолчанию).
+                        type: string
+                        enum:
+                          - car
+                          - taxi
+                          - truck
+                    pass_ids:
+                        description: |
+                            Идентификаторы пропусков, разделенные запятой, который разрешают
+                            въезд в различные зоны ограниченного движения.
+                        type: array
+                        items:
+                            type: string
+                    weight:
+                        description: Фактическая масса транспортного средства в тоннах.
+                        type: number
+                    axle_weight:
+                        description: Фактическая нагрузка на ось транспортного средства
+                            в тоннах.
+                        type: number
+                    max_weight:
+                        description: Разрешённая максимальная масса транспортного
+                            средства в тоннах.
+                        type: number
+                    height:
+                        description: Высота транспортного средства в метрах.
+                        type: number
+                    width:
+                        description: Ширина транспортного средства в метрах.
+                        type: number
+                    length:
+                        description: Длина транспортного средства в метрах.
+                        type: number
+                    payload:
+                        description: Максимальная грузоподъёмность транспортного средства
+                            в тоннах.
+                        type: number
+                    eco_class:
+                        description: Экологический класс транспортного средства (число).
+                        type: integer
+                        x-taxi-cpp-type: unsigned
+                    has_trailer:
+                        description: Транспортное средство движется с прицепом.
+                        type: boolean
+
+    TestRouteResponsePath:
+        description: Информация о маршруте.
+        type: object
+        additionalProperties: false
+        properties:
+            duration:
+                description: Время маршрута (в секундах).
+                type: number
+            length:
+                description: Длина маршрута (в метрах).
+                type: number
+            has_closure:
+                description: На маршруте есть перекрытие.
+                type: boolean
+            has_dead_jam:
+                description: На маршруте есть "мертвая" пробка.
+                type: boolean
+            has_toll_roads:
+                description: На маршруте есть платный участок.
+                type: boolean
+            path:
+                description: Точки маршрута.
+                type: array
+                items:
+                    $ref: '../definitions.yaml#/definitions/Point'
+
+    TestRouteResponse:
+        description: Формат ответа маршрута.
+        type: object
+        additionalProperties: false
+        properties:
+            router_name:
+                description: |
+                    Имя выбранного роутера.
+                type: string
+            paths:
+                description: Информация о маршрутах.
+                type: array
+                items:
+                    $ref: '#/definitions/TestRouteResponsePath'
+        required:
+          - paths

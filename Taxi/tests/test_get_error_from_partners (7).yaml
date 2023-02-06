@@ -1,0 +1,36 @@
+id: test_get_error_from_partners
+title: Проверка получения ошибочного ответа из сервиса eats-partners
+
+source:
+    request:
+        method: get
+        url: /api/v1/server/users/roles
+    expectations:
+        response:
+            status-code: 400
+            body:
+                isSuccess: false
+                errors:
+                  - code: some_code
+                    message: some_message
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-roles
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-roles
+    response:
+        status-code: 400
+        body:
+            code: some_code
+            message: some_message
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_read: true
+        enabled: true

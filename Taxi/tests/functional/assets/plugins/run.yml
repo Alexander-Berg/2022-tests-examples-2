@@ -1,0 +1,142 @@
+options:
+  base_url: http://nginx
+  browser: chrome
+  selenium_hub_url: http://127.0.0.1:4450/wd/hub
+  commands:
+    default:
+      code: echo 'div'
+      format:
+        input: none
+        output: sh
+    echo:
+      code: echo 'div'
+      format:
+        input: none
+        output: sh
+    redirect_json:
+      code: tee /dev/null
+      format:
+        input: json
+        output: json
+    redirect_yaml:
+      code: tee /dev/null
+      format: yaml
+    default_as:
+      code: tee /dev/null
+      format: json
+      as: var
+    has_conftest:
+      code: ls -l | grep conftest
+      format:
+        input: none
+        output: sh
+      as: var
+#    input_none:
+#      code: echo 'css:div'
+#      format:
+#        input: sh
+#        output: none
+
+tests:
+  # - common case
+  - get_ok: base.html
+  - run:
+      command: echo
+      args:
+        one: two
+      as: user.bar.baz
+  - _inner_test:
+      success: True
+      description: Run echo
+      tap_description: Command succeed.
+  - has:
+      css: dataset:user.bar.baz:not-existing
+  - _inner_test: [True, Field is filled.]
+
+  # - in json and out json
+  - run:
+      command: redirect_json
+      args:
+        one:
+          - two
+          - three: div
+      as: var
+  - _inner_test:
+      success: True
+      tap_description: Json redirect succeed.
+  - has:
+      css: dataset:var.one.1.three:not-existing
+  - _inner_test: [True, Field is filled.]
+
+  # - in yaml and out yaml
+  - run:
+      command: redirect_yaml
+      args:
+        one:
+          - two
+          - three: div
+      as: var
+  - _inner_test:
+      success: True
+      tap_description: Yaml redirect succeed.
+  - has:
+      css: dataset:var.one.1.three:not-existing
+  - _inner_test: [True, Field is filled.]
+
+  # - empty as command
+  - run:
+      command: echo
+      args:
+        one:
+          - two
+          - three: div
+  - _inner_test:
+      success: False
+      message: Not defined command field "echo.as"
+      tap_description: Yaml redirect succeed.
+
+  # - default "as" defined
+  - run:
+      command: default_as
+      args:
+        - one
+        - div
+  - _inner_test:
+      success: True
+      tap_description: Default as command.
+  - has:
+      css: dataset:var.1:not-existing
+  - _inner_test: [True, Field is filled.]
+
+  # - default dataset
+  - has:
+      css: dataset:var.not-existing:div
+  - _inner_test: [True, Default dataset.]
+
+  # - workdir
+  - run:
+      command: has_conftest
+      workdir: ./tests/
+      args: one
+  - _inner_test:
+      success: True
+      tap_description: Workdir is changed.
+  - run:
+      command: has_conftest
+      args: one
+  - _inner_test:
+      success: False
+      tap_description: Workdir not changed.
+
+  # - default command
+  - run:
+      args:
+        one: two
+      as: user.bar.baz
+  - _inner_test:
+      success: True
+      description: Run default
+      tap_description: Command succeed.
+  - has:
+      css: dataset:user.bar.baz:not-existing
+  - _inner_test: [True, Field is filled.]

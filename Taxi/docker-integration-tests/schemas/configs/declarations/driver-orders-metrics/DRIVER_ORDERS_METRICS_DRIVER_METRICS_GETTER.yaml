@@ -1,0 +1,42 @@
+description: |
+    Настройки воркера для получения новых метрик по заказу для парка и водителя за 1 час
+      enabled - включение/выключение воркера
+      work_interval - как часто будет запускаться задача по получению новых метрик
+      batch_size - количество строк для обновления метрик для водителей/парков, который будут обновляться в БД за одну транзакцию
+      pg_timeout - таймаут к базе данных
+default:
+    enabled: true
+    work_interval: 600
+    batch_size: 10000
+    pg_timeout: 5000
+tags:
+  - notfallback
+maintainers:
+  - spriymenko
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enabled
+      - work_interval
+      - batch_size
+      - pg_timeout
+    properties:
+        enabled:
+            type: boolean
+            description: Включение/выключение воркера
+        work_interval:
+            type: integer
+            minimum: 1
+            x-taxi-cpp-type: std::chrono::seconds
+            description: Как часто будет запускаться задача по получению новых метрик
+        batch_size:
+            type: integer
+            minimum: 1
+            description: Максимальное количество вставляемых строк за одну транзакцию
+        pg_timeout:
+            type: integer
+            minimum: 100
+            x-taxi-cpp-type: std::chrono::milliseconds
+            description: Таймаут выполнения запроса на вставку новых метрик в СУБД
+                (в мс)

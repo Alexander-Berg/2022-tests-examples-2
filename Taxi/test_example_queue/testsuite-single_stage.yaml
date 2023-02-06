@@ -1,0 +1,36 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: single_stage
+        stq-queue: testsuite_single_stage
+        event-processor:
+          - id: default-pipeline
+            conditions: []
+            stages:
+              - id: s-1
+                handlers:
+                  - id: h-0
+                    result:
+                        stage: s-1
+              - id: s-2
+                handlers:
+                  - id: h-1
+                    result:
+                        stage: s-2
+              - id: s-3
+                handlers:
+                  - id: h-3
+                    result:
+                        stage: s-3
+                        answer#if:
+                            condition#equal:
+                              - value#xget: /shared-state/question
+                              - value: "everything"
+                            then#string: 42
+                            else: "I don't know"
+
+        static-event-traits:
+            is-create: true

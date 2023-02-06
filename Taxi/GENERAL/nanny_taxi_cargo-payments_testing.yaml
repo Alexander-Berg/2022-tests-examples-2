@@ -1,0 +1,45 @@
+# This file is generated automatically, do not edit it by hand!
+clownductor_config: taxi:cargo-payments:testing
+
+http_hosts:
+  - cargo-payments.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - userver_common:
+        collapsed: true
+        uservice_name: cargo-payments
+  - include:
+      collapsed: true
+      path: psql_tables_statistics.json
+      row_panels: [2, 2]
+      title: Postgres statistics
+      variables:
+        - cluster_name: testing_uservices
+        - uservice_name: cargo-payments
+        - table_schema: cargo_payments
+        - table_rows_log_base: ""
+        - table_size_log_base: ""
+        - index_usage_log_base: ""
+        - index_size_log_base: ""
+  - statistics_rps_limiter:
+        collapsed: true
+        limiter_name: cargo-payments-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        service_name: rate-limiter-proxy
+        version: 2
+  - stq:
+        collapsed: true
+        queues:
+          - cargo_payments_2can_transaction_status
+          - cargo_payments_autorefund_canceled
+          - cargo_payments_process_operation
+          - cargo_payments_register_agent
+          - cargo_payments_send_billing_data
+          - cargo_payments_status_callbacks
+          - cargo_payments_sync_performer_agent
+          - cargo_payments_transaction_antifraud
+          - cargo_payments_update_agent_tid
+          - cargo_payments_update_driver_tags
+  - http:
+        collapsed: true

@@ -1,0 +1,80 @@
+id: test_proxy
+title: Проверяем что нормально прокинем данные
+
+parameters:
+  - group:
+      - first_date_response:
+            places:
+              - first_plus_activation_date: '2021-01-01T00:00:00+00:00'
+        first_plus_activation_date: '2021-01-01T00:00:00+00:00'
+      - first_date_response:
+            places: []
+        first_plus_activation_date:
+
+source:
+    request:
+        method: get
+        url: /4.0/restapp-front/api/v1/client/restaurants/info
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaEda-PartnerId#string: 123
+            X-App-Version#string: 10.0.0
+        query:
+            place_id: 42
+    expectations:
+        response:
+            status-code: 200
+            body:
+                isSuccess: true
+                payload:
+                    data: 'test'
+                    has_plus: false
+                    place_part:
+                    first_plus_activation_date#xget: /test-params/group/first_plus_activation_date
+
+mocks:
+  - resource: backend-service-vendor-v1-client-restaurants-info-get
+    response:
+        status-code: 200
+        body:
+            isSuccess: true
+            payload:
+                data: 'test'
+    expectations:
+        call-count: 1
+        request:
+            path-params:
+                place_id: 42
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+                X-App-Version#string: 10.0.0
+  - resource: eats-plus-v1-places-plus-post
+    response:
+        status-code: 200
+        body:
+            isSuccess: true
+            payload:
+                data: 'test'
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+                X-App-Version#string: 10.0.0
+            body:
+                place_ids: [42]
+  - resource: eats-plus-v1-first-plus-activation-date
+    response:
+        status-code: 200
+        body#xget: /test-params/group/first_date_response
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaEda-PartnerId#string: 123
+                X-App-Version#string: 10.0.0
+            body:
+                place_ids: [42]

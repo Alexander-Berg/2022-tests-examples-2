@@ -1,0 +1,89 @@
+-- данные не соответствуют настроенному ответу yql_response_data.txt и нужны для проверки запроса через лог
+INSERT INTO signalq_billing.salesforce_opportunities
+(
+    opportunity_id,
+    is_b2b,
+    tin,
+    park_id,
+    devices_count,
+    close_datetime,
+    non_paid_period_days,
+    cancelled_at
+)
+VALUES
+(
+    'op1',
+    True,
+    'tin1',
+    NULL,
+    5,
+    '2021-09-10',
+    0,
+    NULL
+),
+(
+    'op2',
+    True,
+    'tin2',
+    NULL,
+    15,
+    '2021-08-01',
+    10,
+    NULL
+),
+(
+    'op3',
+    True,
+    'tin3',
+    NULL,
+    15,
+    '2021-08-01',
+    0,
+    '2021-09-10'
+),
+(
+    'op4',
+    False,
+    NULL,
+    'park4',
+    15,
+    '2021-08-01',
+    0,
+    NULL
+),
+(
+    'op5',
+    True,
+    'tin5',
+    NULL,
+    15,
+    '2021-07-01',
+    0,
+    '2021-08-01'
+);
+
+INSERT INTO signalq_billing.billing_devices (
+    opportunity_id,
+    serial_number
+)
+VALUES
+(
+    'op1',
+    's11'
+),
+(
+    'op2',
+    's21'
+),
+(
+    'op3',
+    's31'
+),
+(
+    'op4',
+    's41'
+),
+(
+    'op5',
+    's51'
+);

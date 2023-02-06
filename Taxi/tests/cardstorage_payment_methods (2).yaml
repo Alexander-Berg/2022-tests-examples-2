@@ -1,0 +1,63 @@
+id: cardstorage_payment_methods
+title: Используем ответ /v1/payment_methods
+source:
+    request:
+        method: post
+        body:
+            id: user_id
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+            body:
+                corp:
+                    available_accounts: []
+                    payment_available: false
+                card:
+                    payment_available: true
+                    available_cards:
+                      - id: valid_card_id
+                        usable: true
+                        system: visa
+                        number: '****1111'
+                        busy: false
+                        currency: RUR
+                        expiration_time: '2020-10-31T00:00:00+0000'
+                        expiration_year: 2025
+                        expiration_month: 11
+                    unverified_cards: []
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards:
+              - id: valid_card_id
+                system: visa
+                number: '****1111'
+                currency: RUR
+                busy: false
+                expiration_year: 2025
+                expiration_month: 11
+                expiration_time: '2020-10-31T00:00:00+0000'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: debts-internal-payment_availability
+    response:
+        status-code: 500
+  - resource: shared-internal-stats
+    response:
+        status-code: 500
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+taxi_config:
+    APPLICATION_TO_CORP_SOURCE_MAP: {}
+    PERSONAL_WALLET_ENABLED: false

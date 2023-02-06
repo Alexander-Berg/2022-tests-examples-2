@@ -1,0 +1,38 @@
+
+USE hahn;
+-- Check Fix-CPM audit
+
+$ToDatetime = ($ts) -> {
+    RETURN DateTime::MakeDatetime(DateTime::FromSeconds(CAST($ts AS Uint32)))
+};
+
+$LocalizeDatetime = ($dt) -> {
+    RETURN DateTime::MakeTzDatetime(AddTimezone($dt, 'Europe/Moscow'))
+};
+
+$ToLocalTzDatetime = ($ts) -> {
+    RETURN $LocalizeDatetime($ToDatetime($ts))
+};
+
+-- Arguments:
+$runTimestamp = 01012022;
+
+SELECT
+    RunTime,
+    OrderID,
+    LogID,
+    $ToLocalTzDatetime(EventTime) AS EventTime,
+    SourceCost,
+    RealCost,
+    InitCost,
+    EventCost,
+    SourceCostCur,
+    RealCostCur,
+    EventCostCur,
+    InitCostTaxFree,
+    CostTaxFree,
+FROM
+    `//home/yabs/autobudget/AuditFixCPM`
+WHERE
+    RunTime = $runTimestamp
+;

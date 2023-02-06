@@ -1,0 +1,223 @@
+settings:
+    collection: client_requests
+    connection: corp
+    database: dbcorp
+indexes:
+  - key: city
+  - key: client_id
+    partialFilterExpression:
+        client_id:
+            $exists: true
+    unique: true
+  - key: company_name
+  - key: company_tin
+    partialFilterExpression:
+        country: rus
+        status: pending
+    unique: true
+  - key:
+      - name: company_tin
+        type: ascending
+      - name: yandex_login
+        type: ascending
+    partialFilterExpression:
+        country: rus
+        is_active: true
+    unique: true
+  - key: company_tin_id
+    partialFilterExpression:
+        country: rus
+        status: pending
+    unique: true
+  - key:
+      - name: company_tin_id
+        type: ascending
+      - name: yandex_login_id
+        type: ascending
+    partialFilterExpression:
+        country: rus
+        is_active: true
+    unique: true
+  - key: status
+  - key: updated
+  - key: vat_number
+    partialFilterExpression:
+        country: isr
+        status: pending
+    unique: true
+  - key:
+      - name: vat_number
+        type: ascending
+      - name: yandex_login
+        type: ascending
+    partialFilterExpression:
+        country: isr
+        is_active: true
+    unique: true
+  - key: vat_number_id
+    partialFilterExpression:
+        country: isr
+        status: pending
+    unique: true
+  - key:
+      - name: vat_number_id
+        type: ascending
+      - name: yandex_login_id
+        type: ascending
+    partialFilterExpression:
+        country: isr
+        is_active: true
+    unique: true
+  - key: yandex_login
+    partialFilterExpression:
+        is_active: true
+    unique: true
+  - key: yandex_login_id
+    partialFilterExpression:
+        is_active: true
+    unique: true
+wiki_info: |
+    #### corp_client_requests
+
+    *Назначение:* содержит список заявок на автоматическое подключение предоплатных
+    корпоративных клиентов. Заявки теперь бывают из разных стран, сейчас это 'rus' и  'isr'
+
+    *Структура документа*:
+    ```python
+    {
+        # id заявки, генерируем при создании
+        '_id': 'c08bef9fd21d44ee902ab04eeeff0dc0',
+
+        # флаг активности заявки (заявка активна в статусах 'accepted' и 'pending')
+        'is_active': True,
+
+        # страна. Сейчас только 'rus' или 'isr'
+        'country': 'isr',
+
+        # статус заявки (возможные значения - 'accepted', 'rejected', 'pending')
+        'status': 'pending',
+
+        # дата создания
+        'created': datetime.datetime(2018, 3, 22, 1, 24),
+
+        # признак согласия на обработку персональных данных
+        'processing_agreement': True,
+
+        # признак заключения договора по доверенности
+        'contract_by_proxy': False,
+
+        # признак принятия договора оферты
+        'offer_agreement': True,
+
+        # список электронной почты
+        'contact_emails': ['email1@email.ru', 'email2@email.ru'],
+
+        # список id электронной почты в сервисе personal
+        'contact_emails_ids': ['874fe80609ad408a825ddb5a5osi00dh33jbddsf', 'c08bef9fd21d44ee902ab04eeeff0dc0'],
+
+        # БИК банка - rus only
+        'bank_bic': '123456789',
+
+        # юридический адрес (формат "город;индекс;улица;дом,офис/квартира")
+        'legal_address': 'legal_address',
+
+        # имя и фамилия представителя
+        'contact_name': 'contact_name',
+
+        # полное название предприятия  - rus only
+        'enterprise_name_full': 'enterprise_name_full',
+
+        # КПП  - rus only
+        'company_cio': '123456789',
+
+        # название предприятия  - rus only
+        'enterprise_name': 'enterprise_name',
+
+        # город
+        'city': 'city',
+
+        # сокращенное название предприятия  - rus only
+        'enterprise_name_short': 'enterprise_name_short',
+
+        # пол подписанта ('male', 'female')
+        'signer_gender': 'male',
+
+        # логин на Яндекс
+        'yandex_login': 'admin',
+
+        # id яндекс.логина в сервисе personal
+        'yandex_login_id': '874fe80609ad408a825ddb5a5osi00dh33jbddsf',
+
+        # номер телефона
+        'contact_phone': '+79104027723',
+
+        # id номера телефона в сервисе personal
+        'contact_phone_id': '874fe80609ad408a825ddb5a5osi00dh33jbddsf',
+
+        # название компании
+        'company_name': 'company_name',
+
+        # номер расчетного счета  - rus only
+        'bank_account_number': '12345678901234567890',
+
+        # адрес для отсылки документов (формат "город;индекс;улица;дом,офис/квартира")  - rus only
+        'mailing_address': 'mailing_address',
+
+        # название банка
+        'bank_name': 'bank_name',
+
+        # дата регистрации предприятия  - rus only
+        'company_registration_date': datetime.datetime(2018, 3, 20, 21, 00),
+
+        # ИНН  - rus only
+        'company_tin': '123456789012',
+
+        # ИНН-id в сервисе personal  - rus only
+        'company_tin_id': '874fe80609ad408a825ddb5a5osi00dh33jbddsf'
+
+        # дата обновления, не ставится при создании
+        'updated': datetime.datetime(2018, 3, 22, 1, 24),
+
+        # id клиента из corp_client, выставляется при аппруве
+        'client_id': '874fe80609ad408a825ddb5a5osi00dh33jbddsf',
+
+        # VAT N  - isr only - аналог ИНН
+        'vat_number': '123456789012',
+
+        # account number  - isr only
+        'nis': '12345678901234567890',
+
+        # SWIFT  - isr only
+        'swift': '12345678901234567890',
+
+        # account number  - isr only
+        'nis': '12345678901234567890',
+
+        # company registration number  - isr only
+        'registration_number': '123456789012',
+
+        # legal name en  - isr only
+        'legal_name_en': 'kek',
+
+        # legal name local  - isr only
+        'legal_name_local': 'kuk',
+
+        # legal_address_line - isr only
+        'legal_address_line': 'str',
+
+        # legal_address_city - isr only
+        'legal_address_city': 'str',
+
+        # legal_address_post_index - isr only
+        'legal_address_post_index': 'str',
+
+        # post_address_line - isr only
+        'post_address_line': 'str',
+
+        # post_address_city - isr only
+        'post_address_city': 'str',
+
+        # post_address_post_index - isr only
+        'post_address_post_index': 'str',
+    }
+    ```

@@ -1,0 +1,51 @@
+settings:
+    collection: history
+    connection: corp
+    database: dbcorp
+indexes:
+  - key: cl
+  - expireAfterSeconds: 5184000
+    key: d
+  - key: e._id
+  - key: p
+  - key: p_uid
+wiki_info: |
+    #### corp_history
+
+    *Назначение:* содержит историю изменений записей из коллекций dbcorp:
+    corp_clients, corp_roles, corp_users, corp_managers. При каждом изменении записи
+    она добавляется в эту коллекцию.
+
+    *Структура документа*:
+    ```python
+    {
+        # название коллекции
+        'с': 'corp_clients',
+
+        # кто внес правки
+        'p': 'some login',
+
+        # yandex_uid того, кто внес правки
+        'p_uid': 'yandex_uid',
+
+        # дата изменения
+        'd': datetime.datetime(2016, 6, 2, 21, 58),
+
+        # какая ручка внесла изменение
+        'a': 'PUT',
+
+        # запись вместе с внесенными изменениями
+        'e': {
+             'client_name': 'updated client name',
+             'email': 'unchanged@email.com',
+             'email_id': 'unchanged_email_id',
+             ...
+        },
+
+        # С какого ip было произведено изменение
+        'ip': '2b01::11a3:92da:1f34:8f2e:08a0:765d',
+
+        # client_id измененной записи(e), если c == corp_clients, то берется поле _id. None в случае, если client_id не было в e
+        'cl': 'some_client_id',
+    }
+    ```

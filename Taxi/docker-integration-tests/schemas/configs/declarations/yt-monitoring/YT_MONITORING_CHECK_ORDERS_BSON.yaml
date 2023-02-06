@@ -1,0 +1,28 @@
+default: {}
+description: 'freshness_gap: время в секундах, которое нужно отступить от last_updated
+    задействованных правил; thresholds_overrides: словарь, с помощью которого можно
+    перегружать существующие пороги; spec: указать spec для основной мап-редьюс операции;
+    pool: можно указать вычислительный пул'
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: true
+        scheme:
+            pool:
+              - $string
+            freshness_gap:
+              - $integer
+              - $gt: 0
+            spec:
+              - $dictionary:
+                    extra_ok: true
+                    missing_ok: false
+                    scheme: {}
+            thresholds_overrides:
+              - $dictionary_of:
+                    key_validators:
+                      - $string
+                    value_validators:
+                      - $integer
+                      - $gt: 0

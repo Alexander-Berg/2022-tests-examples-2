@@ -1,0 +1,140 @@
+import pytest
+
+
+@pytest.fixture
+def _external_raw_recipes():
+    return [
+        {
+            'name': 'ChangeQuotaBranchMDB',
+            'provider_name': 'clownductor',
+            'job_vars': [],
+            'stages': [],
+        },
+        {
+            'name': 'NannyForceReallocation',
+            'provider_name': 'clownductor',
+            'job_vars': [],
+            'stages': [],
+        },
+        {
+            'name': 'NannyForceScaling',
+            'provider_name': 'clownductor',
+            'job_vars': [],
+            'stages': [],
+        },
+        {
+            'name': 'MDBForceReallocation',
+            'provider_name': 'clownductor',
+            'job_vars': [],
+            'stages': [],
+        },
+        {
+            'name': 'EntryPointDelete',
+            'provider_name': 'clowny-balancer',
+            'job_vars': [],
+            'stages': [],
+        },
+        {
+            'name': 'ChangeProjectForService',
+            'provider_name': 'clownductor',
+            'job_vars': [
+                'new_project_name',
+                'old_project_name',
+                'service_name',
+                'service_id',
+                'st_task',
+            ],
+            'stages': [],
+        },
+        {
+            'name': 'ArcadiaMergeDiffProposalWithPR',
+            'provider_name': 'clownductor',
+            'job_vars': [
+                'diff_proposal',
+                'st_ticket',
+                'automerge',
+                'reviewers',
+                'approve_required',
+                'robot_for_ship',
+            ],
+            'stages': [],
+        },
+        {
+            'name': 'LoadHost',
+            'provider_name': 'clownductor',
+            'job_vars': [
+                'ammo_file',
+                'ammo_description',
+                'target_address',
+                'schedule',
+                'operator_name',
+                'st_task',
+                'fire_title',
+                'fire_description',
+                'monitoring_config',
+            ],
+            'stages': [],
+        },
+        {
+            'name': 'CreateEnvAndLoadHost',
+            'provider_name': 'clownductor',
+            'job_vars': [
+                'service_id',
+                'project_id',
+                'ammo_file',
+                'ammo_description',
+                'schedule',
+                'operator_name',
+                'st_task',
+                'fire_title',
+                'fire_description',
+                'monitoring_config',
+                'new_branch_name',
+                'copy_branch_name',
+                'new_branch_regions',
+                'new_branch_cpu',
+                'new_branch_ram',
+            ],
+            'stages': [],
+        },
+        {
+            'name': 'GithubMergeDiffProposalWithPR',
+            'provider_name': 'clownductor',
+            'job_vars': ['diff_proposal', 'st_ticket', 'automerge'],
+            'stages': [],
+        },
+        {
+            'name': 'ProcessIdmForNewService',
+            'provider_name': 'clownductor',
+            'job_vars': ['service_id'],
+            'stages': [],
+        },
+        {
+            'name': 'GithubMergeDiffProposalWithoutPR',
+            'provider_name': 'clownductor',
+            'job_vars': ['diff_proposal', 'st_ticket'],
+            'stages': [],
+        },
+        {
+            'name': 'UpdateEntryPointSet',
+            'provider_name': 'clowny-balancer',
+            'job_vars': [
+                'clown_service_id',
+                'clown_branch_id',
+                'active_regions',
+            ],
+            'stages': [],
+        },
+        {
+            'name': 'ChangeServiceInfoSystem',
+            'provider_name': 'clownductor',
+            'job_vars': [
+                'service_id',
+                'branch_id',
+                'environment',
+                'subsystems_info',
+                'need_updates',
+            ],
+            'stages': [],
+        },
+    ]

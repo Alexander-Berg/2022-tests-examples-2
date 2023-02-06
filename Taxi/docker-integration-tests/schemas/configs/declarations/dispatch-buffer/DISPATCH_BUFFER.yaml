@@ -1,0 +1,73 @@
+default:
+    agglomeration:
+        APPLY_ALGORITHM: hungarian
+        APPLY_RESULTS: false
+        DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS: 0
+        ENABLED: false
+        OLD_LOOKUP_FALLBACK_WAIT_SECONDS: 30
+        RUNNING_INTERVAL: 60
+        ORDERS_LIMIT: 0
+        ZONES: []
+description: Настройки буфферного диспатча (EFFICIENCYDEV-5162)
+tags: [fallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/agglomeration_settings'
+
+    definitions:
+        agglomeration_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - APPLY_ALGORITHM
+              - APPLY_RESULTS
+              - DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS
+              - ENABLED
+              - OLD_LOOKUP_FALLBACK_WAIT_SECONDS
+              - ORDERS_LIMIT
+              - RUNNING_INTERVAL
+              - ZONES
+            properties:
+                APPLY_ALGORITHM:
+                    description: Какой алгоритм использовать - жадный(greedy) или
+                        венгерский(hungarian)
+                    type: string
+                    enum:
+                      - greedy
+                      - hungarian
+                APPLY_RESULTS:
+                    description: |
+                        Применять ли разыгранных водителей или
+                        сфолбечиться на прямое назначение
+                    type: boolean
+                DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS:
+                    description: Минимальное время пребывания заказа в буфере
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 0
+                ENABLED:
+                    description: Включение буферного диспатча
+                    type: boolean
+                OLD_LOOKUP_FALLBACK_WAIT_SECONDS:
+                    description: |
+                        Максимальное время нахождения заказа в буфере, после которого
+                        заказ фолбечится на прямое назначение
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 0
+                ORDERS_LIMIT:
+                    description: Ограничение на количество заказов в одном розыгрыше
+                    type: integer
+                    x-taxi-cpp-type: std::uint32_t
+                    minimum: 0
+                RUNNING_INTERVAL:
+                    description: Период запуска таски розыгрыша
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 0
+                ZONES:
+                    description: Зоны в данной агломерации
+                    type: array
+                    items:
+                        type: string

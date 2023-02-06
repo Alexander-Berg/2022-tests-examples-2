@@ -1,0 +1,50 @@
+description: history of drivers and cars blacklisting
+settings:
+    collection: blacklist_history
+    connection: misc
+    database: dbmisc
+indexes:
+  - key: car_number
+  - key: created
+  - key: license
+wiki_info: |
+    #### blacklist_history
+
+    *Назначение:* хранение истории блокировок и разблокировок.
+    Коллекция реплицируется в yt (struct и bson).
+
+    *Структура документа*
+
+    ```python
+    {
+        # ID документа
+        '_id': ObjectId,
+        # ВУ водителя
+        # Указывается при блокировке/разблокировке водителя
+        'license': '1234324213',
+        # Номер автомобиля
+        # Указывается при блокировке/разблокировке автомобиля
+        'car_number': 'A777AA199',
+        # Время создания документа
+        'created': datetime.datetime(),
+        # True - блокировка, False - разблокировка
+        'blacklisted': True,
+        # Детали блокировки
+        'details': {
+            # Время блокировки/разблокировки
+            'at': datetime.datetime(),
+            # Логин оператора
+            'login': 'antifraud_robot_login',
+            # Причина блокировки/разблокировки
+            'reason': 'Жалоба в Службу поддержки',
+            # Otrs Тикет
+            'otrs_ticket': '12312',
+            # Время окончания блокировки (при разблокировке не указывается)
+            'till': datetime.datetime(),
+            # Разрешать ли выплачивать субсидии заблокированному водителю
+            'allow_subventions': True,
+            # Комментарий о блокировке
+            'notes': 'Частая отмена'
+        }
+    }
+    ```

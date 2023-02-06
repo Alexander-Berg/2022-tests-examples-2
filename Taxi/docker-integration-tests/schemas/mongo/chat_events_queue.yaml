@@ -1,0 +1,35 @@
+description: chat processings events
+settings:
+    collection: chat_events_queue
+    connection: noncritical
+    database: dbprocessing
+indexes:
+  - key:
+      - name: order_id
+        type: ascending
+      - name: status
+        type: ascending
+      - name: state_metadata.event_index
+        type: ascending
+  - expireAfterSeconds: 86400
+    key: registered
+wiki_info: |
+    ####Персональное состояние юзера
+    ```python
+    chat_events_queue = {
+        '_id': 'oid',                    # Идентификатор
+        'order_id': string,              # ID заказа
+        'registered': utcnow(),          # Время создания
+        'event': string,                 # Событие (waiting, created, finished,..)
+        'status': string,                # Статус (new, cancelled, failed, done)
+        'fail_attempts': integer,        # Количетсво неудачных попыток обработки
+        'state_metadata': {              #
+            'performer_index': integer,  # Индекс исполнителя на момент постановки в очередь
+            'event_index': integer,      # Индекс события на момент постановки в очередь
+        },
+        'message_data': {                # Данные сообщения для event=send_message
+            'payload': {},               # Payload нотификации
+            'message_key': string,       # Ключ сообщения
+        },
+    }
+    ```

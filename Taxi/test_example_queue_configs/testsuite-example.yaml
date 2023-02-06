@@ -1,0 +1,148 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create#equal:
+              - value#xget: /event/payload/kind
+              - value#string: create
+        dynamic-event-traits:
+            reason#if:
+                condition#equal:
+                  - value#xget: /event/payload/kind
+                  - value: regular
+                then: ''
+                else: 'no-handle'
+        state-manager:
+            initial:
+                state: 'null'
+            enabled#equal:
+              - value#xget: /event/payload/kind
+              - value#string: regular
+            mutators:
+              - name: from-null-to-1
+                condition#equal:
+                  - value#xget: /state/current/state
+                  - value: 'null'
+                effects:
+                    state: state-1
+              - name: from-1-to-3
+                condition#and:
+                  - value#equal:
+                      - value#xget: /state/current/state
+                      - value#string: state-1
+                effects:
+                    state: state-3
+              - name: from-1-to-2
+                condition#and:
+                  - value#equal:
+                      - value#xget: /state/current/state
+                      - value#string: state-1
+                effects:
+                    state: state-2
+              - name: from-2-to-3
+                condition#equal:
+                  - value#xget: /state/current/state
+                  - value#string: state-2
+                effects:
+                    state: state-3
+        keys-mapping:
+            rules:
+              - condition#equal:
+                  - value#xget: /state/current/state
+                  - value#string: state-2
+                keys: [handle-2]
+              - condition#equal:
+                  - value#xget: /state/current/state
+                  - value#string: state-3
+                keys: [handle-3]
+              - condition#equal:
+                  - value#xget: /state/current/state
+                  - value#string: state-7
+                keys: [handle-7]
+            default-keys: [handle-default, handle-by-default]
+        configs:
+            consumer: processing/queue-level-consumer
+        event-processor:
+          - id: no-handle-pipeline
+            conditions:
+              - reason: no-handle
+            stages: []
+          - id: default-pipeline
+            configs:
+                consumer: processing/pipeline-level-consumer
+            conditions:
+              - key: handle-by-default
+              - key: handle-2
+            shared-state-init:
+                example-key: example-value
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: foo
+                    testpoints:
+                      - testpoint-name: handle-default
+              - id: stage-2
+                configs:
+                    consumer: processing/stage-level-consumer
+                handlers:
+                  - id: deadline-fallback
+                    requests:
+                      - id: deadline-fallback-src
+                        resource: deadline-fallback-resource
+                    resources:
+                      - id: deadline-fallback-resource
+                        url: $deadline_fallback_resource_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        deadline-handler-result#xget: /sources/deadline-fallback-src/response/body
+                    handler-fallback-policy:
+                        strategy: deadline
+                        deadline: 5m
+                        result:
+                            deadline-handler-result: {"result": "fallback"}
+                  - id: bar
+                    configs:
+                        consumer: processing/handler-level-consumer
+                    requests:
+                      - id: example-request-a
+                        resource: example-resource-a
+                    resources:
+                      - id: example-resource-a
+                        url: $example_resource_a
+                        method: get
+                    result:
+                        foo#xget: /sources/example-request-a/response/body/foo
+                        pipeline-exp#config-effective: pipeline-config
+                        stage-exp#config-effective: stage-config
+                        handler-exp#config-effective: handler-config
+                        queue-exp#config-effective: queue-config
+              - id: stage-3
+                handlers:
+                  - id: baz
+                    requests:
+                      - id: example-request-b
+                        resource: example-resource-b
+                        body:
+                            shared-state#xget: /shared-state
+                    resources:
+                      - id: example-resource-b
+                        url: $example_resource_b
+                        method: post
+          - id: pipeline-7
+            conditions:
+              - key: handle-7
+            stages:
+              - id: state-1
+                handlers:
+                  - id: h-7
+                    testpoints:
+                      - testpoint-name: point-7
+                    result:
+                        state#xget: /state/current/state
+                        prev_state#xget: /state/previous/state

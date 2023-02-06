@@ -1,0 +1,36 @@
+settings:
+    collection: currencies
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: iso_code
+    unique: true
+wiki_info: |
+    #### currencies
+    *Назначение:* Коллекция содержит список валют, которые обновляются задачей
+    taxi_maintenance.stuff.update_currency_rates. Задача для каждого документа из коллекции
+    обновляет курс валюты из документа к возможным валютам расчёта с парками из стран, указанными в документе.
+
+    *Структура документа:*
+    ```python
+    currencies={
+        #Идентификатор записи
+        '_id' : ObjectId('57ecfb4d45af870f17718794'),
+        #ISO-код валюты
+        'iso_code' : 'AMD',
+        #Таймзона
+        'billing_source_timezone' : 'Asia/Yerevan',
+        #Список стран, в которых надо обновить курс валюты документа по отношению к валюте расчёта
+        #с парками из страны.
+        'update_rate_countries' : [
+                'arm'
+        ],
+        #Время, после которого при неудачных попытках получить курс валюты будет писаться предупреждение в логи
+        'update_rate_warning_time' : {
+                'minute' : 0,
+                'hour' : 20
+        },
+        #Код валюты в биллинге
+        'billing_source_id' : 1005
+    }
+    ```

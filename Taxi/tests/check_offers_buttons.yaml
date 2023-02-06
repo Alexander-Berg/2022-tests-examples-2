@@ -1,0 +1,119 @@
+id: check_offers_buttons
+title: Проверка, что пришли турбокнопки
+source:
+    request:
+        method: post
+        headers:
+            X-AppMetrica-DeviceId: device-id
+            X-Yandex-UID: yandex-uid
+            X-YaTaxi-UserId: user-id
+            X-YaTaxi-PhoneId: phone-id
+            X-YaTaxi-User: personal_phone_id=ppid
+            X-Request-Application: app=widget
+            User-Agent: user-agent
+        body: {"position": [1, 2], "state": {"accuracy": 16, "selected_class": "vip"}}
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                typed_experiments: {"version": -1, "items": []}
+                widget: {"services": [{"service": "delivery", "action": {"deeplink": "delivery_deeplink",
+                                "type": "deeplink"}}, "service": "eats", "service": "city",
+                        {}], "header": [{"service": "delivery", "action": {"deeplink": "delivery_deeplink",
+                                "type": "deeplink"}}, {"service": "eats", "action": {
+                                "deeplink": "eats_action_deeplink"}}, "service": "city",
+                        {}], "shortcuts": [{"title": "taxi_expect", "icon_tag": "some_tag",
+                            "deeplink": "ya://"}]}
+mocks:
+  - resource: passenger-tags-v2-match-single
+    response:
+        status-code: 200
+        body: {"tags": ["tag1"]}
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-AppMetrica-DeviceId: device-id
+                X-Yandex-UID: yandex-uid
+                X-YaTaxi-UserId: user-id
+                X-YaTaxi-PhoneId: phone-id
+                X-YaTaxi-User: personal_phone_id=ppid
+                X-Request-Application: app=iphone
+                User-Agent: overrided-user-agent
+            body:
+                match#array:
+                  - value: {"value": "yandex-uid", "type": "yandex_uid"}
+                  - value: {"value": "user-id", "type": "user_id"}
+                  - value: {"value": "phone-id", "type": "user_phone_id"}
+                  - value: {"value": "ppid", "type": "personal_phone_id"}
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            zone_name: "moscow"
+            modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}},
+                {"mode": "eats", "parameters": {"product_tag": "eats", "available": true}}]
+            products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+    expectations:
+        call-count: 1
+        request:
+            body:
+                fields: ["geobase_city_id"]
+                typed_experiments: {"version": -1, "items": []}
+                shortcuts: {"supported_icon_sizes": ["medium", "big"], "mdash_width": 14.48,
+                    "ndash_width": 9.01, "grids_support": [{"width": 6, "unit_width": 63.33}]}
+                position: [1, 2]
+  - resource: shortcuts-v1-medium-widget
+    response:
+        status-code: 200
+        body: {"services": [{"service": "delivery", "action": {"deeplink": "delivery_deeplink",
+                        "type": "deeplink"}}, "service": "eats", "service": "city",
+                {}], "header": [{"service": "delivery", "action": {"deeplink": "delivery_deeplink",
+                        "type": "deeplink"}}, {"service": "eats", "action": {"deeplink": "eats_action_deeplink"}},
+                "service": "city", {}], "shortcuts": [{"title": "taxi_expect", "icon_tag": "some_tag",
+                    "deeplink": "ya://"}]}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                zone_name: "moscow"
+                services_availability: {"modes": [{"parameters": {"available": true,
+                                "product_tag": "taxi"}, "mode": "taxi"}, {"mode": "eats",
+                            "parameters": {"product_tag": "eats", "available": true}}],
+                    "products": [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]}
+                shortcuts: {"supported_icon_sizes": ["medium", "big"], "mdash_width": 14.48,
+                    "ndash_width": 9.01, "grids_support": [{"width": 6, "unit_width": 63.33}]}
+                position: [1, 2]
+                grid: {}
+                known_orders: []
+                tags: ["tag1"]
+                state: {"nz": "moscow", "accuracy": 16, "appearance_mode": "ultima",
+                    "selected_class": "vip", "services_availability": [{"parameters": {
+                                "available": true, "product_tag": "taxi"}, "mode": "taxi"},
+                        {"parameters": {"available": true, "product_tag": "eats"},
+                            "mode": "eats"}]}
+
+  - resource: persuggest-4.0-v2-shortcuts
+    response:
+        status-code: 500
+    expectations:
+        call-count: 1
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body:
+            grid: {}
+    expectations:
+        call-count: 1
+experiments:
+    values:
+        superapp_medium_widget_mock_request:
+            body:
+                shortcuts: {"supported_icon_sizes": ["medium", "big"], "mdash_width": 14.48,
+                    "ndash_width": 9.01, "grids_support": [{"width": 6, "unit_width": 63.33}]}
+                known_orders: []
+                grid: {}
+                state: {"appearance_mode": "ultima"}
+            headers:
+                X-Request-Application: app=iphone
+                User-Agent: overrided-user-agent

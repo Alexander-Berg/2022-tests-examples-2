@@ -1,0 +1,341 @@
+python_service:
+    service_name: transactions
+debian:
+    source_package_name: yandex-taxi-transactions
+    maintainer_name: Ivan Kolosov
+    maintainer_login: ivankolosov
+teamcity:
+    conductor-disabled: true
+secdist: true
+stq-client:
+    queues:
+      - transactions_events
+      - transactions_cashback_events
+      - order_payment_result
+      - transactions_eda_events
+      - transactions_eda_cashback_events
+      - payments_eda_callback
+      - eats_payments_transactions_callback
+      - antifraud_payment_result
+      - update_transactions
+      - transactions_plan_operation
+      - transactions_eda_plan_operation
+      - transactions_notify_on_fiscal_receipt
+      - transactions_persey_events
+      - transactions_persey_cashback_events
+      - transactions_persey_plan_operation
+      - payments_persey_callback
+
+config:
+  - BILLING_MAX_NOT_FOUND_BASKET_AGE
+  - BILLING_MIN_REFUND
+  - BILLING_RECHECK_BASKET_ON_NOT_FOUND
+  - BILLING_DEBT_FALLBACK_ENABLED
+  - BILLING_DO_NOT_CLEAR
+  - BILLING_DO_NOT_PROCESS_DEBT
+  - BILLING_DO_NOT_PROCESS_TRANSACTIONS
+  - NOTIFY_UPDATE_TRANSACTIONS_OF_COMPLETE_OPERATION
+  - TRANSACTIONS_CLEARED_IS_HELD_IN_STATUS
+  - TRANSACTIONS_OPERATION_START_WAIT_INTERVAL
+  - TRANSACTIONS_PLAN_OPERATION_BACKOFF
+  - TRANSACTIONS_PLAN_OPERATION_DELAY
+  - TRANSACTIONS_PLAN_OPERATION_IN_ADVANCE
+  - TRANSACTIONS_TRUST_RATELIMIT_RULES
+  - TRANSACTIONS_UPDATE_EVENT_STATS_FOR
+  - UPDATE_TRANSACTIONS_MAX_FAIL_COUNT
+  - UPDATE_TRANSACTIONS_MAX_RETRY_INTERVAL
+  - UPDATE_TRANSACTIONS_MIN_RETRY_INTERVAL
+  - UPDATE_TRANSACTIONS_TIMEOUT
+  - TRANSACTIONS_RETRIEVE_FISCAL_RECEIPT_BACKOFF
+  - TRANSACTIONS_TOPUP_PRODUCTS
+  - TRANSACTIONS_REFUND_ATTEMPTS_MINUTES
+  - TRANSACTIONS_REPAIR_COMPENSATION_SUMS_ENABLED
+  - TRANSACTIONS_REPAIR_COMPENSATION_SUMS_DRY_RUN
+  - TRANSACTIONS_REFUND_NON_REFUNDABLE
+  - TRANSACTIONS_PAYMENT_LIMITS
+crutches: true
+experiments3:
+    disable_pytest_plugin: true
+units:
+  - name: web
+    transactions: taxi
+    api-4.0: true
+    tvm:
+        service_name: transactions
+    web:
+        description: Yandex.Taxi transactions web package
+        add_taxi_config_package: true
+        hostname:
+            production:
+              - transactions.taxi.yandex.net
+            testing:
+              - transactions.taxi.tst.yandex.net
+            unstable:
+              - transactions.taxi.dev.yandex.net
+        num_procs:
+            production: 4
+            testing: 1
+    rate-limiter: {}
+    debian:
+        binary_package_name: yandex-taxi-transactions-web
+        environment_install:
+          - src: configs/push-client/taxi-transactions-web.yaml.*
+            dst: /etc/yandex/statbox-push-client/custom/taxi-transactions-web.yaml
+  - name: stq3
+    transactions: taxi
+    scripts_executor: true
+    metrics:
+        collection: transactions_stat
+        app_name: transactions
+        time_resolution: 15
+        commit_time: 5
+        upload_time: 5
+
+    tvm:
+        service_name: transactions
+    stq-worker:
+        description: Yandex.Taxi transactions stq package
+        add_taxi_config_package: true
+        queues:
+          - name: transactions_events
+            function: transactions.stq.events_handler.task
+          - name: transactions_cashback_events
+            function: transactions.stq.cashback_events_handler.task
+          - name: order_payment_result
+            function: transactions.stq.order_payment_result.task
+          - name: transactions_plan_operation
+            function: transactions.stq.plan_operation.task
+          - name: transactions_notify_on_fiscal_receipt
+            function: transactions.stq.notify_on_fiscal_receipt.task
+    clients:
+        services:
+          - corp-billing
+          - personal
+          - cardstorage
+          - taxi-agglomerations
+
+    debian:
+        binary_package_name: yandex-taxi-transactions-stq3
+        environment_install:
+          - src: configs/push-client/taxi-transactions-stq3.yaml.*
+            dst: /etc/yandex/statbox-push-client/custom/taxi-transactions-stq3.yaml
+
+  # Ya.Charity (Persey) packages
+  - name: persey_web
+    transactions: persey
+    api-4.0: true
+    tvm:
+        service_name: transactions-persey
+    web:
+        description: Yandex.Taxi Persey transactions web package
+        add_taxi_config_package: true
+        hostname:
+            production:
+              - transactions-persey.taxi.yandex.net
+            testing:
+              - transactions-persey.taxi.tst.yandex.net
+            unstable:
+              - transactions-persey.taxi.dev.yandex.net
+        num_procs:
+            production: 1
+            testing: 1
+    rate-limiter: {}
+    debian:
+        binary_package_name: yandex-taxi-transactions-persey-web
+        environment_install:
+          - src: configs/push-client/taxi-transactions-persey-web.yaml.*
+            dst: /etc/yandex/statbox-push-client/custom/taxi-transactions-persey-web.yaml
+  - name: persey_stq3
+    transactions: persey
+    metrics:
+        collection: persey_transactions_stat
+        app_name: transactions-persey
+        time_resolution: 15
+        commit_time: 5
+        upload_time: 5
+    tvm:
+        service_name: transactions-persey-stq
+    stq-worker:
+        description: Yandex.Taxi Persey transactions stq package
+        add_taxi_config_package: true
+        queues:
+          - name: transactions_persey_events
+            function: transactions.stq.events_handler.task
+          - name: transactions_persey_cashback_events
+            function: transactions.stq.cashback_events_handler.task
+          - name: transactions_persey_plan_operation
+            function: transactions.stq.plan_operation.task
+    clients:
+        services:
+          - personal
+
+    debian:
+        binary_package_name: yandex-taxi-transactions-persey-stq3
+        environment_install:
+          - src: configs/push-client/taxi-transactions-persey-stq3.yaml.*
+            dst: /etc/yandex/statbox-push-client/custom/taxi-transactions-persey-stq3.yaml
+
+# Yandex.Eda packages
+  - name: eda_web
+    transactions: eda
+    api-4.0: true
+    tvm:
+        service_name: transactions_eda
+    web:
+        description: Yandex.Taxi Eda transactions web package
+        add_taxi_config_package: true
+        hostname:
+            production:
+              - transactions-eda.taxi.yandex.net
+            testing:
+              - transactions-eda.taxi.tst.yandex.net
+            unstable:
+              - transactions-eda.taxi.dev.yandex.net
+        num_procs:
+            production: 1
+            testing: 1
+    rate-limiter: {}
+    debian:
+        binary_package_name: yandex-taxi-transactions-eda-web
+        environment_install:
+          - src: configs/push-client/taxi-transactions-eda-web.yaml.*
+            dst: /etc/yandex/statbox-push-client/custom/taxi-transactions-eda-web.yaml
+  - name: eda_stq3
+    transactions: eda
+    metrics:
+        collection: eda_transactions_stat
+        app_name: transactions-eda
+        time_resolution: 15
+        commit_time: 5
+        upload_time: 5
+    tvm:
+        service_name: transactions_eda
+    stq-worker:
+        description: Yandex.Taxi Eda transactions stq package
+        add_taxi_config_package: true
+        queues:
+          - name: transactions_eda_events
+            function: transactions.stq.events_handler.task
+          - name: transactions_eda_cashback_events
+            function: transactions.stq.cashback_events_handler.task
+          - name: transactions_eda_plan_operation
+            function: transactions.stq.plan_operation.task
+    clients:
+        services:
+          - corp-billing
+          - badgepay
+          - personal
+
+    debian:
+        binary_package_name: yandex-taxi-transactions-eda-stq3
+        environment_install:
+          - src: configs/push-client/taxi-transactions-eda-stq3.yaml.*
+            dst: /etc/yandex/statbox-push-client/custom/taxi-transactions-eda-stq3.yaml
+  - name: eda_cron
+    transactions: eda
+    scripts_executor: true
+    cron:
+        description: Yandex.Taxi Eda transactions cron tasks package
+        add_taxi_config_package: true
+        tasks:
+          - module: transactions.crontasks.create_products
+            autoprolong: true
+            lock_for: 120
+            settings:
+                testing:
+                    launch_at: '17 * * * *'
+    tvm:
+        service_name: transactions_eda
+    debian:
+        binary_package_name: yandex-taxi-transactions-eda-cron
+wiki: https://wiki.yandex-team.ru
+maintainers:
+  - Ivan Kolosov <ivankolosov@yandex-team.ru>
+
+clownductor_service_info:
+    service:
+        clownductor_project: taxi-devops
+        description: Transactions main
+        design_review: https://st.yandex-team.ru/TAXIADMIN-0001
+        duty_group_id: 5b69be79c5755f678048a169
+        units:
+          - web
+        preset:
+            name: x2micro
+            overrides:
+                cpu: 4
+                root_size: 2
+        disk_profile:
+            name: default
+            overrides:
+              - path: /logs
+                size: 100000
+                type: hdd
+                bandwidth_guarantee_mb_per_sec: 25
+
+    aliases:
+      - name: transactions-eda
+        description: Transactions eda alias
+        units:
+          - eda_web
+          - eda_cron
+
+      - name: transactions-eda-stq
+        description: Transactions eda stq alias
+        units:
+          - eda_stq3
+        disk_profile:
+            production:
+                name: default
+                root_override:
+                    work_dir_size: 512
+                    type: hdd
+                    size: 1689
+        preset:
+            name: x2micro
+            overrides:
+                datacenters_count: 3
+                stable_instances: 2
+                cpu: 0.261
+                root_size: 1.65
+        release_flow:
+            single_approve: true
+
+      - name: transactions-persey
+        description: Transactions persey alias
+        units:
+          - persey_web
+        has_unstable: true
+        has_balancers: false
+        disk_profile:
+            production:
+                name: default
+                overrides:
+                  - path: /var/cache/yandex
+                    size: 10240
+                    type: ssd
+                    bandwidth_guarantee_mb_per_sec: 2
+                  - path: /var/custom
+                    size: 1024
+                    type: hdd
+                  - path: /cores
+                    size: 0
+                    type: hdd
+
+      - name: transactions-persey-stq
+        description: Transactions persey stq alias
+        design_review: https://st.yandex-team.ru/TAXIADMIN-0002
+        units:
+          - persey_stq3
+        duty_group_id: transactions-persey-stq-duty-id
+        has_unstable: false
+        has_balancers: true
+
+      - name: transactions-stq
+        description: Transactions stq alias
+        units:
+          - stq3
+        duty_group_id: transactions-stq-duty-id
+        deploy_callback_url: http://callback.yandex.net/transactions-stq
+        has_unstable: false
+        has_balancers: false

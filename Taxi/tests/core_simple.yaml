@@ -1,0 +1,46 @@
+id: core_simple
+title: core_simple
+source:
+    request:
+        method: post
+        body:
+            zone_name: 'moscow'
+        headers:
+            content-type: 'application/json'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                the_field: 'core_value'
+
+experiments:
+    values#object:
+      - key: use_zoneinfo_core
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-zoneinfo
+    response:
+        status-code: 200
+        body:
+            the_field: 'protocol_value'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: zoneinfo-core
+    response:
+        status-code: 200
+        body:
+            the_field: 'core_value'
+  - resource: zoneinfo-compare
+    expectations:
+        call-count: 1
+        request:
+            body:
+                response_legacy:
+                    the_field: 'protocol_value'
+                response_fallback:
+                    the_field: 'core_value'
+    response:
+        status-code: 409

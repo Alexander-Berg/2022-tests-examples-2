@@ -1,0 +1,134 @@
+version: '2.1'
+# https://stackoverflow.com/a/44923706/1586620
+services:
+
+    taxi-admin:
+        networks:
+          - taxi_net
+        ports:
+          - "8000:8000"
+        working_dir: /backend/taxi-admin
+        environment:
+          - PYTHONPATH=/taxi:/backend:/backend/taxi-admin
+          - DJANGO_SETTINGS_MODULE=djangosettings_docker
+          - TAXI_SETTINGS_MODULE=taxi_settings_docker
+          - TAXI_SECDIST_SETTINGS=/taxi/taxi.json
+        links:
+          - taxi-memcached:memcached
+        extends:
+            service: base-xenial-image
+        command: bash -c "/taxi/mktunnel.sh && /taxi/runserver"
+
+    taxi-xenial-protocol:
+        networks:
+          - taxi_net
+        ports:
+          - "8080:80"
+        volumes:
+          - .:/taxi-protocol
+        working_dir: /taxi-protocol
+        extends:
+            service: base-xenial-image
+        command: bash -c "/taxi/mktunnel.sh && /taxi/protocol.sh"
+
+    base-xenial-image:
+        volumes:
+          - ~/.ssh/:/home/$USER/.ssh/
+          - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent
+          - ./volume:/taxi
+          - $GIT_TAXI_BACKEND_PATH:/backend
+          - ./volume/taxi.json:/etc/yandex/taxi-secdist/taxi.json:ro
+        build:
+            context: taxi-xenial
+            args:
+              - uid=$LOCALUID
+              - user=$USER
+        image: base-xenial-image
+        environment:
+          - ENVIRONMENT=$ENVIRONMENT
+          - HOST_USER=$USER
+          - SSH_AUTH_SOCK=/ssh-agent
+          - LANG=en_US.UTF-8
+
+    taxi-mongo:
+        networks:
+          - taxi_net
+        ports:
+          - "27717:27017"
+        tmpfs:
+          - /data/db
+        extends:
+            service: base-xenial-image
+        command: mongod --bind_ip_all --ipv6
+
+    taxi-memcached:
+        networks:
+          - taxi_net
+        extends:
+            service: base-xenial-image
+        command: "memcached -u memcache"
+
+    taxi-postgres:
+        networks:
+          - taxi_net
+        image: postgres:10
+        volumes:
+          - ./volume:/taxi
+          - ./taxi-postgres/init_postgres:/docker-entrypoint-initdb.d:ro
+          - $GIT_TAXI_BACKEND_PATH:/backend:ro
+        environment:
+          - POSTGRES_USER=testsuite
+        healthcheck:
+            test: pg_isready -U postgres
+            timeout: 5s
+            interval: 5s
+            retries: 10
+
+    taxi-xenial-tests:
+        networks:
+          - taxi_net
+        image: base-xenial-image
+        tmpfs: /mnt/ramdisk
+        extends:
+            service: base-xenial-image
+        links:
+          - taxi-mongo:mongo
+          - taxi-postgres:postgres
+          - taxi-memcached:memcached
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+        user: $USER
+        volumes:
+          - ./taxi-common/ccache_xenial:/ccache
+          - ./taxi-common/etc/environment.type:/etc/yandex/environment.type:ro
+          - ./taxi-common/etc/environment.type.xml:/etc/yandex/environment.type.xml:ro
+          - ./taxi-common/.history:/home/$USER/.bash_history
+        working_dir: /backend
+        environment:
+          - BUILD_TYPE
+          - CCACHE_DIR=/ccache
+          - CCACHE_PREFIX
+          - CC=/usr/bin/clang-7
+          - CXX=/usr/bin/clang++-7
+          - CMAKE_OPTS=-DUSE_CCACHE=1
+          - DISTCC_HOSTS=$DISTCC_HOSTS_XENIAL
+          - NPROCS
+          - PYTHONPATH=/taxi:/backend
+          - TAXI_SETTINGS_MODULE=taxi_settings_autotest
+          - DJANGO_SETTINGS_MODULE=djangosettings_autotest
+        privileged: true
+
+networks:
+    taxi_net:
+        enable_ipv6: true
+        ipam:
+            driver: default
+            config:
+              - subnet: 172.16.139.0/24
+              - subnet: 2001:3984:3989:0000:1::/80
+volumes:
+    my_config:
+        external: false
+    my_other_config:
+        external: true

@@ -1,0 +1,13 @@
+if (fix.tariff.requirement_multipliers as multipliers) {
+    with (req_multiplier = 1) generate(req : fix.requirements.select)
+        let rname = req.first;
+        with (options_multiplier=1) generate(opt: req.second)
+            let oname = (opt.independent) ? rname + "." + opt.name : rname;
+            let omult = (oname in multipliers) ? multipliers[oname] : 1;
+        endgenerate(options_multiplier=options_multiplier * omult)
+    endgenerate(req_multiplier = req_multiplier * options_multiplier)
+
+    let res = *ride.price * req_multiplier;
+    return (res / *ride.price) * ride.price;
+}
+return ride.price;

@@ -1,0 +1,54 @@
+clownductor_config: tplatform:market-api-proxy:testing
+http_hosts:
+  - market-api-proxy.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share
+  - http:
+        collapsed: true
+  - fallbacks:
+        services:
+          - market-api-proxy
+  - fallback_error_rates:
+        services:
+          - market-api-proxy
+        fallback_names:
+          - 'resource.*.fallback'
+          - 'resource.*.fallback.retries'
+          - 'resource.*.fallback.throttle'
+  - statistics_rps_limiter:
+        service_name: rate-limiter-proxy
+        limiter_name: market-api-proxy-nginx-rate-limiter
+        panel_name: Nginx rps limiter
+        version: 2
+        collapsed: true
+  - statistics_rps_limiter:
+        service_name: market-api-proxy
+        limiter_name: api-proxy-resource-limiter
+        panel_name: Resources rps limiter
+        collapsed: true
+  - include:
+        title: 'Congestion Control Activity'
+        path: common/congestion-control.json
+        collapsed: true
+        variables:
+            cluster_name: production_uservices
+            uservice_name: market-api-proxy
+            cluster_group: tplatform_market-api-proxy_testing
+            custom_status: '503'
+  - userver_httpclient:
+        uservice_name: market-api-proxy
+  - userver_httpclient_destinations:
+        uservice_name: market-api-proxy
+        collapsed: true
+  - userver_task_processors:
+        uservice_name: market-api-proxy
+        collapsed: true
+  - userver_common:
+        uservice_name: market-api-proxy
+        hide:
+          - httpclient
+          - httpclient_destinations
+          - task_processors
+        collapsed: true
+

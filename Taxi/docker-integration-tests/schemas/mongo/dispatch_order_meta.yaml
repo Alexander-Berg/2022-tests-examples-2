@@ -1,0 +1,52 @@
+settings:
+    collection: dispatch_order_meta
+    connection: noncritical
+    database: dbprocessing
+indexes:
+  - expireAfterSeconds: 3600
+    key: created
+    partialFilterExpression:
+        due:
+  - expireAfterSeconds: 3600
+    key: due
+  - key: ids.offer_id
+  - key: ids.order_id
+  - key: user_id
+  - key:
+      - name: user_id
+        type: ascending
+      - name: ids.order_id
+        type: ascending
+    unique: true
+wiki_info: |
+    ####dbprocessing.dispatch_order_meta
+    ```python
+    order_meta = {
+        'user_id': string,                   # id пользователя (index)
+        'ids': {
+          'order_id': string,                # (Необязательное) id заказа, как в order_proc (index)
+          'offer_id': string                 # (Необязательное) id оффера, как в order_proc
+        },
+        'zone': string,                      # название зоны
+        'created': datetime,                 # дата и время создания заказа (index)
+        'due': datetime,                     # дата и время подачи автомобиля к заказу (index)
+        'point': [37.412352, 55.973637],     # Точка А
+        'point_b': [37.412352, 55.973637],   # (Необязательное) Точка Б
+        'classes': [string],                 # Список категорий, доступных водителю
+        'experiments': [string],             # Эксперименты, включенные на заказе/пользователе
+        'surge_value': float,                # сурж на заказе
+        'requirements': {},                  # требования заказа
+        'excluded_parks': [string],          # исключенные для заказа парки
+        'excluded_drivers': [string],        # исключенные для заказа водители
+        'excluded_licenses': [string],       # исключенные для заказа лицензии водителей
+        'excluded_car_numbers': [string],    # исключенные для заказа автомобили
+        'is_airport': bool,                  # флаг аэропортового заказа
+        'queue_zone_id': string,             # идентификатор очереди
+        'processing_link': string,           # линк лупа процессинга (логгирование)
+        'dispatched_driver': {},             # найденный в розыгрыше водитель
+        'buffer_draw_cnt': number,           # в скольких буферных розыгрышах участвовал заказ
+        'dispatch_status': string            # статус заказа
+        'first_buffer_dispatch_run': datetime, # время первого розыгрыша, в котором участвовал заказ
+        'last_buffer_dispatch_run': datetime # время последнего розыгрыша, в котором участвовал заказ
+    }
+    ```

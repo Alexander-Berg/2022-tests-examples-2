@@ -1,0 +1,94 @@
+config:
+    name:
+        Hypercube_runner_config
+    build_counter:
+        Mdm_Android_Build_Counter
+    runner_version:
+        experiments
+    release_type:
+        test
+stages:
+    assemble:
+        work_dir:
+            mobile/hypercube/android/mdm-app/
+        cmd:
+            - ./gradlew assemble
+        caches:
+            - ~/.gradle/caches/modules-2/files-2.1
+            - ~/.gradle/caches/modules-2/metadata-2.96
+            - ~/.gradle/wrapper
+        lxc:
+            1836377852
+        android-sdk:
+            sdk_28-30+tools_29.0.3
+        kill_timeout:
+            3600
+        artifacts:
+             +app/build/outputs/*: outputs
+             +app/build/reports/*: reports
+        allow_missing_artifacts: true
+        multislot:
+            MEDIUM
+        disk_space:
+            20
+        secret_files:
+            sec-01ey98z5njqf4hpwmr4qxsmj7z:test.txt: test.txt
+            sec-01ey98z5njqf4hpwmr4qxsmj7z:file_key: newfile.txt
+        teamcity_artifacts:
+            limit_artifact_size: 100Mb # by default - unlimited
+            skip_logs: true #don't store *.log in teamcity_artifacts
+        env:
+            SRC_ROOT: 'ROOT_PATH'
+            BUILDSCRIPTS_ROOT: '%env.SRC_ROOT%/AAAA'
+            GRADLE_ROOT: '%env.BUILDSCRIPTS_ROOT%/BBBB'
+    test:
+        work_dir:
+            mobile/hypercube/android/mdm-app/
+        cmd:
+            - ./gradlew test
+        caches:
+            - ~/.gradle/caches/modules-2/files-2.1
+            - ~/.gradle/caches/modules-2/metadata-2.96
+            - ~/.gradle/wrapper
+        lxc:
+            1836377852
+        android-sdk:
+            sdk_28-30+tools_29.0.3
+        junit:
+            - app/build/test-results
+        multislot:
+            MEDIUM
+        disk_space:
+            20
+    android_test:
+        work_dir:
+            mobile/hypercube/android/mdm-app/
+        env:
+            DISPLAY: ":1.0"
+            QEMU_AUDIO_DRV: none
+            LD_LIBRARY_PATH: "$ANDROID_HOME/emulator/lib64/:$ANDROID_HOME/emulator/lib64/gles_mesa:$ANDROID_HOME/emulator/lib64/gles_swiftshader:$ANDROID_HOME/emulator/lib64/qt/lib/:$LD_LIBRARY_PATH"
+        fail_fast:
+            false
+        cmd:
+            - env
+            - ldconfig -C /tmp/ld_cache
+            - echo "n" | $ANDROID_HOME/tools/bin/avdmanager create avd -n TestEmulator -k "system-images;android-28;google_apis;x86_64" -d "Nexus 5"
+            - $ANDROID_HOME/emulator/emulator -no-snapshot -no-boot-anim -accel on -no-window -no-audio -partition-size 1000 -gpu swiftshader_indirect -verbose -avd TestEmulator -verbose -qemu -enable-kvm &
+            - sleep 30
+            - ./gradlew connectedAndroidTest
+        caches:
+            - ~/.gradle/caches/modules-2/files-2.1
+            - ~/.gradle/caches/modules-2/metadata-2.96
+            - ~/.gradle/wrapper
+        lxc:
+            1836377852
+        android-sdk:
+            sdk_21-29+tools_29.0.3+packages:system-images;android-28;google_apis;x86_64
+        kill_timeout:
+            3600
+        artifacts:
+            +app/build/reports/*: instrumented_reports
+        multislot:
+            MEDIUM
+        disk_space:
+            20

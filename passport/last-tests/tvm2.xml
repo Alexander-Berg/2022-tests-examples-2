@@ -1,0 +1,703 @@
+<test>
+    <variables>
+        <path>
+            <instance id="ticket">/2/ticket</instance>
+            <instance id="keys">/2/keys</instance>
+            <instance id="private_keys">/2/private_keys</instance>
+            <instance id="check_secret">/2/check_secret</instance>
+        </path>
+
+        <cgi name="grant_type">
+            <instance id="client_credentials">client_credentials</instance>
+        </cgi>
+
+        <cgi name="src">
+            <instance id="tvm_test_1">27</instance>
+            <instance id="tvm_test_3">37</instance>  <!-- deleted -->
+            <instance id="without_secret">238</instance>
+            <instance id="not_exist">2</instance>
+            <instance id="bad0">ololo</instance>
+        </cgi>
+
+        <cgi name="dst">
+            <instance id="tvm_test_1">27</instance>
+            <instance id="tvm_test_3">37</instance>  <!-- deleted -->
+            <instance id="several1">39,27,39,39,39,39,39</instance>
+            <instance id="several2">29,39</instance>
+            <instance id="bad0">ololo</instance>
+            <instance id="several_bad1">29,ololo</instance>
+            <instance id="several_bad2">,ololo</instance>
+            <instance id="several_bad3">29; 27</instance>
+            <instance id="not_exist">2</instance>
+            <instance id="not_exist2">27,2</instance>
+            <instance id="too_many">29,39,1,100500,2,3,4,5,6,7,8</instance>
+        </cgi>
+
+        <cgi name="lib_version">
+            <instance id="ok">1.2.0</instance>
+            <instance id="empty"></instance>
+        </cgi>
+
+        <cgi name="client_id">
+            <instance id="bb_prod">162</instance>
+            <instance id="bb_prod_yateam">164</instance>
+            <instance id="bb_test">224</instance>
+            <instance id="bb_test_yateam">168</instance>
+            <instance id="bb_stress">170</instance>
+            <instance id="bb_mimino">188</instance>
+            <instance id="tvm">172</instance>
+            <instance id="bad">27</instance>
+        </cgi>
+
+        <cgi name="ts">
+            <instance id="old">100500</instance>
+        </cgi>
+
+        <cgi name="get_retry_settings">
+            <instance id="yes">yes</instance>
+            <instance id="no">no</instance>
+        </cgi>
+
+        <header name="X-Ya-Secret">
+            <instance id="tvm_test_1">2LN58F3JHFD3dv4u6NlDbg</instance>
+            <instance id="tvm_test_2">Ix3fa7qSyzoRM0G6BFIbyw</instance>
+            <instance id="bad">qwerty</instance>
+            <instance id="malformed">==</instance>
+        </header>
+
+        <header name="X-Ya-Service-Ticket" func="get_service_ticket">
+            <instance id="passport_dev">
+                <arg name="dst">39</arg>
+            </instance>
+            <instance id="bb_prod">
+                <arg name="dst">162</arg>
+            </instance>
+            <instance id="bb_prod_yateam">
+                <arg name="dst">164</arg>
+            </instance>
+            <instance id="bb_test">
+                <arg name="dst">224</arg>
+            </instance>
+            <instance id="bb_test_yateam">
+                <arg name="dst">168</arg>
+            </instance>
+            <instance id="bb_stress">
+                <arg name="dst">170</arg>
+            </instance>
+            <instance id="bb_mimino">
+                <arg name="dst">188</arg>
+            </instance>
+        </header>
+
+        <result name="err_req__missing_arg">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error" comp="starts_with" >MISSING.</arg>
+                <arg name="/desc" comp="starts_with">Arg is required but empty: </arg>
+            </body>
+        </result>
+
+        <result name="err_src__not_found">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_CLIENT</arg>
+                <arg name="/error">NOT_FOUND</arg>
+                <arg name="/desc" comp="contains">Src is not found</arg>
+            </body>
+        </result>
+        <result name="err_req__incorrect">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error" comp="contains">INCORRECT.</arg>
+                <arg name="/desc" comp="contains">Arg must be a number:</arg>
+            </body>
+        </result>
+
+        <result name="err_req__incorrect_dst">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error" comp="contains">INCORRECT.</arg>
+                <arg name="/desc" comp="contains">Arg must be a comma-separated array of numbers: dst</arg>
+            </body>
+        </result>
+
+        <result name="err_req__without_secret">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_CLIENT</arg>
+                <arg name="/error">INCORRECT</arg>
+                <arg name="/desc">Src is incorrect: secret is missing. client_id=238</arg>
+            </body>
+        </result>
+
+        <result name="err_req__too_many_uids">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error">INCORRECT.dst</arg>
+                <arg name="/desc">Arg 'dst' contains 11 client_ids. Allowed limit=10</arg>
+            </body>
+        </result>
+
+        <result name="err_req__invalid_ts">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error">INCORRECT.ts</arg>
+                <arg name="/desc">Incorrect 'ts': 100500 (1970-01-02T03:55:00.000000Z). Time differs by more than a minute: between request (your instance time) and tvm-api.yandex.net time. Please, fix your NTP: https://wiki.yandex-team.ru/passport/tvm2/400/</arg>
+            </body>
+        </result>
+
+
+        <result name="ok_keys">
+            <body func="check_tvm_public_keys">
+                <arg name="tvm_count">14</arg>
+                <arg name="bb_prod_count">14</arg>
+                <arg name="bb_prod_yateam_count">14</arg>
+                <arg name="bb_test_count">14</arg>
+                <arg name="bb_test_yateam_count">14</arg>
+                <arg name="bb_stress_count">14</arg>
+            </body>
+        </result>
+
+        <result name="ok_keys_bb_prod">
+            <body func="check_tvm_public_keys">
+                <arg name="tvm_count">0</arg>
+                <arg name="bb_prod_count">14</arg>
+                <arg name="bb_prod_yateam_count">0</arg>
+                <arg name="bb_test_count">0</arg>
+                <arg name="bb_test_yateam_count">0</arg>
+                <arg name="bb_stress_count">0</arg>
+            </body>
+        </result>
+        <result name="ok_keys_bb_prod_yateam">
+            <body func="check_tvm_public_keys">
+                <arg name="tvm_count">0</arg>
+                <arg name="bb_prod_count">0</arg>
+                <arg name="bb_prod_yateam_count">14</arg>
+                <arg name="bb_test_count">0</arg>
+                <arg name="bb_test_yateam_count">0</arg>
+                <arg name="bb_stress_count">0</arg>
+            </body>
+        </result>
+        <result name="ok_keys_bb_test">
+            <body func="check_tvm_public_keys">
+                <arg name="tvm_count">0</arg>
+                <arg name="bb_prod_count">0</arg>
+                <arg name="bb_prod_yateam_count">0</arg>
+                <arg name="bb_test_count">14</arg>
+                <arg name="bb_test_yateam_count">0</arg>
+                <arg name="bb_stress_count">0</arg>
+            </body>
+        </result>
+        <result name="ok_keys_bb_test_yateam">
+            <body func="check_tvm_public_keys">
+                <arg name="tvm_count">0</arg>
+                <arg name="bb_prod_count">0</arg>
+                <arg name="bb_prod_yateam_count">0</arg>
+                <arg name="bb_test_count">0</arg>
+                <arg name="bb_test_yateam_count">14</arg>
+                <arg name="bb_stress_count">0</arg>
+            </body>
+        </result>
+        <result name="ok_keys_bb_stress">
+            <body func="check_tvm_public_keys">
+                <arg name="tvm_count">0</arg>
+                <arg name="bb_prod_count">0</arg>
+                <arg name="bb_prod_yateam_count">0</arg>
+                <arg name="bb_test_count">0</arg>
+                <arg name="bb_test_yateam_count">0</arg>
+                <arg name="bb_stress_count">14</arg>
+            </body>
+        </result>
+
+        <result name="bad_keys">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_CLIENT</arg>
+                <arg name="/error">INCORRECT</arg>
+                <arg name="/desc" comp="contains">No private keys for client </arg>
+            </body>
+        </result>
+
+        <result name="cl_err__deleted_dst__tvm_test_1">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">1</arg>
+                <arg name="/37/error">dontmatch</arg>
+                <arg name="/37/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">37</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+        <result name="cl_err__deleted_dst__tvm_test_3">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">1</arg>
+                <arg name="/37/error">dontmatch</arg>
+                <arg name="/37/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">37</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_1__not_exist">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">1</arg>
+                <arg name="/2/error">Dst is not found: it never existed. Or it was created a moment ago and tvm-api needs couple minutes to get it. client_id=2</arg>
+                <arg name="/2/ticket">dontmatch</arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_1__not_exist2">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">2</arg>
+                <arg name="/2/error">Dst is not found: it never existed. Or it was created a moment ago and tvm-api needs couple minutes to get it. client_id=2</arg>
+                <arg name="/2/ticket">dontmatch</arg>
+                <arg name="/27/error">dontmatch</arg>
+                <arg name="/27/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">27</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+
+        <result name="cl_ok__tvm_test_3__not_exist">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">1</arg>
+                <arg name="/2/error">Dst is not found: it never existed. Or it was created a moment ago and tvm-api needs couple minutes to get it. client_id=2</arg>
+                <arg name="/2/ticket">dontmatch</arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_3__not_exist2">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">2</arg>
+                <arg name="/2/error">Dst is not found: it never existed. Or it was created a moment ago and tvm-api needs couple minutes to get it. client_id=2</arg>
+                <arg name="/2/ticket">dontmatch</arg>
+                <arg name="/27/error">dontmatch</arg>
+                <arg name="/27/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">27</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+
+        <result name="cl_ok__tvm_test_1__tvm_test_1">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">1</arg>
+                <arg name="/27/error">dontmatch</arg>
+                <arg name="/27/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">27</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_1__several1">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">2</arg>
+                <arg name="/27/error">dontmatch</arg>
+                <arg name="/27/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">27</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+                <arg name="/39/error">dontmatch</arg>
+                <arg name="/39/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">39</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_1__several2">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">2</arg>
+                <arg name="/29/error">dontmatch</arg>
+                <arg name="/29/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">29</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+                <arg name="/39/error">dontmatch</arg>
+                <arg name="/39/ticket" func="check_service_ticket">
+                    <arg name="src">27</arg>
+                    <arg name="dst">39</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+
+        <result name="cl_ok__tvm_test_3__tvm_test_1">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">1</arg>
+                <arg name="/27/error">dontmatch</arg>
+                <arg name="/27/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">27</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_3__several1">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">2</arg>
+                <arg name="/27/error">dontmatch</arg>
+                <arg name="/27/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">27</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+                <arg name="/39/error">dontmatch</arg>
+                <arg name="/39/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">39</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+        <result name="cl_ok__tvm_test_3__several2">
+            <body func="matchjsonpoint">
+                <arg name="" res_mod="key_count">2</arg>
+                <arg name="/29/error">dontmatch</arg>
+                <arg name="/29/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">29</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+                <arg name="/39/error">dontmatch</arg>
+                <arg name="/39/ticket" func="check_service_ticket">
+                    <arg name="src">37</arg>
+                    <arg name="dst">39</arg>
+                    <arg name="scopes"></arg>
+                </arg>
+            </body>
+        </result>
+
+        <result name="missing_header_secret">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error">MISSING</arg>
+                <arg name="/desc">Header 'X-Ya-Secret' is required</arg>
+            </body>
+        </result>
+        <result name="missing_header_service_ticket">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_CLIENT</arg>
+                <arg name="/error">NOT_FOUND</arg>
+                <arg name="/desc">ServiceTicket is required</arg>
+            </body>
+        </result>
+        <result name="secret_malformed">
+            <status-code>400</status-code>
+            <body func="matchjsonpoint">
+                <arg name="/status">ERR_REQUEST</arg>
+                <arg name="/error">MISSING</arg>
+                <arg name="/desc">Secret is malformed</arg>
+            </body>
+        </result>
+        <result name="secret_not_found">
+            <status-code>404</status-code>
+        </result>
+        <result name="secret_tvm_test_1">
+            <body func="matchjsonpoint">
+                <arg name="__json_is_array__"></arg>
+                <arg name="/0/client_id">27</arg>
+                <arg name="/0/abc_id">2280</arg>
+                <arg name="/0/primary">false</arg>
+            </body>
+        </result>
+        <result name="secret_tvm_test_2">
+            <body func="matchjsonpoint">
+                <arg name="__json_is_array__"></arg>
+                <arg name="/0/client_id">29</arg>
+                <arg name="/0/abc_id">__null__</arg>
+                <arg name="/0/primary">true</arg>
+            </body>
+        </result>
+
+        <result name="retry_settings__found">
+            <header name="X-Ya-Retry-Settings" func="matchregex">
+                <arg name="">^[-_a-zA-Z0-9]{10,}$</arg>
+            </header>
+            <body func="ignore"></body>
+        </result>
+        <result name="retry_settings__not_found">
+            <header name="X-Ya-Retry-Settings">dontmatch</header>
+            <body func="ignore"></body>
+        </result>
+    </variables>
+
+    <node>
+        <description>Tvm</description>
+        <url>http://passdev2.yandex.ru</url>
+
+        <case lastid="keys">
+            <description>Check public keys</description>
+            <path>keys</path>
+            <cgi name="lib_version" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="lib_version" withnull="1">empty</cgi>
+                <result>err_req__missing_arg</result>
+            </check>
+
+            <check>
+                <result>ok_keys</result>
+            </check>
+        </case>
+
+        <case lastid="priv_keys">
+            <description>Check private keys with service tickets</description>
+            <path>private_keys</path>
+            <post/>
+            <header name="X-Ya-Service-Ticket" withnull="1">*</header>
+
+            <check>
+                <header name="X-Ya-Service-Ticket" withnull="1"></header>
+                <result>missing_header_service_ticket</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">bb_prod</header>
+                <result>ok_keys_bb_prod</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">bb_prod_yateam</header>
+                <result>ok_keys_bb_prod_yateam</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">bb_test</header>
+                <result>ok_keys_bb_test</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">bb_test_yateam</header>
+                <result>ok_keys_bb_test_yateam</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">bb_stress</header>
+                <result>ok_keys_bb_stress</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket">bb_mimino</header>
+                <result>ok_keys_bb_prod</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket" withnull="1">*</header>
+                <result>bad_keys</result>
+            </check>
+        </case>
+
+        <case lastid="cl">
+            <description>Check grant_type=client_credentials</description>
+            <path>ticket</path>
+            <post/>
+            <tvm2_sign/>
+            <cgi name="grant_type">client_credentials</cgi>
+            <cgi name="src" withnull="1">*</cgi>
+            <cgi name="dst" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="src">without_secret</cgi>
+                <result>err_req__without_secret</result>
+            </check>
+
+            <check>
+                <cgi name="src" withnull="1"></cgi>
+                <result>err_req__missing_arg</result>
+            </check>
+
+            <check>
+                <cgi name="src">bad0</cgi>
+                <result>err_req__incorrect</result>
+            </check>
+
+            <check>
+                <cgi name="src">not_exist</cgi>
+                <result>err_src__not_found</result>
+            </check>
+
+            <check>
+                <cgi name="dst" withnull="1"></cgi>
+                <result>err_req__missing_arg</result>
+            </check>
+
+            <check>
+                <cgi name="dst">too_many</cgi>
+                <result>err_req__too_many_uids</result>
+            </check>
+
+            <check>
+                <cgi name="dst">bad0;several_bad1;several_bad2;several_bad3</cgi>
+                <result>err_req__incorrect_dst</result>
+            </check>
+
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <cgi name="dst">tvm_test_3</cgi>
+                <result>cl_err__deleted_dst__tvm_test_1</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_3</cgi>
+                <cgi name="dst">tvm_test_3</cgi>
+                <result>cl_err__deleted_dst__tvm_test_3</result>
+            </check>
+
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <cgi name="dst">not_exist</cgi>
+                <result>cl_ok__tvm_test_1__not_exist</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <cgi name="dst">not_exist2</cgi>
+                <result>cl_ok__tvm_test_1__not_exist2</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_3</cgi>
+                <cgi name="dst">not_exist</cgi>
+                <result>cl_ok__tvm_test_3__not_exist</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_3</cgi>
+                <cgi name="dst">not_exist2</cgi>
+                <result>cl_ok__tvm_test_3__not_exist2</result>
+            </check>
+
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <cgi name="dst">tvm_test_1</cgi>
+                <result>cl_ok__tvm_test_1__tvm_test_1</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <cgi name="dst">several1</cgi>
+                <result>cl_ok__tvm_test_1__several1</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <cgi name="dst">several2</cgi>
+                <result>cl_ok__tvm_test_1__several2</result>
+            </check>
+
+            <check>
+                <cgi name="src">tvm_test_3</cgi>
+                <cgi name="dst">tvm_test_1</cgi>
+                <result>cl_ok__tvm_test_3__tvm_test_1</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_3</cgi>
+                <cgi name="dst">several1</cgi>
+                <result>cl_ok__tvm_test_3__several1</result>
+            </check>
+            <check>
+                <cgi name="src">tvm_test_3</cgi>
+                <cgi name="dst">several2</cgi>
+                <result>cl_ok__tvm_test_3__several2</result>
+            </check>
+        </case>
+
+        <case lastid="cl">
+            <description>Check grant_type=client_credentials with old secret</description>
+            <path>ticket</path>
+            <post/>
+            <tvm2_sign__old/>
+            <cgi name="grant_type">client_credentials</cgi>
+            <cgi name="src">tvm_test_1</cgi>
+            <cgi name="dst">several1</cgi>
+
+            <check>
+                <cgi name="src">tvm_test_1</cgi>
+                <result>cl_ok__tvm_test_1__several1</result>
+            </check>
+        </case>
+
+        <case lastid="check_secret">
+            <description>Check secret</description>
+            <path>check_secret</path>
+            <header name="X-Ya-Secret" withnull="1">*</header>
+            <header name="X-Ya-Service-Ticket" withnull="1">passport_dev</header>
+
+            <check>
+                <header name="X-Ya-Secret" withnull="1"></header>
+                <result>missing_header_secret</result>
+            </check>
+            <check>
+                <header name="X-Ya-Secret">malformed</header>
+                <result>secret_malformed</result>
+            </check>
+            <check>
+                <header name="X-Ya-Service-Ticket" withnull="1"></header>
+                <result>missing_header_service_ticket</result>
+            </check>
+
+            <check>
+                <header name="X-Ya-Secret">tvm_test_1</header>
+                <result>secret_tvm_test_1</result>
+            </check>
+            <check>
+                <header name="X-Ya-Secret">tvm_test_2</header>
+                <result>secret_tvm_test_2</result>
+            </check>
+            <check>
+                <result>secret_not_found</result>
+            </check>
+        </case>
+
+        <case lastid="time">
+            <description>Check invalid ts</description>
+            <path>ticket</path>
+            <post/>
+            <cgi name="grant_type">client_credentials</cgi>
+            <cgi name="ts">old</cgi>
+            <cgi name="src" withnull="1">*</cgi>
+            <cgi name="dst" withnull="1">*</cgi>
+
+            <check>
+                <result>err_req__invalid_ts</result>
+            </check>
+        </case>
+
+        <case lastid="retry_settings">
+            <description>Check retry settings: keys</description>
+            <path>keys</path>
+            <cgi name="lib_version">ok</cgi>
+            <cgi name="get_retry_settings" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="get_retry_settings" withnull="1">no</cgi>
+                <result>retry_settings__not_found</result>
+            </check>
+
+            <check>
+                <result>retry_settings__found</result>
+            </check>
+        </case>
+
+        <case lastid="retry_settings">
+            <description>Check retry settings: ticket</description>
+            <path>ticket</path>
+            <post/>
+            <tvm2_sign/>
+            <cgi name="grant_type">client_credentials</cgi>
+            <cgi name="src">tvm_test_1</cgi>
+            <cgi name="dst">tvm_test_1</cgi>
+            <cgi name="get_retry_settings" withnull="1">*</cgi>
+
+            <check>
+                <cgi name="get_retry_settings" withnull="1">no</cgi>
+                <result>retry_settings__not_found</result>
+            </check>
+
+            <check>
+                <result>retry_settings__found</result>
+            </check>
+        </case>
+    </node>
+</test>

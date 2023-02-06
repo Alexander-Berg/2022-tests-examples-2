@@ -1,0 +1,146 @@
+data:
+    name: ArcadiaMergeDiffProposalWithPR
+    provider_name: clownductor
+    job_vars:
+      - diff_proposal
+      - st_ticket
+      - automerge
+      - reviewers
+      - approve_required
+      - robot_for_ship
+    stages:
+      - name: ArcadiaGenerateBasicInfo
+        provider_name: clownductor
+        input:
+            diff_proposal: diff_proposal
+            st_ticket: st_ticket
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            user: user
+            repo: repo
+            changes_title: changes_title
+            base_branch_name: base_branch_name
+            head_branch_name: head_branch_name
+            diff_proposal_sha: diff_proposal_sha
+      - name: ArcadiaFetchLatestCommit
+        provider_name: clownductor
+        input:
+            user: user
+            branch_name: base_branch_name
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            base_commit_oid: commit_oid
+      - name: ArcadiaCreateBranch
+        provider_name: clownductor
+        input:
+            user: user
+            commit_oid: base_commit_oid
+            branch_name: head_branch_name
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            head_commit_oid: commit_oid
+      - name: ArcadiaCheckFiles
+        provider_name: clownductor
+        input:
+            repo: repo
+            diff_proposal: diff_proposal
+            diff_proposal_sha: diff_proposal_sha
+            st_task: st_ticket
+        output:
+            diff_proposal: diff_proposal
+            diff_proposal_sha: diff_proposal_sha
+            check_files_comment_text: check_files_comment_text
+            check_files_comment_props: check_files_comment_props
+            check_files_comment_skip: check_files_comment_skip
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: st_ticket
+            text: check_files_comment_text
+            comment_props: check_files_comment_props
+            skip_add_comment: check_files_comment_skip
+        output: {}
+      - name: ArcadiaCommitFiles
+        provider_name: clownductor
+        input:
+            user: user
+            repo: repo
+            message: changes_title
+            branch_name: head_branch_name
+            diff_proposal: diff_proposal
+            diff_proposal_sha: diff_proposal_sha
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            commits_oid_by_filepaths: commits_oid_by_filepaths
+            head_commit_oid: last_commit_oid
+      - name: ArcadiaGeneratePullRequestInfo
+        provider_name: clownductor
+        input:
+            diff_proposal: diff_proposal
+            st_ticket: st_ticket
+            pull_request_title: changes_title
+            pull_request_reviewers: reviewers
+        output:
+            pull_request_title: pull_request_title
+            pull_request_body: pull_request_body
+            pull_request_st_comment_props: pull_request_st_comment_props
+      - name: ArcadiaCreatePullRequest
+        provider_name: clownductor
+        input:
+            user: user
+            automerge: automerge
+            base_branch_name: base_branch_name
+            head_branch_name: head_branch_name
+            pull_request_title: pull_request_title
+            pull_request_body: pull_request_body
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            pull_request_id: pull_request_id
+            pull_request_url: pull_request_url
+      - name: ArcadiaWaitStatusMergeablePR
+        provider_name: clownductor
+        input:
+            pull_request_id: pull_request_id
+            pull_request_url: pull_request_url
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            comment_pr_is_ready_to_review: st_comment
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: st_ticket
+            text: comment_pr_is_ready_to_review
+            comment_props: pull_request_st_comment_props
+        output: {}
+      - name: ArcadiaWaitMergePullRequest
+        provider_name: clownductor
+        input:
+            pull_request_id: pull_request_id
+            pull_request_url: pull_request_url
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output:
+            pull_request_state: pull_request_state
+            comment_pr_is_merged: st_comment
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: st_ticket
+            text: comment_pr_is_merged
+            comment_props: pull_request_st_comment_props
+        output: {}
+      - name: ArcadiaDeleteBranch
+        provider_name: clownductor
+        input:
+            user: user
+            branch_name: head_branch_name
+            commit_oid: head_commit_oid
+            approve_required: approve_required
+            robot_for_ship: robot_for_ship
+        output: {}

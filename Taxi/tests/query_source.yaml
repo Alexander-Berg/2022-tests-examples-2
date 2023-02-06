@@ -1,0 +1,69 @@
+id: query_source
+title: Проверяем логику определения кварга source
+
+parameters:
+  - source_present:
+      - true
+      - false
+
+source:
+    request:
+        method: post
+        body:
+            location:
+              - 10
+              - 20
+        headers:
+            X-YaTaxi-User: personal_phone_id=pp_id
+        query:
+            service: mock_service
+            source:
+                value: mock_source
+                enabled#xget: /test-params/source_present
+    expectations:
+        response:
+            status-code: 200
+            body#concat-objects:
+              - value#object:
+                  - key: merchant_id_list
+                    value:
+                      - id
+                  - key: payment_methods
+                    value: []
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards: []
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payment_types: []
+            merchant_ids:
+              - id
+
+experiments:
+    expectations:
+        kwargs:
+          - key: service
+            type: string
+            value: mock_service
+          - key: personal_phone_id
+            type: string
+            value: pp_id
+          - key: source
+            type: string
+            value: mock_source
+            enabled#xget: /test-params/source_present

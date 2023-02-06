@@ -1,0 +1,64 @@
+INSERT INTO piecework.eats_support_metrics (
+    operator_login,
+    csat_sum,
+    csat_cnt,
+    quality_sum,
+    quality_cnt,
+    claim_cnt,
+    utc_event_dt
+)
+VALUES
+(
+    'random_support',
+    180.0,
+    2,
+    400.0,
+    5,
+    2,
+    '2022-02-05'
+),
+(
+    'random_support',
+    160.0,
+    2,
+    425.0,
+    5,
+    0,
+    '2022-02-06'
+),
+(
+    'random_support',
+    200.0,
+    2,
+    500.0,
+    5,
+    10,
+    '2022-02-20'
+),
+(
+    'support_without_quality',
+    85.0,
+    1,
+    0,
+    0,
+    11,
+    '2022-02-05'
+),
+(
+    'support_without_csat',
+    0,
+    0,
+    85.0,
+    2,
+    7,
+    '2022-02-05'
+),
+(
+    'support_with_zero_cnt',
+    0,
+    0,
+    0,
+    0,
+    1,
+    '2022-02-05'
+);

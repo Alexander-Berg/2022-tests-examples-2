@@ -1,0 +1,2 @@
+INSERT INTO catalog.categories (category_id, parent, name, description, age_group, images, updated) VALUES ('9d9092df-91f4-4174-94e1-e36bd64dffff', NULL, 'Мороженое', 'Детям', '', '{"(9d9092df-91f4-4174-94e1-e36bd64dffff,\"\",\"2019-12-26 15:36:36+03\")"}', '2019-12-26 15:36:36.727994+03');
+INSERT INTO catalog.depot_category_settings (depot_id, category_id, sort_order, always_show, updated) VALUES (87840, '9d9092df-91f4-4174-94e1-e36bd64dffff', 420, true, '2019-12-26 15:36:25.42644+03');

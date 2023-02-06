@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title></title>
+</head>
+<body>
+
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
+<script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+<script type="text/javascript">
+    var url = 'http://xiva.wdevx.yandex.net/xiva/898/46tw06eh/websocket'
+
+    var webSocket = new WebSocket('ws://xiva.wdevx.yandex.net/xiva/898/46tw06eh/websocket');
+    webSocket.onopen = function(event) {
+        $('#connection_status').text('Connected!');
+        command = {subscribe: {news_1: 1234567654, wether_1: 1234567654, auto_1: 1234567654, holodilnik_1: 123}};
+        webSocket.send(JSON.stringify(command));
+    };
+    webSocket.onmessage = function(event) {
+         try{
+            var command = JSON.parse(e.data);
+            for (var com in command){
+                switch (com){
+                case 'channelupdate':
+                    $('#' + command[com].channel.toString()).text('Get new timestamp: ' + command[com].newtimestamp);
+                    break;
+                }
+            }
+        }
+        catch(err){
+            console.log('exception while command', err);
+        }
+    };
+    webSocket.onclose = function(event) {
+        $('#connection_status').text('Disconnected :(');
+    };
+
+    function send_some_data(){
+        command = {get_info: ''};
+        sock.send(JSON.stringify(command));
+    }
+
+</script>
+<div id='status'>
+    <h2>Status:</h2>
+    <pre>
+    Connection: <span id="connection_status">disconnected</span>;<br>
+    Last message: <span id="last_message_status"></span><br>
+    </pre>
+</div>
+<input type="button" onclick="send_some_data();" name="some label" value="some value" />
+<table width=100% border="2" cellspacing="0" align=center bgcolor="#CCCCCC">
+    <tr>
+        <td align=center><div id='news'>виджет раз</div></td>
+        <td align=center><div id='wether'>виджет два</div></td>
+    </tr>
+    <tr>
+        <td align=center><div id='auto'>три</div></td>
+        <td align=center><div id='holodilnik'>четыре</div></td>
+    </tr>
+</table>
+
+
+</body>
+</html>

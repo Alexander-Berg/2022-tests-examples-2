@@ -1,0 +1,27 @@
+#
+# Regular cron jobs for the yandex-taxi taxi-billing-replication package
+#
+# ТЫ БУДЕШЬ ОСТАВЛЯТЬ ПУСТУЮ СТРОКУ В КОНЦЕ ЭТОГО ФАЙЛА
+#
+
+PATH="/usr/lib/yandex/taxi-py3-2/bin:/usr/bin:/bin"
+PYTHONPATH="/usr/lib/yandex/taxi-billing-replication-cron"
+LOG_IDENT="yandex-taxi-billing-replication-cron"
+MAILTO=taxi-cron@yandex-team.ru
+YT_LOG_LEVEL=WARNING
+
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi.scripts.cron_run -p taxi-billing-replication taxi.scripts.execute
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.send_stats
+0,12 * * * *   root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.expire_old_data
+
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.parks.sync_client_ids
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.parks.replicate_contracts
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.parks.replicate_persons
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.parks.replicate_balances
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.parks.replicate_balances_v2
+
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.corp.sync_client_ids
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.corp.replicate_acts
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.corp.replicate_contracts
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.corp.replicate_persons
+* * * * *      root    /bin/sleep $(( RANDOM \% 30 )) && python3.7 -m taxi_billing_replication.cron_run taxi_billing_replication.stuff.corp.replicate_balances

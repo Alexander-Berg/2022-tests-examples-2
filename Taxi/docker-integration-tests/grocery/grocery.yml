@@ -1,0 +1,997 @@
+# Containers for grocery services
+
+version: "2.3"
+
+services:
+    grocery-depots:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-depots/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-depots
+        hostname: grocery-depots.lavka.yandex.net
+        command: /taxi/run/grocery-depots.sh
+        healthcheck:
+            test: curl -f http://grocery-depots.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-depots.lavka.yandex.net
+    taxi-overlord-catalog:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/overlord-catalog/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            grocery-depots:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-overlord-catalog
+        hostname: overlord-catalog.lavka.yandex.net
+        command: /taxi/run/overlord-catalog.sh
+        healthcheck:
+            test: curl -f http://overlord-catalog.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - overlord-catalog.lavka.yandex.net
+    grocery-api:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-api/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+            grocery-products:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-api
+        hostname: grocery-api.lavka.yandex.net
+        command: /taxi/run/grocery-api.sh
+        healthcheck:
+            test: curl -f http://grocery-api.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-api.lavka.yandex.net
+    grocery-cart:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-cart/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-cart
+        hostname: grocery-cart.lavka.yandex.net
+        command: /taxi/run/grocery-cart.sh
+        healthcheck:
+            test: curl -f http://grocery-cart.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-cart.lavka.yandex.net
+    grocery-coupons:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-coupons/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-coupons
+        hostname: grocery-coupons.lavka.yandex.net
+        command: /taxi/run/grocery-coupons.sh
+        healthcheck:
+            test: curl -f http://grocery-coupons.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-coupons.lavka.yandex.net
+    grocery-discounts:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-discounts/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-discounts
+        hostname: grocery-discounts.lavka.yandex.net
+        command: /taxi/run/grocery-discounts.sh
+        healthcheck:
+            test: curl -f http://grocery-discounts.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-discounts.lavka.yandex.net
+    grocery-offers:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-offers/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-offers
+        hostname: grocery-offers.lavka.yandex.net
+        command: /taxi/run/grocery-offers.sh
+        healthcheck:
+            test: curl -f http://grocery-offers.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-offers.lavka.yandex.net
+    grocery-orders:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-orders/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-postgres:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+            grocery-takeout:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-orders
+        hostname: grocery-orders.lavka.yandex.net
+        command: /taxi/run/grocery-orders.sh
+        healthcheck:
+            test: curl -f http://grocery-orders.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-orders.lavka.yandex.net
+    grocery-pics:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-pics/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-pics
+        hostname: grocery-pics.taxi.yandex.net
+        command: /taxi/run/grocery-pics.sh
+        healthcheck:
+            test: curl -f http://grocery-pics.taxi.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-pics.taxi.yandex.net
+    grocery-upsale:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-upsale/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-upsale
+        hostname: grocery-upsale.lavka.yandex.net
+        command: /taxi/run/grocery-upsale.sh
+        healthcheck:
+            test: curl -f http://grocery-upsale.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-upsale.lavka.yandex.net
+    grocery-wms-gateway:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-wms-gateway/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-wms-gateway
+        hostname: grocery-wms-gateway.lavka.yandex.net
+        command: /taxi/run/grocery-wms-gateway.sh
+        healthcheck:
+            test: curl -f http://grocery-wms-gateway.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-wms-gateway.lavka.yandex.net
+    grocery-products:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-products/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-products
+        hostname: grocery-products.lavka.yandex.net
+        command: /taxi/run/grocery-products.sh
+        healthcheck:
+            test: curl -f http://grocery-products.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-products.lavka.yandex.net
+    grocery-fav-goods:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-fav-goods/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+            grocery-takeout:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-fav-goods
+        hostname: grocery-fav-goods.lavka.yandex.net
+        command: /taxi/run/grocery-fav-goods.sh
+        healthcheck:
+            test: curl -f http://grocery-fav-goods.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-fav-goods.lavka.yandex.net
+    grocery-p13n:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-p13n/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-p13n
+        hostname: grocery-p13n.lavka.yandex.net
+        command: /taxi/run/grocery-p13n.sh
+        healthcheck:
+            test: curl -f http://grocery-p13n.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-p13n.lavka.yandex.net
+    grocery-invoices:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-invoices/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-invoices
+        hostname: grocery-invoices.lavka.yandex.net
+        command: /taxi/run/grocery-invoices.sh
+        healthcheck:
+            test: curl -f http://grocery-invoices.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-invoices.lavka.yandex.net
+    tristero-parcels:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/tristero-parcels/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-tristero-parcels
+        hostname: tristero-parcels.lavka.yandex.net
+        command: /taxi/run/tristero-parcels.sh
+        healthcheck:
+            test: curl -f http://tristero-parcels.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - tristero-parcels.lavka.yandex.net
+    grocery-marketing:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-marketing/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-marketing
+        hostname: grocery-marketing.lavka.yandex.net
+        command: /taxi/run/grocery-marketing.sh
+        healthcheck:
+            test: curl -f http://grocery-marketing.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-marketing.lavka.yandex.net
+#    grocery-cold-storage:
+#        extends:
+#            service: taxi-uservices
+#        image: registry.yandex.net/taxi/grocery-cold-storage/production:${IMAGE_VERSION:-test}
+#        depends_on:
+#            taxi-postgres:
+#                condition: service_healthy
+#            taxi-uconfigs:
+#                condition: service_healthy
+#            taxi-loghandler:
+#                condition: service_healthy
+#            taxi-localizations-replica:
+#                condition: service_healthy
+#            taxi-overlord-catalog:
+#                condition: service_healthy
+#        environment:
+#          - program_name=taxi-grocery-cold-storage
+#        hostname: grocery-cold-storage.lavka.yandex.net
+#        command: /taxi/run/grocery-cold-storage.sh
+#        healthcheck:
+#            test: curl -f http://grocery-cold-storage.lavka.yandex.net/ping
+#            timeout: 30s
+#            interval: 5s
+#            retries: 20
+#        networks:
+#            taxi_internal:
+#                aliases:
+#                  - grocery-cold-storage.lavka.yandex.net
+    grocery-holidays:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-holidays/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-holidays
+        hostname: grocery-holidays.lavka.yandex.net
+        command: /taxi/run/grocery-holidays.sh
+        healthcheck:
+            test: curl -f http://grocery-holidays.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-holidays.lavka.yandex.net
+    grocery-order-log:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-order-log/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            grocery-takeout:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-order-log
+        hostname: grocery-order-log.lavka.yandex.net
+        command: /taxi/run/grocery-order-log.sh
+        healthcheck:
+            test: curl -f http://grocery-order-log.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-order-log.lavka.yandex.net
+#    grocery-surge:
+#        extends:
+#            service: taxi-uservices
+#        image: registry.yandex.net/taxi/grocery-surge/production:${IMAGE_VERSION:-test}
+#        depends_on:
+#            taxi-postgres:
+#                condition: service_healthy
+#            taxi-uconfigs:
+#                condition: service_healthy
+#            taxi-loghandler:
+#                condition: service_healthy
+#            taxi-localizations-replica:
+#                condition: service_healthy
+#            taxi-overlord-catalog:
+#                condition: service_healthy
+#        environment:
+#          - program_name=taxi-grocery-surge
+#        hostname: grocery-surge.lavka.yandex.net
+#        command: /taxi/run/grocery-surge.sh
+#        healthcheck:
+#            test: curl -f http://grocery-surge.lavka.yandex.net/ping
+#            timeout: 30s
+#            interval: 5s
+#            retries: 20
+#        networks:
+#            taxi_internal:
+#                aliases:
+#                  - grocery-surge.lavka.yandex.net
+    tristero-b2b:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/tristero-b2b/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-tristero-b2b
+        hostname: tristero-b2b.lavka.yandex.net
+        command: /taxi/run/tristero-b2b.sh
+        healthcheck:
+            test: curl -f http://tristero-b2b.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - tristero-b2b.lavka.yandex.net
+    grocery-search:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-search/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+            grocery-products:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-search
+        hostname: grocery-search.lavka.yandex.net
+        command: /taxi/run/grocery-search.sh
+        healthcheck:
+            test: curl -f http://grocery-search.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-search.lavka.yandex.net
+    grocery-caas-markdown:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-caas-markdown/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-caas-markdown
+        hostname: grocery-caas-markdown.lavka.yandex.net
+        command: /taxi/run/grocery-caas-markdown.sh
+        healthcheck:
+            test: curl -f http://grocery-caas-markdown.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-caas-markdown.lavka.yandex.net
+    # TODO : fix ssl issue with eda.yandex at startup
+    #
+    # grocery-checkins:
+    #     extends:
+    #         service: taxi-uservices
+    #     image: registry.yandex.net/taxi/grocery-checkins/production:${IMAGE_VERSION:-test}
+    #     depends_on:
+    #         taxi-postgres:
+    #             condition: service_healthy
+    #         taxi-uconfigs:
+    #             condition: service_healthy
+    #         taxi-loghandler:
+    #             condition: service_healthy
+    #         taxi-localizations-replica:
+    #             condition: service_healthy
+    #         taxi-overlord-catalog:
+    #             condition: service_healthy
+    #     environment:
+    #       - program_name=taxi-grocery-checkins
+    #     hostname: grocery-checkins.lavka.yandex.net
+    #     command: /taxi/run/grocery-checkins.sh
+    #     healthcheck:
+    #         test: curl -f http://grocery-checkins.lavka.yandex.net/ping
+    #         timeout: 30s
+    #         interval: 5s
+    #         retries: 20
+    #     networks:
+    #         taxi_internal:
+    #             aliases:
+    #               - grocery-checkins.lavka.yandex.net
+    grocery-market-gw:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-market-gw/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-market-gw
+        hostname: grocery-market-gw.lavka.yandex.net
+        command: /taxi/run/grocery-market-gw.sh
+        healthcheck:
+            test: curl -f http://grocery-market-gw.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-market-gw.lavka.yandex.net
+    grocery-payments:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-payments/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-payments
+        hostname: grocery-payments.lavka.yandex.net
+        command: /taxi/run/grocery-payments.sh
+        healthcheck:
+            test: curl -f http://grocery-payments.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-payments.lavka.yandex.net
+    grocery-payments-billing:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-payments-billing/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-payments-billing
+        hostname: grocery-payments-billing.lavka.yandex.net
+        command: /taxi/run/grocery-payments-billing.sh
+        healthcheck:
+            test: curl -f http://grocery-payments-billing.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-payments-billing.lavka.yandex.net
+    grocery-support:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-support/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-support
+        hostname: grocery-support.lavka.yandex.net
+        command: /taxi/run/grocery-support.sh
+        healthcheck:
+            test: curl -f http://grocery-support.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-support.lavka.yandex.net
+    grocery-takeout:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-takeout/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-takeout
+        hostname: grocery-takeout.lavka.yandex.net
+        command: /taxi/run/grocery-takeout.sh
+        healthcheck:
+            test: curl -f http://grocery-takeout.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-takeout.lavka.yandex.net
+    grocery-eats-gateway:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-eats-gateway/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-eats-gateway
+        hostname: grocery-eats-gateway.lavka.yandex.net
+        command: /taxi/run/grocery-eats-gateway.sh
+        healthcheck:
+            test: curl -f http://grocery-eats-gateway.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-eats-gateway.lavka.yandex.net
+    grocery-cashback:
+        extends:
+            service: taxi-uservices
+        image: registry.yandex.net/taxi/grocery-cashback/production:${IMAGE_VERSION:-test}
+        depends_on:
+            taxi-postgres:
+                condition: service_healthy
+            taxi-uconfigs:
+                condition: service_healthy
+            taxi-loghandler:
+                condition: service_healthy
+            taxi-localizations-replica:
+                condition: service_healthy
+            taxi-overlord-catalog:
+                condition: service_healthy
+        environment:
+          - program_name=taxi-grocery-cashback
+        hostname: grocery-cashback.lavka.yandex.net
+        command: /taxi/run/grocery-cashback.sh
+        healthcheck:
+            test: curl -f http://grocery-cashback.lavka.yandex.net/ping
+            timeout: 30s
+            interval: 5s
+            retries: 20
+        networks:
+            taxi_internal:
+                aliases:
+                  - grocery-cashback.lavka.yandex.net
+    all-grocery-services: &grocery-base
+        extends:
+            service: taxi-integration-xenial-base
+        depends_on:
+            grocery-cashback:
+                condition: service_healthy
+            grocery-eats-gateway:
+                condition: service_healthy
+            grocery-depots:
+                condition: service_healthy
+            grocery-takeout:
+                condition: service_healthy
+            grocery-support:
+                condition: service_healthy
+            grocery-payments-billing:
+                condition: service_healthy
+            grocery-payments:
+                condition: service_healthy
+            grocery-market-gw:
+                condition: service_healthy
+#            grocery-checkins:
+#                condition: service_healthy
+            grocery-caas-markdown:
+                condition: service_healthy
+            grocery-search:
+                condition: service_healthy
+            tristero-b2b:
+                condition: service_healthy
+#            grocery-surge:
+#                condition: service_healthy
+            grocery-order-log:
+                condition: service_healthy
+            grocery-holidays:
+                condition: service_healthy
+#            grocery-cold-storage:
+#                condition: service_healthy
+            grocery-marketing:
+                condition: service_healthy
+            tristero-parcels:
+                condition: service_healthy
+            grocery-invoices:
+                condition: service_healthy
+            grocery-p13n:
+                condition: service_healthy
+            grocery-fav-goods:
+                condition: service_healthy
+#            taxi-elastic:
+#                condition: service_started
+#            taxi-kibana:
+#                condition: service_started
+#            taxi-pilorama:
+#                condition: service_started
+            mock-server:
+                condition: service_started
+            taxi-overlord-catalog:
+                condition: service_healthy
+            #taxi-experiments3:
+            #    condition: service_healthy
+            taxi-exp3-matcher:
+                condition: service_healthy
+            grocery-api:
+                condition: service_healthy
+            grocery-cart:
+                condition: service_healthy
+            grocery-discounts:
+                condition: service_healthy
+            grocery-offers:
+                condition: service_healthy
+            grocery-orders:
+                condition: service_healthy
+            #grocery-pics:
+            #    condition: service_healthy
+            grocery-products:
+                condition: service_healthy
+            grocery-upsale:
+                condition: service_healthy
+            grocery-wms-gateway:
+                condition: service_healthy
+            taxi-processing:
+                condition: service_healthy
+    grocery-proxy-lite:
+        <<: *grocery-base
+        volumes:
+          - ./grocery/grocery-proxy:/etc/nginx/sites-available:ro
+        environment:
+            program_name: taxi-proxy
+        ports:
+          - "8800:8800"
+          - "80:80"
+        command: /taxi/run/grocery-proxy-lite.sh
+        networks:
+          - taxi_internal
+          - taxi_net
+    grocery-tests:
+        #<<: *grocery-base
+        extends:
+            service: taxi-integration-xenial-base
+        environment:
+          - PYTEST_ARGS_INTEGRATION
+          - NUM_PROCESSES
+          - program_name=taxi-tests
+          - IS_TEAMCITY
+        volumes:
+          - ./grocery/grocery-tests:/taxi/grocery-tests:ro
+          - ${HOST_BUILD_VOLUME:-./pytest-build/}:${DOCKER_BUILD_VOLUME:-/taxi/pytest-build/}
+        working_dir: /taxi
+        command: /taxi/run/grocery-tests.sh
+        networks:
+            taxi_internal:
+

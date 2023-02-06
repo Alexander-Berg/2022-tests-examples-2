@@ -1,0 +1,43 @@
+id: test_eats_eta_no_proxy
+title: Ошибка в eats-eta
+
+source:
+    request:
+        method: post
+        headers:
+            user-agent: user_agent
+            X-YaTaxi-User: personal_phone_id=personal_123,eats_user_id=eater_id1
+        body: {}
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: eats-eta-api-v1-customer-place-eta
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                user-agent: user_agent
+                X-YaTaxi-User: personal_phone_id=personal_123,eats_user_id=eater_id1
+    response:
+        status-code: 200
+
+  - resource: umlaas-eats-v1-eta
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats_eta_as_proxy_for_umlaas
+        value:
+        enabled: true
+    expectations:
+        kwargs:
+          - key: personal_phone_id
+            value: personal_123
+            type: string
+          - key: eats_user_id
+            value: eater_id1
+            type: string
+        consumer: eats-api-proxy/umlaas-eats-v1-eta

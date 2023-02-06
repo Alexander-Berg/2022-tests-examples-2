@@ -1,0 +1,55 @@
+id: test_get_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: get
+        headers:
+            X-YaEda-PartnerId#string: 100
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true, "payload": {"countryCode": "RU", "credentials": [],
+                    "email": "test@test.test", "name": "some_name", "hasIntegrationsSupport": false,
+                    "isFastFood": false, "partnerId": "some_partner_id", "timezone": "Moscow",
+                    "roles": [{"title": "Оператор", "slug": "ROLE_OPERATOR"}, {"title": "Управляющий",
+                            "slug": "ROLE_MANAGER"}]}}
+
+mocks:
+  - resource: backend-service-vendor-v1-client-info
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-v1-info
+    response:
+        status-code: 200
+        body:
+            payload:
+                id: 1
+                name: some_name
+                email: test@test.test
+                is_blocked: false
+                places: [1, 2, 3]
+                is_fast_food: false
+                country_code: RU
+                roles:
+                  - slug: ROLE_OPERATOR
+                    title: Оператор
+                  - slug: ROLE_MANAGER
+                    title: Управляющий
+                timezone: Moscow
+                partner_id: some_partner_id
+    expectations:
+        call-count: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_read: true
+        enabled: true
+    expectations:
+        kwargs:
+          - key: partner_id
+            type: string
+            value#string: 100

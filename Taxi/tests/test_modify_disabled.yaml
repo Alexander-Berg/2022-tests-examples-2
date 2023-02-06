@@ -1,0 +1,64 @@
+id: test_modify_disabled
+title: Проверяем что при ошибке модифаера фолбечимся на исходный ответ коры
+
+source:
+    request:
+        method: get
+        query:
+            aaa: bbb
+        url: /api/v2/menu/goods/search/ccc
+        headers:
+            X-aaa: x-bbb
+            X-Device-Id: deice_id
+            X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+    expectations:
+        response:
+            status-code: 200
+            body:
+                resp1: data1
+
+mocks:
+  - resource: eats-restaurant-menu-search-modify
+    expectations:
+        call-count: 0
+
+  - resource: eats-full-text-search-goods-search
+    expectations:
+        call-count: 0
+
+  - resource: eats-core-legacy-goods-search
+    response:
+        status-code: 200
+        body:
+            resp1: data1
+    expectations:
+        call-count: 1
+        request:
+            query:
+                aaa: bbb
+            headers:
+                X-aaa: x-bbb
+                X-Device-Id: deice_id
+                X-Eats-User: personal_phone_id=phone_id,vvv=ddd
+
+
+experiments:
+    values#object:
+      - key: use_eats_fts_rest_menu_search
+        value:
+            enabled: false
+        enabled: true
+    expectations:
+        kwargs:
+          - key: place_slug
+            type: string
+            value: ccc
+          - key: device_id
+            type: string
+            value: deice_id
+          - key: personal_phone_id
+            type: string
+            value: phone_id
+
+taxi_config:
+    MODIFY_CORE_MENU_SEARCH_RESP: false

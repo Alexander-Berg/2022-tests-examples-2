@@ -1,0 +1,162 @@
+# DISCLAIMER:
+#   this test is needed because it is hard to mock geobase for unit tests.
+#   when we hide geobase::Lookup and/or IP resolving behind an interface,
+#   we could remove this file at all.
+
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+mockserver:
+  - url: /mediabilling-v2/billing/cashback-status
+    response:
+        status: 200
+        body:
+            result:
+                status: "OK"
+
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: config
+    kwargs:
+        PLUS_SWEET_HOME_GEO_ACCURACY_THRESHOLD: 100
+        PLUS_SWEET_HOME_FIND_POSITION_BY_LOCATION_ENABLED: true
+        PLUS_SWEET_HOME_REGISTERED_CLIENTS:
+            taxi:
+              - client_id: "taxi.test"
+
+tests:
+  - name: localhost_no_fail
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/subscriptions/upgrade
+        body: {}
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "0.0.0.0"
+    response:
+        status: 200
+        body: {}
+
+  - name: home_localhost_no_fail
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/subscriptions/upgrade
+        body: {}
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    response:
+        status: 200
+        body: {}
+
+  - name: yandex_localnet_no_fail
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/subscriptions/upgrade
+        body: {}
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "172.29.108.158"  # local net
+    response:
+        status: 200
+        body: {}
+
+  - name: taxi_zone_resolving
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/subscriptions/upgrade
+        body:
+            geo_state:
+                zone_name: moscow
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "172.29.108.158"  # local net
+    response:
+        status: 200
+        body: {}
+
+  - name: taxi_zone_geo_threshold
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/subscriptions/upgrade
+        body:
+            geo_state:
+                accuracy: 10000
+                location: [50, 50]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "172.29.108.158"  # local net
+    response:
+        status: 200
+        body: {}
+
+  - name: test_null_coordinate
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/subscriptions/upgrade
+        body:
+            geo_state:
+                accuracy: 1
+                location: [0, 55.755814] # fallback to ru ip
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "172.29.108.158"    # local net
+    response:
+        status: 200
+        body: {}
+
+
+  # NOTE:
+  #  there is a bug in geobase where it resolves 142.93.47.113 as Russia
+  #  while it is a Great Britain IP. Commented this test until the bug would
+  #  be resolved
+
+#  - name: great_britain_is_not_russia
+#    request:
+#        method: POST
+#        path: /4.0/sweet-home/v1/subscriptions/upgrade
+#        headers:
+#            X-SDK-Client-ID: "taxi.test"
+#            X-SDK-Version: "1.0.0"
+#            X-Yandex-UID: "111111"
+#            X-YaTaxi-Pass-Flags: "portal,ya-plus"
+#            X-Request-Language: "ru"
+#            X-Remote-IP: "142.93.47.113"  # Great Britain
+#    response:
+#        status: 409
+#        body: {}

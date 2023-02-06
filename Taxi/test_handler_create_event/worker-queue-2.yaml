@@ -1,0 +1,31 @@
+module: testsuite-module-worker-2
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: worker_2
+        stq-queue: testsuite_worker
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            default-keys: [handle-default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages:
+              - id: default-stage
+                handlers:
+                  - id: requests
+                    requests:
+                      - id: request-json-handler
+                        resource: json-handler
+                        content-type: 'application/json'
+                        body#xget: /event/payload
+                    resources:
+                      - id: json-handler
+                        url: $json_handler_url
+                        method: post
+                        max-retries: 1
+

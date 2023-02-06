@@ -1,0 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS eats_eta;
+
+CREATE TABLE IF NOT EXISTS eats_eta.orders (
+    id BIGSERIAL PRIMARY KEY,
+    order_nr TEXT UNIQUE NOT NULL,
+    status_changed_at TIMESTAMP WITH TIME ZONE NOT NULL
+);

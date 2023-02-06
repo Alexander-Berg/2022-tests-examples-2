@@ -1,0 +1,38 @@
+id: ok
+title: happy path
+source:
+    request:
+        method: post
+        url: /fleet/integration/turboapp/v1/orders/draft
+        headers:
+            X-Park-Id: park_id
+            X-Personal-Phone-Id: pd_id
+        body:
+            some: request
+            user:
+                user_id: some_user
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                test: data
+
+mocks:
+  - resource: integration-api-internal
+    response:
+        status-code: 200
+        body:
+            test: data
+    expectations:
+        request:
+            body:
+                some: request
+                user:
+                    user_id: some_user
+                callcenter:
+                    personal_phone_id: pd_id
+            headers:
+                X-Park-Id: park_id
+                User-Agent: whitelabel/superweb/park_id
+                X-Personal-Phone-Id: pd_id
+        call-count: 1

@@ -1,0 +1,47 @@
+project-name: yandex-taxi-test-sidecar-without-tvm
+short-name: test-sidecar-without-tvm
+wiki: wiki
+maintainers:
+  - Vasily Kulikov <segoon@yandex-team.ru>
+libraries:
+  - yandex-userver-core
+  - yandex-taxi-library-tvm2
+  - yandex-taxi-library-tvm2-http-client
+
+debian:
+    source_package_name: yandex-taxi-test-sidecar-without-tvm
+    maintainer_name: Vasily Kulikov
+    maintainer_login: segoon
+
+linters:
+    extra-application-package-names:
+      - test_sidecar_without_tvm_plugins
+
+
+pytest:
+    api-coverage:
+        enabled: true
+
+target-os:
+  - bionic
+  - xenial
+
+uservice_unit:
+    description: a sidecar with clients for testing
+
+    scripts-cron: false  # No cron in sidecar
+
+    hostname:
+        production:
+          - unix:/var/lib/yandex/taxi-test-sidecar-without-tvm/server.socket
+        testing:
+          - unix:/var/lib/yandex/taxi-test-sidecar-without-tvm/server.socket
+
+    nginx:
+        enabled: false
+
+    sidecar:
+        enabled: true
+        tvm-mode: fake
+ya-make:
+    enabled: true

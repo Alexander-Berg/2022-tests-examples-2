@@ -1,0 +1,105 @@
+id: driver_kis_art_data
+title: Для водителей с КИС АРТ отдаём данные для отображения плашки в деталях
+
+parameters:
+  - main:
+      - {}
+      - config_enabled: false
+        expected_driver: {}
+        deptrans_call_count: 0
+      - order_info_private_data: {}
+        expected_driver: {}
+        deptrans_call_count: 0
+      - error_status_code: 500
+        expected_driver: {}
+      - response_deptrans: {}
+        expected_driver: {}
+
+
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-YaTaxi-User: 'personal_phone_id=personal_123'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                id: 'user_id'
+                additional_buttons: {}
+                feedback: {}
+                driver#concat-objects:
+                  - value#xget:
+                        path: /test-params/main/expected_driver
+                        default-value:
+                            kis_art:
+                                title: 'Driver has kis art'
+                                image_tag: image_tag
+                  - value:
+                        overdue: false
+
+taxi_config:
+    TOTW_DRIVER_KIS_ART_DATA_ENABLED#xget:
+        path: /test-params/main/config_enabled
+        default-value: true
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            driver:
+                overdue: false
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body:
+            private_data#xget:
+                path: /test-params/main/order_info_private_data
+                default-value:
+                    driver_id: park_id_driver_id
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'
+
+  - resource: deptrans-driver-status-profile-passenger-info-get
+    response:
+        status-code#xget:
+            path: /test-params/main/error_status_code
+            default-value: 200
+        body#xget:
+            path: /test-params/main/response_deptrans
+            default-value:
+                passenger_info_data:
+                    title: 'Driver has kis art'
+                    image_tag: image_tag
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count#xget:
+            path: /test-params/main/deptrans_call_count
+            default-value: 1
+        request:
+            method: get
+            query:
+                park_driver_profile_id: park_id_driver_id

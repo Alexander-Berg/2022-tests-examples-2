@@ -1,0 +1,70 @@
+options:
+  base_url: http://nginx
+  timeout: 5
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - is: [/html/body/div/p, Some text. First paragraph.]
+  - _inner_test: [True, Passed for equal text.]
+
+  - is: [/html/body/div/p, Some text. First]
+  - _inner_test:
+      success: False
+      message: should be fully equal
+      tap_description: Failed for not equal text.
+
+  - is: [/html/body/div/p, 'Some text.  	 First paragraph.']
+  - _inner_test:
+      success: False
+      message: should be fully equal
+      tap_description: Failed for different whitespaces.
+
+  - is: [css:div#test-is .text, Some is text]
+  - _inner_test: [True, Finds in elements set.]
+
+  - is: [css:div#test-is .text, Not existing text]
+  - _inner_test: [False, Fails trying to find in elements set.]
+
+  - is:
+      css: div#test-is .text
+      value: Some is text
+  - _inner_test: [True, Long form with css.]
+
+  - is:
+      xpath: /html/body/div/p
+      value: Some text. First paragraph.
+  - _inner_test: [True, Long form with xpath.]
+
+  - is:
+      xpath: /html/body/div/p
+      value: Some text. First paragraph.
+      timeout: 10
+  - _inner_test: [True, Long form with xpath and timeout.]
+
+  - is:
+      css: div#test-is .text
+  - _inner_test:
+      success: False
+      message: missed args
+      tap_description: Long form missed required arg.
+
+  - is: [css:div#test-is .text, Wrong text]
+  - _inner_test:
+      success: False
+      message: '> Some is text'
+      tap_description: Failure message has DOM's text
+
+  - is:
+      css: div#test-is
+      attr: value
+      value: tag attr
+  - _inner_test:
+      success: True
+      tap_description: Tag attr's value

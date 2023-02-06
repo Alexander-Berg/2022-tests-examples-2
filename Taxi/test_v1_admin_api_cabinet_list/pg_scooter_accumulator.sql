@@ -1,0 +1,168 @@
+INSERT INTO scooter_accumulator.cabinets (
+    cabinet_id,
+    depot_id,
+    cabinet_name,
+    created_at,
+    updated_at,
+    type
+) VALUES
+(
+    'cabinet_id1',
+    'depot_id1',
+    'cabinet_name1',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54',
+    'cabinet'
+),
+(
+    'cabinet_id2',
+    'depot_id1',
+    'cabinet_name2',
+    '2019-12-17T07:38:55',
+    '2019-12-17T07:38:55',
+    'charge_station'
+),
+(
+    'cabinet_id4',
+    'depot_id4',
+    'cabinet_name4',
+    '2019-12-17T07:38:56',
+    '2019-12-17T07:38:56',
+    'charge_station_without_id_receiver'
+),
+(
+    'cabinet_id3',
+    'depot_id2',
+    'cabinet_name3',
+    '2019-12-17T07:38:56',
+    '2019-12-17T07:38:56',
+    'charge_station_without_id_receiver'
+);;
+
+INSERT INTO scooter_accumulator.accumulators (
+    accumulator_id,
+    serial_number,
+    contractor_id,
+    cabinet_id,
+    scooter_id,
+    charge,
+    updated_at
+) VALUES
+(
+    'accum_id1',
+    'serial_number1',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    95,
+    NOW()
+),
+(
+    'accum_id2',
+    'serial_number2',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    100,
+    NOW()
+),
+(
+    'accum_id3',
+    'serial_number3',
+    NULL,
+    'cabinet_id1',
+    NULL,
+    50,
+    NOW()
+),
+(
+    'accum_id4',
+    'serial_number4',
+    NULL,
+    'cabinet_id3',
+    NULL,
+    90,
+    NOW() - INTERVAL '599 seconds'
+),
+(
+    'accum_id5',
+    'serial_number5',
+    NULL,
+    'cabinet_id3',
+    NULL,
+    90,
+    NOW() - INTERVAL '600 seconds'
+);
+
+INSERT INTO scooter_accumulator.cells (
+    cell_id,
+    cabinet_id,
+    accumulator_id,
+    is_open,
+    booked_by,
+    updated_at
+) VALUES
+(
+    'cell_id1',
+    'cabinet_id1',
+    'accum_id1',
+    False,
+    NULL,
+    NOW()
+),
+(
+    'cell_id2',
+    'cabinet_id1',
+    'accum_id2',
+    False,
+    'booking_id1',
+    NOW()
+),
+(
+    'cell_id3',
+    'cabinet_id1',
+    'accum_id3',
+    False,
+    NULL,
+    NOW()
+),
+(
+    'cell_id4',
+    'cabinet_id1',
+    Null,
+    False,
+    Null,
+    NOW()
+),
+(
+    'cell_id5',
+    'cabinet_id2',
+    Null,
+    False,
+    Null,
+    NOW()
+),
+(
+    'cell_id6',
+    'cabinet_id2',
+    Null,
+    False,
+    'booking_id1',
+    NOW()
+),
+(
+    'cell_id7',
+    'cabinet_id3',
+    'accum_id4',
+    False,
+    Null,
+    NOW()
+),
+(
+    'cell_id8',
+    'cabinet_id3',
+    'accum_id5',
+    False,
+    Null,
+    NOW()
+);

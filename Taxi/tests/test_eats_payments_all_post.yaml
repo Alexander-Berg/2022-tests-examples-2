@@ -1,0 +1,62 @@
+id: test_eats_payments_all_post
+title: Проверяем что нормально работаем через eats-payments
+
+source:
+    request:
+        method: post
+        url: /eats-payments/v1/orders/create
+        query:
+            longitude#string: 36.6423802
+            latitude#string: 55.73606549999999
+            delivery_time: 2029-12-27T09:30:00Z
+            shipping_type: delivery
+        body:
+            items#array:
+        headers:
+            X-Device-Id: SomeDevice
+            X-YaTaxi-User: personal_phone_id=personal_123
+            X-Request-Application: platform_ver3=2
+#            X-Eats-Testing-Mock-Bypass:
+    expectations:
+        response:
+            status-code: 200
+            body:
+                cart:
+                    place:
+                        slug: test_slug
+
+mocks:
+  - resource: eats-payments-api-all-post
+    response:
+        status-code: 200
+        body:
+            cart:
+                place:
+                    slug: test_slug
+    expectations:
+        call-count: 1
+        request:
+            query:
+                longitude#string: 36.6423802
+                latitude#string: 55.73606549999999
+                delivery_time: 2029-12-27T09:30:00Z
+                shipping_type: delivery
+            body:
+                items#array:
+            headers:
+                X-Device-Id: SomeDevice
+                X-YaTaxi-User: personal_phone_id=personal_123
+                X-Request-Application: platform_ver3=2
+
+  - resource: eats-testing-simplifier-responser-eats-payments-all-post
+    expectations:
+        call-count: 0
+
+configs:
+    values#object:
+      - key: eats_testing_simplifier_api_proxy_path_support
+        value: {"supported": true}
+        enabled: true
+      - key: eats_testing_simplifier_api_proxy
+        value: {"enabled_by_default": false}
+        enabled: true

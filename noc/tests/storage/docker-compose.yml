@@ -1,0 +1,50 @@
+version: "3.4"
+
+services:
+    mongo1:
+        image: mongo:4.2.8-bionic@sha256:ace03acac85f185981731116fa39bf01b3f2aa98620f5e5f04cf40815aa2aaec
+        network_mode: host
+        restart: always
+        command: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0", "--port", "27011"]
+
+    mongo2:
+        image: mongo:4.2.8-bionic@sha256:ace03acac85f185981731116fa39bf01b3f2aa98620f5e5f04cf40815aa2aaec
+        network_mode: host
+        restart: always
+        command: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0", "--port", "27012"]
+
+    mongo3:
+        image: mongo:4.2.8-bionic@sha256:ace03acac85f185981731116fa39bf01b3f2aa98620f5e5f04cf40815aa2aaec
+        network_mode: host
+        restart: always
+        command: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0", "--port", "27013"]
+
+    zoo1:
+        image: zookeeper:3.6.1@sha256:c0c7b8774beaab2d4b06e004fda286526503ad991b6b5677e4edd431f22e135d
+        restart: always
+        hostname: zoo1
+        ports:
+            - 2181:2181
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+
+    zoo2:
+        image: zookeeper:3.6.1@sha256:c0c7b8774beaab2d4b06e004fda286526503ad991b6b5677e4edd431f22e135d
+        restart: always
+        hostname: zoo2
+        ports:
+            - 2182:2181
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
+
+    zoo3:
+        image: zookeeper:3.6.1@sha256:c0c7b8774beaab2d4b06e004fda286526503ad991b6b5677e4edd431f22e135d
+        restart: always
+        hostname: zoo3
+        ports:
+            - 2183:2181
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181

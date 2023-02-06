@@ -1,0 +1,42 @@
+settings:
+    collection: promocode_usages2
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: code
+  - key:
+      - name: series_id
+        type: ascending
+      - name: code
+        type: ascending
+      - name: phone_id
+        type: ascending
+    unique: true
+  - key: usages.reserve
+    sparse: true
+    unique: true
+wiki_info: |
+    ####dbtaxi.promocode_usages2 - использование промокодов по пользователю
+
+    Коллекция, которая со временем должна заменить promocode_usages.
+    Документ в этой коллекции хранит все использования конкретного промокода пользователем.
+
+    ```python
+    dbtaxi.promocode_usages = {
+        # Обязательные поля
+        '_id': ObjectId(),              # Генерируется Mongo, нами не используется.
+        'series_id': 'asdf',            # Серия, к которой принадлежит использованный промокод.
+        'code': '123456',               # Код промокода для уникальных промокодов.
+        'phone_id': ObjectId(),         # Идентификатор телефона пользователя, применившего промокод.
+        'value': 200,                   # Величина промокода.
+        'cost_usage': 150,              # На какую общую сумму был использован промокод пользователем.
+        'rides': 1,                     # Количество поездок ползователя по этому промокоду.
+        'usages': [                     # Список использований промокодов.
+            {
+                'reserve': 'order_id',  # Идентификатор заказа, на который зарезервирован промокод.
+                'cost_usage': 150,      # На какую сумму был использван промокод этим заказом.
+            },
+            ...
+        ],
+    }
+    ```

@@ -1,0 +1,184 @@
+clownductor_config: taxi:driver-status:testing
+awacs_namespace: driver-status-lb.taxi.tst.yandex.net
+http_hosts:
+  - driver-status.taxi.tst.yandex.net
+layout:
+  - system
+  - rps_share:
+      http_hosts:
+        - driver-status.taxi.tst.yandex.net
+  - rate_limiter:
+      collapsed: true
+      service_name: driver-status
+  - http_basic
+  - http:
+      methods:
+        - id: PING
+          title: /ping
+        - id: POST_v1_internal_status
+          title: POST /v1/internal/status
+        - id: POST_v1_internal_status_bulk
+          title: POST /v1/internal/status/bulk
+        - id: POST_v2_status_client
+          title: POST /v2/status/client
+        - id: POST_v2_status_store
+          title: POST /v2/status/store
+        - id: GET_v2_blocks_updates
+          title: GET /v2/blocks/updates
+        - id: GET_v2_statuses_updates
+          title: GET /v2/statuses/updates
+        - id: GET_v2_orders_updates
+          title: GET /v2/orders/updates
+        - id: POST_v2_statuses
+          title: POST /v2/statuses
+        - id: POST_v2_statuses_park
+          title: POST /v2/statuses/park
+        - id: POST_v2_order_store
+          title: POST /v2/order/store
+        - id: GET_v2_park_statuses
+          title: GET /v2/park/statuses
+  - include:
+      title: PostgreSQL driver
+      collapsed: true
+      row_panels: 2
+      path: nanny_taxi_driver-status/postgresql_driver.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+  - include:
+      title: Table stats
+      collapsed: false
+      row_panels: 1
+      path: nanny_taxi_driver-status/table_stats.json
+      variables:
+        cluster_name: testing_uservices
+  - include:
+      title: http://taximeter-xservice.taxi.yandex.net/utils/driver-status-check
+      collapsed: false
+      row_panels: 3
+      path: nanny_taxi_driver-status/taximeter_driver_status_check.json
+      variables:
+        group_name: taxi_test_taximeter_xservice
+        host_name: taximeter-xservice_taxi_tst_yandex_net_utils_driver_status_check
+  - include:
+      title: Caches' statistics
+      collapsed: false
+      row_panels: 1
+      path: nanny_taxi_driver-status/blocks_reasons.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: taxi-driver-status-*
+  - include:
+      title: Offline Checker
+      collapsed: false
+      row_panels: [2,2]
+      path: nanny_taxi_driver-status/offline_checker.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+  - include:
+      title: BlockCheck worker
+      collapsed: false
+      row_panels: [2,2,1]
+      path: nanny_taxi_driver-status/blocks_checker.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+  - include:
+      title: OrdersCleanup worker
+      collapsed: false
+      row_panels: [2, 2]
+      path: nanny_taxi_driver-status/ttl_cleaner.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+        worker_name: orders-cleanup
+  - include:
+      title: ProcessingOrdersCleanupFinished worker
+      collapsed: false
+      row_panels: [2, 2]
+      path: nanny_taxi_driver-status/ttl_cleaner.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+        worker_name: processing-orders-cleanup-finished
+  - include:
+      title: ProcessingOrdersCleanupStale worker
+      collapsed: false
+      row_panels: [2, 2]
+      path: nanny_taxi_driver-status/ttl_cleaner.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+        worker_name: processing-orders-cleanup-stale
+  - include:
+      title: StatusesCleanup worker
+      collapsed: false
+      row_panels: [2, 2]
+      path: nanny_taxi_driver-status/ttl_cleaner.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+        worker_name: statuses-cleanup
+  - include:
+      title: BlocksCleanup worker
+      collapsed: false
+      row_panels: [2, 2]
+      path: nanny_taxi_driver-status/ttl_cleaner.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+        worker_name: blocks-cleanup
+  - include:
+      title: BlocksCleanupNone worker
+      collapsed: false
+      row_panels: [2, 2]
+      path: nanny_taxi_driver-status/ttl_cleaner.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+        timings_host_name: taxi-driver-status-*
+        worker_name: blocks-cleanup-none
+  - include:
+      title: StaleOrderStatusMonitor worker
+      collapsed: false
+      row_panels: 1
+      path: nanny_taxi_driver-status/stale_order_status_monitor.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: taxi-driver-status*
+        timings_host_name: taxi-driver-status-*
+  - include:
+      title: Orders Consumer
+      collapsed: false
+      row_panels: 1
+      path: nanny_taxi_driver-status/orders_consumer.json
+      variables:
+        cluster_name: testing_uservices
+        group_name: taxi_driver-status_*
+        host_name: cluster
+  - include:
+      title: Fallback Queues
+      collapsed: false
+      row_panels: [2, 1]
+      path: nanny_taxi_driver-status/fallback_queues.json
+      variables:
+         cluster_name: testing_uservices

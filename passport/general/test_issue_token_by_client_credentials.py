@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+from hamcrest import (
+    all_of,
+    assert_that,
+    has_key,
+)
+from passport.backend.qa.autotests.base.allure import allure_setup
+from passport.backend.qa.autotests.base.builders.proxied.oauth import OAuth
+from passport.backend.qa.autotests.base.matchers.token import (
+    token_is_2legged,
+    token_is_for_client,
+    token_is_valid,
+    verify_token,
+)
+
+from .base import BaseIssueTokenTestCase
+
+
+@allure_setup(feature='oauth: /token', story='grant_type=client_credentials')
+class OAuthGtClientCredentialsTestCase(BaseIssueTokenTestCase):
+    def test_ok(self):
+        rv = OAuth().post(
+            path='/token',
+            form_params={
+                'grant_type': 'client_credentials',
+            },
+            headers=self.make_auth_headers(),
+        )
+        assert_that(
+            rv,
+            has_key('access_token'),
+        )
+        assert_that(
+            verify_token(rv['access_token']),
+            all_of(
+                token_is_valid(),
+                token_is_2legged(),
+                token_is_for_client(self.client_id),
+            ),
+        )

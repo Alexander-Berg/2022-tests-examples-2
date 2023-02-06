@@ -1,0 +1,244 @@
+{
+  "expected_content": {
+    "errors": [
+      {
+        "item": {
+          "current_status": "refund_waiting",
+          "invoice_id": "does_not_exist",
+          "new_status": "refund_fail",
+          "transaction_id": "f00ba",
+          "transaction_type": "refund"
+        },
+        "reason": "invoice not found"
+      },
+      {
+        "item": {
+          "current_status": "unhold_pending",
+          "invoice_id": "order_id_12",
+          "new_status": "hold_success",
+          "transaction_id": "12-1",
+          "transaction_type": "payment"
+        },
+        "reason": "there is more than one active transaction for the operation"
+      },
+      {
+        "item": {
+          "current_status": "unhold_pending",
+          "invoice_id": "order_id_13",
+          "new_status": "hold_success",
+          "transaction_id": "13",
+          "transaction_type": "payment"
+        },
+        "reason": "operations for invoices earlier than 2021-09-01 14:00:00+00:00 cannot be failed"
+      }
+    ],
+    "status": "partially_completed"
+  },
+  "expected_orders": [
+    {
+      "id": "order_id_02",
+      "transactions": [
+        {
+          "purchase_token": "2",
+          "refunds": [],
+          "status": "clear_fail"
+        }
+      ]
+    },
+    {
+      "id": "order_id_03",
+      "transactions": [
+        {
+          "cleared": {
+            "$datetime": "2020-01-01T00:00:00.000"
+          },
+          "purchase_token": "3",
+          "refunds": [
+            {
+              "status": "refund_success",
+              "trust_refund_id": "3-1"
+            },
+            {
+              "status": "refund_success",
+              "trust_refund_id": "3-2"
+            }
+          ],
+          "status": "clear_success"
+        }
+      ]
+    },
+    {
+      "id": "order_id_06",
+      "transactions": [
+        {
+          "cleared": {
+            "$datetime": "2020-01-01T00:00:00.000"
+          },
+          "purchase_token": "6",
+          "refunds": [],
+          "status": "clear_success"
+        }
+      ]
+    },
+    {
+      "id": "order_id_07",
+      "transactions": [
+        {
+          "purchase_token": "7",
+          "refunds": [],
+          "status": "clear_init"
+        }
+      ]
+    },
+    {
+      "id": "order_id_08",
+      "transactions": [
+        {
+          "cleared": {
+            "$datetime": "2020-01-01T00:00:00.000"
+          },
+          "purchase_token": "8",
+          "refunds": [
+            {
+              "status": "refund_fail",
+              "trust_refund_id": "8-1"
+            }
+          ],
+          "status": "clear_success"
+        }
+      ]
+    },
+    {
+      "id": "order_id_12",
+      "operations": [
+        {
+          "id": "op_id_12",
+          "originator": "processing",
+          "status": "processing",
+          "type": "update"
+        }
+      ],
+      "transactions": [
+        {
+          "purchase_token": "12-1",
+          "refunds": [],
+          "status": "unhold_pending",
+          "sum": {
+            "ride": 0
+          }
+        },
+        {
+          "purchase_token": "12-2",
+          "refunds": [],
+          "status": "unhold_pending",
+          "sum": {
+            "ride": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "order_id_13",
+      "operations": [
+        {
+          "id": "op_id_13",
+          "originator": "processing",
+          "status": "processing",
+          "type": "update"
+        }
+      ],
+      "transactions": [
+        {
+          "purchase_token": "13",
+          "refunds": [],
+          "status": "unhold_pending",
+          "sum": {
+            "ride": 0
+          }
+        }
+      ]
+    }
+  ],
+  "expected_orders_after_task_1": [],
+  "expected_orders_after_task_2": [],
+  "expected_process_events_calls": [
+    {
+      "id": "order_id_02"
+    },
+    {
+      "id": "order_id_06"
+    },
+    {
+      "id": "order_id_07"
+    },
+    {
+      "id": "order_id_03"
+    },
+    {
+      "id": "order_id_08"
+    }
+  ],
+  "expected_status": 200,
+  "request": {
+    "items": [
+      {
+        "current_status": "clear_pending",
+        "invoice_id": "order_id_02",
+        "new_status": "clear_fail",
+        "transaction_id": "2",
+        "transaction_type": "payment"
+      },
+      {
+        "current_status": "clear_pending",
+        "invoice_id": "order_id_06",
+        "new_status": "clear_success",
+        "transaction_id": "6",
+        "transaction_type": "payment"
+      },
+      {
+        "current_status": "clear_pending",
+        "invoice_id": "order_id_07",
+        "new_status": "clear_init",
+        "transaction_id": "7",
+        "transaction_type": "payment"
+      },
+      {
+        "current_status": "refund_waiting",
+        "invoice_id": "order_id_03",
+        "new_status": "refund_success",
+        "transaction_id": "3-2",
+        "transaction_type": "refund"
+      },
+      {
+        "current_status": "refund_waiting",
+        "invoice_id": "order_id_08",
+        "new_status": "refund_fail",
+        "transaction_id": "8-1",
+        "transaction_type": "refund"
+      },
+      {
+        "current_status": "refund_waiting",
+        "invoice_id": "does_not_exist",
+        "new_status": "refund_fail",
+        "transaction_id": "f00ba",
+        "transaction_type": "refund"
+      },
+      {
+        "action": "fail_operation",
+        "current_status": "unhold_pending",
+        "invoice_id": "order_id_12",
+        "new_status": "hold_success",
+        "transaction_id": "12-1",
+        "transaction_type": "payment"
+      },
+      {
+        "action": "fail_operation",
+        "current_status": "unhold_pending",
+        "invoice_id": "order_id_13",
+        "new_status": "hold_success",
+        "transaction_id": "13",
+        "transaction_type": "payment"
+      }
+    ]
+  }
+}

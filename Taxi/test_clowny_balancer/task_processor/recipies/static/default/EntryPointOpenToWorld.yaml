@@ -1,0 +1,183 @@
+data:
+    name: EntryPointOpenToWorld
+    provider_name: clowny-balancer
+    job_vars:
+      - entry_point_id
+      - namespace_id
+      - awacs_namespace_id
+      - awacs_cert_id
+      - awacs_domain_id
+      - cert_type
+      - abc_service_slug
+      - l3mgr_service_id
+      - origin_fqdn
+      - additional_fqdns
+      - author
+      - puncher_source
+      - st_ticket
+    stages:
+#    - name: MetaMoveBalancerFromShared  TBD in separate ticket
+      - name: L3MGRFetchIpv6
+        provider_name: clowny-balancer
+        input:
+            l3mgrServiceId: l3mgr_service_id
+        output:
+            original_ipv6: ipv6
+      - name: AwacsCertificateOrderNew
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace_id
+            cert_id: awacs_cert_id
+            type: cert_type
+            fqdn: origin_fqdn
+            additional_fqdns: additional_fqdns
+            st_ticket: st_ticket
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 10
+            max_retries: 2
+      - name: AwacsCertificateMetaInfo
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace_id
+            cert_id: awacs_cert_id
+        output:
+            sectask_ticket: sectask_ticket
+      - name: StartrekCubeLinkServiceTickets
+        provider_name: clowny-balancer
+        input:
+            master_ticket: st_ticket
+            ticket_to_link: sectask_ticket
+      - name: StartrekWaitClosed
+        provider_name: clowny-balancer
+        input:
+            ticket: sectask_ticket
+      - name: AwacsCertificateWaitFor
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace_id
+            cert_id: awacs_cert_id
+            st_ticket: st_ticket
+      - name: AwacsDomainChange
+        provider_name: clowny-balancer
+        input:
+            awacs_namespace_id: awacs_namespace_id
+            awacs_domain_id: awacs_domain_id
+            new_fqdns: additional_fqdns
+            st_ticket: st_ticket
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 10
+            max_retries: 1
+      - name: AwacsDomainWaitFor
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace_id
+            domain_id: awacs_domain_id
+            st_ticket: st_ticket
+
+      - name: AwacsDomainChange
+        provider_name: clowny-balancer
+        input:
+            awacs_namespace_id: awacs_namespace_id
+            awacs_domain_id: awacs_domain_id
+            set_cert_id: awacs_cert_id
+            st_ticket: st_ticket
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 10
+            max_retries: 1
+      - name: AwacsDomainWaitFor
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace_id
+            domain_id: awacs_domain_id
+            st_ticket: st_ticket
+
+      - name: MetaStartAllocatingExternalL3Addresses
+        provider_name: clowny-balancer
+        input:
+            abc_service_slug: abc_service_slug
+            l3mgr_service_id: l3mgr_service_id
+            fqdn: origin_fqdn
+            st_ticket: st_ticket
+        output:
+            allocating_external_addresses_job_id: job_id
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: allocating_external_addresses_job_id
+            st_ticket: st_ticket
+
+      - name: MetaStartBalancerReallocateAllPods
+        provider_name: clowny-balancer
+        input:
+            awacs_namespace_id: awacs_namespace_id
+            st_ticket: st_ticket
+        output:
+            reallocating_balancer_pods: job_id
+      - name: MetaCubeWaitForJobCommon
+        provider_name: clowny-balancer
+        input:
+            job_id: reallocating_balancer_pods
+            st_ticket: st_ticket
+
+      - name: L3MGRFetchIps
+        provider_name: clowny-balancer
+        input:
+            l3mgr_service_id: l3mgr_service_id
+        output:
+            ipv4: ipv4
+            ipv6: ipv6
+      - name: DNSCreateRecord
+        provider_name: clowny-balancer
+        input:
+            fqdn: origin_fqdn
+            additional_fqdns: additional_fqdns
+            ipv6:
+            additional_ips: ipv6
+            st_ticket: st_ticket
+      - name: DNSCreateARecord
+        provider_name: clowny-balancer
+        input:
+            fqdn: origin_fqdn
+            additional_fqdns: additional_fqdns
+            ipv4:
+            additional_ips: ipv4
+            st_ticket: st_ticket
+      - name: DNSCreateCNAMERecord
+        provider_name: clowny-balancer
+        input:
+            st_ticket: st_ticket
+            left_side: origin_fqdn
+            right_sides: additional_fqdns
+      - name: PunchFirewall
+        provider_name: clownductor
+        input:
+            destination: origin_fqdn
+            destinations: additional_fqdns
+            source: puncher_source
+            st_ticket: st_ticket
+      - name: InternalUpdateEntryPoint
+        provider_name: clowny-balancer
+        input:
+            entry_point_id: entry_point_id
+            is_external: true
+      - name: InternalUpdateNamespace
+        provider_name: clowny-balancer
+        input:
+            namespace_id: namespace_id
+            is_external: true
+      - name: DNSDeleteRecord
+        provider_name: clowny-balancer
+        input:
+            ipv6: original_ipv6
+            fqdn: origin_fqdn
+            st_ticket: st_ticket
+      - name: StartrekCubeCloseTicket
+        provider_name: clownductor
+        input:
+            new_service_ticket: st_ticket

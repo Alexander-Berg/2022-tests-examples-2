@@ -1,0 +1,28 @@
+id: test_create_success_vendor
+title: Проверка получения ответа от бэкенда ресторанного приложения
+
+source:
+    request:
+        method: post
+        url: /api/v1/server/users
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+
+  - resource: eats-partners-internal-v1-create
+    expectations:
+        call-count: 0
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: false
+        enabled: true

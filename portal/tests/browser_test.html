@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+
+    <script type="text/javascript">
+        const sock = new SockJS('https://xiva.wdevx.yandex.net/xiva', null, {debug: true});
+
+        function connect() {
+            $('#connection_status').text('Connected!');
+            const command = {
+                subscribe: {
+                    // news_1: 1234567654,
+                    // wether_1: 1234567654,
+                    // auto_1: 1234567654,
+                    // holodilnik_1: 123,
+                    stream_emoji_test: 1
+                }
+            };
+            sock.send(JSON.stringify(command));
+        }
+
+        sock.onopen = function () {
+            connect();
+        };
+
+        function resubscribe() {
+            const channel_id = $("#channel_id").val() || 'stream_emoji_test';
+            const command = {subscribe: {}};
+            command.subscribe[channel_id] = 1;
+            sock.send(JSON.stringify(command));
+        }
+
+        sock.onmessage = function (e) {
+            try {
+                put_log('incoming message:');
+                put_log(e.data);
+                const command = JSON.parse(e.data);
+                for (var com in command) {
+                    switch (com) {
+                        case 'channelupdate':
+                            $('#' + command[com].channel.toString()).text('Get new timestamp: ' + command[com].newtimestamp);
+                            break;
+                    }
+                }
+            }
+            catch (err) {
+                console.log('exception while command', err);
+            }
+        };
+        sock.onclose = function () {
+            $('#connection_status').text('Disconnected :( Reconnecting...');
+            setTimeout(connect, 5000);
+        };
+
+        function send_some_data() {
+            command = {get_info: ''};
+            sock.send(JSON.stringify(command));
+        }
+
+        const emojies = ['fire', 'smile', 'ball', 'yes', 'no'];
+
+        function send_emoji(count) {
+            put_log(`send some emoji ${count}`);
+            const channel_id = $("#channel_id").val() || 'stream_emoji_test';
+            for (let i = 0; i < count; i++) {
+                const command = {
+                    "ch": channel_id,
+                    "emoji": emojies[Math.floor(Math.random() * (emojies.length))],
+                    "ts": Date.now() / 1000
+                };
+                sock.send(JSON.stringify(command));
+            }
+        }
+
+        function put_log(message) {
+            $("#logsarea").append(`${message}\n`);
+        }
+
+        function clear_log() {
+            $("#logsarea").text("");
+        }
+    </script>
+    <style>
+        /*body {background: #18d0f0}*/
+
+        /* emojies container */
+
+        #emojies {
+            /*position: absolute;*/
+            /*z-index: 3;*/
+            /*width: 1px; height: 160px;*/
+            /*left: 50%; bottom: 30px;*/
+            background: #18d0f0
+        }
+
+        /* emojies balls */
+
+        #emojies span {
+            display: block;
+            /*position: absolute;*/
+            bottom: -35px;
+            left: 50%;
+            margin-left: -20px;
+            height: 0px;
+            width: 0px;
+            border: 35px solid #4b4b4b;
+            border-radius: 35px;
+            left: -14px;
+            opacity: 0;
+            transform: scale(0.2);
+        }
+
+        /* emojies animation */
+
+        @keyframes emojiesL {
+            0% {
+                transform: scale(0.2) translate(0, 0)
+            }
+            10% {
+                opacity: 1;
+                transform: scale(0.2) translate(0, -5px)
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1) translate(-20px, -130px)
+            }
+        }
+
+        @keyframes emojiesR {
+            0% {
+                transform: scale(0.2) translate(0, 0)
+            }
+            10% {
+                opacity: 1;
+                transform: scale(0.2) translate(0, -5px)
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1) translate(20px, -130px)
+            }
+        }
+
+        #emojies .s0 {
+            animation: emojiesL 10s 0s infinite
+        }
+
+        #emojies .s1 {
+            animation: emojiesR 10s 1s infinite
+        }
+
+        #emojies .s2 {
+            animation: emojiesL 10s 2s infinite
+        }
+
+        #emojies .s3 {
+            animation: emojiesR 10s 3s infinite
+        }
+
+        #emojies .s4 {
+            animation: emojiesL 10s 4s infinite
+        }
+
+        #emojies .s5 {
+            animation: emojiesR 10s 5s infinite
+        }
+
+        #emojies .s6 {
+            animation: emojiesL 10s 6s infinite
+        }
+
+        #emojies .s7 {
+            animation: emojiesR 10s 7s infinite
+        }
+
+        #emojies .s8 {
+            animation: emojiesL 10s 8s infinite
+        }
+
+        #emojies .s9 {
+            animation: emojiesR 10s 9s infinite
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="col">
+        <div id='status'>
+            <h2>Status:</h2>
+            <pre>
+    Connection: <span id="connection_status">disconnected</span>;<br>
+    </pre>
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="channel_id" placeholder="Enter channel id">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-success" onclick="resubscribe();">Подписаться</button>
+                    </div>
+                </div>
+            </div>
+            <!--<input type="button" onclick="send_some_data();" name="some label" value="some value"/>-->
+            <button type="button" class="btn btn-danger" onclick="clear_log();">Clear log</button>
+            <button type="button" class="btn btn-dark" onclick="send_emoji(1);">send 1 emoji</button>
+            <button type="button" class="btn btn-dark" onclick="send_emoji(5);">send 5 emoji</button>
+        </div>
+    </div>
+    <!--<div class="col">-->
+    <!--<div id="emojies">-->
+    <!--<span class="s0"></span>-->
+    <!--<span class="s1"></span>-->
+    <!--<span class="s2"></span>-->
+    <!--<span class="s3"></span>-->
+    <!--<span class="s4"></span>-->
+    <!--<span class="s5"></span>-->
+    <!--<span class="s6"></span>-->
+    <!--<span class="s7"></span>-->
+    <!--<span class="s8"></span>-->
+    <!--<span class="s9"></span>-->
+    <!--</div>-->
+    <!--</div>-->
+
+    <div class="form-group">
+        <label for="logsarea">Logs:</label>
+        <textarea id="logsarea" class="form-control" rows="50"></textarea>
+    </div>
+</div>
+
+</body>
+</html>

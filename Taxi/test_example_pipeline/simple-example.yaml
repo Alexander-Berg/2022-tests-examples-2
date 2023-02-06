@@ -1,0 +1,24 @@
+module: testsuite_single_pipelines_simple_example
+operators:
+  - id: main
+    visibility: public
+    value#processing-single-pipeline:
+        scope: testsuite_single_pipelines
+        single_pipeline: simple_example
+        stq-queue: testsuite_single_pipelines_simple_example
+        pipeline:
+            shared-state-init:
+                example-key: example-value
+            stages:
+              - id: stage-1
+                handlers:
+                  - id: baz
+                    requests:
+                      - id: example-request
+                        resource: example-resource
+                    result:
+                        request-result#xget: /sources/example-request/response/body
+                    resources:
+                      - id: example-resource
+                        url: $example_resource
+                        method: get

@@ -1,0 +1,37 @@
+name: pg_polygons
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: created_at
+    connection:
+        secret: conditioned
+    primary_key:
+      - id
+    table: polygons
+
+destinations:
+  - pg_polygons:
+        type: yt
+        mapper: polygons
+        target:
+            path: polygons
+            cluster_groups:
+              - map_reduce
+    pg_polygons_raw:
+        type: yt
+        mapper: $raw
+        config:
+            default_raw_layer_settings:
+                yt_attributes:
+                    compression_codec: zstd_3
+        target:
+            raw_settings:
+                yt_columns_info:
+                  - name: id
+                    type: string
+                    sort_order: ascending
+                    description: smth
+                raw_column_name: custom_raw_doc
+            path: polygons_raw
+            cluster_groups:
+              - map_reduce

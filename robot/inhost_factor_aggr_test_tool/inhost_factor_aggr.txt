@@ -1,0 +1,250 @@
+./ya make -j 16 -r robot/samovar/tools/inhost_factor_aggr_test_tool
+
+=======================================test-inhost-for-sendlink=============================
+https://nirvana.yandex-team.ru/flow/885a2fd1-5642-4f6a-a594-b9d5183b0390/9e6c6c28-bc12-4b48-850f-0f562173affb/graph/FlowchartEndpoint/738979bd-b54d-4519-b803-f5cb29703400
+yt copy --proxy arnold -r -f \
+//home/robot-dev/edik/nirvana/4374b438-a8d8-4e29-b2a6-76db4884d8c5/output_table__2o07-0jESeaOw-HUUEC4LA \
+//home/robot-dev/edik/test_inhost_for_sendlink/pool.v3.learn
+
+https://nirvana.yandex-team.ru/flow/885a2fd1-5642-4f6a-a594-b9d5183b0390/9e6c6c28-bc12-4b48-850f-0f562173affb/graph/FlowchartEndpoint/da68db1f-61c1-43cb-91c2-2c1009dca88a
+yt copy --proxy arnold -r -f \
+//home/robot-dev/edik/nirvana/992a7ebe-33d9-45b9-8d80-a37849406a32/output_table__pJrwPQqsQqe81ubG68nphw \
+//home/robot-dev/edik/test_inhost_for_sendlink/pool.v3.test
+
+before sendlink split
+https://nirvana.yandex-team.ru/flow/885a2fd1-5642-4f6a-a594-b9d5183b0390/2c7cb00a-67e9-4fc9-a58f-37c6442902b2/graph/FlowchartEndpoint/52d2b5c2-04f4-4e0f-9328-283d6699be62
+yt copy --proxy arnold -r -f \
+//home/robot-dev/edik/nirvana/f2f6b27a-aef4-40d9-a1f8-85c7109b0290/merged_table__WRO00MPtROq8WBLmtQPwfQ \
+//home/robot-dev/edik/test_inhost_for_sendlink/links.v3
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-inhost-for-sendlink -s arnold \
+--inhost //home/robot-dev/edik/prod_states/20200928/inhost_partitions_state \
+-i //home/robot-dev/edik/test_inhost_for_sendlink/pool.v3.learn \
+-l //home/robot-dev/edik/test_inhost_for_sendlink/links.v3 \
+-o //home/robot-dev/edik/test_inhost_for_sendlink/result.v3/profiling2_learn \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-inhost-for-sendlink -s arnold \
+--inhost //home/robot-dev/edik/prod_states/20200928/inhost_partitions_state \
+-i //home/robot-dev/edik/test_inhost_for_sendlink/pool.v3.test \
+-l //home/robot-dev/edik/test_inhost_for_sendlink/links.v3 \
+-o //home/robot-dev/edik/test_inhost_for_sendlink/result.v3/profiling2_test \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+
+//hack (check new state)
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-inhost-for-sendlink -s arnold \
+--inhost //home/robot-dev/edik/prod_states/20201102/inhost_partitions_state \
+-i //home/robot-dev/edik/test_inhost_for_sendlink/pool.v3.learn \
+-l //home/robot-dev/edik/test_inhost_for_sendlink/links.v3 \
+-o //home/robot-dev/edik/test_inhost_for_sendlink/result.v3/check_new_state \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+=======================================print-factors-dump=============================
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments print-factors-dump -s arnold \
+-i //home/jupiter/selectionrank/20220309-024731/0/sr_learning_pool
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments print-factors-dump -s arnold \
+-i //home/jupiter/selectionrank/20220307-020919/0/sr_learning_pool
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments print-factors-dump -s arnold \
+-i //home/jupiter/selectionrank/20220305-122323/0/sr_learning_pool
+
+=======================================backup prod tables=============================
+yt copy --proxy arnold -r -f \
+//home/samovar/inhost_partitions_state \
+//home/robot-dev/edik/prod_states/20201102/inhost_partitions_state
+
+yt sort --proxy arnold --sort-by Host \
+--src //home/robot-dev/edik/prod_states/20201102/inhost_partitions_state \
+--dst //home/robot-dev/edik/prod_states/20201102/inhost_partitions_state
+
+yt copy --proxy arnold -r -f \
+//home/robot-quality/rotor/rotor_rank_host_data \
+//home/robot-dev/edik/prod_states/20201102/rotor_rank_host_data
+
+=======================================vanish-trash-hosts=============================
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-pool -f 3028 --min-user-search 1 -s arnold \
+-i //home/fml/production/FeaturePool/954/954541 \
+-o //home/factordev/edik/vanish_trash_hosts/pools.v0_min_user_search_1
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-pool -f 3028 --min-user-search 1 --min-user-browse 3 -s arnold \
+-i //home/fml/production/FeaturePool/954/954541 \
+-o //home/factordev/edik/vanish_trash_hosts/pools.v1_min_user_search_1_min_user_browse_3
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-pool -f 3028 --min-user-search 1 --min-host-size 100 -s arnold \
+-i //home/fml/production/FeaturePool/954/954541 \
+-o //home/factordev/edik/vanish_trash_hosts/pools.v2_min_user_search_1_min_host_size_100
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-pool -f 3028 --min-user-search-and-user-browse 5 -s arnold \
+-i //home/fml/production/FeaturePool/954/954541 \
+-o //home/factordev/edik/vanish_trash_hosts/pools.v3_min_user_search_and_user_browse_5
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-pool -f 3028 --min-user-browse 5 -s arnold \
+-i //home/fml/production/FeaturePool/954/954541 \
+-o //home/factordev/edik/vanish_trash_hosts/pools.v4_min_user_browse_5
+
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-host-size 50 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v0.min_host_size_50
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-search-and-user-browse 1 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_search_and_user_browse_1
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-browse 1 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_browse_1
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-search 1 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_search_1
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-search 1 --min-host-size 100 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_search_1_min_host_size_100
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-search 1 --min-user-browse 3 --min-host-size 100 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_search_1_min_user_browse_3_min_host_size_100
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-search 1 --min-user-browse 3 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_search_1_min_user_browse_3
+
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-search-and-user-browse 5 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_search_and_user_browse_5
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments vanish-trash-hosts-prod --min-user-browse 5 -s arnold \
+-i //home/samovar/inhost_partitions_state \
+-o //home/factordev/edik/vanish_trash_hosts/prod.v1.min_user_browse_5
+
+=======================================test prod attribute=============================
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-factors-dump \
+-i //home/lemur-data/SamovarFactorDump/2020-08-28/raw
+
+//backup
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-prod-inhost-partitions -s arnold \
+-p //home/factordev/edik/inhost_factor_aggr/pool_944444 \
+-o //home/factordev/edik/inhost_factor_aggr/test_prod_inhost_partitions/v0_backup \
+-i ./robot/samovar/conf/conf-backup-hahn/instance_config.pb.txt \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments join-factors -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/pool_944444 \
+-o //home/factordev/edik/inhost_factor_aggr/test_prod_inhost_partitions/pool_944444.v0_backup \
+-f //home/factordev/edik/inhost_factor_aggr/test_prod_inhost_partitions/v0_backup \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+
+//primary
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-prod-inhost-partitions -s arnold \
+-p //home/factordev/edik/inhost_factor_aggr/pool_944444 \
+-o //home/factordev/edik/inhost_factor_aggr/test_prod_inhost_partitions/v3_primary \
+-i ./robot/samovar/conf/conf-primary-arnold/instance_config.pb.txt \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments join-factors -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/pool_944444 \
+-o //home/factordev/edik/inhost_factor_aggr/test_prod_inhost_partitions/pool_944444.v3_primary \
+-f //home/factordev/edik/inhost_factor_aggr/test_prod_inhost_partitions/v3_primary \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments test-collect-userdata \
+-c ./robot/samovar/conf/conf-backup-hahn/instance_config.pb.txt
+
+=======================================like prod=======================================
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments prepare-for-first-stage -s arnold \
+--userdata //home/factordev/edik/inhost_factor_aggr/shows_clicks.20200415_20200615 \
+--samovar //home/factordev/edik/inhost_factor_aggr/count_url_render_samovar.20200415_20200615 \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/first_stage/input \
+-c ./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments calc-factors-prod-first-stage -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/first_stage/input \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/first_stage/v8_check_after_commit \
+-c ./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_config.pb.txt
+
+export YT_SPEC='{"data_size_per_job": 200000000, "reducer": {"tmpfs_path": ".", "copy_files": true, "memory_limit": 3094967296}, "mapper": {"tmpfs_path": ".", "copy_files": true, "memory_limit": 3094967296}}'
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments calc-factors-prod-second-stage -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/first_stage/v8_check_after_commit \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/second_stage/v11_fix_review \
+-c ./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments calc-factors-prod -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/second_stage/v11_fix_review \
+-p //home/factordev/edik/inhost_factor_aggr/pool_932915 \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/factors/v11_fix_review \
+-c ./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments join-factors -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/pool_932915 \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/pool_932915.v11_fix_review \
+-f //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/factors/v11_fix_review \
+-c ./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_config.pb.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments generate-factor-groups \
+-c ./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_config.pb.txt \
+-o /place/home/edik/files/inhost_factor_groups.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments generate-factor-groups \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt \
+-o /place/home/edik/files/inhost_factor_groups_prod.txt
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments generate-factor-names \
+-c ./robot/samovar/conf/conf-common/inhost_factor_aggr_config.pb.txt \
+-o /place/home/edik/files/inhost_factor_names_prod.txt
+
+!!!!!!!!!!!!! WORDS not path tokens !!!!!!!!!!!!!!!!!!
+factors count final = 11 FACTORS * 8 PARTITIONS * x signal + 8 PARTITIONS * 2 = 896 (if 10 signals)
+9 * 6 * 3 + 6 * 2
+attr size final = 11 FACTORS * 8 PARTITIONS * x signal * 50 = 50kb (if 10 signals and large host)
+if float - max,sum,sumlog,countNonzero,disp = 20bytes (x2 size)
+question - ????is float ok????
+
+New for prod
+binary tree
+
+TS_ALL, 150 tokens, 1
+TS_ALL, 35 tokens MANY factor types
+TS_ALL, 15 token (build on samovar + shows)
+TS_PARAM, 50 tokens (build on samovar + shows)
+TS_DIR, 50 tokens (build on samovar + shows)
+TS_DIR1, 50 tokens
+if (samovar + shows) very small then force upload up to 100 urls
+
+signals for all - shows max (3 month), 3 days, samovar downloads, clicks max???
+350 tokens * 4 signals * 20bytes = 28kb
+35 * 15 signals * 20bytes = 12kb
+40kb
+
+=======================================experimets=======================================
+export YT_SPEC='{"data_size_per_job": 500000000, "reducer": {"tmpfs_path": ".", "copy_files": true, "memory_limit": 8294967296}, "mapper": {"tmpfs_path": ".", "copy_files": true, "memory_limit": 8294967296}}'
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments join-factors -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/pool_932915 \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/pool_932915.dir_features_v17.clicks_only_for_one \
+-f //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/pool_932915.based17.clicks_only_for_one
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments calc-factors-simple -s arnold \
+-i //home/factordev/edik/inhost_factor_aggr/merge_for_factors_calc.20200415_20200615.v2 \
+-p //home/factordev/edik/inhost_factor_aggr/pool_932915 \
+-o //home/factordev/edik/inhost_factor_aggr/calc_factors_simple/pool_932915.based17.clicks_only_for_one
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments merge-for-factors-calc -s arnold \
+--userdata //home/factordev/edik/inhost_factor_aggr/shows_clicks.20200415_20200615 \
+--samovar //home/factordev/edik/inhost_factor_aggr/count_url_render_samovar.20200415_20200615 \
+-o //home/factordev/edik/inhost_factor_aggr/merge_for_factors_calc.20200415_20200615.v2
+
+./robot/samovar/tools/inhost_factor_aggr_test_tool/inhost_factor_aggr_experiments collect-shows-clicks \
+-d 20200415-20200615 \
+--daily-tables-dir //home/neural-net/daily_parsed_sessions \
+-o //home/factordev/edik/inhost_factor_aggr/shows_clicks.20200415_20200615
+
+
+//collect samovar urls
+https://yql.yandex-team.ru/Operations/5f0f083868a6f5d9745ed734?editor_page=main
+
+=======================================experimets=======================================

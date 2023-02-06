@@ -1,0 +1,29 @@
+Monitoring:
+  vhost-500:
+    DefaultLimits: { Warn: 10, Crit: 10 }
+    Features:
+      - MatchRule: { StartsWith: { request_url: "/mapkit2/photos/2.x/business/list" } }
+        Limits: { Crit: 15, NonAlerting: 10 }
+  init-500:
+    Base: 'vhost-500'
+    DefaultLimits: { Warn: 5, Crit: 5 }
+    MatchRule: { StartsWith: { request_url: "/mapkit2/init/2.x/" } }
+    Features:
+      - MatchRule: { StartsWith: { request_url: "/mapkit2/init/2.x/random" } }
+        Limits: { Crit: 15, NonAlerting: 10 }
+
+spdy3_mob_maps_yandex_net_mapkit_config_2x:
+  And:
+    - Equals: { http_host: "spdy3.mob.maps.yandex.net" }
+    - Contains: { request_url: "/mapkit2/config/2.x" }
+  Options:
+    Apdex: { Ups: 50 }
+    Timings:
+      - {Type: Ups, Percentile: 0.99, Warn: 0.2, Crit: 0.5}
+      - {Type: Ups, Percentile: 0.75, Warn: 0.1, Crit: 0.3}
+      - {Type: Req, Percentile: 0.99, Warn: 0.2, Crit: 0.5}
+    CustomHttp:
+      - 304
+    OverrideOkRps: 304
+    AdditionalTimingCodes:
+      - 304

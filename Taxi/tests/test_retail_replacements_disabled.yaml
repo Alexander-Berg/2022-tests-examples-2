@@ -1,0 +1,33 @@
+id: test_retail_replacements_disabled
+title: Ответ eda-superapp-go-checkout с отключенным экспериментом retailReplacements
+source:
+    request:
+        method: post
+        headers:
+            user-agent: user_agent
+        query:
+            deliveryDate: 2021-03-24T12:00:00+03:00
+        body:
+            address:
+                identity: 33670951
+                provider: eats
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+mocks:
+  - resource: eats-core-go-checkout
+    expectations:
+        call-count: 1
+    response:
+        status-code: 200
+        body#object:
+
+  - resource: eats-customer-calculate-slots
+    expectations:
+        call-count: 0
+
+experiments:
+    values:
+        api_proxy_retail_replacement_policies:
+            enabled: false

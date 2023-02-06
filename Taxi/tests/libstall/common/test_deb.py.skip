@@ -1,0 +1,29 @@
+import os
+from subprocess import Popen, PIPE
+
+
+def test_deb_requirements(tap):
+
+    req = os.path.abspath("config/requirements/deb.txt")
+    with open(req, "r") as file:
+        required=file.readlines()
+        if not required:
+            tap.failed("Файл без зависимостей")
+
+        required = [x.strip() for x in required]
+        tap.ok(required, f'Список зависимостей получен из {req}')
+
+    for package in required:
+        with Popen(["dpkg", "-s", package], stdout=PIPE) as process:
+            (stdout, err) = process.communicate()
+
+            if process.wait() != 0:
+                tap.failed(f"{package} информация не доступна")
+                continue
+
+            if err:
+                tap.diag(err)
+
+            tap.like(stdout, 'Status: install ok installed', package)
+
+    tap.done_testing()

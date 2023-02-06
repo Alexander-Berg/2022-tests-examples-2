@@ -1,0 +1,8 @@
+START TRANSACTION;
+
+ALTER TABLE
+    clownductor.projects
+ADD COLUMN
+    env_params JSONB NOT NULL DEFAULT '{}'::JSONB;
+
+COMMIT;

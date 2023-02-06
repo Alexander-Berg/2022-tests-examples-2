@@ -1,0 +1,64 @@
+default:
+    payment_history_path: 'features/oebs/payment_history/'
+    payment_data_path: 'features/oebs/pmt_export/pmt_data/'
+    tlog_history_path: 'features/oebs/pmt_export/tlog_groups_history/'
+    tlog_expenses_path: 'export/tlog/expenses/'
+    tlog_revenues_path: 'export/tlog/revenues/'
+    yt_clusters: ['hahn']
+    cursor_max_updates: 300
+description: |
+    payment_history_path - путь до папки с историями платежей
+    payment_data_path - путь до папки с payment_data от OEBS
+    tlog_history_path - путь до папки с историями групп tlog'a от OEBS
+    tlog_expenses_path - путь до папки tlog'a с затратами
+    tlog_revenues_path - путь до папки tlog'a с прибылями
+    yt_clusters - кластеры YT, на которых запускается map_reduce. Выбирается случайным образом.
+    cursor_max_updates - максимальное кол-во обновлений в одном документе курсора
+tags: [notfallback]
+maintainers: [adankovich]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        payment_history_path:
+            type: string
+        payment_data_path:
+            type: string
+        tlog_history_path:
+            type: string
+        tlog_expenses_path:
+            type: string
+        tlog_revenues_path:
+            type: string
+        yt_clusters:
+            type: array
+            items:
+                type: string
+            minItems: 1
+        cursor_max_updates:
+            type: integer
+            minimum: 1
+    required:
+      - payment_history_path
+      - payment_data_path
+      - tlog_history_path
+      - tlog_expenses_path
+      - tlog_revenues_path
+      - yt_clusters
+      - cursor_max_updates
+samples:
+  - payment_history_path: '/features/oebs/pmt_hst'
+    payment_data_path: 'features/oebs/pmt_data/'
+    tlog_history_path: 'features/oebs/tlog_group_hst/'
+    tlog_expenses_path: 'export/tlog/expenses/'
+    tlog_revenues_path: 'export/tlog/revenues/'
+    yt_clusters: ['hahn']
+    cursor_max_updates: 1000
+invalid-samples:
+  - payment_history_path: 4
+    payment_data_path: 0
+    tlog_history_path: 4
+    tlog_expenses_path: true
+    yt_clusters: []
+    tlog_revenues_path: 0
+    cursor_max_updates: -1

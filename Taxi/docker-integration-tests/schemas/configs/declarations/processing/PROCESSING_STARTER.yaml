@@ -1,0 +1,51 @@
+description: |
+    Параметры работы периодической таски, которая находит просроченные события
+    и запускает для них процессинг.
+maintainers:
+  - bznk
+  - lol4t0
+tags:
+  - notfallback
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - enabled
+      - non-handled-threshold
+      - disabled-delay
+      - enabled-delay
+      - chunk-size
+    properties:
+        enabled:
+            description: Выключатель периодика processing-starter
+            type: boolean
+        non-handled-threshold:
+            description: Максимальное время просрочки due для необработанных событий
+                (мс)
+            type: integer
+            minimum: 0
+            x-taxi-cpp-type: std::chrono::milliseconds
+        disabled-delay:
+            description: |
+                Задержка перезапуска stq-таски очереди стартера при enabled=false.
+            type: integer
+            minimum: 0
+            x-taxi-cpp-type: std::chrono::milliseconds
+        enabled-delay:
+            description: |
+                Задержка перезапуска stq-таски очереди стартера при enabled=true.
+            type: integer
+            minimum: 0
+            x-taxi-cpp-type: std::chrono::milliseconds
+        chunk-size:
+            description: |
+                Максимальное количество просроченных item_id, которые запускаются
+                за один раз.
+            type: integer
+            minimum: 1
+default:
+    enabled: false
+    non-handled-threshold: 2000
+    disabled-delay: 1000
+    enabled-delay: 10
+    chunk-size: 10000

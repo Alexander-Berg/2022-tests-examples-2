@@ -1,0 +1,71 @@
+INSERT INTO contractor_merch.promocodes (
+  id,
+  feeds_admin_id,
+  status,
+  number,
+  created_at,
+  updated_at
+) VALUES (
+    'p1',
+    'feeds-admin-id-1',
+    'available',
+    'Never',
+    '2021-11-12T13:00:00Z'::timestamptz,
+    '2021-11-12T13:00:00Z'::timestamptz
+),
+(
+    'p2',
+    'feeds-admin-id-1',
+    'bought',
+    'gonna',
+    '2021-11-12T13:00:00Z'::timestamptz,
+    '2021-11-12T13:10:00Z'::timestamptz
+),
+(
+    'p3',
+    'feeds-admin-id-1',
+    'available',
+    'give',
+    '2021-11-12T13:00:00Z'::timestamptz,
+    '2021-11-12T13:00:00Z'::timestamptz
+),
+(
+    'p4',
+    'feeds-admin-id-2',
+    'available',
+    'you',
+    '2021-11-12T13:00:00Z'::timestamptz,
+    '2021-11-12T13:00:00Z'::timestamptz
+),
+(
+    'p5',
+    'feeds-admin-id-2',
+    'available',
+    'up',
+    '2021-11-12T13:00:00Z'::timestamptz,
+    '2021-11-12T13:00:00Z'::timestamptz
+),
+(
+    'p6',
+    'feeds-admin-id-3',
+    'bought',
+    'never',
+    '2021-11-12T13:00:00Z'::timestamptz,
+    '2021-11-12T13:22:00Z'::timestamptz
+),
+(
+    'p7',
+    'feeds-admin-id-3',
+    'bought',
+    'gonna',
+    '2021-11-12T13:10:00Z'::timestamptz,
+    '2021-11-12T13:43:00Z'::timestamptz
+),
+(
+    'p8',
+    'feeds-admin-id-4',
+    'available',
+    'let',
+    '2021-11-12T13:10:00Z'::timestamptz,
+    '2021-11-12T13:43:00Z'::timestamptz
+);

@@ -1,0 +1,32 @@
+id: test-simple-proxy-flow-no-place
+title: Проверяем, что ручка просто проксирует запросы в репорт и не ходит в сервис
+    market-shops, если запрос этого не требует, причем все должно работать корректно
+    даже в том случае, когда при запросе в репорт плейс не указан.
+
+parameters:
+  - case:
+      - mocked_body:
+            search_result: {"error": "&place= parameter is not specified in reques"}
+
+source:
+    request:
+        method: get
+        headers:
+            content-type: application/json
+    expectations:
+        response:
+            status-code: 200
+            body#xget: /test-params/case/mocked_body
+
+mocks:
+  - resource: report-rw-balancer
+    response:
+        status-code: 200
+        body#xget: /test-params/case/mocked_body
+    expectations:
+        call-count: 1
+        request:
+            method: get
+  - resource: market-shops-v2-shop
+    expectations:
+        call-count: 0

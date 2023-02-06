@@ -1,0 +1,79 @@
+qloud_access:
+  my_dc: TST
+  cache_dir: !env CACHE_DIR
+  skip_urls: []
+  dangerous_file_size: 10485760000 # 10gb
+  lines_bundle_min_size: 10
+  lines_bundle_timeout: 0.1
+  insertion_timeout: 600
+  skip_dangerous_file_first_time: false
+  sender:
+    base_dir: !env SENDER_BASE_DIR
+    tmp_dir: !env SENDER_TMP_DIR
+    max_chunk_size: 100MB
+    max_prepare_time: 2s
+  solomon:
+    base_dir: !env SOLOMON_BASE_DIR
+    tmp_dir: !env SOLOMON_TMP_DIR
+  fields:
+    - nginx_request_time
+    - ip
+    - status
+    - request
+    - vhost
+    - ts
+    - nginx_upstream_response_time
+    - qloud_project
+    - qloud_application
+    - qloud_environment
+    - qloud_instance
+  logbroker:
+    client: test_client
+    gziped: true
+    max_count: 2
+    max_size: 104857600
+    read_infly_count: 1
+    timeout_seconds: 1
+    topic: qloud
+    use_client_locks: false
+    cluster: localhost
+    cluster_port: !env LOGBROKER_PORT
+  max_chunks_at_once: 2
+  number_of_workers: 1
+  parser: QloudRouterParser
+  special_base_paths:
+    - /v1/cluster
+    - /ping
+    - /api/ping
+    - /api/v2/config
+    - /api
+  clickhouse:
+    connection_timeout: 1
+    send_timeout: 30
+    user: default
+    password:
+    table: logs_weekly
+    database: qloud
+    hosts:
+      - !env RECIPE_CLICKHOUSE_HOST
+    port: !env RECIPE_CLICKHOUSE_HTTP_PORT
+    columns:
+      - RequestDateTime
+      - ClientIP6
+      - VirtualHost
+      - Path
+      - BasePath
+      - Params.Keys
+      - Params.Values
+      - Code
+      - FullRequestTime
+      - UpstreamResponseTime
+      - Container
+#  solomon_settings:
+#    cluster: mtmobproxy
+#    project: metrika
+#    service: logpusher_push
+#    self_client_id: 2001624
+#    self_secret:
+#        auth_type: oauth
+#        version: ver-01ckeacbfq7a2avg1grdp9qww7

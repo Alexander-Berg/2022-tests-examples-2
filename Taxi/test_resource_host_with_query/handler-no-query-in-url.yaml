@@ -1,0 +1,34 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: default
+            stages:
+              - id: stage
+                handlers:
+                  - id: simple_handler
+                    requests:
+                      - id: handler-src
+                        resource: handler-resource
+                        query:
+                            foo#string: "foo"
+                            bar#string: "baz"
+                    resources:
+                      - id: handler-resource
+                        url: $handler_url
+                        method: get
+                        max-retries: 1
+                    result:
+                        simple-handler-result#xget: /sources/handler-src/response/body

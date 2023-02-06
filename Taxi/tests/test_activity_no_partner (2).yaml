@@ -1,0 +1,39 @@
+id: test_activity_no_partner
+title: Проверяем что не запросим активность если нет X-YaEda-PartnerId
+
+source:
+    request:
+        method: post
+        query:
+            some_string: some text
+            shipping_type: delivery
+        body:
+            items#array:
+        headers:
+            X-Device-Id: SomeDevice
+    expectations:
+        response:
+            status-code: 200
+            body:
+                Test-Param: must_be1
+
+mocks:
+  - resource: eats-launch-v1-experiments
+    response:
+        status-code: 200
+        body:
+            Test-Param: must_be1
+    expectations:
+        call-count: 1
+        request:
+            query:
+                some_string: some text
+                shipping_type: delivery
+            body:
+                items#array:
+            headers:
+                X-Device-Id: SomeDevice
+
+  - resource: eats-partners-internal-v1-log-activity-post
+    expectations:
+        call-count: 0

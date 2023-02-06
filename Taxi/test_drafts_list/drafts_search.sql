@@ -1,0 +1,180 @@
+INSERT INTO approvals_schema.drafts (
+    id,
+    created_by,
+    comments,
+    created,
+    updated,
+    description,
+    approvals,status,
+    version,
+    request_id,
+    run_manually,
+    service_name,api_path,
+    data,
+    change_doc_id,
+    apply_time,
+    mode,
+    tickets,
+    summary,deferred_apply,
+    is_multidraft,
+    multidraft_id,
+    scheme_type,
+    tplatform_namespace
+)
+VALUES (
+        1,
+        'test_user',
+        '[{"login": "asd",
+        "comment": "ert"}]','2017-11-01T01:10:00'::timestamp,
+        '2017-11-01T01:10:00'::timestamp,
+        'test','[]',
+        'approved',
+        1,
+        '123',
+        FALSE,
+        'test_service',
+        'test_api','{"test_key": "test_value"}',
+        '234',
+        '2017-11-01T01:10:00'::timestamp,'push',
+        '[]',
+        '{}',
+        '2017-11-01T01:10:00'::timestamp,
+        false,
+        null::integer,
+        'admin',
+        'taxi'
+        ),
+        (
+        2,
+        'test_user',
+        '[{"login": "asd",
+        "comment": "ert"}]','2017-11-02T01:10:00'::timestamp,
+        '2017-11-02T01:10:00'::timestamp,
+        'test','[]',
+        'approved',
+        1,
+        'request_id_1',
+        FALSE,
+        'test_service',
+        'test_api','{"test_key": "test_value"}',
+        'change_doc_id_1',
+        '2017-11-01T01:10:00'::timestamp,'push',
+        '[]',
+        '{}',
+        '2017-11-01T01:10:00'::timestamp,
+        false,
+        null::integer,
+        'admin',
+        'taxi'
+        ),
+        (
+        3,
+        'test_user',
+        '[{"login": "asd",
+        "comment": "ert"}]','2017-11-02T01:10:00'::timestamp,
+        '2017-11-02T01:10:00'::timestamp,
+        'test','[]',
+        'approved',
+        1,
+        'request_id_3',
+        FALSE,
+        'empty_service',
+        'empty_service_api','{"test_key": "test_value"}',
+        'change_doc_id_3',
+        '2017-11-01T01:10:00'::timestamp,'push',
+        '[]',
+        '{}',
+        '2017-11-01T01:10:00'::timestamp,
+        false,
+        null::integer,
+        'admin',
+        'taxi'
+        ),
+        (
+        4,
+        'test_user',
+        '[{"login": "asd",
+        "comment": "ert"}]','2017-11-02T01:10:00'::timestamp,
+        '2017-11-02T01:10:00'::timestamp,
+        'test','[]',
+        'approved',
+        1,
+        'request_id_4',
+        FALSE,
+        'test_service',
+        'test_api','{"test_key": "test_value"}',
+        'change_doc_id_4',
+        '2017-11-01T01:10:00'::timestamp,'push',
+        '[]',
+        '{}',
+        '2017-11-01T01:10:00'::timestamp,
+        false,
+        null::integer,
+        'admin',
+        'taxi'
+        ),
+        (
+        5,
+        'test_user',
+        '[{"login": "asd",
+        "comment": "ert"}]','2017-11-02T01:10:00'::timestamp,
+        '2017-11-02T01:10:00'::timestamp,
+        'test','[]',
+        'approved',
+        1,
+        'request_id_5',
+        FALSE,
+        'test_service_2',
+        'test_api_2','{"test_key": "test_value"}',
+        'change_doc_id_5',
+        '2017-11-01T01:10:00'::timestamp,'push',
+        '[]',
+        '{}',
+        '2017-11-01T01:10:00'::timestamp,
+        false,
+        null::integer,
+        'admin',
+        'taxi'
+        )
+;
+INSERT INTO approvals_schema.fields(
+    service_name,
+    api_path,
+    path
+)
+VALUES (
+        'test_service',
+        'test_api',
+        'project_id'
+        ),
+        (
+        'test_service_2',
+        'test_api_2',
+        'service_name'
+        )
+;
+INSERT INTO approvals_schema.field_values(
+    field_id,
+    draft_id,
+    value,
+    value_type
+)
+VALUES (
+        1,
+        1,
+        '1',
+        'integer'
+        ),
+        (
+        1,
+        4,
+        '2',
+        'integer'
+        ),
+        (
+        2,
+        5,
+        'some_service',
+        'string'
+        )
+;

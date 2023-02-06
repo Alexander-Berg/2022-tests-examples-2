@@ -1,0 +1,42 @@
+vendor: nexus
+
+output: |
+  aaa group server tacacs+ tacacs
+    server 213.180.205.50
+    use-vrf management
+  ipv6 access-list BB
+    10 deny ipv6 2620:10f:d00f::/48 any
+    20 deny ipv6 2a02:6b8:0:a00::/56 any
+    30 deny ipv6 2a02:6b8:f000::/36 any
+    999 permit ipv6 any any
+  ipv6 access-list BB-CS3
+    5 deny ipv6 2620:10f:d00f::/48 any
+    10 deny ipv6 2a02:6b8:0:a00::/56 any
+    15 deny ipv6 2a02:6b8:f000::/36 any
+
+acl: |
+  aaa
+    ~
+  ipv6 access-list
+    ~
+
+input: |
+  ip domain-lookup
+  ip domain-name yndx.net
+  ip name-server 213.180.205.1 141.8.139.254
+  tacacs-server timeout 4
+  aaa group server tacacs+ tacacs
+    server 213.180.205.50
+    use-vrf management
+  spanning-tree mode mst
+  service unsupported-transceiver
+  interface breakout module 1 port 1-24 map 10g-4x
+  ipv6 access-list BB
+    10 deny ipv6 2620:10f:d00f::/48 any
+    20 deny ipv6 2a02:6b8:0:a00::/56 any
+    30 deny ipv6 2a02:6b8:f000::/36 any
+    999 permit ipv6 any any
+  ipv6 access-list BB-CS3
+    5 deny ipv6 2620:10f:d00f::/48 any
+    10 deny ipv6 2a02:6b8:0:a00::/56 any
+    15 deny ipv6 2a02:6b8:f000::/36 any

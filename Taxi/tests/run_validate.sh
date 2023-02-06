@@ -1,0 +1,1 @@
+python -m zoo.optimal_offer.delta_sh_model.validate --checkpoints unique_driver_id --start-date 2019-03-02 --end-date 2020-01-01 --validate-path //home/taxi_ml/dev/driver_target/testing_train

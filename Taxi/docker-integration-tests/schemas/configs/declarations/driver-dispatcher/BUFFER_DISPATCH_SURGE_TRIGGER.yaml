@@ -1,0 +1,42 @@
+default:
+    __default__:
+        __default__: []
+description: |
+    Время, которое заказ находится в буфере,
+    после первого розыгрыша в зависимости от суржа
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: "#/definitions/SurgeSettingsByClasses"
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: "#/definitions/SurgeSettingsByClasses"
+    definitions:
+        SurgeSettings:
+            type: array
+            items:
+                type: object
+                additionalProperties: false
+                required:
+                  - SURGE
+                  - TIME_IN_BUFFER
+                properties:
+                    SURGE:
+                        type: number
+                        minimum: 0
+                    TIME_IN_BUFFER:
+                        type: integer
+                        minimum: 0
+                        x-taxi-cpp-type: std::chrono::seconds
+        SurgeSettingsByClasses:
+            type: object
+            additionalProperties:
+                $ref: "#/definitions/SurgeSettings"
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: "#/definitions/SurgeSettings"

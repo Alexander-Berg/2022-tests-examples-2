@@ -1,0 +1,11 @@
+\ir 01_init_schema.sql
+\ir 02_drop_trigger.sql
+\ir 03_add_new_system_id_timestamp.sql
+\ir 04_drop_bad_system_id.sql
+\ir 05_drop_bad_timestamp_action_id.sql
+\ir 06_add_platform_column.sql
+\ir 07_add_system_id_column.sql
+\ir 08_15_add_autoincrement_revision.sql
+\ir 16_set_not_null_for_system_id.sql
+\ir 17_add_tmp_lost_logs.sql
+\ir 18_add_index_action_id.sql

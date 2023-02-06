@@ -1,0 +1,28 @@
+name: oracle_raw_select_snapshot_test
+source:
+    type: oracle
+    connection:
+        secret: test_yav_one_shard
+    table: test.test
+    primary_key:
+      - ID
+    raw_select:
+        data: SELECT * FROM test.test
+destinations:
+  - oracle_raw_select_snapshot_test_raw:
+        mapper: $raw
+        target:
+            raw_settings:
+                yt_attributes:
+                    dynamic: false
+                yt_columns_info:
+                  - name: id
+                    input_column: ID
+                    type: string
+                    description: ID
+                    sort_order: ascending
+            cluster_groups:
+              - map_reduce
+            path: raw/snapshot_test/snapshot_test
+        type: yt
+replication_type: queue_snapshot

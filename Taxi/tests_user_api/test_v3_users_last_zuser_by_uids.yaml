@@ -1,0 +1,40 @@
+type: apitest
+version: 0
+service: taxi_user_api
+
+tests:
+  - name: correct_uids
+    request:
+        method: POST
+        path: v3/users/last_zuser_by_uids
+        body: {"uids": ["4004000000", "4004000001", "4004000002", "not_unique_uid"]}
+    response:
+        status: 200
+        body: {"zuser_id": "z061be2890674631ae73e15a73989335"}
+
+  - name: correct_uids_not_existed_zuser
+    request:
+        method: POST
+        path: v3/users/last_zuser_by_uids
+        body: {"uids": ["4004000004"]}
+    response:
+        status: 200
+        body: {}
+
+  - name: empty_uids
+    request:
+        method: POST
+        path: v3/users/last_zuser_by_uids
+        body: {"uids": []}
+    response:
+        status: 200
+        body: {}
+
+  - name: not_existed_uids
+    request:
+        method: POST
+        path: v3/users/last_zuser_by_uids
+        body: {"uids": ["not_existed_uid_1", "not_existed_uid_2"]}
+    response:
+        status: 404
+        body: {"code": "404", "message": "No users found with some uid from request"}

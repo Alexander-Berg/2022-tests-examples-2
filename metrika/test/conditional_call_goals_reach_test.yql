@@ -1,0 +1,376 @@
+/*
+Function tests of conditional call goals achievements
+*/
+
+pragma Library("lambda_functions.sql");
+
+import lambda_functions symbols $reach_conditional_call_goals;
+
+select
+    ListLength(ensure(goals, goals = [2], 'empty conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            0u as Goals_CallTalkDuration,
+            1u as Goals_CallMissed,
+            '' as Goals_CallTag,
+            0u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [] as conditions,
+                    2u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);
+
+select
+    ListLength(ensure(goals, goals = [2], 'missed conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            0u as Goals_CallTalkDuration,
+            0u as Goals_CallMissed,
+            '' as Goals_CallTag,
+            0u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [
+                        (
+                            "call_missed" as field,
+                            "exact" as operator,
+                            "false" as value
+                        )
+                    ] as conditions,
+                    2u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_missed" as field,
+                            "exact" as operator,
+                            "true" as value
+                        )
+                    ] as conditions,
+                    3u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);
+
+select
+    ListLength(ensure(goals, goals = [2], 'first time caller conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            0u as Goals_CallTalkDuration,
+            1u as Goals_CallMissed,
+            '' as Goals_CallTag,
+            1u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [
+                        (
+                            "call_first" as field,
+                            "exact" as operator,
+                            "true" as value
+                        )
+                    ] as conditions,
+                    2u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_first" as field,
+                            "exact" as operator,
+                            "false" as value
+                        )
+                    ] as conditions,
+                    3u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);
+
+select
+    ListLength(ensure(goals, goals = [3], 'second time caller conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            0u as Goals_CallTalkDuration,
+            1u as Goals_CallMissed,
+            '' as Goals_CallTag,
+            2u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [
+                        (
+                            "call_first" as field,
+                            "exact" as operator,
+                            "true" as value
+                        )
+                    ] as conditions,
+                    2u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_first" as field,
+                            "exact" as operator,
+                            "false" as value
+                        )
+                    ] as conditions,
+                    3u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);
+
+select
+    ListLength(ensure(goals, ToSet(goals) = AsSet(4, 5, 7, 8), 'call duration conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            30u as Goals_CallTalkDuration,
+            1u as Goals_CallMissed,
+            '' as Goals_CallTag,
+            2u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "less" as operator,
+                            "30" as value
+                        )
+                    ] as conditions,
+                    2u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "greater" as operator,
+                            "30" as value
+                        )
+                    ] as conditions,
+                    3u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "exact" as operator,
+                            "30" as value
+                        )
+                    ] as conditions,
+                    4u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "between" as operator,
+                            "20|40" as value
+                        )
+                    ] as conditions,
+                    5u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "between" as operator,
+                            "40|60" as value
+                        )
+                    ] as conditions,
+                    6u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "less" as operator,
+                            "40" as value
+                        )
+                    ] as conditions,
+                    7u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "greater" as operator,
+                            "20" as value
+                        )
+                    ] as conditions,
+                    8u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_duration" as field,
+                            "exact" as operator,
+                            "20" as value
+                        )
+                    ] as conditions,
+                    9u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);
+
+select
+    ListLength(ensure(goals, ToSet(goals) = AsSet(2, 4, 6, 8, 9), 'tag conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            0u as Goals_CallTalkDuration,
+            1u as Goals_CallMissed,
+            'какая-то строка' as Goals_CallTag,
+            2u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "exact" as operator,
+                            "какая-то строка" as value
+                        )
+                    ] as conditions,
+                    2u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "exact" as operator,
+                            "какая-то другая строка" as value
+                        )
+                    ] as conditions,
+                    3u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "contain" as operator,
+                            "строка" as value
+                        )
+                    ] as conditions,
+                    4u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "contain" as operator,
+                            "чиселка" as value
+                        )
+                    ] as conditions,
+                    5u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "start" as operator,
+                            "какая-то" as value
+                        )
+                    ] as conditions,
+                    6u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "start" as operator,
+                            "какой-то" as value
+                        )
+                    ] as conditions,
+                    7u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "regexp" as operator,
+                            "^[а-я\-\\s]+$" as value
+                        )
+                    ] as conditions,
+                    8u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "regexp" as operator,
+                            ".+-то .+" as value
+                        )
+                    ] as conditions,
+                    9u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_tag" as field,
+                            "regexp" as operator,
+                            "[0-9]+" as value
+                        )
+                    ] as conditions,
+                    10u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);
+
+select
+    ListLength(ensure(goals, goals = [2], 'multiple conditions violated: ' || ListConcat(ListMap(goals, ($x) -> { return cast($x as String) ?? ''; }), ', ') ?? '')) > 0 as result_not_empty
+from (
+    select $reach_conditional_call_goals(
+        AsStruct(
+            10u as Goals_CallTalkDuration,
+            0u as Goals_CallMissed,
+            'какая-то строка' as Goals_CallTag,
+            2u as Goals_CallFirstTimeCaller,
+            [
+                (
+                    [
+                        (
+                            "call_missed" as field,
+                            "exact" as operator,
+                            "false" as value
+                        ),
+                        (
+                            "call_duration" as field,
+                            "greater" as operator,
+                            "5" as value
+                        )
+                    ] as conditions,
+                    2u as goal_id
+                ),
+                (
+                    [
+                        (
+                            "call_missed" as field,
+                            "exact" as operator,
+                            "false" as value
+                        ),
+                        (
+                            "call_duration" as field,
+                            "greater" as operator,
+                            "15" as value
+                        )
+                    ] as conditions,
+                    3u as goal_id
+                )
+            ] as goal_struct_list
+        )
+    ) as goals
+);

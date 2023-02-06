@@ -1,0 +1,39 @@
+group:
+  type: rtc
+  name: lavka_polka_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+  polka.lavka.tst.yandex.net:
+    And:
+      - Or:
+        - Equals: { http_host: "polka.lavka.tst.yandex.net" }
+        - Equals: { http_host: "picker.lavka.tst.yandex.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  polka.lavka.tst.yandex.net/version.json_GET:
+    And:
+      - Or:
+        - Equals: { http_host: "polka.lavka.tst.yandex.net" }
+        - Equals: { http_host: "picker.lavka.tst.yandex.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/version.json" }
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests

@@ -1,0 +1,51 @@
+host: taxi_driver-work-modes_testing
+type: rtc
+telegram: taxi-partner-products-group1-test
+responsible: duty_taxi:5d516466a387bed0dc226189
+services:
+  - service: driver-work-modes_retrieve_by_clid
+  # Оповещает о 404 в ручке driver-work-modes /v1/parks/driver-profiles/retrieve-by-clid
+  # Их не должно быть совсем, с каждым случаем нужно разбираться
+  # обращаться к artfulvampire, partner-products-group-1, skryabinsv
+  # https://st.yandex-team.ru/TAXIMETERBACK-11671#602251445c02ef532457dfc3
+
+  # флаподав отключен, нужно разираться даже с единичными срабатываниями
+  # flaps: 
+  #   stable_time: 120
+  #   critical_time: 240
+    ignore_nodata: 1
+    children:
+      - cluster
+
+    methods: phone_escalation
+    times:
+  # Настройки оповещения в рабочее время
+      - days: Mon-Fri
+        time: 12-20
+        warn: 0
+        crit: 101% # не звонить в рабочее время (пока не разберёмся с текущими 404)
+
+  # Настройки оповещения в выходные дни   
+      - days: Sat-Sun
+        time: 12-20
+        warn: 0
+        crit: 101% # не звонить по выходным
+
+  # Настройки оповещения по ночам   
+      - days: Mon-Sun
+        time: 21-11
+        warn: 0
+        crit: 101% # не звонить по ночам
+templates:
+- template: test_forced-logrotate-count
+  telegram: taxi-partner-products-fleet-backend-team-testing
+- template: test_taxi_strongbox
+  telegram: taxi-partner-products-fleet-backend-team-testing
+- template: test_unispace
+  telegram: taxi-partner-products-fleet-backend-team-testing
+- template: test_vhost-500
+  telegram: taxi-partner-products-fleet-backend-team-testing
+- template: test_virtual-meta
+  telegram: taxi-partner-products-fleet-backend-team-testing
+- template: rtc-atop-warning
+  telegram: taxi-partner-products-fleet-backend-team-testing

@@ -1,0 +1,45 @@
+description: Параметы соединений и запросов к postgresql
+maintainers:
+  - bznk
+  - lol4t0
+tags:
+  - notfallback
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - create-event
+      - mark-event-handled
+    properties:
+        create-event:
+            description: Запрос добавления нового события в базу
+            $ref: "#/definitions/RequestParameters"
+        mark-event-handled:
+            description: Запрос сохранения информации о выполнении обработчика
+            $ref: "#/definitions/RequestParameters"
+    definitions:
+        RequestParameters:
+            type: object
+            additionalProperties: false
+            required:
+              - execute
+              - statement
+            properties:
+                execute:
+                    description: Общее время на выполнение запроса (мс)
+                    type: integer
+                    minimum: 500
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                statement:
+                    description: Таймаут на выполнение запроса на стороне сервера
+                        (мс)
+                    type: integer
+                    minimum: 250
+                    x-taxi-cpp-type: std::chrono::milliseconds
+default:
+    create-event:
+        execute: 10000
+        statement: 1000
+    mark-event-handled:
+        execute: 60000
+        statement: 1000

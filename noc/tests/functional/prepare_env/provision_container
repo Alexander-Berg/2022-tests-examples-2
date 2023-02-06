@@ -1,0 +1,183 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cat >/etc/nftables.conf <<EOF
+flush ruleset
+
+table inet filter {
+	chain input {
+		type filter hook input priority 0; policy drop;
+		iif "lo" accept
+		ct state established,related accept
+		ct state invalid drop
+		icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, echo-request, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
+		icmp type { destination-unreachable, echo-request, router-advertisement, time-exceeded, parameter-problem } accept
+		udp dport 33434-33625 reject
+		counter drop
+	}
+
+	chain output {
+		type filter hook output priority 0; policy accept;
+	}
+
+	chain forward {
+		type filter hook forward priority 0; policy drop;
+	}
+}
+EOF
+
+cat >/etc/systemd/network/91-cnt.link <<EOF
+[Match]
+OriginalName=*
+
+[Link]
+MACAddressPolicy=random
+NamePolicy=onboard slot path
+EOF
+
+cat >/etc/systemd/network/01-dummy0.netdev <<EOF
+[NetDev]
+Name=dummy0
+Kind=dummy
+EOF
+
+cat >/etc/systemd/network/02-dummy0.network <<EOF
+[Match]
+Name=dummy0
+
+[Network]
+Address=172.16.0.10/32
+Address=172.16.0.20/32
+Address=172.16.0.30/32
+Address=fd00::10/128
+Address=fd00::20/128
+Address=fd00::30/128
+EOF
+
+cat >/etc/systemd/network/02-lo.network <<EOF
+[Match]
+Name=lo
+
+[Network]
+Address=127.0.0.1/32
+Address=::1/128
+EOF
+
+cat >/etc/systemd/network/90-cnt.network <<EOF
+[Match]
+Name=*
+
+[Network]
+DHCP=ipv4
+LLMNR=no
+EOF
+
+systemctl stop unbound.service
+systemctl disable unbound.service
+systemctl stop systemd-resolved.service
+systemctl disable systemd-resolved.service
+
+rm /etc/resolv.conf
+
+cat >/etc/resolv.conf <<EOF
+nameserver 2620:fe::fe
+nameserver 2620:fe::9
+nameserver 9.9.9.9
+nameserver 149.112.112.112
+EOF
+
+systemctl disable iptables.service
+systemctl stop iptables.service
+systemctl disable ip6tables.service
+systemctl stop ip6tables.service
+systemctl enable nftables.service
+systemctl start nftables.service
+systemctl enable systemd-networkd.service
+systemctl start systemd-networkd.service
+
+sleep 5  # wait for addresses assignement
+unbound_bin="$(which unbound)"
+mkdir /var/log/unbound
+chown unbound:unbound /var/log/unbound
+
+cat >/etc/unbound/unbound_family.conf <<EOF
+server:
+	username: "unbound"
+        chroot: ""
+	interface: 172.16.0.30
+	interface: fd00::30
+        access-control: 0.0.0.0/0 allow
+        access-control: ::0/0 allow
+        logfile: /var/log/unbound/unbound_family.log
+        verbosity: 0
+        val-log-level: 2
+        log-time-ascii: yes
+        log-queries: no
+        module-config: "iterator"
+remote-control:
+	control-enable: no
+EOF
+
+cat >/etc/unbound/unbound_main.conf <<EOF
+server:
+	username: "unbound"
+        chroot: ""
+	interface: 127.0.0.1
+	interface: ::1
+	interface: 172.16.0.10
+	interface: fd00::10
+        access-control: 0.0.0.0/0 allow
+        access-control: ::0/0 allow
+        logfile: /var/log/unbound/unbound_main.log
+        verbosity: 0
+        val-log-level: 2
+        log-time-ascii: yes
+        log-queries: no
+        module-config: "iterator"
+remote-control:
+	control-enable: no
+EOF
+
+cat >/etc/unbound/unbound_safe.conf <<EOF
+server:
+	username: "unbound"
+        chroot: ""
+	interface: 172.16.0.20
+	interface: fd00::20
+        access-control: 0.0.0.0/0 allow
+        access-control: ::0/0 allow
+        logfile: /var/log/unbound/unbound_safe.log
+        verbosity: 0
+        val-log-level: 2
+        log-time-ascii: yes
+        log-queries: no
+        module-config: "iterator"
+remote-control:
+	control-enable: no
+EOF
+
+$unbound_bin -p -v -c /etc/unbound/unbound_main.conf
+$unbound_bin -p -v -c /etc/unbound/unbound_safe.conf
+$unbound_bin -p -v -c /etc/unbound/unbound_family.conf
+mkdir /root/dnsl3r
+cp -r /dom0tmp/* /root/dnsl3r
+grep --files-with-matches --recursive 'noc.traffic.dns.safedns.dnsl3r.dnsl3r' /root/dnsl3r/ | while read -ra pyfile; do 
+    sed --in-place 's/noc.traffic.dns.safedns.dnsl3r.dnsl3r/dnsl3r/' "$pyfile"
+done
+python -m venv /root/virtualenv
+/root/virtualenv/bin/python -m pip install --upgrade pip setuptools wheel build
+/root/virtualenv/bin/python -m pip install --requirement /root/dnsl3r/requirements/base.txt
+/root/virtualenv/bin/python -m pip install --requirement /root/dnsl3r/requirements/tests.txt
+
+cat >/etc/systemd/system/dnsl3r.service <<EOF
+[Unit]
+Description=start dnsl3r
+
+[Service]
+Environment="PYTHONPATH=/root/dnsl3r"
+ExecStart=/root/virtualenv/bin/python /root/dnsl3r/bin/main.py --query-period 2.0 --query-timeout 1.0 --server-ip any --server-port 80 172.16.0.10 172.16.0.20 172.16.0.30 fd00::10 fd00::20 fd00::30
+EOF
+
+systemctl daemon-reload
+systemctl start dnsl3r.service

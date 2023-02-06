@@ -1,0 +1,38 @@
+options:
+  base_url: http://nginx
+  selenium_hub_url: http://127.0.0.1:4450/wd/hub
+
+tests:
+  - get_ok: base.html
+
+  - wait:
+  - _inner_test:
+      success: False
+      message: Test must contain single key.
+      tap_description: Empty test.
+  - has: /html/body/div
+
+  - get_ok: base.html
+    has: /html/body
+  - _inner_test:
+      success: False
+      message: Test must contain single key.
+      tap_description: Doubled test.
+  - has: /html/body/div
+
+  - invalid-plugin: /html/body/div
+  - _inner_test:
+      success: False
+      message: plugin is not supported
+      tap_description: Wrong plugin name.
+
+  - wait:
+     has:
+       xpath: /html/body
+  - _inner_test:
+      success: False
+      message: Unwanted args
+      tap_description: Wait could have no subkeys
+
+  - has: css:p.text
+  - _inner_test: [True, Correct test after the corrupted one.]

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Aggregation Tests Diff</title>
+    <script type="text/javascript" src="https://yastatic.net/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://yastatic.net/datatables/1.10.9/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://yastatic.net/datatables/1.10.9/css/jquery.dataTables.min.css"/>
+
+    <script type="text/javascript" src="https://cdn.datatables.net/searchpanes/1.1.1/js/dataTables.searchPanes.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/searchpanes/1.1.1/css/searchPanes.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.6.2/css/buttons.dataTables.min.css"/>
+
+    <script>
+        let data = {{ row_diff.data }};
+        let rowRenderer = function(column) {
+            let renderData = function(value) {
+                if (typeof value === 'object') {
+                    return JSON.stringify(value);
+                } else {
+                    return value;
+                }
+            };
+
+            let equal = function(x, y) {
+                if (typeof x === 'object' && typeof y === 'object') {
+                    return JSON.stringify(x) === JSON.stringify(y);
+                } else {
+                    return x === y;
+                }
+            }
+
+            return function(data, type, row, meta) {
+                if (
+                    type === 'display'
+                    && row['State'] === 'modified'
+                    && row[column + "_patched"] !== undefined
+                    && !equal(data, row[column + "_patched"])
+                ) {
+                    return (
+                        '<span class="canon_value">'
+                        + renderData(data)
+                        + '</span> <span class="patched_value">'
+                        + renderData(row[column + "_patched"])
+                        + '</span>'
+                    );
+                } else if (
+                    type === 'display'
+                    && row['State'] === 'added'
+                    && row[column + "_patched"] !== undefined
+                ) {
+                    return renderData(row[column + "_patched"]);
+                } else {
+                    return renderData(data);
+                }
+            }
+        };
+
+        $(document).ready(function() {
+            $('#table').DataTable( {
+                data: data,
+                columns: [
+                    {% for column in row_diff.columns %}
+                        {
+                            title: "{{ column.name }}",
+                            data: "{{ column.name }}",
+                            visible: {{ column.visible | tojson }},
+                            render: rowRenderer("{{ column.name }}"),
+                        },
+                    {% endfor %}
+                ],
+                dom: 'Plipt',
+                ordering: false,
+                searchPanes: {
+                    columns: [
+                        {% for column in row_diff.columns %}
+                            {% if column.searchable %}
+                                {{ loop.index0 }},
+                            {% endif %}
+                        {% endfor %}
+                    ],
+                    cascadePanes: true,
+                    dataLength: false,
+                },
+                createdRow: function (row, data, index) {
+                    $(row).addClass(data['State']);
+                },
+            });
+        });
+    </script>
+
+    <style>
+        #table {
+            width: 100%;
+        }
+
+        .canon_value, .removed > td {
+            background-color: #FFB6C1 !important;
+        }
+
+        .patched_value, .added > td {
+            background-color: #90EE90 !important;
+        }
+
+        .modified > td {
+            background-color: #FFFFE0 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Columns Diff</h1>
+    {% if column_diff %}
+        {% for column in column_diff %}
+            <p>
+                <span class="{{ 'canon_value' if column.state == 'removed' else 'patched_value'}}">
+                    {{ column.name }}
+                </span>
+            </p>
+        {% endfor %}
+    {% else %}
+        No changes
+    {% endif %}
+    <h1>Rows Diff</h1>
+    <table id="table" class="cell-border"></table>
+</body>
+</html>

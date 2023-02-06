@@ -1,0 +1,493 @@
+INSERT INTO signal_device_api.declared_devices (
+    id,
+    serial_number,
+    aes_key,
+    imei,
+    mac_wlan0,
+    mac_bluetooth,
+    created_at,
+    updated_at
+)
+VALUES 
+(
+    1,
+    'AB1',
+    'RkFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'FAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '123456789012345',
+    '38:fe:38:8e:84:e0',
+    'e6:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    2,
+    'AB2',
+    'QUFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'AAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '333456789012345',
+    '18:fe:38:8e:84:e0',
+    'e2:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    3,
+    'AB3',
+    'QUJFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'ABEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '523456789012345',
+    '18:fe:38:8e:84:e0',
+    'e2:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    4,
+    'AB4',
+    'QUFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'AAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '333456789012345',
+    '18:fe:38:8e:84:e0',
+    'e2:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    5,
+    'AB5',
+    'QUFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'AAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '923456789012345',
+    '88:fe:38:8e:84:e0',
+    'e6:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+),
+(
+    6,
+    'AB6',
+    'RUFFRTRDQTNDMzBFRTE4MXmpS5A4SPr0kC5606701TZZb3I8u3uke007bZqetpw7laDnSfj34GaGywWyuFr7FkbPmuIUwAAVo1u9zteHMmM983SD8ygwSu0AlEpdSpDk', -- encrypted key 'EAEE4CA3C30EE18148CE3ADA374664987D9DD7CC84B0731248B42700E521991E'
+    '033456789012345',
+    '28:fe:38:8e:84:e0',
+    'e5:32:23:fc:23:9f',
+    '2019-12-13T18:01:00+03:00',
+    '2019-12-13T18:01:00+03:00'
+);
+
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'has_everything',
+    'pub_key_1',
+    NULL,
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54.000001+03:00',
+    '2019-12-17T07:38:54.000001+03:00'
+), (
+    2,
+    NULL,
+    TRUE,
+    'without_driver',
+    'pub_key_2',
+    NULL,
+    'a5:90:c5:98:95:48',
+    '78:ff:28:f2:69:b1',
+    NULL,
+    'AB2',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    65536,
+    '{}',
+    2,
+    '2019-12-17T08:38:54.000001+03:00',
+    '2019-12-17T08:38:54.000001+03:00'
+), (
+    3,
+    NULL,
+    TRUE,
+    'just_device',
+    'pub_key_3',
+    NULL,
+    'ca:ff:4d:64:f2:79',
+    NULL,
+    '63:72:bf:26:5a:b3',
+    'AB3',
+    '2.01',
+    '7p117mV/CfzpOnevbsdfFC3g7nJ+dTliDx1QwMhOPBRCrLrSCMuUV6dLm+z2FchT',
+    '03Kl5ckWGKlUWmD4ZPq6dpVF5X5+oqycQgOJIZXfPg0=',
+    'RIVcPWACRArzJqxvXfm37l3HOaY41Ew3aIB4JhQYe/QQ+0XRWzsr9BNltXVHDhwUcgVLCmYBKn8PLvnqZg9V+A==',
+    256,
+    '{"foo":"bar"}',
+    NULL,
+    '2019-12-17T09:38:54.000001+03:00',
+    '2019-12-17T09:38:54.000001+03:00'
+), (
+    4,
+    NULL,
+    TRUE,
+    'move_to_other_park',
+    'pub_key_4',
+    '__IMEI1__',
+    '32:41:27:d5:fb:ed',
+    'fb:43:3c:cd:1e:8f',
+    '23:5f:72:1c:04:39',
+    'AB4',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54.000001+03:00',
+    '2019-12-17T11:38:54.000001+03:00'
+), (
+    5,
+    NULL,
+    TRUE,
+    'another_park',
+    'pub_key_5',
+    NULL,
+    '11:11:11:22:22:ff',
+    NULL,
+    NULL,
+    'AB5',
+    'hw_5',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    65536,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54.000001+03:00',
+    '2019-12-17T11:38:54.000001+03:00'
+), (
+    6,
+    NULL,
+    TRUE,
+    'another_park_again',
+    'pub_key_6',
+    '__IMEI2__',
+    '11:11:11:22:22:ff',
+    NULL,
+    NULL,
+    'AB6',
+    'hw_5',
+    'zzzzRglllllNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '0999ADEjx4mzeHU8dQ6QlojneZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    65536,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54.000001+03:00',
+    '2019-12-17T11:38:54.000001+03:00'
+);
+
+
+INSERT INTO signal_device_api.statuses
+(
+    id,
+    cpu_temperature,
+    disk_bytes_free_space,
+    disk_bytes_total_space,
+    root_bytes_free_space,
+    root_bytes_total_space,
+    ram_bytes_free_space,
+    gps_position_lat,
+    gps_position_lon,
+    gnss_latitude,
+    gnss_longitude,
+    gnss_speed_kmph,
+    gnss_accuracy_m,
+    gnss_direction_deg,
+    software_version,
+    uptime_ms,
+    sim_iccid,
+    sim_phone_number,
+    sim_imsi,
+    status_at,
+    created_at,
+    updated_at,
+    position_updated_at
+)
+VALUES
+(
+    1,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    73.3242,
+    54.9885,
+    53.3242,
+    34.9885,
+    10,
+    3,
+    100,
+    '02.0031-3',
+    90555,
+    '89310410106543789301',
+    '+7 (913) 617-82-58',
+    '502130123456789',
+    '2020-01-23 15:44:02 +00:00',
+    '2020-08-11 11:50:03 +00:00',
+    '2020-08-11 11:50:03 +00:00',
+    NULL
+),
+(
+    4,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    NULL, -- 73.3242,
+    NULL, -- 54.9885,
+    25.1111,
+    12.2142,
+    NULL,
+    NULL,
+    NULL,
+    '2.031-1',
+    90555,
+    '89310410106543789300',
+    '+7 (913) 617-82-58',
+    '502130123456788',
+    '2020-01-23 15:44:02 +00:00',
+    '2019-09-04 T08:18:54 +00:00',
+    '2020-08-11 13:50:03 +00:00',
+    NULL
+),
+(
+    5,
+    26,
+    117374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    NULL, --73.3242,
+    NULL, --54.9885,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2.0031-002',
+    90555,
+    '89310410106543789300',
+    '+7 (913) 617-82-58',
+    '502130123456788',
+    '2020-01-23 15:44:02 +00:00',
+    '2019-09-04 T08:18:54 +00:00',
+    '2020-08-11 14:58:03 +00:00',
+    NULL
+),
+(
+    6,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1673741835,
+    10737418,
+    NULL, --73.3242,
+    NULL, --54.9885,
+    73.3242,
+    54.9885,
+    NULL,
+    NULL,
+    NULL,
+    '000002.31-00002',
+    90555,
+    '81522410106543789300',
+    '+7 (913) 617-82-58',
+    '102130123456789',
+    '2020-01-23 15:44:02 +00:00',
+    '2019-09-04 T08:18:54 +00:00',
+    '2020-08-11 14:59:03 +00:00',
+    NULL
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p1',
+    2,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p1',
+    3,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p1',
+    4,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p2',
+    5,
+    now(),
+    now(),
+    TRUE
+);
+
+INSERT INTO signal_device_api.declared_serial_numbers 
+(
+    serial_number,
+    hw_id,
+    hw_revision,
+    factory_id,
+    batch_number,
+    order_number,
+    manufacturing_date
+)
+VALUES 
+(
+    'AB1',
+    1,
+    2,
+    3,
+    4,
+    5,
+    '2021-01-05T00:00:00+00:00'
+),
+(
+    'AB2',
+    NULL,
+    1,
+    55,
+    42,
+    51,
+    '2021-01-04T00:00:00+00:00'
+),
+(
+    'AB3',
+    11,
+    22,
+    3,
+    14,
+    5,
+    '2021-01-08T00:00:00+00:00'
+),
+(
+    'AB4',
+    1,
+    2,
+    3,
+    4,
+    5,
+    '2021-01-08T00:00:00+00:00'
+),
+(
+    'AB5',
+    1,
+    2,
+    3,
+    4,
+    5,
+    '2021-02-01T00:00:00+00:00'
+),
+(
+    'AB6',
+    1,
+    NULL,
+    3,
+    4,
+    15,
+    '2021-02-01T00:00:00+00:00'
+);
+
+INSERT INTO signal_device_api.api_last_responses (
+    serial_number,
+    v1_events_at,
+    v1_binaries_download_at,
+    v1_binaries_check_at,
+    v1_registration_at
+) 
+VALUES 
+(
+    'AB1',
+    NULL,
+    NULL,
+    NULL,
+    '2021-02-01T00:00:00+00:00' 
+),
+(
+    'AB3',
+    '2021-02-01T00:00:00+00:00',
+    '2021-03-01T00:00:00+00:00',
+    '2021-04-01T00:00:00+00:00',
+    '2021-05-01T00:00:00+00:00' 
+),
+(
+    'AB4',
+    NULL,
+    NULL,
+    '2021-02-05T00:00:00+00:00',
+    '2021-02-01T00:00:00+00:00' 
+);

@@ -1,0 +1,83 @@
+python_service:
+    service_name: sox-test-service
+maintainers:
+  - Pavel Potapenkov <oxcd8o@yandex-team.ru>
+tvm:
+    service_name: sox-test-service
+teamcity:
+    conductor-disabled: true
+docker-deploy: {}
+debian:
+    source_package_name: yandex-taxi-sox-test-service
+    maintainer_name: Pavel Potapenkov
+    maintainer_login: oxcd8o
+units:
+  - name: cron
+    cron:
+        log_file_max_size: 5G
+        description: Yandex.Taxi sox-test-service cron tasks package
+        tasks:
+          - module: sox_test_service.crontasks.example
+            settings:
+                production:
+                    launch_at: '*/5 * * * *'
+                testing:
+                    launch_at: '*/5 * * * *'
+    debian:
+        binary_package_name: yandex-taxi-sox-test-service-cron
+wiki: https://wiki.yandex-team.ru/TODO
+clownductor_service_info:
+    description: tmp service for sox-compliance tests
+    clownductor_project: taxi-devops
+    preset:
+        production:
+            name: x3pico
+        testing:
+            name: x2pico
+    disk_profile:
+        production:
+            name: ssd-default
+            overrides:
+              - path: /cores
+                size: 10240
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 3
+              - path: /logs
+                size: 50000
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 6
+              - path: /var/cache/yandex
+                size: 2048
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 3
+            root_override:
+                work_dir_size: 256
+                size: 10240
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 1
+        testing:
+            name: ssd-default
+            overrides:
+              - path: /cores
+                size: 10240
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 3
+              - path: /logs
+                size: 50000
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 6
+              - path: /var/cache/yandex
+                size: 2048
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 3
+            root_override:
+                work_dir_size: 256
+                size: 10240
+                type: ssd
+                bandwidth_guarantee_mb_per_sec: 1
+    design_review: https://st.yandex-team.ru/TAXIADMIN-28912
+    duty_group_id: 5b69be79c5755f678048a169
+dashboards:
+    service_group:
+        rtc:
+            name: sox-test-service

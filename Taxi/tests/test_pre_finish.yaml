@@ -1,0 +1,136 @@
+id: test_pre_finish
+title: тест с отправкой lat/lon в pre-finish
+
+parameters:
+  - case:
+      - tag_name: old_state_reservation
+        mock-response:
+            status-code: 200
+            body:
+                allow_finish: true
+        call-count: 1
+
+      - tag_name: old_state_reservation
+        mock-response:
+            status-code: 200
+            body:
+                allow_finish: false
+        call-count: 1
+
+      - tag_name: old_state_reservation
+        send-user-location: false
+        call-count: 0
+
+      - tag_name: old_state_reservation
+        send-scooter-id: false
+        mock-response:
+            status-code: 200
+            body:
+                allow_finish: false
+        call-count: 1
+
+      - tag_name: old_state_reservation
+        mock-response:
+            status-code: 500
+            body: {}
+        call-count: 1
+
+      - tag_name: old_state_riding
+        send-user-location: false
+        call-count: 0
+
+
+source:
+    request:
+        method: post
+        headers#concat-objects:
+          - value:
+                lon#string: "1.00"
+                lat#string: "2.00"
+            enabled#xget:
+                path: /test-params/case/send-user-location
+                default-value: true
+        body:
+            session_id: SESSION_ID
+            tag_name#xget: /test-params/case/tag_name
+    expectations:
+        response:
+            status-code: 200
+            body:
+                key: VALUE
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code: 200
+        body:
+            key: VALUE
+    expectations:
+        call-count: 1
+        request:
+            headers#concat-objects:
+              - value:
+                    lon#string: "1.00"
+                    lat#string: "2.00"
+                enabled#xget:
+                    path: /test-params/case/send-user-location
+                    default-value: true
+              - value#object:
+                  - key: UserInAllowDropCar
+                    value#string: "1"
+                    enabled#and:
+                      - value#xhas: /test-params/case/mock-response
+                      - value#xget:
+                            path: /test-params/case/mock-response/body/allow_finish
+                            default-value: false
+            body:
+                tag_name#xget: /test-params/case/tag_name
+                session_id: SESSION_ID
+
+  - resource: scooters-sessions-current
+    response:
+        status-code: 200
+        body#object:
+          - key: car
+            value:
+                id: SCOOTER_ID
+            enabled#xget:
+                path: /test-params/case/send-scooter-id
+                default-value: true
+    expectations:
+        call-count#if:
+            condition#xget:
+                path: /test-params/case/send-user-location
+                default-value: true
+            then: 1
+            else: 0
+        request:
+            query:
+                session_id: SESSION_ID
+
+  - resource: scooters-misc-pre-finish
+    response:
+        status-code#xget:
+            path: /test-params/case/mock-response/status-code
+            default-value: 200
+        body#xget:
+            path: /test-params/case/mock-response/body
+            default-value: {}
+    expectations:
+        call-count#xget: /test-params/case/call-count
+        request:
+            body#object:
+              - key: user_position
+                value: [1.00, 2.00]
+              - key: session_id
+                value: SESSION_ID
+              - key: scooter_id
+                value: SCOOTER_ID
+                enabled#xget:
+                    path: /test-params/case/send-scooter-id
+                    default-value: true
+
+experiments:
+    values#object:
+      - scooters-pre-finish-geo-location:
+            enabled: true

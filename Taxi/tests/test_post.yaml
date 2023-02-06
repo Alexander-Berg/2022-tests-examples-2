@@ -1,0 +1,49 @@
+id: test_post
+title: Проверка, что вызывы делаются с правильными параметрами, и правильным ответом
+
+
+source:
+    request:
+        method: post
+        body:
+            params:
+                service: "rtxaron"
+            some_field: "some_field"
+    expectations:
+        response:
+            status-code: 200
+            body:
+                result#array:
+                  - value:
+                        name#string: "existing_field"
+                        value#boolean: true
+
+mocks:
+  - resource: fury-rtxaron
+    response:
+        status-code: 200
+        body:
+            result#array:
+              - value:
+                    name#string: "existing_field"
+                    value#boolean: true
+              - value:
+                    name#string: "value_not_existing_in_config"
+                    value#boolean: true
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                params:
+                    service: "rtxaron"
+                some_field: "some_field"
+
+  - resource: personal-data-type-phones-find
+    expectations:
+        call-count: 0
+
+taxi_config:
+    CHATTERBOX_ANTIFRAUD_RULES_FOR_META#array:
+      - value#string: "existing_field"
+      - value#string: "unexisting_field"

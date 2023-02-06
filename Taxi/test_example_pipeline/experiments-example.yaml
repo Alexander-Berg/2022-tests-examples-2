@@ -1,0 +1,48 @@
+module: testsuite_single_pipelines_experiments_example
+operators:
+  - id: main
+    visibility: public
+    value#processing-single-pipeline:
+        scope: testsuite_single_pipelines
+        single_pipeline: experiments_example
+        stq-queue: testsuite_single_pipelines_experiments_example
+        experiments:
+            consumer: processing/single-pipeline-level-consumer
+        pipeline:
+            experiments:
+                consumer: processing/pipeline-level-consumer
+            shared-state-init:
+                example-key: example-value
+            stages:
+              - id: stage-2
+                experiments:
+                    consumer: processing/stage-level-consumer
+                handlers:
+                  - id: bar
+                    experiments:
+                        consumer: processing/handler-level-consumer
+                    requests:
+                      - id: example-request-a
+                        resource: example-resource-a
+                    resources:
+                      - id: example-resource-a
+                        url: $example_resource_a
+                        method: get
+                    result:
+                        foo#xget: /sources/example-request-a/response/body/foo
+                        pipeline-exp#experiment-effective: pipeline-experiment
+                        stage-exp#experiment-effective: stage-experiment
+                        handler-exp#experiment-effective: handler-experiment
+                        single-pipeline-exp#experiment-effective: single-pipeline-experiment
+              - id: stage-3
+                handlers:
+                  - id: baz
+                    requests:
+                      - id: example-request-b
+                        resource: example-resource-b
+                        body:
+                            shared-state#xget: /shared-state
+                    resources:
+                      - id: example-resource-b
+                        url: $example_resource_b
+                        method: post

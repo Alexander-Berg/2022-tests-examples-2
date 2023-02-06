@@ -1,0 +1,37 @@
+default:
+    enable_separation_by_statuses: true
+    reasons_by_statuses:
+        driving:
+          - COULD_NOT_SATISFY_CLIENT_COMMENT
+          - PROBLEMS_WITH_CAR
+        long_waiting:
+          - INADEQUATE_PASSENGER
+          - PASSENGER_WITH_CHILD
+          - NOT_SATISFIED_TARIFF_OR_ADDRESS
+          - CLIENT_DID_NOT_COME
+          - OTHER
+        waiting:
+          - INADEQUATE_PASSENGER
+          - PASSENGER_WITH_CHILD
+          - NOT_SATISFIED_TARIFF_OR_ADDRESS
+          - OTHER
+description: Настройки разбиения причин отмены по статусам водителя.Если enable_separation_by_statuses
+    стоит в false - тогда мы всегда показываем все причины из DRIVER_ALL_CANCEL_REASONS
+    (вне взависимости от статуса и в том порядке в котором они записаны в нём). Если
+    enable_separation_by_statuses стоит в true - показываем с разбиением по статусам
+    в порядке который указан для каждого статуса в поле reasons_by_statuses
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: false
+        scheme:
+            enable_separation_by_statuses:
+              - $boolean
+            reasons_by_statuses:
+              - $dictionary_of:
+                    key_validators:
+                      - $driver_cancel_status
+                    value_validators:
+                      - $sequence_of:
+                          - $driver_cancel_reason

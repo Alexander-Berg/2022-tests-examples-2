@@ -1,0 +1,167 @@
+settings:
+    collection: clients
+    connection: corp
+    database: dbcorp
+indexes:
+  - key: contract_id
+  - key: email
+  - key: email_id
+  - key: name
+  - key: services.drive.contract_id
+  - key: services.eats.contract_id
+  - key: services.eats2.contract_id
+  - key: services.taxi.contract_id
+  - key: updated
+    sparse: true
+  - key: yandex_id
+    unique: true
+  - key: yandex_login
+    unique: true
+  - key: yandex_login_id
+    unique: true
+wiki_info: |
+    #### corp_clients
+
+    *Назначение* хранит данные о корпоративном клиенте.
+    Документ добавляется в коллекцию через api корп-кабинета.
+
+    *Структура документа*:
+    ```python
+    {
+        # id клиента, генерируем при создании
+        '_id': 'a72c05433dbf48ecbcc587bccb31fb28',
+
+        # id яндекс пользователя, yandex uid - берем из блекбокса при создании
+        'yandex_id': '123456',
+
+        # яндексовый логин, обязательное поле
+        'yandex_login': 'some_login',
+
+        # id из сервиса персональных данных
+        'yandex_login_id': 'yandex_login_id',
+
+        # email, опциональное поле; на этот email будут отправляться отчеты о поездках, также на этот адрес отправляются оповещения клиента
+        'email': 'some_login@yandex.ru',
+
+        # id из сервиса персональных данных
+        'email_id': 'some_login@yandex.ru',
+
+        # название клиента, обязательное поле; это название будет отображаться в админке корп-кабинета
+        'name': 'Some Client',
+
+        # название клиента из биллинга - берем из биллинга при создании
+        'billing_name': 'some client billable',
+
+        # id биллинга, обязательное поле
+        'billing_id': '7802c18ff787b7f5c21e309c',
+
+        # дополнения, массив строк, опциональное поле
+        'features': ['some text', 'some text 2']
+
+        # отключать автоматически в случае наличия дебиторской задолженности
+        'auto_debt_block': True,
+
+        # таймзона - пока не передается и не сохраняется :)
+        'tz': 'Europe/Moscow',
+
+        # время создания записи крон-задачи
+        'created': datetime.datetime(2016, 6, 2, 21, 58),
+
+        # id роли пользователей, которая позволяет создавать заказы только из кабинета - роль создаем при создании клиента и сразу записывает id.
+        'cabinet_only_role_id': 'bcfa97e086b340c9b267e3300b029a33',
+
+        # группа без права самостоятельного заказа
+        "self_order_forbidden_group_id": "0d8401c99a7b4e6db3a05227313aa43d",
+
+        # объект с данными о кост центрах клиента
+        'cost_centers': {
+            # название последнего загруженного файла с кост-центрами - сохраняется ручкой client_cost_centers
+            'file_name': 'cost_centers.xls',
+
+            # список кост центров клиента - сохраняется ручкой client_cost_centers
+            'content': [
+                'foo',
+                'bar'
+            ]
+        },
+
+        # id менеджера из биллинга, опциональное поле
+        'manager_id': '89c43fa2faab4518849ae29fdc25926d',
+
+        # Страна, обязательное поле
+        'country': 'rus',
+
+        # статус действующего договора в биллинге (возможные значения: "absent", "active", "inactive")
+        'contract_status': 'active',
+
+        # объект с данными о платежной информации из биллинга
+        'payment': {
+            # тип договора клиента в биллинге (возможные значения: "prepaid", "postpaid", "none")
+            'type': 'prepaid',
+
+            # порог отключения (только для предоплатных клиентов)
+            'deactivate_threshold': '-20000.00',
+
+            # баланс клиента в биллинге
+            'balance': '50000.00',
+
+            # флаг финансовой блокировки (баланс < порог отключения)
+            'is_blocked': False,
+
+            # идентификатор плательщика клиента(достается из биллинга через billing_id)
+            'person_id': '222222',
+
+            # список почт плательщика, на которые отправляются биллинговые документы
+            'person_emails': ['email1@ya.ya', 'email2@ya.ya'],
+
+            # список id почт из сервиса персональных данных
+            'person_emails_ids': ['email_id1', 'email_id2'],
+        },
+
+        # Комментарий, обязательное поле
+        'comment': 'some comment',
+
+        # Статусы по сервисам клиента (сейчас доступны drive(Я.Драйв), eats(Я.Еда промокоды), eats2(Я.Еда кошелек) и taxi(Я.Такси))
+        "services": {
+            # сервис Я.Такси
+            "taxi": {
+                # статус сервиса, бывший doc.is_active
+                "is_active": false,
+                # видимость сервиса клиенту в кабинете
+                "is_visible": false,
+                # номер договора сервиса, бывший doc.contract_id
+                "contract_id": "456"
+            },
+            # сервис Я.Драйв
+            "drive": {
+                # статус сервиса
+                "is_active": true,
+                # видимость сервиса клиенту в кабинете
+                "is_visible": true,
+                # номер договора сервиса
+                "contract_id": "123"
+            },
+            # сервис Я.Еда промокоды
+            "eats": {
+                # статус сервиса
+                "is_active": false,
+                # видимость сервиса клиенту в кабинете
+                "is_visible": false,
+                # номер договора сервиса
+                "contract_id": "456"
+            },
+            # сервис Я.Еда кошелек
+            "eats2": {
+                # статус сервиса
+                "is_active": false,
+                # видимость сервиса клиенту в кабинете
+                "is_visible": false,
+                # номер договора сервиса
+                "contract_id": "45296"
+            }
+        },
+
+        # время последнего обновления записи крон-задачи
+        'updated': datetime.datetime(2016, 6, 2, 21, 58)
+    }
+    ```

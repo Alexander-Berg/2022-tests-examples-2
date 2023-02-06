@@ -1,0 +1,34 @@
+id: test_delete_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: delete
+        url: /api/v1/server/users/1
+    expectations:
+        response:
+            body:
+                isSuccess: true
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users-user-delete
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+
+  - resource: eats-partners-internal-v1-block
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            query:
+                partner_id#string: 1
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: true
+        enabled: true

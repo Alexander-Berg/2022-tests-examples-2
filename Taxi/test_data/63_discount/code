@@ -1,0 +1,193 @@
+function abs(val : double) {
+    return {res = (val < 0) ? -val : val};
+}
+
+function min(a : double, b : double) {
+  return {res = (a < b) ? a : b};
+}
+
+function max(a : double, b : double) {
+  return {res = (a > b) ? a : b};
+}
+
+function calculateHyperbolaDiscountPercent(hyperbolas : clients::discounts::HyperbolasData, price : double) {
+    // выбираем гиперболу по порогу
+    let hyperbola = (price < hyperbolas.threshold)
+        ? hyperbolas.hyperbola_lower
+        : hyperbolas.hyperbola_upper;
+
+    // избегаем деления на 0
+    if (abs(val=price + hyperbola.c).res < 0.0001) {
+        return {res = 0};
+    }
+
+    // считаем по формуле гиперболы
+    return {res = (hyperbola.p + hyperbola.a / (price + hyperbola.c))};
+}
+
+function processTableElement(elem : clients::discounts::TableDataA,
+                             has_result: bool,
+                             result : double,
+                             price : double,
+                             first_iteration : bool,
+                             prev_elem_price : double,
+                             prev_elem_coeff : double) {
+    // если результат уже получен, то сразу отдаём его обратно
+    if (has_result) {
+        return {
+            has_result = true,
+            result = result,
+            // следующие 4 строчки одинаковые во всех return
+            price = price,
+            first_iteration = false,
+            prev_elem_price = elem.price,
+            prev_elem_coeff = elem.coeff
+        };
+    }
+
+    // если цена меньше первой цены в таблице, то используем первый элемент
+    if (first_iteration && price < elem.price) {
+        return {
+            has_result = true,
+            result = elem.coeff,
+            price = price,
+            first_iteration = false,
+            prev_elem_price = elem.price,
+            prev_elem_coeff = elem.coeff
+        };
+    }
+
+    // если цена между предыдущим элементом таблицы и текущим
+    if (!first_iteration && prev_elem_price <= price && price < elem.price) {
+        // избегаем деления на 0
+        if (abs(val=elem.price - prev_elem_price).res < 0.0001) {
+            return {
+                has_result = true,
+                result = 0,
+                price = price,
+                first_iteration = false,
+                prev_elem_price = elem.price,
+                prev_elem_coeff = elem.coeff
+            };
+        }
+        // делаем линейную интерполяцию
+        return {
+            has_result = true,
+            result = prev_elem_coeff
+                + (elem.coeff - prev_elem_coeff) * (price - prev_elem_price)
+                    / (elem.price - prev_elem_price),
+            price = price,
+            first_iteration = false,
+            prev_elem_price = elem.price,
+            prev_elem_coeff = elem.coeff
+        };
+    }
+
+    // результат ещё не получен
+    return {
+        has_result = false,
+        result = result,
+        price = price,
+        first_iteration = false,
+        prev_elem_price = elem.price,
+        prev_elem_coeff = elem.coeff
+    };
+}
+
+function calculateTableDiscountPercent(table : std::vector<clients::discounts::TableDataA>, price : double) {
+    // проходим по элементам таблицы функцией processTableElement
+    let process_table_result = fold(table as elem, processTableElement, {
+        has_result = false,
+        result = 0,
+        price = price,
+        first_iteration = true,
+        prev_elem_price = 0,
+        prev_elem_coeff = 0
+    });
+
+    // если результат получен, то отдаём его
+    if (process_table_result.has_result) {
+        return {res = process_table_result.result};
+    }
+
+    // если пришли сюда, то значит цена больше или равна последней цене в таблице, используем последний элемент
+    return {res = process_table_result.prev_elem_coeff};
+}
+
+function normalizeToMinMax(coeff : double, restrictions : clients::discounts::DiscountRestrictions) {
+    // ограничение сверху максимально допустимым значением
+    let coeff_limited_to_max = min(a = coeff, b = restrictions.max_discount_coeff).res;
+    // если коэффициент меньше минимально допустимого, то сбрасываем в 0 (иначе скидка слишком мелкая)
+    return {
+        res = (coeff_limited_to_max < restrictions.min_discount_coeff) ? 0 : coeff_limited_to_max
+    };
+}
+
+function normalizeByMaxAbsoluteValue(coeff : double, price: double, max_absolute_value_opt : std::optional<double>) {
+    if (max_absolute_value_opt as max_absolute_value) {
+        if (price * coeff > max_absolute_value && price > 0.0001) {
+            return {
+                res = min(a = max(a = max_absolute_value / price, b = 0).res,
+                          b = 1).res
+            };
+        }
+    }
+    return {res = coeff};
+}
+
+if (fix.discount as discount) {
+    // не применять эту скидку, если она не должна добавлять себя
+    // в разницу между между зачёркнутой ценой и обычной
+    if (discount.is_price_strikethrough as is_price_strikethrough) {
+        if (!is_price_strikethrough) {
+            return ride.price;
+        }
+    }
+
+    let restrictions = discount.restrictions;
+
+    let meta1 = ["discount_price": *ride.price];  // цена ДО применения скидки, на неподходящее название уже заложился DWH :(
+
+    // скидка действует на все компоненты цены, кроме ожиданий
+    let affected_price = *ride.price - ride.price.waiting
+                                     - ride.price.transit_waiting
+                                     - ride.price.destination_waiting;
+
+    let percent = (discount.calc_data_hyperbolas as hyp)                                   // если заданы гиперболы
+        ? calculateHyperbolaDiscountPercent(hyperbolas = hyp, price = affected_price).res  // считаем скидку по формуле гиперболы
+        : (discount.calc_data_table_data as tbl)                                           // если задана таблица
+            ? calculateTableDiscountPercent(table = tbl, price = affected_price).res       // считаем скидку по таблице
+            : 0;                                                                           // иначе нет скидки
+
+    let coeff_initial = percent * 0.01;
+    let coeff1 = 1;
+    let coeff2 = normalizeToMinMax(coeff = coeff1, restrictions = restrictions).res;
+    let coeff3 = normalizeByMaxAbsoluteValue(coeff = coeff2, price = affected_price,
+                                             max_absolute_value_opt = restrictions.max_absolute_value).res;
+    if (coeff3 <= 0) {
+        return ride.price;
+    }
+    let coeff_final = min(a = coeff3, b = 1).res;
+
+    let delta = -affected_price * coeff_final;
+
+    let meta2 = [
+        // если должна работать как скидка
+        "discount_value": coeff_final,
+        "discount_delta_raw": delta
+    ];
+
+    let mult = 1 - coeff_final;
+    return {
+        boarding = ride.price.boarding * mult,
+        distance = ride.price.distance * mult,
+        time = ride.price.time * mult,
+        requirements = ride.price.requirements * mult,
+        waiting = ride.price.waiting,
+        transit_waiting = ride.price.transit_waiting,
+        destination_waiting = ride.price.destination_waiting,
+        metadata = meta1 + meta2
+    };
+}
+
+return ride.price;

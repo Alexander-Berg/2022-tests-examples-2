@@ -1,0 +1,55 @@
+INSERT INTO eats_integration_workers.integration_task
+(
+  id,
+  place_id,
+  type,
+  status,
+  reason,
+  data_file_url,
+  data_file_version
+)
+VALUES
+(
+  '5GMix9mn36g1hlQtb40FoJ3DYsCZuYrk4',
+  'oBk3xjmoTB3pw2fwf7gc17xWv3BIXupGHx7tJ4ztF7g',
+  'price',
+  'created',
+  'test_reason',
+  'test_data_file_url',
+  'test_data_file_version'
+);
+
+INSERT INTO eats_integration_workers.parser_infos
+(
+  place_id,
+  brand_id,
+  external_id,
+  parser_name
+)
+VALUES
+(
+  'oBk3xjmoTB3pw2fwf7gc17xWv3BIXupGHx7tJ4ztF7g',
+  'brand_id',
+  'external_id',
+  'parser_name'
+)
+,
+(
+  'place_id',
+  'brand_id',
+  'external_id',
+  'parser_name'
+),
+(
+  'not_existed_in_map',
+  'brand_id',
+  'not_existed',
+  'parser_name'
+),
+(
+  'wrong_server_name_format',
+  'brand_id',
+  'wrong_server_name_format',
+  'parser_name'
+)
+;

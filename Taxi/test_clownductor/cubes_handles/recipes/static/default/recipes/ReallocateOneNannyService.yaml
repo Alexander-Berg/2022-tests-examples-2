@@ -1,0 +1,63 @@
+data:
+    name: ReallocateOneNannyService
+    provider_name: clownductor
+    job_vars:
+      - nanny_name
+      - changes
+      - project_name
+      - service_name
+      - service_id
+      - branch_id
+      - pods_count
+      - environment
+    stages:
+      - name: NannyGetNewestPod
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+        output:
+            newest_pod_region: region
+            newest_pod_id: newest_pod_id
+      - name: NannyPrepareAllocationRequest
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            nanny_pod_id: newest_pod_id
+            region: newest_pod_region
+        output:
+            original_allocation_request: original_allocation_request
+      - name: MakeReallocationRequest
+        provider_name: clownductor
+        input:
+            changes: changes
+            original_allocation_request: original_allocation_request
+            project_name: project_name
+            service_name: service_name
+        output:
+            prepared_allocation_request: allocation_request
+            degrade_params: degrade_params
+      - name: NannyPrepareDegradeParams
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            service_name: service_name
+            project_name: project_name
+            degrade_params: degrade_params
+            pods_count: pods_count
+            environment: environment
+        output:
+            degrade_params: degrade_params
+      - name: ClownNannyReallocatePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            allocation_request: prepared_allocation_request
+            degrade_params: degrade_params
+        output:
+            reallocation_id: reallocation_id
+      - name: ClownNannyWaitForReallocation
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            reallocation_id: reallocation_id

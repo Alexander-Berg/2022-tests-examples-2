@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+spec:
+  template:
+    spec:
+      containers:
+      - name: backoffice
+        image: cr.yandex/crpss8bfd1shnvbptaji/backoffice:__VERSION__
+        imagePullPolicy: IfNotPresent
+        command:
+          - bundle
+          - exec
+          - rake
+          - db:migrate
+        env:
+          - name: RAILS_ENV
+            value: "production"
+          - name: PG_HOST
+            value: "c-c9q7tu2ecfkagvk9bckp.rw.mdb.yandexcloud.net"
+          - name: PG_DATABASE
+            value: "education_platform"
+          - name: PG_PORT
+            value: "6432"
+          - name: PG_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres
+                key: username
+          - name: PG_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres
+                key: password
+      restartPolicy: Never
+  backoffLimit: 1

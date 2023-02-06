@@ -1,0 +1,69 @@
+id: test_get_partners_response
+title: Проверка получения ответа из сервиса eats-partners
+
+source:
+    request:
+        method: post
+        headers:
+            X-Eats-Restapp-Auth-Creds: some_passowrd
+        body:
+            email: test@test.test
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true, "payload": {"countryCode": "RU", "credentials": [],
+                    "token": "some_token", "hasIntegrationsSupport": false, "isFastFood": false,
+                    "partnerId": "some_partner_id", "timezone": "Moscow", "roles": [
+                        {"title": "Оператор", "slug": "ROLE_OPERATOR"}, {"title": "Управляющий",
+                            "slug": "ROLE_MANAGER"}]}}
+
+mocks:
+  - resource: eats-restapp-authorizer-v1-login
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-info
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-v1-login
+    response:
+        status-code: 200
+        body:
+            payload:
+                info:
+                    id: 1
+                    name: some_name
+                    email: test@test.test
+                    is_blocked: false
+                    places: [1, 2, 3]
+                    is_fast_food: false
+                    country_code: RU
+                    roles:
+                      - slug: ROLE_OPERATOR
+                        title: Оператор
+                      - slug: ROLE_MANAGER
+                        title: Управляющий
+                    timezone: Moscow
+                    partner_id: some_partner_id
+                auth_data:
+                    token: some_token
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Eats-Restapp-Auth-Creds: some_passowrd
+            body:
+                email: test@test.test
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch-login
+        value:
+            enabled: false
+        enabled: true
+    expectations:
+        kwargs:
+          - key: login
+            type: string
+            value: test@test.test

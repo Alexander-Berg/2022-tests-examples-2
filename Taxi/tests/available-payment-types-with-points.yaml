@@ -1,0 +1,106 @@
+id: available-payment-types-with-points
+title: Проверяем запрос в payments-v1-available-payment-types-superapp-misc с полями
+    *_points, без поля location
+
+source:
+    request:
+        method: post
+        body:
+            sender_point:
+              - 30
+              - 40
+            destination_point:
+              - 50
+              - 60
+            badge:
+              - badge
+        headers:
+            X-YaTaxi-PhoneId: phone_id
+            X-YaTaxi-UserId: user_id
+            X-Request-Application: app_brand=yango,app_name=yango_android
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+            X-YaTaxi-Pass-Flags: portal
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: cardstorage-v1-payment_methods
+    response:
+        status-code: 200
+        body:
+            available_cards:
+              - card_id: valid_card_id
+                system: visa
+                number: '****1111'
+                bin: '4000000'
+                currency: RUR
+                busy: false
+                valid: true
+                expiration_year: 2025
+                expiration_month: 11
+                expiration_time: '2020-10-31T00:00:00+0000'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+  - resource: payments-eda-v1-badge-availability
+    response:
+        status-code: 200
+        body:
+            payment_types:
+              - corp
+            merchand_ids:
+              - id2
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                location: [50, 60]
+            headers:
+                X-YaTaxi-PhoneId: phone_id
+                X-YaTaxi-UserId: user_id
+                X-Request-Application: app_brand=yango,app_name=yango_android
+                X-Yandex-UID: yandex_uid
+                X-YaTaxi-Pass-Flags: portal
+            content-type: application/json
+  - resource: user-user_phones-get
+    response:
+        status-code: 500
+  - resource: user-state-last-payment-methods-get
+    response:
+        status-code: 500
+  - resource: payment-methods-v1-superapp-available-payment-types
+    response:
+        status-code: 200
+        body:
+            payments:
+                card:
+                    type: card
+                badge:
+                    type: badge
+            merchant_ids:
+              - id1
+              - id2
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                location: [30, 40]
+                destination_point: [50, 60]
+            headers:
+                X-YaTaxi-PhoneId: phone_id
+                X-YaTaxi-UserId: user_id
+                X-Request-Application: app_brand=yango,app_name=yango_android
+                X-Yandex-UID: yandex_uid
+                X-YaTaxi-Pass-Flags: portal
+            content-type: application/json
+
+taxi_config:
+    PERSONAL_WALLET_ENABLED: false
+
+experiments:
+    values:
+        use_available_payment_types_superapp_misc:
+            enabled: true

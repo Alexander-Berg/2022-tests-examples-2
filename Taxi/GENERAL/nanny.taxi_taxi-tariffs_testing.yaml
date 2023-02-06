@@ -1,0 +1,328 @@
+group:
+    type: rtc
+    name: taxi_taxi-tariffs_testing
+
+graphs:
+    Monitoring:
+        vhost-500:
+            Blacklist:
+              - Equals: {request_url: "/ping"}
+    tariffs.taxi.tst.yandex.net: # All handlers for host.
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Conflict
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/ping_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # ping
+              - Equals: {request_url: "/ping"}
+              - Equals: {request_url: "/ping/"}
+              - StartsWith: {request_url: "/ping?"}
+              - StartsWith: {request_url: "/ping/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/geoareas_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение списка зон
+              - Equals: {request_url: "/v1/geoareas"}
+              - Equals: {request_url: "/v1/geoareas/"}
+              - StartsWith: {request_url: "/v1/geoareas?"}
+              - StartsWith: {request_url: "/v1/geoareas/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff/by_category_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение тарифа для физ лиц по категории, входящей в состав тарифа.
+              - Equals: {request_url: "/v1/tariff/by_category"}
+              - Equals: {request_url: "/v1/tariff/by_category/"}
+              - StartsWith: {request_url: "/v1/tariff/by_category?"}
+              - StartsWith: {request_url: "/v1/tariff/by_category/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff/current_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение тарифа для физ лиц по зоне
+              - Equals: {request_url: "/v1/tariff/current"}
+              - Equals: {request_url: "/v1/tariff/current/"}
+              - StartsWith: {request_url: "/v1/tariff/current?"}
+              - StartsWith: {request_url: "/v1/tariff/current/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff/draft/apply_POST:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Создание/изменение тарифа
+              - Equals: {request_url: "/v1/tariff/draft/apply"}
+              - Equals: {request_url: "/v1/tariff/draft/apply/"}
+              - StartsWith: {request_url: "/v1/tariff/draft/apply?"}
+              - StartsWith: {request_url: "/v1/tariff/draft/apply/?"}
+        Options:
+            CustomHttp:
+              - 400 # BadRequest
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff/draft/check_POST:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # No description provided.
+              - Equals: {request_url: "/v1/tariff/draft/check"}
+              - Equals: {request_url: "/v1/tariff/draft/check/"}
+              - StartsWith: {request_url: "/v1/tariff/draft/check?"}
+              - StartsWith: {request_url: "/v1/tariff/draft/check/?"}
+        Options:
+            CustomHttp:
+              - 400 # BadRequest
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_settings/bulk_retrieve_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получить tariff_settings по зоне
+              - Equals: {request_url: "/v1/tariff_settings/bulk_retrieve"}
+              - Equals: {request_url: "/v1/tariff_settings/bulk_retrieve/"}
+              - StartsWith: {request_url: "/v1/tariff_settings/bulk_retrieve?"}
+              - StartsWith: {request_url: "/v1/tariff_settings/bulk_retrieve/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_settings/copy/draft/apply_POST:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Копирует настройки тарифов из одной зоны в другую или несколько зон
+              - Equals: {request_url: "/v1/tariff_settings/copy/draft/apply"}
+              - Equals: {request_url: "/v1/tariff_settings/copy/draft/apply/"}
+              - StartsWith: {request_url: "/v1/tariff_settings/copy/draft/apply?"}
+              - StartsWith: {request_url: "/v1/tariff_settings/copy/draft/apply/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_settings/copy/draft/check_POST:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Проверяет возможность копирования настроек тарифа. Нужно для использования механизма создания драфтов. 
+              - Equals: {request_url: "/v1/tariff_settings/copy/draft/check"}
+              - Equals: {request_url: "/v1/tariff_settings/copy/draft/check/"}
+              - StartsWith: {request_url: "/v1/tariff_settings/copy/draft/check?"}
+              - StartsWith: {request_url: "/v1/tariff_settings/copy/draft/check/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_settings/list_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получить список всех tariff_settings
+              - Equals: {request_url: "/v1/tariff_settings/list"}
+              - Equals: {request_url: "/v1/tariff_settings/list/"}
+              - StartsWith: {request_url: "/v1/tariff_settings/list?"}
+              - StartsWith: {request_url: "/v1/tariff_settings/list/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 409 # Conflict
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_zones/archive_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение списка тарифных зон за определенных период
+              - Equals: {request_url: "/v1/tariff_zones/archive"}
+              - Equals: {request_url: "/v1/tariff_zones/archive/"}
+              - StartsWith: {request_url: "/v1/tariff_zones/archive?"}
+              - StartsWith: {request_url: "/v1/tariff_zones/archive/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_zones_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение списка тарифных зон
+              - Equals: {request_url: "/v1/tariff_zones"}
+              - Equals: {request_url: "/v1/tariff_zones/"}
+              - StartsWith: {request_url: "/v1/tariff_zones?"}
+              - StartsWith: {request_url: "/v1/tariff_zones/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariff_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение тарифа для физ лиц
+              - Equals: {request_url: "/v1/tariff"}
+              - Equals: {request_url: "/v1/tariff/"}
+              - StartsWith: {request_url: "/v1/tariff?"}
+              - StartsWith: {request_url: "/v1/tariff/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariffs/bulk_change_POST:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Ручка создает мультидрафт для изменения тарифов
+              - Equals: {request_url: "/v1/tariffs/bulk_change"}
+              - Equals: {request_url: "/v1/tariffs/bulk_change/"}
+              - StartsWith: {request_url: "/v1/tariffs/bulk_change?"}
+              - StartsWith: {request_url: "/v1/tariffs/bulk_change/?"}
+        Options:
+            CustomHttp:
+              - 400 # BadRequest
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariffs/export_POST:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "POST"}
+          - Or: # Формирует информацию о тарифах в csv файл и отправляет его на почту 
+              - Equals: {request_url: "/v1/tariffs/export"}
+              - Equals: {request_url: "/v1/tariffs/export/"}
+              - StartsWith: {request_url: "/v1/tariffs/export?"}
+              - StartsWith: {request_url: "/v1/tariffs/export/?"}
+        Options:
+            CustomHttp:
+              - 400 # BadRequest
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/tariffs_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Ручка возвращает список актуальных на время NOW тарифов в коротком формате
+              - Equals: {request_url: "/v1/tariffs"}
+              - Equals: {request_url: "/v1/tariffs/"}
+              - StartsWith: {request_url: "/v1/tariffs?"}
+              - StartsWith: {request_url: "/v1/tariffs/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # Not found
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v1/taximeter/get_tariffs_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение тарифа для таксометра
+              - Equals: {request_url: "/v1/taximeter/get_tariffs"}
+              - Equals: {request_url: "/v1/taximeter/get_tariffs/"}
+              - StartsWith: {request_url: "/v1/taximeter/get_tariffs?"}
+              - StartsWith: {request_url: "/v1/taximeter/get_tariffs/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+
+    tariffs.taxi.tst.yandex.net/v2/tariff/by_category_GET:
+        And:
+          - Equals: {http_host: "tariffs.taxi.tst.yandex.net"}
+          - Equals: {request_method: "GET"}
+          - Or: # Получение тарифа по категории, входящей в состав тарифа. В коллекции categories будет содержаться только одна категория, использованная для поиска
+              - Equals: {request_url: "/v2/tariff/by_category"}
+              - Equals: {request_url: "/v2/tariff/by_category/"}
+              - StartsWith: {request_url: "/v2/tariff/by_category?"}
+              - StartsWith: {request_url: "/v2/tariff/by_category/?"}
+        Options:
+            CustomHttp:
+              - 400 # Bad request
+              - 401 # Unauthorized
+              - 403 # Forbidden
+              - 404 # NotFound
+              - 429 # Too many requests
+

@@ -1,0 +1,151 @@
+id: main_market_suggestions_flow
+title: Тест отдачи промок большого маркета
+
+parameters:
+  - case:
+      - passenger-tags:
+            enabled: true
+            call-count: 1
+            response:
+                code: 200
+                body: {"tags": ["tag1"]}
+        main-market-suggestions:
+            enabled: true
+            call-count: 1
+            request:
+                body: {"tags": ["tag1"], "screen_type": "on_multiorder", "zone_name": "moscow",
+                    "point_a": [1, 2]}
+            response:
+                code: 200
+                body: {"collections": ["id": "collection_id"], "suggestions": ["id": "suggestion_id"]}
+        shortcuts-req-properties:
+            market_suggestions: {"collections": ["id": "collection_id"], "suggestions": [
+                    "id": "suggestion_id"]}
+
+experiments:
+    values:
+        superapp_shortcuts_on_multiorder_screen_exp:
+            enabled: true
+        mlutp_v1_products_passenger_tags:
+            enabled#xget: /test-params/case/passenger-tags/enabled
+        mlutp_v1_products_main_market_suggestions:
+            enabled#xget: /test-params/case/main-market-suggestions/enabled
+
+source:
+    request:
+        method: post
+        headers:
+            X-AppMetrica-DeviceId: device-id
+            X-Yandex-UID: yandex-uid
+            X-YaTaxi-UserId: user-id
+            X-YaTaxi-PhoneId: phone-id
+            X-YaTaxi-User: personal_phone_id=ppid
+        body: {"state": {"screen_type": "on_multiorder"}, "shortcuts": {"grids_support": [
+                    {"width": 6, "unit_width": 54.5}], "supported_features": [{"type": "taxi:route-input",
+                        "services": [], "prefetch_strategies": []}, {"type": "media-stories",
+                        "services": [], "prefetch_strategies": []}], "ndash_width": 9,
+                "mdash_width": 14}, "position": [1, 2]}
+    expectations:
+        response:
+            status-code#integer: 200
+
+mocks:
+  - resource: passenger-tags-v2-match-single
+    response:
+        status-code#xget: /test-params/case/passenger-tags/response/code
+        body#xget: /test-params/case/passenger-tags/response/body
+    expectations:
+        call-count#xget: /test-params/case/passenger-tags/call-count
+        request:
+            headers:
+                X-AppMetrica-DeviceId: device-id
+                X-Yandex-UID: yandex-uid
+                X-YaTaxi-UserId: user-id
+                X-YaTaxi-PhoneId: phone-id
+                X-YaTaxi-User: personal_phone_id=ppid
+            body:
+                match#array:
+                  - value: {"value": "yandex-uid", "type": "yandex_uid"}
+                  - value: {"value": "user-id", "type": "user_id"}
+                  - value: {"value": "phone-id", "type": "user_phone_id"}
+                  - value: {"value": "ppid", "type": "personal_phone_id"}
+  - resource: eda-shortcuts-main-market-suggestions
+    response:
+        status-code#xget: /test-params/case/main-market-suggestions/response/code
+        body#xget: /test-params/case/main-market-suggestions/response/body
+    expectations:
+        call-count#xget: /test-params/case/main-market-suggestions/call-count
+        request:
+            headers:
+                X-AppMetrica-DeviceId: device-id
+                X-Yandex-UID: yandex-uid
+                X-YaTaxi-UserId: user-id
+                X-YaTaxi-PhoneId: phone-id
+                X-YaTaxi-User: personal_phone_id=ppid
+            body#xget: /test-params/case/main-market-suggestions/request/body
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body#concat-objects:
+          - value:
+                zone_name: "moscow"
+                modes: [{"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}]
+                products: [{"tag": "taxi", "service": "taxi", "title": "Taxi"}]
+                typed_experiments: {"items": []}
+                region_id: 332
+    expectations:
+        call-count: 1
+  - resource: shortcuts-v1-blender-shortcuts
+    response:
+        status-code: 200
+        body: {"offers": {"items": []}, "layout": {"grid_id": "some_grid_id", "width": 6,
+                "type": "linear_grid"}}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#concat-objects:
+              - value:
+                    zone_name: moscow
+                    position: [1, 2]
+                    shortcuts:
+                        supported_features: [{"services": [], "prefetch_strategies": [],
+                                "type": "taxi:route-input"}, {"services": [], "prefetch_strategies": [],
+                                "type": "media-stories"}]
+                        grids_support: [{"width": 6, "unit_width": 54.5}]
+                        mdash_width: 14
+                        ndash_width: 9
+                    known_orders: []
+                    grid: []
+                    state: {"screen_type": "on_multiorder"}
+                    services_availability: {"modes": [{"parameters": {"available": true,
+                                    "product_tag": "taxi"}, "mode": "taxi"}], "products": [
+                            {"tag": "taxi", "service": "taxi", "title": "Taxi"}]}
+                    tags: ["tag1"]
+              - value#xget: /test-params/case/shortcuts-req-properties
+  - resource: blender-v1-shortcuts-grid
+    response:
+        status-code: 200
+        body: {"grid": []}
+    expectations:
+        call-count: 1
+  - resource: user-api-v2-user_phones-get
+    expectations:
+        call-count: 0
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body: {"scenario_tops": []}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#concat-objects:
+              - value:
+                    services_availability: {"zone_name": "moscow", "modes": [{"parameters": {
+                                    "available": true, "product_tag": "taxi"}, "mode": "taxi"}],
+                        "products": [{"tag": "taxi", "service": "taxi", "title": "Taxi"}],
+                        "typed_experiments": {"items": []}, "region_id": 332}
+                    user_context: {"show_at": "2020-01-01T00:00:00+00:00", "pin_position": [
+                            1, 2], "state": {"screen_type": "on_multiorder"}, zone_name: "moscow"}
+                    tags: ["tag1"]

@@ -1,0 +1,166 @@
+id: test-default-post
+title: Тест ручки driver-polling-state (POST)
+
+
+parameters:
+  - case:
+        # driver-protocol ok, driver-weariness ok
+      - request_headers#object_simple:
+            X-Request-Application-Version#string: '9.32'
+            Header2: 'header2'
+            X-YaTaxi-Park-Id: 'park_id'
+            X-YaTaxi-Driver-Profile-Id: 'driver_profile_id'
+            X-Request-Language: 'ru'
+        request_query#object_simple:
+            park_id: 'park_id'
+            driver_mode_policy: 'cached'
+            proxy_block_id: 'default'
+            device_id: 'device_id'
+
+        expected_dp_headers#object_simple:
+            X-Request-Application-Version#string: '9.32'
+            Header2: 'header2'
+            X-YaTaxi-Park-Id: 'park_id'
+            X-YaTaxi-Driver-Profile-Id: 'driver_profile_id'
+            Accept-Language: 'ru'
+            X-Request-Language: 'ru'
+        expected_dp_query#object_simple:
+            park_id: 'park_id'
+            driver_mode_policy: 'cached'
+            proxy_block_id: 'default'
+            device_id: 'device_id'
+        dp_response_status_code: 200
+        dp_response_headers#object_simple:
+            X-Protector-Data: '1'
+            X-Image-Data: '2'
+            X-Protector-Data-Version: '3'
+            X-User-Agent-Split: 'Taximeter'
+        dp_response_body#object_simple:
+            gps_params: 'gps_params'
+            profile: 'profile'
+            weariness: 'should be replace with response from driver-weariness'
+
+        expected_weariness_headers#object_simple:
+            X-Request-Application-Version#string: '9.32'
+            Header2#string: 'header2'
+            X-YaTaxi-Park-Id: 'park_id'
+            X-YaTaxi-Driver-Profile-Id: 'driver_profile_id'
+            Accept-Language: 'ru'
+            X-Request-Language: 'ru'
+        expected_weariness_query#object_simple:
+            park_id: 'park_id'
+            driver_profile_id: 'driver_profile_id'
+        weariness_response_status_code: 200
+        weariness_response_headers#object_simple:
+            X-Protector-Data#string: '1'
+            X-Image-Data#string: '2'
+            X-Protector-Data-Version#string: '3'
+            X-User-Agent-Split#string: 'Taximeter'
+        weariness_response_body#object_simple:
+            weariness#object_simple:
+                action: 'action'
+                is_tired: true
+                tired_at: 'tired_at'
+                start_work_at: 'start_work_at'
+                notifications#array:
+                  - value: notification0
+                  - value: notification1
+        weariness_call_count: 1
+
+        expected_response_status_code: 200
+        expected_response_headers#object_simple:
+            X-Protector-Data#string: '1'
+            X-Image-Data#string: '2'
+            X-Protector-Data-Version#string: '3'
+            X-User-Agent-Split#string: 'Taximeter'
+        expected_response_body#object_simple:
+            gps_params: 'gps_params'
+            profile: 'profile'
+            weariness#object_simple:
+                action: 'action'
+                is_tired: true
+                tired_at: 'tired_at'
+                start_work_at: 'start_work_at'
+                notifications#array:
+                  - value: notification0
+                  - value: notification1
+
+        # driver-protocol error
+      - request_headers#object_simple:
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'park_id'
+            X-YaTaxi-Driver-Profile-Id: 'driver_profile_id'
+            X-Request-Language: 'ru'
+        request_query#object_simple:
+            park_id: 'park_id'
+
+        expected_dp_headers#object_simple:
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'park_id'
+            X-YaTaxi-Driver-Profile-Id: 'driver_profile_id'
+            Accept-Language: 'ru'
+            X-Request-Language: 'ru'
+        expected_dp_query#object_simple:
+            park_id: 'park_id'
+        dp_response_status_code: 404
+        dp_response_headers#object_simple:
+            X-User-Agent-Split: 'Taximeter'
+        dp_response_body#object_simple:
+            error: 'error'
+
+        expected_weariness_headers#object_simple:
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'park_id'
+            X-YaTaxi-Driver-Profile-Id: 'driver_profile_id'
+            Accept-Language: 'ru'
+            X-Request-Language: 'ru'
+        expected_weariness_query#object_simple:
+            park_id: 'park_id'
+            driver_profile_id: 'driver_profile_id'
+        weariness_response_status_code: 200
+        weariness_response_headers#object_simple:
+            X-Protector-Data: 'will not be returned'
+        weariness_response_body#object_simple:
+            weariness: 'will not be returned'
+        weariness_call_count: 1
+
+        expected_response_status_code: 404
+        expected_response_headers#object_simple:
+            X-User-Agent-Split: 'Taximeter'
+        expected_response_body#object_simple:
+            error: 'error'
+
+
+source:
+    request:
+        method: post
+        headers#xget: /test-params/case/request_headers
+        query#xget: /test-params/case/request_query
+    expectations:
+        response:
+            status-code#xget: /test-params/case/expected_response_status_code
+            headers#xget: /test-params/case/expected_response_headers
+            body#xget: /test-params/case/expected_response_body
+
+
+mocks:
+  - resource: driver-protocol-driver-polling-state-post
+    expectations:
+        call-count: 1
+        request:
+            headers#xget: /test-params/case/expected_dp_headers
+            query#xget: /test-params/case/expected_dp_query
+    response:
+        status-code#xget: /test-params/case/dp_response_status_code
+        headers#xget: /test-params/case/dp_response_headers
+        body#xget: /test-params/case/dp_response_body
+  - resource: driver-weariness-v2-driver-weariness-get
+    expectations:
+        # call-count#xget: /test-params/case/weariness_call_count
+        request:
+            headers#xget: /test-params/case/expected_weariness_headers
+            query#xget: /test-params/case/expected_weariness_query
+    response:
+        status-code#xget: /test-params/case/weariness_response_status_code
+        headers#xget: /test-params/case/weariness_response_headers
+        body#xget: /test-params/case/weariness_response_body

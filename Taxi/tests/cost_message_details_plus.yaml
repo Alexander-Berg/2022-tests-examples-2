@@ -1,0 +1,180 @@
+id: cost_message_details_plus
+title: Заполнение cost_message_details на основе сервиса плюса
+parameters:
+  - group:
+      - order_status: complete
+        in_progress_experiment_matched: true
+        in_progress_experiment_enabled: true
+        current_prices_enabled: true
+        plus_calls: 1
+      - order_status: complete
+        in_progress_experiment_matched: true
+        in_progress_experiment_enabled: false
+        current_prices_enabled: true
+        plus_calls: 1
+      - order_status: transporting
+        in_progress_experiment_matched: true
+        in_progress_experiment_enabled: false
+        current_prices_enabled: true
+        plus_calls: 0
+      - order_status: transporting
+        in_progress_experiment_matched: false
+        in_progress_experiment_enabled: false
+        current_prices_enabled: true
+        plus_calls: 0
+      - order_status: transporting
+        in_progress_experiment_matched: true
+        in_progress_experiment_enabled: true
+        current_prices_enabled: true
+        plus_calls: 1
+      - order_status: transporting
+        in_progress_experiment_matched: true
+        in_progress_experiment_enabled: true
+        current_prices_enabled: false
+        plus_calls: 0
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid: 'uid=uid'
+    expectations:
+        response:
+            status-code: 200
+            body#concat-objects:
+              - value:
+                    additional_buttons: {}
+                    feedback: {}
+              - value#if:
+                    condition#equal:
+                      - value#xget: /test-params/group/plus_calls
+                      - value: 1
+                    then:
+                        cost_message_details:
+                            cost_breakdown:
+                              - display_name: plus string card
+                                display_amount: 800
+                              - display_name: plus string wallet
+                                display_amount: 200
+                            cashback:
+                              - value_as_str: 42
+                    else: {}
+              - value#if:
+                    condition#equal:
+                      - value#xget: /test-params/group/plus_calls
+                      - value: 1
+                    then:
+                        plus_info:
+                            templates#array:
+                              - value#object:
+                                  - key: "$$SOME_TEMPLATE$$"
+                                    value: "80"
+                                  - key: "$$SOME_TEMPLATE_1$$"
+                                    value: "80"
+                    else: {}
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: cashback_for_plus
+        value:
+            enabled: true
+        enabled: true
+      - key: totw_plus_info_in_progress
+        value:
+            enabled#xget: /test-params/group/in_progress_experiment_enabled
+        enabled#xget: /test-params/group/in_progress_experiment_matched
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    response:
+        status-code: 200
+        body: {}
+  - resource: plus-internal-v2-totw-info
+    response:
+        status-code: 200
+        body:
+            cost_message_details:
+                cost_breakdown:
+                  - display_name: plus string card
+                    display_amount: 800
+                  - display_name: plus string wallet
+                    display_amount: 200
+                cashback:
+                  - value_as_str: 42
+            plus_info:
+                templates#array:
+                  - value#object:
+                      - key: "$$SOME_TEMPLATE$$"
+                        value: "80"
+                      - key: "$$SOME_TEMPLATE_1$$"
+                        value: "80"
+    expectations:
+        call-count#xget: /test-params/group/plus_calls
+        request:
+            method: post
+            body:
+                category: econom
+                complements:
+                    personal_wallet: true
+                currency: RUB
+                current_prices:
+                    user_total_price: 1000
+                    cashback_price: 100
+                    discount_cashback:
+                    possible_cashback: 100
+                    kind: final_cost
+                    cashback_by_sponsor:
+                      - mastercard
+                      - portal
+                    cost_breakdown:
+                is_possible_cashback: true
+                order_id: order_id
+                zone_name:
+                order_status#xget: /test-params/group/order_status
+            content-type: application/json
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#object:
+          - key: status
+            value#xget: /test-params/group/order_status
+          - key: tariff
+            value#object:
+              - key: class
+                value: econom
+          - key: currency_rules
+            value#object:
+              - key: code
+                value: RUB
+          - key: extra_data
+            value#object:
+              - key: is_possible_cashback
+                value: true
+          - key: private_data
+            value#object:
+              - key: complements
+                value#array:
+                  - value#object:
+                      - key: type
+                        value: personal_wallet
+              - key: current_prices
+                enabled#xget: /test-params/group/current_prices_enabled
+                value#object:
+                  - key: user_total_price
+                    value: 1000
+                  - key: cashback_price
+                    value: 100
+                  - key: possible_cashback
+                    value: 100
+                  - key: kind
+                    value: final_cost
+                  - key: cashback_by_sponsor
+                    value#array:
+                      - mastercard
+                      - portal

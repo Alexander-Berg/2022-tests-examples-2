@@ -1,0 +1,275 @@
+default:
+    driver_fix:
+      - starts_at: '1970-01-01T00:00:00-00:00'
+        settings:
+            billing:
+                mode: driver_fix
+                mode_rule: driver_fix
+            display_mode: driver_fix
+            features:
+                driver_fix: {}
+                tags:
+                    assign: [driver_fix]
+    orders:
+      - starts_at: '1970-01-01T00:00:00-00:00'
+        settings:
+            billing:
+                mode: orders
+                mode_rule: orders
+            display_mode: orders
+    uberdriver:
+      - starts_at: '1970-01-01T00:00:00-00:00'
+        settings:
+            billing:
+                mode: orders
+                mode_rule: uberdriver
+            display_mode: orders
+            features:
+                tags:
+                    assign: [uberdriver]
+samples:
+  - driver_fix:
+      - starts_at: '1970-01-01T00:00:00-00:00'
+        settings:
+            billing:
+                mode: driver_fix
+                mode_rule: driver_fix
+            display_mode: driver_fix
+            features:
+                driver_fix: {}
+      - starts_at: '2020-03-17T14:32:00-00:00'
+        settings:
+            billing:
+                mode: driver_fix
+                mode_rule: driver_fix
+            display_mode: driver_fix
+            features:
+                driver_fix: {}
+                tags:
+                    assign: [driver_fix]
+    orders:
+      - starts_at: '1970-01-01T00:00:00-00:00'
+        settings:
+            billing:
+                mode: orders
+                mode_rule: orders
+            display_mode: orders
+    uberdriver:
+      - starts_at: '1970-01-01T00:00:00-00:00'
+        settings:
+            billing:
+                mode: orders
+                mode_rule: uberdriver
+            display_mode: orders
+    selfemployed:
+      - starts_at: '2020-03-17T13:57:00-00:00'
+        settings:
+            billing:
+                mode: orders
+                mode_rule: orders
+            display_mode: orders
+            features:
+                tags:
+                    assign: [selfemployed]
+            condition:
+                and:
+                  - none_of:
+                      - frauder
+                  - any_of:
+                      - selfemployed
+                      - individual_entrepreneur
+
+description: Настройки режимов работы водителей. Каждый режим должен содержать упорядоченный
+    по starts_at список версий. Состав настроек включает в себя настройки биллинга
+    billing (содержит mode и mode_rule), название режима отображения в интерфейсе
+    display_mode, настройки особенностей режима features (driver_fix, реализующая
+    интеграцию с сервисом driver-fix; tags, реализующая интеграцию с сервисом тегов)
+tags: [notfallback]
+maintainers: [mordeth, alexbaldychev]
+schema:
+    type: object
+    properties:
+        driver_fix:
+            $ref: '#/definitions/WorkModeVersions'
+        orders:
+            $ref: '#/definitions/WorkModeVersions'
+        uberdriver:
+            $ref: '#/definitions/WorkModeVersions'
+    required:
+      - driver_fix
+      - orders
+      - uberdriver
+    additionalProperties:
+        $ref: '#/definitions/WorkModeVersions'
+
+    definitions:
+        TagsList:
+            type: array
+            description: Массив тегов водителя
+            items:
+                type: string
+                description: Название тега
+            minItems: 1
+
+        NoneOfRule:
+            type: object
+            description: Правило, возвращающее true, если у водителя нет ни одного
+                тега из списка
+            additionalProperties: false
+            properties:
+                none_of:
+                    $ref: '#/definitions/TagsList'
+            required:
+              - none_of
+
+        AllOfRule:
+            type: object
+            description: Правило, возвращающее true, если у водителя есть все перечисленные
+                теги
+            additionalProperties: false
+            properties:
+                all_of:
+                    $ref: '#/definitions/TagsList'
+            required:
+              - all_of
+
+        AnyOfRule:
+            type: object
+            description: Правило, возвращающее true, если у водителя есть хотя бы
+                один из перечисленных тегов
+            additionalProperties: false
+            properties:
+                any_of:
+                    $ref: '#/definitions/TagsList'
+            required:
+              - any_of
+
+        AlgorithmRule:
+            oneOf:
+              - $ref: '#/definitions/NoneOfRule'
+              - $ref: '#/definitions/AllOfRule'
+              - $ref: '#/definitions/AnyOfRule'
+
+        LogicalAndRule:
+            type: object
+            description: Операция "И" второго уровня, применяющаяся к результатам
+                выражений первого уровня
+            additionalProperties: false
+            properties:
+                and:
+                    type: array
+                    items:
+                        $ref: '#/definitions/AlgorithmRule'
+            required:
+              - and
+
+        LogicalOrRule:
+            type: object
+            description: Операция "ИЛИ" второго уровня, применяющаяся к результатам
+                выражений первого уровня
+            additionalProperties: false
+            properties:
+                or:
+                    type: array
+                    items:
+                        $ref: '#/definitions/AlgorithmRule'
+            required:
+              - or
+
+        LogicalRule:
+            oneOf:
+              - $ref: '#/definitions/LogicalAndRule'
+              - $ref: '#/definitions/LogicalOrRule'
+
+        ComplexRule:
+            oneOf:
+              - $ref: '#/definitions/NoneOfRule'
+              - $ref: '#/definitions/AllOfRule'
+              - $ref: '#/definitions/AnyOfRule'
+              - $ref: '#/definitions/LogicalRule'
+
+        DriverFixFeature:
+            description: Настройки интеграции с driver-fix
+            type: object
+            additionalProperties: false
+            properties: {}
+
+        TagsFeature:
+            description: Настройки взаимодействия с сервисом тегов
+            type: object
+            additionalProperties: false
+            properties:
+                assign:
+                    $ref: '#/definitions/TagsList'
+            required:
+              - assign
+
+        BillingModeSettings:
+            type: object
+            description: |
+                Настройки биллинга для режима работы (подписки),
+                соответствующие названиям API биллинга
+            additionalProperties: false
+            properties:
+                mode:
+                    description: Режим расчётов
+                    type: string
+                mode_rule:
+                    description: Параметры режима расчётов
+                    type: string
+            required:
+              - mode
+              - mode_rule
+
+        WorkModeFeatures:
+            type: object
+            description: Поддерживаемые особенности режима работы
+            additionalProperties: false
+            properties:
+                driver_fix:
+                    $ref: '#/definitions/DriverFixFeature'
+                tags:
+                    $ref: '#/definitions/TagsFeature'
+
+        WorkModeSettings:
+            type: object
+            description: Настройки режима работы
+            additionalProperties: false
+            properties:
+                billing:
+                    $ref: '#/definitions/BillingModeSettings'
+                display_mode:
+                    description: Вид UI для отображения выбранного режима работы
+                    type: string
+                features:
+                    description: Особенности режима работы водителя
+                    $ref: '#/definitions/WorkModeFeatures'
+                condition:
+                    description: Условия активации режима работы для водителя
+                    $ref: '#/definitions/ComplexRule'
+            required:
+              - billing
+              - display_mode
+
+        WorkModeVersion:
+            type: object
+            description: Версия настроек режима работы
+            additionalProperties: false
+            properties:
+                starts_at:
+                    description: Время начала действия версии настроек режима
+                    type: string
+                    format: date-time
+                    example: '1970-01-01T00:00:00-00:00'
+                settings:
+                    $ref: '#/definitions/WorkModeSettings'
+            required:
+              - starts_at
+              - settings
+
+        WorkModeVersions:
+            type: array
+            description: Версированные настройки режимов работы
+            items:
+                $ref: '#/definitions/WorkModeVersion'
+            minItems: 1

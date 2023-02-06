@@ -1,0 +1,33 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: processing
+        stq-queue: testsuite_processing
+        static-event-traits:
+            is-create: true
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: foo
+            shared-state-init: {}
+            stages:
+              - id: default-stage
+                handlers:
+                  - id: requests
+                    requests:
+                      - id: request-bson-handler
+                        resource: bson-handler
+                        content-type: 'application/bson'
+                        body:
+                            test: body
+                    resources:
+                      - id: bson-handler
+                        url: $bson_handler_url
+                        method: post
+                        max-retries: 1
+                    result:
+                        bson-response#xget: /sources/request-bson-handler/response/body
+

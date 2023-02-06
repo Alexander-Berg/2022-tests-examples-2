@@ -1,0 +1,174 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    is_alive,
+    public_id,
+    public_key,
+    mac_wlan0,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    TRUE,
+    'e58e753c44e548ce9edaec0e0ef9c8c1',
+    'pub_key_1',
+    '07:f2:74:af:8b:b1',
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+);
+
+INSERT INTO signal_device_api.events
+(
+    id,
+    public_event_id,
+    device_id,
+    created_at,
+    updated_at,
+    event_id,
+    event_at,
+    event_type,
+    gnss_latitude,
+    gnss_longitude,
+    gnss_speed_kmph,
+    gnss_accuracy_m,
+    gnss_direction_deg,
+    is_seen,
+    park_id,
+    car_id,
+    driver_profile_id,
+    driver_name,
+    vehicle_plate_number,
+    resolution
+)
+VALUES
+(
+    1,
+    '34b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '0ef0466e6e1331b3a7d35c585983076a',
+    '2020-02-27T12:00:00+00:00',
+    'sleep',
+    54.99250000,
+    73.36861111,
+    34.437895,
+    0.61340,
+    245.895,
+    TRUE,
+    'p1',
+    'c1',
+    'd1',
+    'Person The Person',
+    'K444AB55',
+    NULL
+),
+(
+    228,
+    '3233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '4ef0466elko331b3a7d35c585983076a',
+    '2020-02-27T12:00:00+00',
+    'event',
+    54.99250000,
+    73.36861111,
+    34.437895,
+    0.61340,
+    245.895,
+    TRUE,
+    'p1',
+    NULL,
+    'd2',
+    NULL,
+    NULL,
+    NULL
+),
+(
+    11,
+    '1233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    1,
+    '2020-02-27T13:00:00+00',
+    '2020-02-27T13:00:00+00',
+    '0ef0466elko331b3a7d35c585983076a',
+    '2020-02-27T12:10:00+00',
+    'seatbelt',
+    54.99250000,
+    73.36861111,
+    34.437895,
+    0.61340,
+    245.895,
+    FALSE,
+    'p1',
+    'c2',
+    'd1',
+    'Person The Person',
+    'K123KK777',
+    NULL
+),
+(
+    2,
+    '44b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    1,
+    '2020-02-27T13:02:00+00',
+    '2020-02-27T13:02:00+00',
+    '7faebfa97bfafe293023a41a49250ac3',
+    '2020-02-27T12:12:00+00',
+    'event',
+    54.99250000,
+    73.36861111,
+    34.437895,
+    0.61340,
+    245.895,
+    TRUE,
+    'p1',
+    'c1',
+    'd1',
+    'Person The Person',
+    'K444AB55',
+    NULL
+);
+
+INSERT INTO signal_device_api.events_comments
+(
+    id,
+    event_id,
+    text,
+    created_at,
+    idempotency_token
+)
+VALUES
+(
+    '1',
+    '34b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    'cute',
+    '2020-08-08 15:00:00 +00:00',
+    'xxx3x3133lllslslsl'
+),
+(
+    '2',
+    '3233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    'nice',
+    '2020-08-10 14:00:00 +00:00',
+    '999998sxxxxfd1521'
+),
+(
+    '3',
+    '3233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    'nice',
+    '2020-08-11 15:00:00 +00:00',
+    '999998sxxxxfd1522'
+);

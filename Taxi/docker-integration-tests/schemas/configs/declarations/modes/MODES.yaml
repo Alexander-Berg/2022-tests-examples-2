@@ -1,0 +1,245 @@
+default: []
+description: описание различных режимов приложения
+tags: []
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/zone_mode'
+    definitions:
+        PinStyle:
+            description: переопределение внешнего вида пина
+            type: object
+            additionalProperties: false
+            properties:
+                color:
+                    description: цвет пина
+                    type: string
+                leg_color:
+                    description: цвет ножки
+                    type: string
+                text_color:
+                    description: цвет текста в пине
+                    type: string
+                summary_color:
+                    description: цвет шины в саммари
+                    type: string
+
+        RideStyle:
+            description: описание элементов в поездке
+            additionalProperties: false
+            type: object
+            properties:
+                call_driver_color:
+                    description: цвет кнопки звонок водителю
+                    type: string
+                chat_color:
+                    description: цвет кнопки чат
+                    type: string
+                coming_color:
+                    description: цвет кнопки уже иду
+                    type: string
+                safety_color:
+                    description: цвет кнопки центра безопасности
+                    type: string
+                rating_star:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        background_color:
+                            description: цвет фона
+                            type: string
+                        shadow_color:
+                            description: цвет тени
+                            type: string
+                tip:
+                    type: object
+                    description: цвет чаевых
+                    additionalProperties: false
+                    properties:
+                        text_color:
+                            type: string
+                        background_color:
+                            type: string
+                        shadow_color:
+                            type: string
+
+        Cover:
+            description: переопределение внешнего вида для клиентов
+            type: object
+            additionalProperties: false
+            properties:
+                pin:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        default:
+                            $ref: '#/definitions/PinStyle'
+                        a:
+                            $ref: '#/definitions/PinStyle'
+                        b:
+                            $ref: '#/definitions/PinStyle'
+                        mid:
+                            $ref: '#/definitions/PinStyle'
+                        favorite:
+                            $ref: '#/definitions/PinStyle'
+                map:
+                    description: переопределение внешнего вида карты
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        style_override:
+                            description: идентификатор стиля карты из MAPS_STYLE
+                            type: string
+                        line_type:
+                            description: как выглядит маршрут. в виде пробок или одноцветный
+                            type: string
+                            enum:
+                              - color
+                              - jams
+                        line_color:
+                            description: цвет линии маршрута, если выбран одноцветный
+                                тип
+                            type: string
+                button:
+                    description: переопределение кнопки "заказать"
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                            type:
+                                description: для какого режима кнопка
+                                type: string
+                            color:
+                                description: цвет кнопки
+                                type: string
+                            text_color:
+                                description: цвет текста в кнопке
+                                type: string
+                banner:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        image:
+                            description: картинка, которая может показываться до выбора
+                                тарифа
+                            type: string
+                        text-font:
+                            description: шрифт задней подписи
+                            type: string
+                ride_styles:
+                    $ref: '#/definitions/RideStyle'
+
+
+        Option:
+            type: object
+            additionalProperties: false
+            properties:
+                'on':
+                    description: Триггер действия
+                    type: string
+                actions:
+                    description: Описание действия
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties:
+                            type: string
+                        properties:
+                            type:
+                                description: Тип действия
+                                type: string
+                        required:
+                          - type
+                        example:
+                            type: show_popup
+                            title: Ультима
+                            content: Теперь в чёрном
+                            button_text: Понятно
+
+        LogoImageTag:
+            description: |
+                опциональный тег по-умолчанию
+                и переопределения для разных экранов
+            type: object
+            additionalProperties: false
+            properties:
+                default_logo_image_tag:
+                    type: string
+                logo_overrides:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        summary:
+                            type: string
+                        main_screen:
+                            type: string
+                        ride:
+                            type: string
+
+        TitleLogo:
+            type: object
+            additionalProperties: false
+            properties:
+                logo_tag:
+                    description: словарь из локали в описание тега картинки
+                    type: object
+                    additionalProperties:
+                        $ref: "#/definitions/LogoImageTag"
+                options:
+                    type: array
+                    items:
+                        $ref: "#/definitions/Option"
+            required:
+              - logo_tag
+
+        zone_mode:
+            type: object
+            additionalProperties: false
+            properties:
+                mode:
+                    type: string
+                title:
+                    description: ключ в танкере с заголовком моды
+                    type: string
+                title_logo:
+                    $ref: "#/definitions/TitleLogo"
+                experiment:
+                    description: эксперимент позволяющий работать в этой моде
+                    type: string
+                zone_activation:
+                    description: описание зоны перекрытия в которой работает мода
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        zone_type:
+                            description: тип зоны в которой работает мода
+                            type: string
+                        point_title:
+                            description: подпись у точки для перехода в моду
+                            type: string
+                        point_image_tag:
+                            description: иконка точки для перехода в моду
+                            type: string
+                    required:
+                      - zone_type
+                      - point_title
+                tariff_splash:
+                    description: плашка моды в списке тарифов. позволяет переходить
+                        в моду по плашке
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        title:
+                            description: название на плашке, которое идёт перед тарифом
+                            type: string
+                        image:
+                            description: картинка на плашке. возьмётся от выбранного
+                                тарифа, если нет
+                            type: string
+                    required:
+                      - title
+                cover:
+                    $ref: '#/definitions/Cover'
+            required:
+              - mode

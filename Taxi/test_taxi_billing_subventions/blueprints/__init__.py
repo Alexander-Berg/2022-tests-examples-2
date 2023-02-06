@@ -1,0 +1,17 @@
+from . import config  # noqa
+from . import daily_guarantees  # noqa
+from . import docs  # noqa
+from . import driver_fix_rule  # noqa
+from . import driver_geoarea_activity  # noqa
+from . import journal  # noqa
+from . import manual_subvention  # noqa
+from . import order_commission_changed  # noqa
+from . import order_subvention_changed  # noqa
+from . import payments  # noqa
+from . import rules  # noqa
+from . import select_rules  # noqa
+from . import shift_ended  # noqa
+from . import shift_ended_results  # noqa
+from . import support_info  # noqa
+from . import taxi_geo_booking_shift  # noqa
+from . import var  # noqa

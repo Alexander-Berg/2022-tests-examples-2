@@ -1,0 +1,228 @@
+# flake8: noqa
+
+caps = """<!-- No zombies were killed during the creation of this user interface -->
+<!-- user gescheit, class j-super-user -->
+<hello xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <capabilities>
+    <capability>urn:ietf:params:netconf:base:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:candidate:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:confirmed-commit:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:validate:1.0</capability>
+    <capability>urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file</capability>
+    <capability>urn:ietf:params:xml:ns:netconf:base:1.0</capability>
+    <capability>urn:ietf:params:xml:ns:netconf:capability:candidate:1.0</capability>
+    <capability>urn:ietf:params:xml:ns:netconf:capability:confirmed-commit:1.0</capability>
+    <capability>urn:ietf:params:xml:ns:netconf:capability:validate:1.0</capability>
+    <capability>urn:ietf:params:xml:ns:netconf:capability:url:1.0?protocol=http,ftp,file</capability>
+    <capability>urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring</capability>
+    <capability>http://xml.juniper.net/netconf/junos/1.0</capability>
+    <capability>http://xml.juniper.net/dmi/system/1.0</capability>
+  </capabilities>
+  <session-id>36365</session-id>
+</hello>
+"""
+req = """
+    <get-lacp-interface-information>
+
+    </get-lacp-interface-information>
+"""
+xml = """<rpc-reply xmlns:junos="http://xml.juniper.net/junos/18.4R3/junos" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
+<lacp-interface-information-list xmlns="http://xml.juniper.net/junos/18.4R3/junos-lacpd">
+<lacp-interface-information>
+<lag-lacp-header>
+<aggregate-name>ae1</aggregate-name>
+</lag-lacp-header>
+<lag-lacp-state>
+<name>et-0/0/29</name>
+<lacp-role>Actor</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/29</name>
+<lacp-role>Partner</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/31</name>
+<lacp-role>Actor</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/31</name>
+<lacp-role>Partner</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-protocol>
+<name>et-0/0/29</name>
+<lacp-receive-state>Current</lacp-receive-state>
+<lacp-transmit-state>Fast periodic</lacp-transmit-state>
+<lacp-mux-state>Collecting distributing</lacp-mux-state>
+</lag-lacp-protocol>
+<lag-lacp-protocol>
+<name>et-0/0/31</name>
+<lacp-receive-state>Current</lacp-receive-state>
+<lacp-transmit-state>Fast periodic</lacp-transmit-state>
+<lacp-mux-state>Collecting distributing</lacp-mux-state>
+</lag-lacp-protocol>
+</lacp-interface-information>
+<lacp-interface-information>
+<lag-lacp-header>
+<aggregate-name>ae2</aggregate-name>
+</lag-lacp-header>
+<lag-lacp-state>
+<name>et-0/0/23</name>
+<lacp-role>Actor</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/23</name>
+<lacp-role>Partner</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/35</name>
+<lacp-role>Actor</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/35</name>
+<lacp-role>Partner</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-protocol>
+<name>et-0/0/23</name>
+<lacp-receive-state>Current</lacp-receive-state>
+<lacp-transmit-state>Fast periodic</lacp-transmit-state>
+<lacp-mux-state>Collecting distributing</lacp-mux-state>
+</lag-lacp-protocol>
+<lag-lacp-protocol>
+<name>et-0/0/35</name>
+<lacp-receive-state>Current</lacp-receive-state>
+<lacp-transmit-state>Fast periodic</lacp-transmit-state>
+<lacp-mux-state>Collecting distributing</lacp-mux-state>
+</lag-lacp-protocol>
+</lacp-interface-information>
+<lacp-interface-information>
+<lag-lacp-header>
+<aggregate-name>ae321</aggregate-name>
+</lag-lacp-header>
+<lag-lacp-state>
+<name>et-0/0/19</name>
+<lacp-role>Actor</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/19</name>
+<lacp-role>Partner</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Slow</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/25</name>
+<lacp-role>Actor</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Fast</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-state>
+<name>et-0/0/25</name>
+<lacp-role>Partner</lacp-role>
+<lacp-expired>No</lacp-expired>
+<lacp-defaulted>No</lacp-defaulted>
+<lacp-distributing>Yes</lacp-distributing>
+<lacp-collecting>Yes</lacp-collecting>
+<lacp-synchronization>Yes</lacp-synchronization>
+<lacp-aggregation>Yes</lacp-aggregation>
+<lacp-timeout>Slow</lacp-timeout>
+<lacp-activity>Active</lacp-activity>
+</lag-lacp-state>
+<lag-lacp-protocol>
+<name>et-0/0/19</name>
+<lacp-receive-state>Current</lacp-receive-state>
+<lacp-transmit-state>Slow periodic</lacp-transmit-state>
+<lacp-mux-state>Collecting distributing</lacp-mux-state>
+</lag-lacp-protocol>
+<lag-lacp-protocol>
+<name>et-0/0/25</name>
+<lacp-receive-state>Current</lacp-receive-state>
+<lacp-transmit-state>Slow periodic</lacp-transmit-state>
+<lacp-mux-state>Collecting distributing</lacp-mux-state>
+</lag-lacp-protocol>
+</lacp-interface-information>
+</lacp-interface-information-list>
+</rpc-reply>
+"""

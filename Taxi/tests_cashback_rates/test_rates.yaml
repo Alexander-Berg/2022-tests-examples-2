@@ -1,0 +1,162 @@
+type: apitest
+version: 0
+service: taxi_cashback_rates
+
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "exp_cashback_rates.json"
+  - name: config
+    kwargs:
+        CASHBACK_RATES_ENABLED_CASHBACK_SOURCES:
+            fintech: false
+
+
+tests:
+  - name: empty_rates
+    request:
+        method: POST
+        path: /v1/rates
+        body:
+            zone: "moscow"
+            requested_categories: ["econom", "business"]
+            due: "2020-03-28T12:00:00+0000"
+            timezone: "+0000"
+            payment_info:
+                type: "card"
+                method_id: "card-x123123"
+            user_info:
+                yandex_uid: "111111"
+                phone_id: "phone_id"
+                has_plus: true
+                has_cashback_plus: true
+    response:
+        status: 200
+        body:
+            rates: {}
+
+
+  - name: portal_cashback
+    marks:
+      - name: config
+        kwargs:
+            MARKETING_CASHBACK_EXPERIMENTS: ["portal_cashback"]
+    request:
+        method: POST
+        path: /v1/rates
+        body:
+            zone: "moscow"
+            requested_categories: ["econom", "business"]
+            due: "2020-03-28T12:00:00+0000"
+            timezone: "+0000"
+            payment_info:
+                type: "card"
+                method_id: "card-x123123"
+            user_info:
+                yandex_uid: "111111"
+                phone_id: "phone_id"
+                has_plus: true
+                has_cashback_plus: true
+    response:
+        status: 200
+        body:
+            rates:
+                econom:
+                  - rate: 0.04
+                    sponsor: "portal"
+
+  - name: portal_cashback_2_exps
+    marks:
+      - name: config
+        kwargs:
+            MARKETING_CASHBACK_EXPERIMENTS: ["portal_cashback", "portal_cashback_2"]
+    request:
+        method: POST
+        path: /v1/rates
+        body:
+            zone: "moscow"
+            requested_categories: ["econom", "business"]
+            due: "2020-03-28T12:00:00+0000"
+            timezone: "+0000"
+            payment_info:
+                type: "card"
+                method_id: "card-x123123"
+            user_info:
+                yandex_uid: "111111"
+                phone_id: "phone_id"
+                has_plus: true
+                has_cashback_plus: true
+    response:
+        status: 200
+        body:
+            rates:
+                business:
+                  - rate: 0.09
+                    sponsor: "portal"
+                econom:
+                  - rate: 0.04
+                    sponsor: "portal"
+                  - rate: 0.09
+                    sponsor: "portal"
+
+  - name: cashbacks_1_tariff
+    marks:
+      - name: config
+        kwargs:
+            MARKETING_CASHBACK_EXPERIMENTS: ["portal_cashback", "portal_cashback_2"]
+    request:
+        method: POST
+        path: /v1/rates
+        body:
+            zone: "moscow"
+            requested_categories: ["econom"]
+            due: "2020-03-28T12:00:00+0000"
+            timezone: "+0000"
+            payment_info:
+                type: "card"
+                method_id: "card-x123123"
+            user_info:
+                yandex_uid: "111111"
+                phone_id: "phone_id"
+                has_plus: true
+                has_cashback_plus: true
+    response:
+        status: 200
+        body:
+            rates:
+                econom:
+                  - rate: 0.04
+                    sponsor: "portal"
+                  - rate: 0.09
+                    sponsor: "portal"
+
+
+  - name: bad_cashback
+    marks:
+      - name: config
+        kwargs:
+            MARKETING_CASHBACK_EXPERIMENTS: ["portal_cashback", "bad_cashback"]
+    request:
+        method: POST
+        path: /v1/rates
+        body:
+            zone: "moscow"
+            requested_categories: ["econom"]
+            due: "2020-03-28T12:00:00+0000"
+            timezone: "+0000"
+            payment_info:
+                type: "card"
+                method_id: "card-x123123"
+            user_info:
+                yandex_uid: "111111"
+                phone_id: "phone_id"
+                has_plus: true
+                has_cashback_plus: true
+    response:
+        status: 200
+        body:
+            rates:
+                econom:
+                  - rate: 0.04
+                    sponsor: "portal"

@@ -1,0 +1,83 @@
+description: Водители, которые будут подмешаны в кэш dispatch airport drivers.
+tags:
+  - notfallback
+default: []
+maintainers:
+  - skolibaba
+  - silakov
+schema:
+    type: array
+    description: список водителей
+    items:
+        $ref: '#/definitions/DispatchAirportDriver'
+    definitions:
+        DispatchAirportDriverQueueInfo:
+            type: object
+            additionalProperties: false
+            properties:
+                tariff:
+                    description: Тариф
+                    type: string
+                waiting_time:
+                    description: Предсказанное время ожидания заказа в минутах
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::minutes
+                queued:
+                    description: Время постановки в очередь
+                    type: string
+                    format: date-time
+                position:
+                    description: Место в очереди
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::uint32_t
+            required:
+              - tariff
+              - queued
+              - position
+        DispatchAirportDriver:
+            type: object
+            additionalProperties: false
+            properties:
+                airport_id:
+                    type: string
+                current_parking_id:
+                    type: string
+                dbid_uuid:
+                    type: string
+                car_number:
+                    type: string
+                car_id:
+                    type: string
+                geopoint:
+                    description: Текущие координаты водителя
+                    type: array
+                    items:
+                        type: number
+                    x-taxi-cpp-type: geometry::Position
+                state:
+                    description: Состояние водителя в аэропортовой очереди
+                    type: string
+                    enum:
+                      - entered
+                      - queued
+                state_reason:
+                    description: Идентификатор причины перехода в состояние
+                    type: string
+                state_updated_ts:
+                    description: Время обновления состояния
+                    type: string
+                    format: date-time
+                queue_info:
+                    description: Информация о месте в очереди
+                    type: array
+                    items:
+                        $ref: '#/definitions/DispatchAirportDriverQueueInfo'
+            required:
+              - airport_id
+              - dbid_uuid
+              - geopoint
+              - state
+              - state_reason
+              - state_updated_ts

@@ -1,0 +1,112 @@
+default: {}
+description: Настройки код-диспатча в пикаппойнтах
+maintainers: [mitrkos]
+tags: [notfallback]
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/PointSettings'
+
+    definitions:
+        TariffsSettings:
+            type: object
+            description: Настройки тарифов, для supported также является списком приоритета
+                при смене
+            additionalProperties: false
+            properties:
+                tariff:
+                    type: string
+                    description: Название тарифа (category)
+                additional_requirements:
+                    type: array
+                    description: Дополнительные требования к тарифам, например, requirements
+                        - должны быть указаны пожелания. Нельзя ставить только один
+                        тариф + 'requirements', тк мы не можем принудительно выставить
+                        пожелания на клиенте - тогда выставится этот тариф без пожеланий
+                        - fallback
+                    maxItems: 1
+                    items:
+                        type: string
+                        enum:
+                          - requirements
+                          - no_requirements
+            required:
+              - tariff
+              - additional_requirements
+
+        SupportedTariffs:
+            type: object
+            description: Определяет тарифы поддерживаемые точкой, если все поддерживаемые
+                недоступны по visibility, то берем первый (fallback)
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - supported
+                tariffs:
+                    type: array
+                    minItems: 1
+                    items:
+                        $ref: "#/definitions/TariffsSettings"
+            required:
+              - type
+              - tariffs
+
+        UnsupportedTariffs:
+            type: object
+            description: Определяет тарифы, не поддерживаемые точкой
+            additionalProperties: false
+            properties:
+                type:
+                    type: string
+                    enum:
+                      - unsupported
+                tariffs:
+                    type: array
+                    items:
+                        $ref: "#/definitions/TariffsSettings"
+                preferred_tariff:
+                    type: string
+                    description: Тариф, который выбирается при смене, мб недоступен
+                        по visibility, все равно берем (fallback)
+            required:
+              - type
+              - tariffs
+              - preferred_tariff
+
+        SummarySettings:
+            type: object
+            description: настройки для отображения на саммари
+            additionalProperties: false
+            properties:
+                hide_unsupported_tariffs:
+                    type: boolean
+                hide_multiclass:
+                    type: boolean
+            required:
+              - hide_unsupported_tariffs
+              - hide_multiclass
+
+        PointSettings:
+            type: object
+            description: Настройки одного пикаппойнта
+            additionalProperties: false
+            properties:
+                order_flow:
+                    type: string
+                    description: Флоу, по которому идёт заказ
+                    enum:
+                      - regular
+                      - code_dispatch
+                      - code_dispatch_disabled
+                tariffs_restrictions:
+                    description: Ограничения тарифов в точке
+                    oneOf:
+                      - $ref: '#/definitions/SupportedTariffs'
+                      - $ref: '#/definitions/UnsupportedTariffs'
+                summary_settings:
+                    $ref: '#/definitions/SummarySettings'
+            required:
+              - order_flow
+              - tariffs_restrictions

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+. $(dirname $0)/lib/utils.sh
+
+if [ "x$NGINX_TMPDIR" = "x" ]; then
+    die "NGINX_TMPDIR must be set"
+fi
+if [ "x$NGINX_CONFIGS_DIR" = "x" ]; then
+    die "NGINX_CONFIGS_DIR must be set"
+fi
+
+NGINX=$(which nginx)
+NGINX_PIDFILE="$(get_pidfile nginx)"
+NGINX_CONFIG=${NGINX_CONFIGS_DIR}/nginx.conf
+NGINX_LOGS=${NGINX_TMPDIR}/logs
+NGINX_WORKER_TMPDIR=${NGINX_TMPDIR}/tmp
+
+if [ "x$NGINX" = "x" ]; then
+    die "No nginx binary found"
+fi
+
+start() {
+    stop 2>/dev/null >&2
+    echo "Starting nginx..."
+    mkdir -p ${NGINX_TMPDIR} ${NGINX_LOGS} ${NGINX_WORKER_TMPDIR}
+    $NGINX -c ${NGINX_CONFIG} -q -g "pid $NGINX_PIDFILE;"
+}
+
+stop() {
+    stop_daemon $NGINX $NGINX_PIDFILE
+}
+
+script_main "$@"

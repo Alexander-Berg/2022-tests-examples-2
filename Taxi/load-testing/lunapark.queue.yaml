@@ -1,0 +1,32 @@
+scope: lunapark
+queue: orders-processing
+static-event-traits:
+    is-create#equal:
+      - value#xget: /event/payload/kind
+      - value#string: create
+state-manager:
+    initial:
+        should-fail#boolean: true
+    mutators:
+      - name: toggle-failue-switch
+        condition#xget: /state/current/should-fail
+        effects:
+            should-fail#boolean: false
+keys-mapping:
+    default-keys: [handle-default]
+event-processor:
+  - id: default-pipeline
+    conditions:
+      - key: handle-default
+    stages:
+      - id: failed-stage
+        enabled#xget: /state/current/should-fail
+        handlers:
+          - id: request-non-existing-url
+            resources:
+              - id: non-existing-resource
+                url: http://127.0.0.1/not-exists
+                method: get
+            requests:
+              - id: non-existing-resource
+                resource: non-existing-resource

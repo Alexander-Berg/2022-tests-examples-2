@@ -1,0 +1,43 @@
+id: user-statistics error
+title: |
+    Ошибка от user-statistics
+
+parameters:
+  - uid:
+      - yandex_uid#string: 43214321
+      - yandex_uid#string: 12341234
+
+experiments:
+    values#object:
+      - key: api_proxy_integration_newbie_switch
+        value:
+            enabled: true
+        enabled: true
+
+source:
+    request:
+        method: post
+        body: {}
+        headers:
+            X-Yandex-UID#xget: /test-params/uid/yandex_uid
+    expectations:
+        response:
+            status-code: 200
+            body: {}
+
+mocks:
+  - resource: user-statistics-v1-orders
+    response:
+        status-code: 500
+        body#string: Error
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                group_by: []
+                identities:
+                  - value#object_simple:
+                        type#string: yandex_uid
+                        value#xget: /test-params/uid/yandex_uid
+            content-type: application/json

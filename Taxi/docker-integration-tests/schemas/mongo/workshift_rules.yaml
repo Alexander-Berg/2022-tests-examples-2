@@ -1,0 +1,54 @@
+description: workshift rules
+settings:
+    collection: workshift_rules
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: request_id
+    unique: true
+wiki_info: |
+    #### workshift_rules
+    *Назначение:* Колекция доступных для покупки рабочих смен.
+    *Структура документа:*
+    ```python
+    workshift_rules = {
+        '_id' : uuid,                    # идентификатор смены
+        'parent_id': uuid,               # идентификатор родительской смены
+        'request_id': 'request-id',      # идентификатор запроса на создание смены
+        'created': datetime,             # время создания смены
+        'updated': datetime,             # время обновления смены
+        'is_active': True,               # доступна ли смена для покупки
+        'percent_discount_available': True, # разрешена ли процентная скидка
+        'view_type': 'base',             # тип смены (с расписанием или без)
+        'begin': datetime.datetime(...), # время начала продажи смены
+        'end': datetime.datetime(...),   # время конца продажи смены, может отсутствовать
+        'is_deleted': True,              # если True, смена была удалена
+
+        # Следующие поля не модифицируются, а создается новая смена
+        # Зона, в которой действует смена
+        'title_key': 'workshift_rule_title.my_title', # ключ имени смены в кейсете taximeter_messages
+        'home_zone': 'moscow',           # будет изведено, для новых смен используйте поле zones
+        'zones': ['moscow'],             # зоны, в которых смена может быть куплена
+        'tariffs': ['econom'],           # тарифы, для которых будет работать смена
+        'price': '1000',                 # стоимость смены при типе base
+        'price_list': [                  # стоимость смены при типе schedule
+          {
+            'price': '700',              # стоимость смены в данный интервал времени
+            'week_day': 'mon',           # день недели
+            'time': '12:00',             # начало интервала
+            'duration_hours': 1,         # длительность интервала в часах
+          }
+        ],
+        'discount_conditions': [
+          {
+            'experiment_id': 'exp1',     # скидка доступна только для водителей под экспериментом
+            'discount_price': '800',     # стоимость смены до скидки
+            'discount_percent': '10',    # скидка в процентах
+            'show_discount_badge': True, # показывать перечеркнутую стоимость до скидки
+          }
+        ],
+        'driver_experiment_id': 'exp1',  # смена доступна только для водителей под экспериментом
+        'duration_hours': 12,            # длительность смены в часах
+        'hiring_extra_percent': '0.12',  # дополнительный процент за найм водителей
+    }
+    ```

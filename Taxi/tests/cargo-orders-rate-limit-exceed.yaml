@@ -1,0 +1,23 @@
+id: cargo-orders-rate-limit-exceed
+title: cargo-orders/driver/handlers уперлись в лимит
+source:
+    request:
+        method: post
+        url: /driver/v1/cargo-claims/v1/cargo/state
+        body:
+            cargo_ref_id#string: 'order/cargo-order-id'
+        headers:
+            content-type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Driver-Profile-Id: 'cd753d5a04ca4a8db72df25851d0c0db'
+            X-YaTaxi-Park-Id: 'cd753d5a04ca4a8db72df25851d0c0db'
+    expectations:
+        response:
+            status-code#integer: 429
+            body:
+                code: 'Too Many Requests'
+                message: 'Rate limit exceeded'
+
+mocks:
+  - resource: cargo-orders-taximeter-handlers-post
+    exception: rps-limit-breach

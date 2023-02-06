@@ -1,0 +1,162 @@
+request id {
+    "id":{
+         "descr":"Идентификатор счетчика",
+         "mandatory":true,
+         "type":"Number"
+    }
+}
+
+request date1 {
+    "date1":{
+         "descr":"Дата начала периода выборки в формате YYYYMMDD",
+         "mandatory":false,
+         "type":"String",
+         "defaultValue": weekAgo()
+    }
+}
+
+request date2 {
+    "date2":{
+         "descr":"Дата конца периода выборки в формате YYYYMMDD",
+         "mandatory":false,
+         "type":"String",
+         "defaultValue": today()
+    }
+}
+
+request goal_id {
+    "goal_id":{
+         "descr":"Идентификатор цели счетчика для получения целевого отчета",
+         "mandatory":false,     // (обязательный в отчете по интернет-магазинам)
+         "type":"Number"
+    }
+}
+
+request per_page {
+    "per_page":{
+         "descr":"Количество элементов на странице выдачи",
+         "mandatory":false,
+         "type":"Number",
+         "defaultValue":100
+    }
+}
+
+request offset {
+    "offset":{
+         "descr":"Номер записи, с которой начинается выдача",
+         "mandatory":false,
+         "type":"Number",
+         "defaultValue":1
+    }
+}
+
+request sort {
+    "sort":{
+         "descr":"Поле данных отчета, по которому необходимо отсортировать результаты запроса",
+         "mandatory":false,
+         "type":"String",
+         "defaultValue": "visits"
+              // Значение по умолчанию: visits — результаты запроса сортируются по количеству визитов.
+              // Значение по умолчанию: page_views — результаты запроса сортируются по количеству просмотров страниц.
+    }
+}
+
+request reverse {
+    "reverse":{
+          "descr": "Режим сортировки данных",
+          "values":["0","1"],
+          "defaultValue":"1",
+         "mandatory":false,
+         "type":"Number"
+    }
+}
+
+request req_stat < id,date1,date2,goal_id,sort,reverse,offset,per_page,table_mode {
+
+}
+
+request req_dyn < id,date1,date2,goal_id,group {
+
+}
+
+template z(a) (
+    {"a":$b}
+)
+
+api_call traffic_summary
+table {
+    request < req_stat {}
+    template () ({})
+}
+chart {
+    request < req_dyn {}
+    template () ({})
+}
+
+/*        group: [
+              descr: "Группировка данных по времени",
+              values:["day", "week", "month"],
+              defaultValue:null,
+          ] << str << opt,
+          table_mode:[
+              descr:"Режим отображения результатов запроса",
+              values:["tree","plain"],
+              defaultValue:"plain",
+          ] << str << opt,
+          selected_country:[
+              descr:"Режим отображения результатов запроса",
+              values:["world","russia", "ukraine", "belarus", "turkey"],
+              defaultValue:"world",
+          ] << str << opt,
+          mirror_id
+          se_id
+          monlog
+
+
+id
+goal_id
+date1
+date2
+group
+per_page
+offset
+sort
+reverse
+table_mode
+selected_country
+mirror_id
+se_id
+monlog
+
+
+// common
+id
+goal_id
+date1
+date2
+// сегментация
+selected_country
+mirror_id
+se_id
+monlog
+
+// table only
+per_page
+offset
+sort
+reverse
+table_mode
+// новые параметры
+filter
+columns
+collapsedColumns
+segments
+
+// chart only
+group
+
+
+
+
+*/
+

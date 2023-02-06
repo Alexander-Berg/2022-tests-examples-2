@@ -1,0 +1,420 @@
+openapi: 3.0.0
+
+info:
+    description: Yandex Taxi pricing-admin Service
+    title: Yandex Taxi pricing-admin Service
+    version: '1.0'
+
+x-taxi-middlewares:
+    tvm: true
+
+x-taxi-client-qos:
+    taxi-config: PRICING_ADMIN_CLIENT_QOS
+
+paths:
+    /v1/testing/run:
+        post:
+            description: |
+                Прогоняет полученные исходный код  преобразования цены |
+                на заданных входных параметрах.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Test'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - test_result
+                                  - output_price
+                                  - metadata_map
+                                  - execution_statistic
+                                  - visited_lines
+                                properties:
+                                    test_result:
+                                        type: boolean
+                                    test_error:
+                                        type: string
+                                    output_price:
+                                        $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/composite_price.yaml#/definitions/CompositePrice'
+                                    metadata_map:
+                                        $ref: 'pricing-extended/definitions.yaml#/definitions/CompilerMetadata'
+                                    execution_statistic:
+                                        $ref: '../definitions.yaml#/definitions/RuleExecutionInfo'
+                                    visited_lines:
+                                        $ref: '../definitions.yaml#/definitions/VisitedLinesInfo'
+
+    /v1/testing/rule:
+        get:
+            description: get test list for given rule
+            parameters:
+              - in: query
+                name: rule_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: rule_id
+                schema:
+                    type: integer
+                    format: int64
+                required: false
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    tests:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/RuleTestSummary'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/BadRequestError'
+                '404':
+                    description: RuleNotFound
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/NotFoundError'
+        post:
+            description: test given rule with all its test
+            parameters:
+              - in: query
+                name: rule_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: rule_id
+                schema:
+                    type: integer
+                    format: int64
+                required: false
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                source:
+                                    type: string
+
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - tests_results
+                                properties:
+                                    tests_results:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/RuleTestSummary'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/BadRequestError'
+                '404':
+                    description: RuleNotFound
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/NotFoundError'
+
+    /v1/testing/test:
+        put:
+            description: add or edit test for given rule
+            parameters:
+              - in: query
+                name: rule_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: test_name
+                schema:
+                    type: string
+                required: true
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                              - test
+                            properties:
+                                test:
+                                    $ref: '../../../../../libraries/pricing-extended/docs/yaml/definitions/rules.yaml#/definitions/RuleTest'
+                                rule_id:
+                                    type: integer
+                                    format: int64
+            responses:
+                '200':
+                    description: OK
+                '400':
+                    description: InvalidRequest
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/BadRequestError'
+        delete:
+            description: delete test for given rule rule
+            parameters:
+              - in: query
+                name: rule_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: test_name
+                schema:
+                    type: string
+                required: true
+            responses:
+                '200':
+                    description: OK
+                '404':
+                    description: RuleOrTestNotFound
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/NotFoundError'
+        get:
+            description: get test fot given rule and given name
+            parameters:
+              - in: query
+                name: rule_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: test_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: rule_id
+                schema:
+                    type: integer
+                    format: int64
+                required: false
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RuleTestWithResult'
+                '404':
+                    description: RuleOrTestNotFound
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/NotFoundError'
+        post:
+            description: test given rule with given test
+            parameters:
+              - in: query
+                name: rule_name
+                schema:
+                    type: string
+                required: true
+              - in: query
+                name: test_name
+                schema:
+                    type: string
+                required: true
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                test_data:
+                                    $ref: '../../../../../libraries/pricing-extended/docs/yaml/definitions/rules.yaml#/definitions/RuleTest'
+                                rule_id:
+                                    type: integer
+                                    format: int64
+                                source:
+                                    type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required:
+                                  - result
+                                  - execution_statistic
+                                  - visited_lines
+                                properties:
+                                    result:
+                                        type: boolean
+                                    error:
+                                        type: string
+                                    output_price:
+                                        $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/composite_price.yaml#/definitions/CompositePrice'
+                                    output_price_lighting:
+                                        type: array
+                                        description: list of price fields should be
+                                            lighed
+                                        items:
+                                            type: string
+                                    metadata_map:
+                                        $ref: 'pricing-extended/definitions.yaml#/definitions/CompilerMetadata'
+                                    metadata_lighting:
+                                        type: array
+                                        description: list of metadata fields should
+                                            be lighed
+                                        items:
+                                            type: string
+                                    execution_statistic:
+                                        $ref: '../definitions.yaml#/definitions/RuleExecutionInfo'
+                                    visited_lines:
+                                        $ref: '../definitions.yaml#/definitions/VisitedLinesInfo'
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/BadRequestError'
+                '404':
+                    description: Rule or test not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/NotFoundError'
+
+    /v1/testing/rules:
+        get:
+            description: get list of all test for all rules
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties:
+                                    $ref: '#/components/schemas/RuleWithTest'
+        post:
+            description: Проводит тестирование набора преобразований цены.
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                rule_ids:
+                                    type: array
+                                    items:
+                                        type: integer
+                                        format: int64
+            responses:
+                '200':
+                    description: OK
+                '400':
+                    description: Bad request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/BadRequestError'
+                '404':
+                    description: RuleNotFound
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/errors.yaml#/definitions/NotFoundError'
+
+components:
+    schemas:
+        Test:
+            type: object
+            additionalProperties: false
+            required:
+              - source_code
+              - backend_variables
+              - trip_details
+              - initial_price
+            properties:
+                source_code:
+                    type: string
+                backend_variables:
+                    type: object
+                    additionalProperties: true
+                    x-taxi-additional-properties-true-reason: for allOf
+                trip_details:
+                    $ref: '../../../../../libraries/pricing-extended/docs/yaml/definitions/rules.yaml#/definitions/TripDetailsExtended'
+                initial_price:
+                    $ref: '../../../../../libraries/pricing-components/docs/yaml/definitions/composite_price.yaml#/definitions/CompositePrice'
+                extra_returns:
+                    type: array
+                    items:
+                        type: string
+                price_calc_version:
+                    type: string
+        RuleTestSummary:
+            type: object
+            additionalProperties: false
+            required:
+              - name
+            properties:
+                name:
+                    type: string
+                test_result:
+                    type: boolean
+                visited_lines:
+                    $ref: '../definitions.yaml#/definitions/VisitedLinesInfo'
+
+        RuleTestWithResult:
+            allOf:
+              - $ref: '../../../../../libraries/pricing-extended/docs/yaml/definitions/rules.yaml#/definitions/RuleTest'
+              - type: object
+                additionalProperties: true
+                x-taxi-additional-properties-true-reason: for allOf
+                properties:
+                    last_result:
+                        type: boolean
+
+        RuleWithTest:
+            type: object
+            additionalProperties: false
+            properties:
+                rule_id:
+                    type: integer
+                    format: int64
+                tests:
+                    type: array
+                    items:
+                        type: string

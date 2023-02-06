@@ -1,0 +1,133 @@
+default:
+    __default__: {}
+
+description: Конструктор дополнительных экранов для приоритетов. Правила из указанных
+    зон дополняют правила из зоны __default__ (правило, которого нет в дефолте, добавляется;
+    правило, которое в дефолте есть, заменяется)
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ZonePayloads'
+    properties:
+        __default__:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/Payload'
+    required:
+      - __default__
+
+    definitions:
+        Deeplink:
+            type: object
+            description: Диплинк кнопки
+            additionalProperties: false
+            properties:
+                deeplink:
+                    type: string
+            required:
+              - deeplink
+        Link:
+            type: object
+            description: Линк кнопки
+            additionalProperties: false
+            properties:
+                url:
+                    type: string
+                title:
+                    description: Заголовок тулбара
+                    type: string
+                is_external:
+                    description: Отображать во внешнем браузере или в вебвью (по умолчанию
+                        False)
+                    type: boolean
+                    default: false
+            required:
+              - url
+
+        NumberedItem:
+            type: object
+            description: Пункт нумерованного списка
+            additionalProperties: false
+            properties:
+                title:
+                    type: string
+                    description: Танкерный ключ заголовка пункта
+                subtitle:
+                    type: string
+                    description: Танкерный ключ подзаголовка пункта
+            required:
+              - title
+
+        Paragraph:
+            type: object
+            description: Параграф с информацией
+            additionalProperties: false
+            properties:
+                title:
+                    description: Танкерный ключ заголовка параграфа доп экрана
+                    type: string
+                text:
+                    description: Танкерный ключ текста параграфа доп экрана
+                    type: string
+                numbered_list:
+                    description: Пронумерованный список с какой-то информацией (к
+                        примеру преимущества при приоритете)
+                    type: array
+                    items:
+                        $ref: '#/definitions/NumberedItem'
+                    minItems: 1
+
+        ScreenConstructor:
+            description: Конструктор доп экрана
+            type: object
+            additionalProperties: false
+            properties:
+                main_title:
+                    description: Заголовок доп экрана
+                    type: string
+                constructor:
+                    type: array
+                    description: Пункты с информацией
+                    items:
+                        $ref: '#/definitions/Paragraph'
+                    minItems: 1
+                button:
+                    description: Описание кнопки
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        text:
+                            description: Текст кнопки
+                            type: string
+                        action:
+                            oneOf:
+                              - $ref: '#/definitions/Deeplink'
+                              - $ref: '#/definitions/Link'
+                    required:
+                      - text
+                      - action
+            required:
+              - main_title
+              - constructor
+
+        Payload:
+            type: object
+            description: Пара конструкторов доп экрана приоритетов
+            additionalProperties: false
+            properties:
+                achieved:
+                    description: Конструктор доп экрана достигнутого приоритета
+                    $ref: '#/definitions/ScreenConstructor'
+                can_achieve:
+                    description: Конструктор доп экрана достижимого приоритета. Если
+                        не указан, берется такой же конструктор, как и для achieved
+                    $ref: '#/definitions/ScreenConstructor'
+            required:
+              - achieved
+
+        ZonePayloads:
+            type: object
+            description: Конструкторы доп экранов в тарифных зонах
+            additionalProperties:
+                $ref: '#/definitions/Payload'

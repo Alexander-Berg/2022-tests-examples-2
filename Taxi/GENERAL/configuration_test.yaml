@@ -1,0 +1,155 @@
+openapi: 3.0.0
+info:
+    version: '1.0'
+    title: 'API for testing configuration'
+
+x-taxi-py3-middlewares:
+    error-middleware: true
+    auth-middleware: true
+
+paths:
+    /v1/configuration_test:
+        get:
+            summary: 'Get results of the configuration testing'
+            operationId: GetV1ConfigurationTest
+            parameters:
+              - $ref: '#/components/parameters/TaskId'
+              - $ref: '#/components/parameters/Limit'
+              - $ref: '#/components/parameters/Offset'
+              - $ref: '#/components/parameters/IsEqual'
+              - $ref: '../definitions.yaml#/components/parameters/UserId'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ConfigurationTestResponse'
+
+    /v1/testing/results/aggregated:
+        get:
+            summary: 'Get aggregated results of testing'
+            operationId: GetV1TestingAggregation
+            parameters:
+              - $ref: '#/components/parameters/TaskId'
+              - $ref: '../definitions.yaml#/components/parameters/UserId'
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestingAggregation'
+                '204':
+                    description: NoContent
+
+components:
+    parameters:
+        TaskId:
+            description: STQ task identifier
+            in: query
+            name: task_id
+            schema:
+                type: string
+            required: true
+        Offset:
+            description: Paging offset
+            in: query
+            name: offset
+            schema:
+                type: integer
+            required: true
+        Limit:
+            description: Paging limit
+            in: query
+            name: limit
+            schema:
+                type: integer
+                maximum: 50
+            required: true
+        IsEqual:
+            description: Only equal or not equal results
+            in: query
+            name: is_equal
+            schema:
+                type: boolean
+
+    schemas:
+        TestingAggregation:
+            type: object
+            additionalProperties: false
+            properties:
+                equals_percent:
+                    type: integer
+                topic_accuracy_v1:
+                    type: integer
+                topic_accuracy_v2:
+                    type: integer
+                reply_percent_v1:
+                    type: integer
+                reply_percent_v2:
+                    type: integer
+                close_percent_v1:
+                    type: integer
+                close_percent_v2:
+                    type: integer
+                reply_or_close_v1:
+                    type: integer
+                reply_or_close_v2:
+                    type: integer
+                topic_details:
+                    type: string
+            required:
+              - equals_percent
+              - topic_accuracy_v1
+              - topic_accuracy_v2
+              - reply_percent_v1
+              - reply_percent_v2
+              - close_percent_v1
+              - close_percent_v2
+              - reply_or_close_v1
+              - reply_or_close_v2
+              - topic_details
+
+        ConfigurationTestResponse:
+            type: object
+            additionalProperties: false
+            properties:
+                test_records:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TestRecord'
+                total_records:
+                    type: integer
+            required:
+              - test_records
+
+        TestRecord:
+            type: object
+            additionalProperties: false
+            properties:
+                id:
+                    type: integer
+                task_id:
+                    type: string
+                request_text:
+                    type: string
+                is_equal:
+                    type: boolean
+                chat_id:
+                    type: string
+                diff:
+                    $ref: '#/components/schemas/Diff'
+            required:
+              - id
+              - task_id
+              - is_equal
+
+        Diff:
+            type: object
+            additionalProperties: false
+            properties:
+                release:
+                    type: string
+                draft:
+                    type: string

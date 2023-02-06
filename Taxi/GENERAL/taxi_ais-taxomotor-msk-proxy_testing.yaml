@@ -1,0 +1,281 @@
+annotations:
+  project: ais-taxomotor-msk-proxy
+  stagectl_epoch: 836
+  stagectl_vcs:
+    svn_branch: stage_controller/stable-148-1
+    svn_revision: 9255970
+    svn_tag: stage_controller/stable-148-1
+labels:
+  deploy_engine: env_controller
+  du_patchers_target_revision:
+    vipnet-proxy: 11
+  du_sidecar_target_revision:
+    vipnet-proxy:
+      logbrokerToolsLayer: 2739742779
+      podBin: 2882369236
+  notifications_last_timestamp: 1648443526919140000
+  tags: []
+meta:
+  account_id: abc:service:31902
+  acl:
+  - action: allow
+    permissions:
+    - read
+    - write
+    - create
+    - ssh_access
+    - root_ssh_access
+    - read_secrets
+    subjects:
+    - robot-drug-deploy
+  - action: allow
+    attributes:
+    - ''
+    - /spec
+    - /labels
+    - /annotations
+    - /meta/project_id
+    permissions:
+    - read
+    - write
+    - create
+    subjects:
+    - deploy:ais-taxomotor-msk-proxy.taxi_ais-taxomotor-msk-proxy_testing.MAINTAINER
+  - action: allow
+    attributes:
+    - /access/deploy/box/default
+    permissions:
+    - ssh_access
+    - root_ssh_access
+    subjects:
+    - deploy:ais-taxomotor-msk-proxy.taxi_ais-taxomotor-msk-proxy_testing.MAINTAINER
+  - action: allow
+    attributes:
+    - /access/deploy/box/default
+    permissions:
+    - ssh_access
+    subjects:
+    - deploy:ais-taxomotor-msk-proxy.taxi_ais-taxomotor-msk-proxy_testing.DEVELOPER
+  - action: allow
+    permissions:
+    - read
+    subjects:
+    - deploy:ais-taxomotor-msk-proxy.taxi_ais-taxomotor-msk-proxy_testing.DEVELOPER
+  - action: allow
+    attributes:
+    - /access/deploy/box/default
+    permissions:
+    - ssh_access
+    - root_ssh_access
+    subjects:
+    - deploy:ais-taxomotor-msk-proxy.taxi_ais-taxomotor-msk-proxy_testing.ROOT_DEVELOPER
+  - action: allow
+    permissions:
+    - read
+    subjects:
+    - deploy:ais-taxomotor-msk-proxy.taxi_ais-taxomotor-msk-proxy_testing.ROOT_DEVELOPER
+  id: taxi_ais-taxomotor-msk-proxy_testing
+  inherit_acl: true
+  project_id: ais-taxomotor-msk-proxy
+spec:
+  deploy_units:
+    vipnet-proxy:
+      endpoint_sets:
+      - port: 80
+      images_for_boxes:
+        vipnet-proxy:
+          name: taxi/ais-taxomotor-msk-proxy/testing
+          registry_host: registry.yandex.net
+          tag: 0.0.20220427153555
+      logbroker_tools_sandbox_info:
+        revision: 2739742779
+      multi_cluster_replica_set:
+        replica_set:
+          clusters:
+          - cluster: sas
+            spec:
+              constraints:
+                antiaffinity_constraints:
+                - key: rack
+                  max_pods: 1
+              replica_count: 1
+          - cluster: vla
+            spec:
+              constraints:
+                antiaffinity_constraints:
+                - key: rack
+                  max_pods: 1
+              replica_count: 1
+          deployment_strategy:
+            max_unavailable: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+              - id: taxi_ais-taxomotor-msk-proxy_testing-disk-0
+                labels:
+                  used_by_infra: true
+                quota_policy:
+                  bandwidth_guarantee: 15728640
+                  bandwidth_limit: 31457280
+                  capacity: 10737418240
+                storage_class: hdd
+              host_devices:
+              - mode: rw
+                path: /dev/net/tun
+              host_infra:
+                monitoring: {}
+              ip6_address_requests:
+              - enable_dns: true
+                ip4_address_pool_id: 1224:1315
+                network_id: _TAXI_AIS_TAXOMOTOR_MSK_PROXY_NETS_
+                vlan_id: backbone
+              - enable_dns: true
+                network_id: _TAXI_AIS_TAXOMOTOR_MSK_PROXY_NETS_
+                vlan_id: fastbone
+              pod_agent_payload:
+                spec:
+                  boxes:
+                  - id: vipnet-proxy
+                    rootfs: {}
+                    static_resources:
+                    - mount_point: /vipnet_keys
+                      resource_ref: vipnet_keys
+                    - mount_point: /deptrans_ftp
+                      resource_ref: deptrans_ftp
+                  mutable_workloads:
+                  - workload_ref: cron
+                  - workload_ref: nginx
+                  - workload_ref: vipnetclient
+                  resources:
+                    static_resources:
+                    - files:
+                        files:
+                        - file_name: SAS
+                          secret_data:
+                            alias: sec-01eezddmx4mgag45bc1xe00ba6:ver-01fazf4w0vnrtnvp0f7zqcg8nk
+                            decode_base64: true
+                            id: SAS
+                        - file_name: VLA
+                          secret_data:
+                            alias: sec-01eezddmx4mgag45bc1xe00ba6:ver-01fazf4w0vnrtnvp0f7zqcg8nk
+                            decode_base64: true
+                            id: VLA
+                      id: vipnet_keys
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                    - files:
+                        files:
+                        - file_name: DEPTRANS_FTP_IP
+                          secret_data:
+                            alias: sec-01fb5ggpx9t0bp64aphv76vb4p:ver-01fb5ggpxh3nd6vk107kcqe7t9
+                            id: ip
+                        - file_name: DEPTRANS_FTP_LOGIN
+                          secret_data:
+                            alias: sec-01fb5ggpx9t0bp64aphv76vb4p:ver-01fb5ggpxh3nd6vk107kcqe7t9
+                            id: login
+                        - file_name: DEPTRANS_FTP_PASSWORD
+                          secret_data:
+                            alias: sec-01fb5ggpx9t0bp64aphv76vb4p:ver-01fb5ggpxh3nd6vk107kcqe7t9
+                            id: password
+                      id: deptrans_ftp
+                      verification:
+                        check_period_ms: 180000
+                        checksum: 'EMPTY:'
+                  workloads:
+                  - box_ref: vipnet-proxy
+                    id: cron
+                    liveness_check:
+                      container:
+                        command_line: pgrep -F /var/run/crond.pid
+                        time_limit:
+                          initial_delay_ms: 10000
+                          max_restart_period_ms: 3000
+                          min_restart_period_ms: 3000
+                    start:
+                      command_line: /start_cron.sh
+                    transmit_logs: true
+                  - box_ref: vipnet-proxy
+                    id: nginx
+                    liveness_check:
+                      tcp_check:
+                        port: 80
+                        time_limit:
+                          initial_delay_ms: 10000
+                          max_restart_period_ms: 3000
+                          min_restart_period_ms: 3000
+                    readiness_check:
+                      http_get:
+                        any: true
+                        path: /ping
+                        port: 80
+                        time_limit:
+                          initial_delay_ms: 10000
+                          max_restart_period_ms: 3000
+                          min_restart_period_ms: 3000
+                    start:
+                      command_line: /start_nginx.sh
+                    transmit_logs: true
+                  - box_ref: vipnet-proxy
+                    env:
+                    - name: VIPNET_PASSWORD_SAS
+                      value:
+                        secret_env:
+                          alias: sec-01eezejw5v1m20x3g2vjq2rg0t:ver-01efmmh03r82dv84t5s77rej5z
+                          id: SAS
+                    - name: VIPNET_PASSWORD_VLA
+                      value:
+                        secret_env:
+                          alias: sec-01eezejw5v1m20x3g2vjq2rg0t:ver-01efmmh03r82dv84t5s77rej5z
+                          id: VLA
+                    id: vipnetclient
+                    liveness_check:
+                      container:
+                        command_line: pgrep -f 'vipnetclient --no-background'
+                        time_limit:
+                          initial_delay_ms: 10000
+                          max_restart_period_ms: 3000
+                          min_restart_period_ms: 3000
+                    start:
+                      command_line: /start_vipnetclient.sh
+                    transmit_logs: true
+              resource_requests:
+                memory_guarantee: 4294967296
+                memory_limit: 4294967296
+                network_bandwidth_guarantee: 10485760
+                vcpu_guarantee: 1000
+                vcpu_limit: 1000
+              secret_refs:
+                sec-01eezddmx4mgag45bc1xe00ba6:ver-01fazf4w0vnrtnvp0f7zqcg8nk:
+                  secret_id: sec-01eezddmx4mgag45bc1xe00ba6
+                  secret_version: ver-01fazf4w0vnrtnvp0f7zqcg8nk
+                sec-01eezejw5v1m20x3g2vjq2rg0t:ver-01efmmh03r82dv84t5s77rej5z:
+                  secret_id: sec-01eezejw5v1m20x3g2vjq2rg0t
+                  secret_version: ver-01efmmh03r82dv84t5s77rej5z
+                sec-01fb5ggpx9t0bp64aphv76vb4p:ver-01fb5ggpxh3nd6vk107kcqe7t9:
+                  secret_id: sec-01fb5ggpx9t0bp64aphv76vb4p
+                  secret_version: ver-01fb5ggpxh3nd6vk107kcqe7t9
+                tvm.secret.2034179:
+                  secret_id: sec-01fz94mj70a0bm4ktyd7txg10v
+                  secret_version: ver-01fz94mj7a4f51pqf8j4z479yw
+      network_defaults:
+        network_id: _TAXI_AIS_TAXOMOTOR_MSK_PROXY_NETS_
+      patchers_revision: 12
+      pod_agent_sandbox_info:
+        revision: 2882369236
+      tvm_config:
+        blackbox_environment: TestYaTeam
+        clients:
+          - destinations:
+              - app_id: 2032778
+            secret_selector:
+              alias: tvm.secret.2034179
+              id: client_secret
+            source:
+              app_id: 2034179
+        mode: enabled
+      tvm_sandbox_info:
+        revision: 2902315037
+  revision_info:
+    description: new version
+

@@ -1,0 +1,78 @@
+description: admin_confirmations for changing collections data
+settings:
+    collection: admin_confirmations
+    connection: misc
+    database: dbmisc
+indexes:
+  - key: apply_time
+    sparse: true
+  - key: change_doc_id
+    sparse: true
+    unique: true
+  - key: created
+  - key:
+      - name: created_by
+        type: ascending
+      - name: created
+        type: descending
+  - key: doc_type
+  - key: operation_type
+  - key: request_id
+    unique: true
+  - key:
+      - name: status
+        type: ascending
+      - name: created
+        type: descending
+  - key: updated
+wiki_info: |
+    #### admin_confirmations
+    *Назначение:* Коллекция для хранения заявок на изменение данных через админку.
+
+    *Структура документов:*
+    ```python
+    admin_confirmations = {
+        # Идентификатор записи
+        '_id: uuid.uuid4().hex,
+        # Автор, создавший заявку на изменение
+        'created_by': 'mvpetrov',
+        # Cписок комментариев к заявке (при апрувах)
+        'comment': ['Wrong price field'],
+        # Уникальный айди изменяемого документа
+        'change_doc_id': 'tariffs_astana'
+        # Тип документа на изменение
+        'doc_type': 'tariffs'
+        # Время создание записи
+        'created': datetime.datetime.utcnow(),
+        # Время последнего обновления
+        'updated': datetime.datetime.utcnow(),
+        # Список апрувов
+        'approvals': [
+            {
+                'login': 'estevan',                     # кто одобрил заявку
+                'created': datetime.datetime.utcnow(),  # когда одобрил заявку
+                'group' : 'manager',                    # группа
+            }
+        ],
+        # Статус заявки
+        'status': 'need_approval',
+        # логин, при ручном отклонении заявки
+        'rejected_by': 'mvpetrov',
+        # тип операции
+        'operation_type': 'create',
+        # время применения изменений (при проставлении статуса succeeded)
+        'apply_time': datetime.datetime,
+        # описание документа
+        'description': 'Подтверждение для выплат невыплаченных субсидий за январь',
+        # подтверждение через тикет TAXIRATE
+        'via_taxirate': true,
+        # Версия документа (чтобы не было гонок)
+        'version': 1,
+        # Новый информация о документе, которую хотят вставить в базу
+        'new_doc': {...}, # новый документ (структура зависит от изменяемой коллекции)
+        # Идентификатор запроса
+        'request_id': 'd2063bfb1f144149b0e3cd47bf6d73d9',
+        # Нужно ли ручное применение
+        'run_manually': True
+    }
+    ```

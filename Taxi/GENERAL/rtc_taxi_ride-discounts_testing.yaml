@@ -1,0 +1,17 @@
+---
+- service: taxi-ride-discounts-cache-age-testing
+  description: |-
+    Возраст кеша rules-match-cache (количество милисекунд с последнего обновления).
+    Обращаться к @berenda, @venimaster, @iantropov, @evgen-balu, @mikhailra.
+  alert_type: threshold
+  selectors: |
+    {'cluster'='testing_uservices', 'host'!='cluster|Man|Sas|Vla|Myt|Iva', 'project'='taxi',
+    'application'='ride-discounts', 'service'='uservices',
+    'sensor'='cache.any.time.time-from-last-successful-start-ms',
+    'cache_name'='rules-match-cache'}
+  period: 60
+  predicateRules:
+  - timeAggregation: Last
+    comparison: GTE
+    threshold: 180000
+    targetStatus: ALARM

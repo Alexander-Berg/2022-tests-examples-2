@@ -1,0 +1,44 @@
+INSERT INTO pro_profiles.profiles
+(
+  park_id,
+  contractor_profile_id,
+  first_name,
+  last_name,
+  profession,
+  platform_consumer,
+  phone_pd_id,
+  passport_uid,
+  idempotency_token,
+  external_id,
+  selfemployed,
+  status
+)
+VALUES
+(
+  'park_id_1',
+  'driver_id',
+  '',
+  '',
+  'scooter',
+  'consumer',
+  'phone_pd_id',
+  NULL,
+  'idempotency_token_1',
+  'external_id',
+  TRUE,
+  'processing'
+),
+(
+  'park_id_2',
+  'driver_id',
+  '',
+  '',
+  'moto',
+  'consumer',
+  'phone_pd_id',
+  NULL,
+  'idempotency_token_2',
+  'external_id',
+  TRUE,
+  'draft'
+);

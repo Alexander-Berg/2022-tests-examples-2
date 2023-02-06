@@ -1,0 +1,67 @@
+type: apitest
+version: 0
+service: taxi_bank_userinfo
+
+tests:
+  - name: phone_exists
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_phone_id
+        body:
+            phone: "+79111111111"
+    response:
+        status: 200
+        body:
+            phone_id: "024e7db5-9bd6-4f45-a1cd-2a442e15bdf9"
+  - name: empty_body
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_phone_id
+    response:
+        status: 400
+  - name: empty_phone
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_phone_id
+        body:
+            phone: ""
+    response:
+        status: 400
+  - name: invalid_request
+    mockserver:
+      - url: /bank-core-audit-log-http-collector/v1/message
+        request:
+            method: POST
+        response:
+            status: 204
+            body: {}
+    request:
+        method: POST
+        path: /userinfo-internal/v1/get_phone_id
+        body:
+            phone: 8999999
+    response:
+        status: 400
+
+

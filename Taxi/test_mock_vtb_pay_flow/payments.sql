@@ -1,0 +1,44 @@
+INSERT INTO maas.payments
+    (
+        payment_id,
+        idempotency_token,
+        maas_user_id,
+        status,
+        url
+    )
+VALUES
+(
+    'initiated',
+    'idmp_initiated',
+    'maas_user_id',
+    'initiated',
+    'https://m.taxi.taxi.tst.yandex.ru/webview/maas-mock?source=pay&payment_id=initiated'
+),
+(
+    'success',
+    'idmp_success',
+    'maas_user_id',
+    'success',
+    'https://m.taxi.taxi.tst.yandex.ru/webview/maas-mock?source=pay&payment_id=success'
+),
+(
+    'canceled',
+    'idmp_canceled',
+    'maas_user_id',
+    'canceled',
+    'https://m.taxi.taxi.tst.yandex.ru/webview/maas-mock?source=pay&payment_id=canceled'
+),
+(
+    'failed',
+    'idmp_failed',
+    'maas_user_id',
+    'failed',
+    'https://m.taxi.taxi.tst.yandex.ru/webview/maas-mock?source=pay&payment_id=failed'
+),
+(
+    'payment_id_initiated',
+    'payment_id_initiated_initiated',
+    'maas_user_id',
+    'initiated',
+    'https://m.taxi.taxi.tst.yandex.ru/webview/maas-mock?source=pay&payment_id=initiated'
+);

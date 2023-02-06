@@ -1,0 +1,61 @@
+default: []
+description: |
+    Настройки отказов для сервиса
+tags: []
+schema:
+    type: array
+    items:
+        type: object
+        properties:
+            enabled:
+                type: boolean
+                description: Включен ли данный сценарий
+            description:
+                type: string
+                description: Описание
+            start_hour:
+                type: integer
+                minimum: 0
+                maximum: 23
+                description: Начало интервала где сценарий включен (по МСК +0300)
+            end_hour:
+                type: integer
+                minimum: 0
+                maximum: 23
+                description: Конец интервала где сценарий включен (по МСК +0300)
+            only_weekdays:
+                type: boolean
+                description: >
+                    Если true - то в субботу и воскресенье не активируем сценарий
+            type:
+                type: string
+                description: Тип отказа
+                enum:
+                  - postgres_unavailable
+            times_per_day:
+                type: integer
+                description: Сколько интервалов в день генерировать
+            min_duration_seconds:
+                type: integer
+                minimum: 0
+                description: Минимальная длина интервала
+            max_duration_seconds:
+                type: integer
+                minimum: 0
+                description: Максимальная длина интервала
+            metric_name:
+                type: string
+                description: >
+                    Название метрики в Соломоне, куда будут складываться
+                    события об активации сценария
+                example: integration_auth_fail_scenario_active
+        required:
+          - enabled
+          - start_hour
+          - end_hour
+          - only_weekdays
+          - type
+          - times_per_day
+          - min_duration_seconds
+          - max_duration_seconds
+          - metric_name

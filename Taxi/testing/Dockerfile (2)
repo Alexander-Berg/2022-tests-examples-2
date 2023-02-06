@@ -1,0 +1,17 @@
+FROM registry.yandex.net/taxi/rtc-baseimage/testing
+
+RUN rm /etc/supervisor/conf.d/nginx.conf
+
+RUN mkdir /work
+RUN mkdir /work/.postgresql
+
+RUN mkdir /var/log/yandex/taxi-logistic-dispatcher
+RUN chown -R www-data:www-data /var/log/yandex/taxi-logistic-dispatcher
+
+ADD https://crls.yandex.net/allCAs.pem /work/.postgresql/allCAs.pem
+
+COPY supervisord.conf /etc/supervisor/conf.d/yandex-taxi-logistic-dispatcher.conf
+COPY logrotate.conf /etc/logrotate.d/yandex-taxi-logistic-dispatcher
+RUN chmod 644 /etc/logrotate.d/yandex-taxi-logistic-dispatcher
+
+EXPOSE 8080

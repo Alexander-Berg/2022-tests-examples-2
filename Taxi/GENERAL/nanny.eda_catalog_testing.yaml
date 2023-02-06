@@ -1,0 +1,266 @@
+group:
+  type: rtc
+  name: eda_catalog_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      DefaultLimits: { Warn: 5, Crit: 10 }
+      Blacklist:
+        - Or:
+          - StartsWith: { request_url: "/metrics" }
+          - StartsWith: { request_url: "/api/v1/health" }
+          - StartsWith: { request_url: "/ping" }
+
+  catalog.eda.tst.yandex.net:
+    Equals: { http_host: "catalog.eda.tst.yandex.net" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+  # агрегат запросов без метрик и healthcheck-ов
+  catalog_eda_yandex_net_api:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Not: [ StartsWith: { request_url: '/metrics' } ]
+      - Not: [ StartsWith: { request_url: '/ping' } ]
+      - Not: [ StartsWith: { request_url: '/api/v1/ping' } ]
+      - Not: [ StartsWith: { request_url: '/api/v2/ping' } ]
+      - Not: [ StartsWith: { request_url: '/api/v1/health' } ]
+      - Not: [ StartsWith: { request_url: '/api/v2/health' } ]
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_wizard:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Not: [ Contains: { request_url: "filters" } ]
+      - Or:
+        - StartsWith: { request_url: "/api/v1/wizard" }
+        - StartsWith: { request_url: "/api/v2/wizard" }
+        - StartsWith: { request_url: "/api/v1/catalog/wizard" }
+        - StartsWith: { request_url: "/api/v2/catalog/wizard" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_wizard-filters:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v1/wizard-filters" }
+        - StartsWith: { request_url: "/api/v2/wizard-filters" }
+        - StartsWith: { request_url: "/api/v1/catalog/wizard/filters" }
+        - StartsWith: { request_url: "/api/v2/catalog/wizard/filters" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_availability:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v1/availability" }
+        - StartsWith: { request_url: "/api/v2/availability" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_shortlist:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v1/shortlist" }
+        - StartsWith: { request_url: "/api/v2/shortlist" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_catalog-carousel:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v1/catalog-carousel" }
+        - StartsWith: { request_url: "/api/v1/catalog/carousel" }
+        - StartsWith: { request_url: "/api/v2/catalog-carousel" }
+        - StartsWith: { request_url: "/api/v2/catalog/carousel" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_v2_catalog_list:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - Equals: { request_url: "/api/v2/catalog/list" }
+        - Equals: { request_url: "/api/v2/catalog/list" }
+        - StartsWith: { request_url: "/api/v2/catalog/list?" }
+        - StartsWith: { request_url: "/api/v2/catalog/list?" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_catalog-popular:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v2/catalog-popular" }
+        - StartsWith: { request_url: "/api/v2/catalog/popular" }
+        - StartsWith: { request_url: "/api/v1/catalog-popular" }
+        - StartsWith: { request_url: "/api/v1/catalog/popular" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_catalog-polygons:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v1/catalog-polygons" }
+        - StartsWith: { request_url: "/api/v2/catalog-polygons" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_catalog-stores:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - Or:
+        - StartsWith: { request_url: "/api/v1/catalog-stores" }
+        - StartsWith: { request_url: "/api/v2/catalog-stores" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_v1_delivery_zones_resolve:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - StartsWith: { request_url: "/api/v1/delivery-zones/resolve" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_ping:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - StartsWith: { request_url: "/ping" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_v1_internal_banner_places:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - StartsWith: { request_url: "/api/v1/_internal/banner-places" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_v1_collections_search:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - StartsWith: { request_url: "/api/v1/collections/search" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_internal_catalog_for_layout:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - StartsWith: { request_url: "/internal/v1/catalog-for-layout" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429
+  catalog_eda_yandex_net_api_v1_brands_place_search:
+    And:
+      - Equals: { http_host: "catalog.eda.tst.yandex.net" }
+      - StartsWith: { request_url: "/eats/v1/catalog/v1/brands/place-search" }
+    Options:
+      CustomHttp:
+        - 401
+        - 403
+        - 404
+        - 406
+        - 409
+        - 410
+        - 429

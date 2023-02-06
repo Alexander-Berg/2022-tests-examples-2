@@ -1,0 +1,10 @@
+DO $$
+BEGIN
+IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname='taxiro') THEN
+    GRANT USAGE ON SCHEMA ds TO taxiro;
+    GRANT SELECT ON ALL TABLES IN SCHEMA ds TO taxiro;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA ds GRANT SELECT ON TABLES TO taxiro;
+    GRANT SELECT ON TABLE public.schema_version TO taxiro;
+END IF;
+END
+$$;

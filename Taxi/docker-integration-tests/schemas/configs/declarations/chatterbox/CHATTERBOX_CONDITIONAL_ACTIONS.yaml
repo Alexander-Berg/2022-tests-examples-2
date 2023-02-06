@@ -1,0 +1,173 @@
+default:
+  - enabled: false
+    action: export
+    action_tag: task_exported
+    conditions:
+        "meta_info/some_field":
+            "#in":
+              - some_value
+              - other_value
+        tags: some_tag
+  - enabled: false
+    action: close
+    action_tag: task_closed
+    conditions:
+        created:
+            "#lte": "timestring:2018-05-07T00:00:00+0300"
+            "#gte": "since:1d2h3m4s"
+    macro_id: 123
+  - enabled: false
+    action: dismiss
+    action_tag: task_dismissed
+    conditions:
+        "#or":
+          - status: some_status
+          - chat_type: some_chat_type
+  - enabled: false
+    action: forward
+    action_tag: task_forwarded
+    conditions:
+        line: first
+        tags: forward_to_second
+    line: second
+
+description: Правила для выборочных действий над тасками крутилки
+tags:
+  - notfallback
+schema:
+    type: array
+    items:
+        oneOf:
+          - $ref: "#/definitions/CloseAction"
+          - $ref: "#/definitions/DismissAction"
+          - $ref: "#/definitions/ForwardAction"
+          - $ref: "#/definitions/ExportAction"
+
+    definitions:
+        CloseAction:
+            type: object
+            additionalProperties: false
+            required:
+              - action
+              - action_tag
+              - enabled
+              - macro_id
+              - conditions
+            properties:
+                action:
+                    type: string
+                    enum:
+                      - close
+                      - communicate
+                action_tag:
+                    type: string
+                enabled:
+                    type: boolean
+                macro_id:
+                    type: integer
+                    minumum: 0
+                conditions:
+                    $ref: "#/definitions/ActionConditions"
+
+        DismissAction:
+            type: object
+            additionalProperties: false
+            required:
+              - action
+              - action_tag
+              - enabled
+              - conditions
+            properties:
+                action:
+                    type: string
+                    enum:
+                      - dismiss
+                action_tag:
+                    type: string
+                enabled:
+                    type: boolean
+                conditions:
+                    $ref: "#/definitions/ActionConditions"
+
+        ForwardAction:
+            type: object
+            additionalProperties: false
+            required:
+              - action
+              - action_tag
+              - enabled
+              - conditions
+              - line
+            properties:
+                action:
+                    type: string
+                    enum:
+                      - forward
+                action_tag:
+                    type: string
+                enabled:
+                    type: boolean
+                line:
+                    type: string
+                conditions:
+                    $ref: "#/definitions/ActionConditions"
+
+        ExportAction:
+            type: object
+            additionalProperties: false
+            required:
+              - action
+              - action_tag
+              - enabled
+              - conditions
+            properties:
+                action:
+                    type: string
+                    enum:
+                      - export
+                action_tag:
+                    type: string
+                enabled:
+                    type: boolean
+                conditions:
+                    $ref: "#/definitions/ActionConditions"
+
+        ActionConditions:
+            type: object
+            properties:
+                external_id:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                type:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                chat_type:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                line:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                status:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                tags:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                created:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+                updated:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+                "#or":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ActionConditions"
+
+                "#and":
+                    type: array
+                    items:
+                        $ref: "#/definitions/ActionConditions"
+
+                "#not":
+                    $ref: "#/definitions/ActionConditions"
+
+            patternProperties:
+                ^meta_info\/\w+$:
+                    $ref: 'common/chatterbox_mongo_conditions.yaml#/ValueCondition'
+
+            minProperties: 1
+            additionalProperties: false

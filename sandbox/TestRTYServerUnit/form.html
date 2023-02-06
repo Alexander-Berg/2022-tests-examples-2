@@ -1,0 +1,83 @@
+{% extends "tasks/view.html" %}
+
+ {% block head_hook %}
+    <script type="text/javascript" src="/media/highcharts/3.0.10/js/highcharts.js"></script>
+<script type='text/javascript'>
+
+    $(document).ready(function () {
+
+        var pdata_str = document.getElementById('plots_data').innerHTML;
+        try{
+            var pdata = JSON.parse(pdata_str);
+        }catch(err){
+            return;
+        }
+        var plots_elem = document.getElementById('plots');
+
+        for (var i=0; i<pdata.length; ++i){
+
+            try{
+                var plot_name = pdata[i]['name'];
+                var plot_data = pdata[i]['data'];
+                var x_name = 'x';
+                var y_name = 'values';
+                if (pdata[i].hasOwnProperty('x')){
+                    x_name = pdata[i]['x'];
+                }
+                if (pdata[i].hasOwnProperty('y')){
+                    y_name = pdata[i]['y'];
+                }
+            }catch(err){
+                continue;
+            }
+
+        var plot1 = document.createElement("div");
+        plot1.id = 'plot' + i.toString();
+        plots_elem.appendChild(plot1);
+
+        $('#'+plot1.id).highcharts({
+            title: {
+                text: plot_name,
+                x: -20 //center
+            },
+            xAxis: {
+                title: {
+                    text: x_name
+                }
+            },
+            yAxis: {
+                title: {
+                    text: y_name
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            series : [{
+                name: plot_name,
+                data: plot_data
+            }]
+
+        });
+}
+     });
+
+</script>
+
+{% endblock %}
+
+{% block additional %}
+    <p>Start time: {{task.ctx['start_rty_tests_time_stamp']}}<p>
+    <p>Finish time: {{task.ctx['finish_rty_tests_time_stamp']}}<p>
+    <p>Duration: {{task.ctx['rty_tests_work_time']}}<p>
+    <p>Duration, seconds: {{task.ctx['rty_tests_work_time_seconds']}}<p>
+
+    <div id='plots'>
+        <p>Plots may be here:</p>
+    </div>
+    <p>plots data</p>
+    <div id='plots_data'>{{ task.ctx.get('plots_data', '[]') }}</div>
+
+{% endblock %}

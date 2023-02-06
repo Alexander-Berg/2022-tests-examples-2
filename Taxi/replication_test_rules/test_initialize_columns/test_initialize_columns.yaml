@@ -1,0 +1,37 @@
+name: test_initialize_columns
+queue_data:
+    db_cluster: replication_queue_mdb_0
+replication_type: queue
+source:
+    type: mongo
+    collection_name: order_proc
+    replicate_by: updated
+destinations:
+  - test_initialize_columns_orders_history_order_proc:
+        type: yt
+        mapper: orders_history_proc
+        target:
+            path: test/struct_orders_history
+            cluster_groups:
+              - runtime
+            rebuildable: false
+    test_initialize_columns_bson_raw_rebuild_data:
+        type: yt
+        mapper: $bson
+        target:
+            path: test/bson_order_proc
+            cluster_groups:
+              - map_reduce
+            raw_rebuild_data: true
+    test_initialize_columns_partitioning_bson:
+        type: yt
+        mapper: $bson
+        target:
+            bson_settings:
+                partitioning:
+                    rotate_policy: eternal
+                    type: by_months
+                    field_name: doc
+            path: partitioning/bson_order_proc
+            cluster_groups:
+              - map_reduce

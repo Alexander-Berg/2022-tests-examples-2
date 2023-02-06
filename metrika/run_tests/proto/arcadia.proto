@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+import "ci/tasklet/common/proto/service.proto";
+import "tasklet/api/tasklet.proto";
+import "tasklet/services/yav/proto/yav.proto";
+import "tasklet/services/ci/proto/ci.proto";
+
+package metrika.tasklets.build.tarball;
+
+message Context {
+    option (tasklet.context) = true;
+    option (tasklet.py_adapter) = "tasklet.domain.adapter:Context";
+    ci.CiService ci = 1 [(tasklet.inject) = true];
+    yav_service.YavService yav = 2 [(tasklet.inject) = true];
+}
+
+message Sandbox {
+    string owner = 1;
+}
+
+message Tests {
+    repeated string targets = 1;
+}
+
+message Input {
+    ci.TaskletContext context = 1;
+    Sandbox sandbox = 2;
+    Tests tests = 3;
+}
+
+message Result {
+    bool is_success = 1;
+}
+
+message Output {
+    Result result = 1;
+}
+
+message RunArcadiaTests {
+    option (tasklet.tasklet_interface) = true;
+
+    Context ctx = 1;
+    Input input = 2 [(tasklet.input) = true];
+    Output output = 3 [(tasklet.output) = true];
+}

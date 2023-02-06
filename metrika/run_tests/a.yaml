@@ -1,0 +1,53 @@
+service: conv
+title: Тасклеты для прогона тестов
+ci:
+  release-title-source: flow
+  secret: sec-01egv52zd4fcdtmtzy8fnsp7h4
+  runtime:
+    sandbox-owner: METRIKA_CI
+
+  releases:
+    tasklets:
+      title: Тасклеты для прогона тестов
+      flow: tasklet-release-stable
+      stages:
+        build:
+          title: Build and Upload
+        stable:
+          title: Update CI Registry (stable)
+
+  flows:
+    tasklet-release-stable:
+      title: Релиз тасклетов в stable
+      jobs:
+        build:
+          title: Сборка и загрузка в Sandbox
+          task: projects/metrika/build_tasklet_binary
+          stage: build
+          input:
+            sandbox:
+              owner: METRIKA_CI
+              login: robot-metrika-test
+              ssh_key: METRIKA_CI:robot-metrika-test-ssh
+            tasklet:
+              target: metrika/tasklets/run_tests
+        stable:
+          title: Обновление реестра тасклетов
+          task: projects/metrika/update_ci_registry
+          stage: stable
+          needs:
+            - build
+          input:
+            sandbox:
+              owner: METRIKA_CI
+              login: robot-metrika-test
+              ssh_key: METRIKA_CI:robot-metrika-test-ssh
+              arcanum_token: METRIKA_CI:robot-metrika-test-arcanum-token
+            registry:
+              ci_tasklets:
+                - projects/metrika/run_arcadia_tests
+            wait:
+              is_wait: true
+              tick: 30
+              max_tick: 180
+              max_wait: 1800

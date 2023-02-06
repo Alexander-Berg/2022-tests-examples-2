@@ -1,0 +1,86 @@
+mtmobproxy_access:
+  my_dc: TST
+  cache_dir: !env CACHE_DIR
+  dangerous_file_size: 10485760000 # 10gb
+  lines_bundle_min_size: 20000
+  lines_bundle_timeout: 3
+  insertion_timeout: 600
+  skip_dangerous_file_first_time: false
+  sender:
+      base_dir: !env SENDER_BASE_DIR
+      tmp_dir: !env SENDER_TMP_DIR
+      max_chunk_size: 100MB
+      max_prepare_time: 2s
+  solomon:
+      base_dir: !env SOLOMON_BASE_DIR
+      tmp_dir: !env SOLOMON_TMP_DIR
+  fields:
+  - ip
+  - vhost
+  - date_time
+  - request
+  - code
+  - request_length
+  - full_request_time
+  - upstream_response_time
+  - ssl_handshake_time
+  log_file: !env LOG_PATH
+  number_of_workers: 1
+  parser: MtmobproxyParser
+  skip_urls:
+  - /check
+  - /ping
+  - /internal_ping/
+  special_base_paths:
+  - /report
+  - /location
+  services_conditions:
+    redirect:
+      _in:
+        - redirect
+    report:
+      startswith:
+        - report
+      equal:
+        - analytics.mobile.yandex.net
+    rosenberg:
+      startswith:
+        - rosenberg
+  clickhouse:
+    connection_timeout: 1
+    send_timeout: 30
+    user: default
+    password:
+    table: logs_weekly
+    database: mtmobproxy
+    hosts:
+      - !env RECIPE_CLICKHOUSE_HOST
+    port: !env RECIPE_CLICKHOUSE_HTTP_PORT
+    columns:
+      - ServerName
+      - DC
+      - RequestDate
+      - RequestDateTime
+      - ClientIP6
+      - VirtualHost
+      - Path
+      - BasePath
+      - Params.Keys
+      - Params.Values
+      - Code
+      - RequestLengthBytes
+      - FullRequestTime
+      - UpstreamResponseTime
+      - IsUpstreamRequest
+      - SSLHanshakeTime
+      - IsKeepalive
+      - StringHash
+      - HTTPMethod
+#  solomon_settings:
+#    cluster: mtmobproxy
+#    project: metrika
+#    service: logpusher_push
+#    self_client_id: 2001624
+#    self_secret:
+#        auth_type: oauth
+#        version: ver-01ckeacbfq7a2avg1grdp9qww7

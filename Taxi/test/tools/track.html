@@ -1,0 +1,161 @@
+<!doctype>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script src="track.js" type="text/javascript"></script>
+    <script src="areas.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        ymaps.ready(function () {
+            var map;
+            var status_to_message = {
+                1: "busy",
+                2: "free",
+                3: "transporting"
+            };
+            var status_to_color = {
+                'driving': "#0000ff", // driving
+                'waiting': "#ff0000", // waiting,
+                'transporting': "#00ff00" // transporting
+            };
+            var avg_pos = [0, 0];
+            var polylines = [];
+            var polyline = {};
+            for (var i = 0; i < TRACK.length; i++) {
+                var record = TRACK[i];
+                var point = [record.lat, record.lon];
+
+                if (i === 0 || record.taxi_status !== polyline.taxi_status) {
+                    if (i !== 0) {
+                        polylines.push({
+                            taxi_status: -1,
+                            points: [polyline.points[polyline.points.length - 1], point]
+                        });
+                    }
+                    polyline = {
+                        taxi_status: record.taxi_status,
+                        points: []
+                    };
+                    polylines.push(polyline)
+                }
+
+                polyline.points.push(point);
+
+                avg_pos[0] += record.lat;
+                avg_pos[1] += record.lon;
+            }
+
+            avg_pos[0] /= TRACK.length;
+            avg_pos[1] /= TRACK.length;
+
+
+            map = new ymaps.Map("map", {
+                center: avg_pos,
+                zoom: 14
+            });
+
+
+            for (var i = 0; i < polylines.length; i++) {
+                var polyline = polylines[i];
+                console.log(polyline);
+                map.geoObjects.add(new ymaps.Polyline(
+                    polyline.points,
+                    {
+                        // Описываем свойства геообъекта.
+                        // Содержимое балуна.
+                        balloonContent: "Ломаная линия"
+                    }, {
+                        // Задаем опции геообъекта.
+                        // Отключаем кнопку закрытия балуна.
+                        balloonCloseButton: false,
+                        // Цвет линии.
+                        strokeColor: status_to_color[polyline.taxi_status] || "#888888",
+                        // Ширина линии.
+                        strokeWidth: 4,
+                        // Коэффициент прозрачности.
+                        strokeOpacity: 0.9
+                    }));
+            }
+
+            var convertedAreas = [];
+
+            for (var i = 0; i < AREAS.length; i++) {
+                var area = [];
+                for (var j = 0; j < AREAS[i].geometry.shell.length; j++) {
+                    var lon = AREAS[i].geometry.shell[j][0];
+                    var lat = AREAS[i].geometry.shell[j][1];
+
+                    area.push([lat, lon])
+                }
+
+                convertedAreas.push(area)
+            }
+
+            for (var i = 0; i < convertedAreas.length; i++) {
+                geoArea = new ymaps.Polygon([convertedAreas[i]], {
+                    //Свойства
+                    hintContent: AREAS[i].name
+                }, {
+                    // Опции.
+                    // Цвет заливки (красный)
+                    fillColor: '#FF0000',
+                    // Цвет границ (синий)
+                    strokeColor: '#FFFFFF',
+                    // Прозрачность (полупрозрачная заливка)
+                    opacity: 0.2,
+                    // Ширина линии
+                    strokeWidth: 1,
+                    // Стиль линии
+                    strokeStyle: 'shortdash'
+                });
+
+                map.geoObjects.add(geoArea);
+            }
+
+            var distance = 0;
+            for (var i = 0; i < TRACK.length; i++) {
+                var record = TRACK[i];
+                var point = [record.lat, record.lon];
+
+                if (i > 0) {
+                    var prevRecord = TRACK[i - 1];
+                    var prevPoint = [prevRecord.lat, prevRecord.lon];
+                    distance += ymaps.coordSystem.geo.getDistance(point, prevPoint)
+                }
+
+                var balloon = ['<strong>Точка</strong>',
+                    '<div>',
+                    'Широта: ', record.lat,
+                    'Долгота: ', record.lon, '</div>',
+                    '<div>',
+                    'Время по логу: ', record.log_datetime,
+                    '</div>',
+                    '<div>',
+                    'Время GPS: ', record.gps_datetime,
+                    '</div>',
+                    '<div>',
+                    'Километраж: ', parseInt(distance), ' м',
+                    '</div>',
+                    '<div>',
+                    'Taxi status: ', status_to_message[record.taxi_status] ||
+                    record.taxi_status,
+                    '</div>',
+                    '<div>',
+                    'HTTP status: ', record.http_status,
+                    '</div>'
+                ].join('\n');
+
+                map.geoObjects.add(
+                    new ymaps.Circle([point, 3], {
+                        balloonContent: balloon
+                    }, {
+                        geodesic: true
+                    }));
+            }
+        })
+    </script>
+</head>
+<body>
+<div id="map" style="width: 100%; height: 100%"></div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+default:
+    consumer:
+        __default__:
+            duration: 2592000
+            first_limit: 1
+            user_limit: 1
+            valid: true
+    count: 5
+    creator:
+        max_per_user: 1
+        min_card_orders: 1
+        promocodes:
+            __default__:
+                currency: RUB
+                valid: true
+                value: 150
+            Москва:
+                currency: RUB
+                valid: true
+                value: 300
+            Санкт-Петербург:
+                currency: RUB
+                valid: true
+                value: 300
+    enabled: true
+description: Настройки реферральной системы
+tags: []
+validators:
+  - $dictionary:
+        extra_ok: false
+        missing_ok: false
+        scheme:
+            enabled:
+              - $boolean
+            count:
+              - $integer
+              - $gt: 0
+            creator:
+              - $dictionary:
+                    missing_ok: false
+                    extra_ok: false
+                    scheme:
+                        max_per_user:
+                          - $integer
+                          - $gt: 0
+                        min_card_orders:
+                          - $integer
+                          - $gte: 0
+                        promocodes:
+                          - $default_dict:
+                                value_validators:
+                                  - $dictionary:
+                                        extra_ok: false
+                                        missing_ok: false
+                                        optional_keys:
+                                          - percent
+                                          - percent_limit_per_trip
+                                          - ride_count
+                                        scheme:
+                                            valid:
+                                              - $boolean
+                                            value:
+                                              - $integer
+                                              - $gt: 0
+                                            currency:
+                                              - $string
+                                            percent:
+                                              - $number
+                                              - $gt: 0
+                                              - $lte: 100
+                                            percent_limit_per_trip:
+                                              - $boolean
+                                            ride_count:
+                                              - $integer
+                                              - $gt: 0
+            consumer:
+              - $default_dict:
+                    value_validators:
+                      - $dictionary:
+                            extra_ok: false
+                            missing_ok: false
+                            scheme:
+                                valid:
+                                  - $boolean
+                                duration:
+                                  - $integer
+                                  - $gt: 86400
+                                user_limit:
+                                  - $integer
+                                  - $gt: 0
+                                first_limit:
+                                  - $integer
+                                  - $gt: 0

@@ -1,0 +1,243 @@
+INSERT INTO hiring_partners_app.organizations(
+    id,
+    name,
+    juridical_status,
+    external_id
+) VALUES (
+    '0000',
+    'Массажный салон Офелия',
+    'ИП',
+    NULL
+),
+(
+    '0001',
+    'Big Corporation, LLC',
+    'LLC',
+    NULL
+),
+(
+    '0002',
+    'Taxi Mystery',
+    'LLC',
+    'TEST_TAXIPARK_ID'
+);
+
+
+INSERT INTO hiring_partners_app.teams(
+   name
+) VALUES (
+  'Team A'
+),
+(
+  'Team Fortress'
+);
+
+
+INSERT INTO hiring_partners_app.permissions_groups(
+    id,
+    definition,
+    allowed_vacancies,
+    organization_id,
+    is_default_for_organization
+) VALUES (
+    1000,
+    '{"allowed_vacancies": ["driver"]}'::jsonb,
+    '{"driver"}',
+    '0001',
+    TRUE
+),
+(
+    1001,
+    '{"allowed_vacancies": ["driver"]}'::jsonb,
+    '{"driver"}',
+    NULL,
+    FALSE
+),
+(
+    1002,
+    '{"allowed_vacancies": ["driver"]}'::jsonb,
+    '{"driver"}',
+    '0001',
+    FALSE
+);
+
+
+INSERT INTO hiring_partners_app.users(
+    personal_yandex_login_id,
+    role,
+    status,
+    first_name,
+    middle_name,
+    last_name,
+    personal_telegram_login_id,
+    personal_phone_id,
+    updated_by,
+    created_at,
+    updated_at,
+    juridical_personality,
+    cities,
+    language_default,
+    language_spoken,
+    permissions_group_id,
+    organization_id,
+    meta_role
+) VALUES (
+    'YANDEXLOGIN_USER_V1',
+    'user',
+    'active',
+    'Simple',
+    'Office',
+    'Guy',
+    'tg_simple_id',
+    'NBOSS_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1000,
+    '0001',
+    'agent'
+),
+(
+    'YANDEXLOGIN_USER_V2',
+    'user',
+    'active',
+    'Simple',
+    'Office',
+    'Taxipark',
+    'tg_taxipark_id',
+    'TAXIPARK_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1000,
+    '0001',
+    'agent'
+),
+(
+    'YANDEXLOGIN_USER_FROM_ANOTHER_ORG',
+    'user',
+    'active',
+    'Simple',
+    'Office',
+    'Taxipark',
+    'tg_taxipark_id',
+    'TAXIPARK_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1000,
+    '0002',
+    'agent'
+),
+(
+    'YANDEXLOGIN_USER_NOT_ACTIVE',
+    'user',
+    'deactivated',
+    'Simple',
+    'Office',
+    'Taxipark',
+    'tg_taxipark_id',
+    'TAXIPARK_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1000,
+    '0001',
+    'agent'
+),
+(
+    'YANDEXLOGIN_EXISTING',
+    'user',
+    'deactivated',
+    'Simple',
+    'Office',
+    'Taxipark',
+    'tg_taxipark_id',
+    'TAXIPARK_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1000,
+    '0001',
+    'agent'
+),
+(
+    'YANDEXLOGIN_SUPERUSER_V1',
+    'superuser',
+    'active',
+    'Super',
+    'Office',
+    'Guy',
+    'tg_simple_id',
+    'NBOSS_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1002,
+    '0001',
+    'agent'
+),
+(
+    'YANDEXLOGIN_SUPERUSER_V2',
+    'superuser',
+    'active',
+    'Super',
+    'Office',
+    'Girl',
+    'tg_simple_id',
+    'NBOSS_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2030-08-10T13:00:00'::TIMESTAMP,
+    '2030-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1002,
+    '0001',
+    'agent'
+),
+(
+    'YANDEXLOGIN_SUPERUSER_NOT_ACTIVE',
+    'superuser',
+    'deactivated',
+    'Super',
+    'Office',
+    'Bro',
+    'tg_simple_id',
+    'NBOSS_PERSONAL_PHONE_ID',
+    'YANDEXLOGIN_ADMIN',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    'physical_person',
+    ARRAY[]::TEXT[],
+    'ru',
+    ARRAY['ru'],
+    1002,
+    '0001',
+    'agent'
+);

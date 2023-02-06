@@ -1,0 +1,58 @@
+description: >
+    Параметры сбора статистики неудачных запросов к хостам в backend (py2).
+    Подробнее: https://wiki.yandex-team.ru/taxi/backend/bad-request-statistics/
+tags: []
+schema:
+    type: array
+    items:
+        $ref: '#/definitions/StatsParams'
+
+    definitions:
+        StatsParams:
+            desctiption:
+            type: object
+            additionalProperties: false
+            required:
+              - hostname
+              - enabled
+              - sample_size
+              - request_fails
+              - fail_codes
+            properties:
+                hostname:
+                    description: Собирать статистику по запросам к этому хосту
+                    type: string
+                enabled:
+                    description: Включение сбора статистики по запросам к хосту
+                    type: boolean
+                sample_size:
+                    description: Количество последних запросов в статистической выборке
+                    type: integer
+                    minimum: 1
+                request_fails:
+                    description: Учитывать в статистике неудачные попытки запроса
+                    type: boolean
+                fail_codes:
+                    description: Статус-коды, интерпретируемые как неудача
+                    type: array
+                    items:
+                      - description: Маска кода, например '401', '40.' '5..'
+                        type: string
+                        pattern: ^\d(.|\d){2}$
+
+default:
+  - hostname: driver-dispatcher.taxi.yandex.net
+    enabled: true
+    sample_size: 30
+    request_fails: true
+    fail_codes:
+      - '400'
+      - '401'
+      - '403'
+      - '405'
+      - '407'
+      - '408'
+      - '41.'
+      - '42.'
+      - '43.'
+      - '5..'

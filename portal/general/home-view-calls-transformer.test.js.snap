@@ -1,0 +1,337 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`transformHomeViewCalls should transform home.view call expressions 1`] = `
+Object {
+  "deps": Array [
+    "StreamShare__imgDefault",
+    "StreamShare__libText",
+    "StreamShare__vodText",
+    "StreamShare__channelText",
+    "StreamShare__goldenmaskText",
+    "StreamShare__goldenmaskImg",
+    "StreamShare__chmf2018Text",
+    "StreamShare__vodText",
+    "StreamUrl",
+  ],
+  "output": "/* eslint-disable */
+
+/* globals Ya */
+
+/**
+ * @class StreamShare
+ * @extends BEM.DOM
+ * Блок 'Поделиться'
+ */
+BEM.DOM.decl('stream-share', {
+  onSetMod: {
+    js: function () {
+      this._stream = BEM.blocks.stream.getInstance();
+      this.bindTo('click', this._show);
+      this.bindToDoc('click', this._hide);
+    }
+  },
+
+  /**
+   * Обновляет контент для расшаривания
+   * @param {Episode} program
+   * @param {Channel} channel
+   */
+  updateShareContent: function (program, channel) {
+    if (!program) {
+      return;
+    }
+
+    channel = channel || {}; // Для анонса необходимо взять оригинальную программу, чтобы корректно обработать тип
+
+    if (Ya.streamModules.utils.checkInstanceOfAnnounce(program)) {
+      program = program.meta.awaiting;
+    }
+
+    var shareVod = program instanceof Ya.streamModules.VodProgram,
+        shareSeries = channel.has_vod && !shareVod && Ya.streamModules.programUtils.hasSeries(program),
+        shareCachup = channel.meta && (channel.meta.project_alias === 'goldenmask' || channel.meta.project_alias === 'chmf2018'),
+        promise;
+
+    if (shareSeries) {
+      promise = this._shareSeries(program, channel);
+      this.counter = 'lib';
+    } else if (shareVod) {
+      promise = this._shareVod(program, channel);
+      this.counter = 'vod';
+    } else if (shareCachup) {
+      promise = this._shareCachup(program, channel);
+      this.counter = 'cachup';
+    } else if (channel instanceof Ya.streamModules.Channel) {
+      promise = this._shareChannel(channel);
+      this.counter = 'channel';
+    } else {
+      return;
+    }
+
+    promise.then(function (shareContent) {
+      if (!shareContent.image) {
+        shareContent.image = execView(StreamShare__imgDefault);
+      }
+
+      this.showButton();
+
+      this._shareInstance.updateContent(shareContent);
+    }.bind(this), function (error) {
+      this.hideButton();
+
+      if (error.message) {
+        home.error.logError({
+          block: 'stream-share',
+          method: 'updateShareContent',
+          sourceType: 'logic'
+        }, error);
+      }
+    }.bind(this));
+  },
+  showButton: function () {
+    this.delMod('hidden');
+  },
+  hideButton: function () {
+    this.setMod('hidden', 'yes');
+  },
+
+  /**
+   * Проверяет, инициализирован блок или нет
+   * @returns {boolean}
+   */
+  isReady: function () {
+    return Boolean(this._shareInstance);
+  },
+
+  /**
+   * Открывает попап
+   * @param {Object} event
+   * @private
+   */
+  _show: function (event) {
+    if (!this.hasMod('visible')) {
+      this.toggleMod('visible', 'yes');
+      event.stopPropagation();
+    }
+  },
+
+  /**
+   * Закрывает попап
+   * @param {Object} event
+   * @private
+   */
+  _hide: function (event) {
+    if (!$(event.target).closest('.stream-share__popup').length) {
+      this.delMod('visible');
+    }
+  },
+
+  /**
+   * Готовит данные для расшаривания сериала
+   * @param {Object} program
+   * @param {Object} channel
+   * @returns {Promise}
+   * @private
+   */
+  _shareSeries: function (program, channel) {
+    return Ya.streamCms.getSeriesById(program.parent_vod_lib_id).then(function (series) {
+      if (!series || !series.title || !series.content_id || !channel.channel_id) {
+        throw new Error('_shareSeries: no data for share');
+      }
+
+      return {
+        title: execView(StreamShare__libText, {
+          libTitle: series.title || ''
+        }),
+        image: this._prepareThumbnailUrl(series.thumbnail),
+        url: this._getUrl({
+          'stream_channel': channel.channel_id,
+          'stream_id': series.content_id
+        })
+      };
+    }.bind(this));
+  },
+
+  /**
+   * Готовит данные для расшаривания vod
+   * @param {Object} program
+   * @param {Object} channel
+   * @returns {Promise}
+   * @private
+   */
+  _shareVod: function (program, channel) {
+    var series = program.series || {};
+    return new Promise(function (resolve, reject) {
+      var programTitle = program.program_title || '';
+
+      if (!program.content_id) {
+        reject({
+          message: '_shareVod: no data for share'
+        });
+      }
+
+      resolve({
+        title: execView(StreamShare__vodText, {
+          programTitle: programTitle,
+          episodeName: series.episode_name || program.title || '',
+          isFirstChannel: channel.channel_id === 146
+        }),
+        image: this._prepareThumbnailUrl(program.thumbnail),
+        url: this._getUrl({
+          'stream_channel': channel.channel_id,
+          'stream_id': program.content_id
+        })
+      });
+    }.bind(this));
+  },
+
+  /**
+   * Готовит данные для расшаривания канала
+   * @param {Object} channel
+   * @returns {Promise}
+   * @private
+   */
+  _shareChannel: function (channel) {
+    return new Promise(function (resolve, reject) {
+      if (!channel.title || !channel.channel_id) {
+        reject({
+          message: '_shareChannel: no data for share'
+        });
+      }
+
+      resolve({
+        title: execView(StreamShare__channelText, {
+          channelTitle: channel.title,
+          channelId: channel.channel_id
+        }),
+        image: this._prepareThumbnailUrl(channel.thumbnail),
+        url: this._getUrl({
+          'stream_channel': channel.channel_id
+        })
+      });
+    }.bind(this));
+  },
+
+  /**
+   * Готовит данные для расшаривания cachup
+   * @param {Object} program
+   * @param {Object} channel
+   * @returns {Promise}
+   * @private
+   */
+  _shareCachup: function (program, channel) {
+    var series = program.series || {},
+        isGoldenMask = channel.meta && channel.meta.project_alias === 'goldenmask',
+        isChmf2018 = channel.meta && channel.meta.project_alias === 'chmf2018',
+        programTitle = isGoldenMask || isChmf2018 ? program.title : program.program_title,
+        thumbnail = this._prepareThumbnailUrl(program.thumbnail),
+        contentId = program.getContentId(),
+        title;
+
+    return new Promise(function (resolve, reject) {
+      if (!programTitle || !channel.channel_id || !contentId) {
+        reject({
+          message: '_shareCachup: no data for share'
+        });
+      }
+
+      if (isGoldenMask) {
+        title = execView(StreamShare__goldenmaskText, {
+          programTitle: programTitle
+        });
+        thumbnail = execView(StreamShare__goldenmaskImg, {
+          thumbnail: thumbnail
+        });
+      } else if (isChmf2018) {
+        title = execView(StreamShare__chmf2018Text, {
+          programTitle: programTitle
+        });
+      } else {
+        title = execView(StreamShare__vodText, {
+          programTitle: programTitle,
+          episodeName: series.episode_name || '',
+          isFirstChannel: channel.channel_id === 146
+        });
+      }
+
+      resolve({
+        title: title,
+        image: thumbnail,
+        url: this._getUrl({
+          'stream_channel': channel.channel_id,
+          'stream_id': contentId
+        })
+      });
+    }.bind(this));
+  },
+
+  /**
+   * Загружает расшаривалку
+   */
+  appendSocial: function () {
+    var url = '//yastatic.net/share2/share.js';
+    $.ajax({
+      url: url,
+      dataType: 'script',
+      context: this
+    }).then(this._onShareLoad, function (xhr, name, error) {
+      home.error.logAjaxError({
+        block: 'stream-share',
+        method: 'appendSocial',
+        url: url,
+        source: 'share2'
+      }, xhr, name, error);
+    });
+  },
+  _prepareThumbnailUrl: function (thumbnail) {
+    if (!thumbnail) {
+      return '';
+    }
+
+    return thumbnail.replace(/^\\\\/\\\\//, 'https://');
+  },
+
+  /**
+   * Добавляет шарилку в DOM
+   * @private
+   */
+  _onShareLoad: function () {
+    var self = this,
+        shareParams = {
+      theme: {
+        services: ['vkontakte', 'twitter', 'odnoklassniki'].join(','),
+        counter: false,
+        lang: this._stream.params.settings.locale
+      },
+      hooks: {
+        onready: function () {
+          self.trigger('ready');
+        },
+        onshare: function (name) {
+          var counter = (self.params.statRoot || 'stream') + '.share.' + self.counter + '.' + name;
+          home.stat.logPath('click', counter);
+        }
+      }
+    };
+    this.showButton();
+    this._shareInstance = new Ya.share2(this.elem('list')[0], shareParams);
+  },
+
+  /**
+   * Формирует урл для расшаривания
+   * @param {Object} data
+   * @param {Object} data.program - программа
+   * @param {Object} data.lib - сериал
+   * @returns {String} - сформированный урл
+   * @private
+   */
+  _getUrl: function (data) {
+    return execView(StreamUrl, {
+      streamChannel: data.stream_channel,
+      streamId: data.stream_id,
+      isSharing: true
+    });
+  }
+}, {});",
+}
+`;

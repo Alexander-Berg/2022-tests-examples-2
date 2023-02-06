@@ -1,0 +1,22 @@
+name: basic_source_postgres_strict_sequence
+replication_type: queue
+source:
+    type: postgres
+    replicate_by: id
+    type_of_replicate_by: int
+    data_chunk_size: 3
+    iteration_type: strict_sequence
+    connection:
+        secret: sequence
+    primary_key:
+      - id
+    table: sequence.table
+
+destinations:
+  - basic_source_postgres_strict_sequence:
+        type: yt
+        mapper: dummy
+        target:
+            path: postgres/basic_source_postgres_strict_sequence
+            cluster_groups:
+              - map_reduce

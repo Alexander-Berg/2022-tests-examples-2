@@ -1,0 +1,36 @@
+---
+host: lavka_eagle_testing
+telegram: lavka-eagle-alerts
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_virtual-meta
+services:
+- service: vhost-500
+  unreach:
+    mode: force_ok
+    service:
+    - check: :unispace
+  # Не звоним, только телеграм
+  #methods: phone_escalation
+  telegram: lavka-eagle-alerts
+  rtime: 60
+  times:
+  # В рабочее время
+  - days: Mon-Fri
+    time: 12-20
+    warn: 0
+    crit: 0
+  # В выходные дни
+  - days: Sat-Sun
+    time: 12-20
+    warn: 0
+    crit: 0
+  # По ночам
+  - days: Mon-Sun
+    time: 21-11
+    warn: 0
+    crit: 0
+  ignore_nodata: 1

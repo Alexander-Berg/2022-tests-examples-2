@@ -1,0 +1,91 @@
+id: ok_unauthorized
+title: happy path for unauthorized
+
+parameters:
+  - personal_phone_id:
+      - value: 'test_personal_phone_id'
+      - value:
+  - user_id:
+      - value: 'test_user_id'
+      - value:
+  - yandex_uid:
+      - value: 'test_yandex_uid'
+      - value:
+
+experiments:
+    values#object:
+      - key: integration_maps_estimate_authorization
+        value:
+            enabled: true
+        enabled: true
+
+source:
+    request:
+        method: post
+        body:
+            some: 'request'
+            fields: 123
+            sourceid: 'test'
+        headers#object:
+          - key: content-type
+            value: 'application/json'
+          - key: X-Yandex-UID
+            value#xget: /test-params/yandex_uid/value
+            enabled#not:
+                value#equal:
+                  - value#xget: /test-params/yandex_uid/value
+                  - value:
+          - key: X-YaTaxi-User
+            value#concat-strings:
+              - value: 'personal_phone_id='
+              - value#xget: /test-params/personal_phone_id/value
+          - key: X-YaTaxi-UserId
+            value#xget: /test-params/user_id/value
+            enabled#not:
+                value#equal:
+                  - value#xget: /test-params/user_id/value
+                  - value:
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                some: 'fields'
+                from: 'int-api'
+
+mocks:
+  - resource: integration-api
+    response:
+        status-code: 200
+        body:
+            some: 'fields'
+            from: 'int-api'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#if:
+                condition#or:
+                  - value#equal:
+                      - value#xget: /test-params/personal_phone_id/value
+                      - value:
+                  - value#equal:
+                      - value#xget: /test-params/user_id/value
+                      - value:
+                  - value#equal:
+                      - value#xget: /test-params/yandex_uid/value
+                      - value:
+                then#object_simple:
+                    some: 'request'
+                    fields: 123
+                else#object_simple:
+                    some: 'request'
+                    fields: 123
+                    user:
+                        personal_phone_id#xget: /test-params/personal_phone_id/value
+                        user_id#xget: /test-params/user_id/value
+                        yandex_uid#xget: /test-params/yandex_uid/value
+
+taxi_config:
+    YANDEX_MAPS_ESTIMATE_FALLBACK_ENABLED: false

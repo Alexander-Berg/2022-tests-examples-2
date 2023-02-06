@@ -1,0 +1,88 @@
+id: fallback-totw
+title: Проверка работоспособности фолбека
+
+parameters:
+  - personal-phone:
+      - tariff-class: selfdriving
+        expect-phone: false
+      - tariff-class: econom
+        expect-phone: true
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+            orderid: 'order_id'
+            break: 'user'
+            cancel_state: 'free'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-Uid#string: '12345'
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - additional_buttons#object:
+              - can_make_more_orders#string: 'not_modified'
+              - status#string: 'driving'
+              - tariff#object:
+                  - class#xget: /test-params/personal-phone/tariff-class
+              - driver#object:
+                  - phone#string: '+79998887766'
+                enabled#xget: /test-params/personal-phone/expect-phone
+
+taxi_config:
+    CARGO_CLAIMS_TOTW_RESTRICTION_ENABLED: false
+
+experiments:
+    values#object:
+      - key: api_proxy_totw_driver_phones_personal
+        value:
+            enabled: true
+        enabled: true
+
+mocks:
+  - resource: taxi-3.0-taxiontheway
+    exception: fallbacking
+    expectations:
+        call-count: 0
+        request:
+            method: post
+
+  - resource: order-v1-tc-order-cancel
+    response:
+        body:
+    expectations:
+        call-count: 1
+
+  - resource: personal-data-type-phones-retrieve
+    response:
+        status-code: 200
+        body#object:
+          - key: value
+            value#string: '+79998887766'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        request:
+            method: post
+            body:
+                id: 'personal_id'
+
+  - resource: order-v1-tc-order-info
+    response:
+        status-code: 200
+        body#object:
+          - status#string: driving
+          - driver#object:
+              - phone_personal_id#string: 'personal_id'
+          - tariff#object:
+              - class#xget: /test-params/personal-phone/tariff-class
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                orderid: 'order_id'
+                userid: 'user_id'

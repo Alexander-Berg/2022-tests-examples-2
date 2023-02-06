@@ -1,0 +1,26 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: example
+        stq-queue: testsuite_example
+        static-event-traits:
+            is-create: true
+        dynamic-event-traits:
+            reason#xget: /event/payload/reason
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - reason: foo
+            stages:
+              - id: single-stage
+                handlers:
+                  - id: single-handler
+                    result:
+                        app_vars#application-detector:
+                            user-agent#xget: /shared-state/user-aget

@@ -1,0 +1,30 @@
+server {
+    # SLB IP
+    listen 213.180.205.19:80;
+    listen [2a02:6b8:0:3400::3:19]:80;
+
+    # Server IP
+    listen [1::2:3:4]:80;
+    listen 127.0.0.1:80;
+    listen [::1]:80;
+
+    server_name validator.yandex.net;
+
+    access_log /var/log/nginx/validator.access.log main;
+    error_log /var/log/nginx/validator.error.log;
+
+    location = /validate.xml {
+        rewrite ^(.*)$ /email-validator$1 break;
+
+        proxy_set_header Host          $host;
+        proxy_set_header X-Real-Ip     $remote_addr;
+        proxy_set_header X-Real-Scheme $scheme;
+        proxy_set_header X-Request-Id  $request_id;
+
+        proxy_pass http://127.0.0.1:6000;
+    }
+
+    location / {
+        return 404;
+    }
+}

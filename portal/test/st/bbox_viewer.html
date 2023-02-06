@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <meta name='viewport' content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no">
+        <style>
+            body{padding:0;margin:0;font-size:15px;line-height:1.333333;touch-action:manipulation;max-height:999999px;background:transparent}.font-regular,body{font-family:HelveticaNeue,sans-serif}.font-thin{font-family:HelveticaNeue-Thin,sans-serif-thin,sans-serif;font-weight:100}.font-light{font-family:HelveticaNeue-Light,sans-serif-light,sans-serif;font-weight:300}.font-medium{font-family:HelveticaNeue-Medium,sans-serif-medium,sans-serif;font-weight:500}.font-bold{font-family:HelveticaNeue-Bold,sans-serif;font-weight:700}.i-ua_platform_ios{cursor:pointer;-webkit-tap-highlight-color:transparent;text-size-adjust:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}.i-ua_platform_ios .scroller{margin-bottom:-45px;padding-bottom:45px}.card{color:#000;padding:24px 20px 36px;overflow:hidden;font-size:15px;line-height:17px;background:-webkit-linear-gradient(49deg,#d8d6d2 0,#f9f8f8 100%);background:linear-gradient(41deg,#d8d6d2 0,#f9f8f8 100%)}.card .link:link,.card .link:visited{color:inherit;-webkit-tap-highlight-color:transparent}.card__title{color:#000;font-size:36px;line-height:1.1em;margin-bottom:22px}.card__subtitle{font-size:15px;margin-top:30px;margin-bottom:8px}.card__content{max-width:530px;display:block}.card__paragraph:not(:last-child){margin-bottom:20px}.card__img{width:100%;margin-bottom:14px;-webkit-border-radius:3px;border-radius:3px}.card__list{list-style:none;margin:0;padding:0}.card__list__item{margin:5px 0}.traffic-disaster{background-image:-webkit-linear-gradient(323deg,#fef6e3 0,#fdeabe 100%);background-image:linear-gradient(-233deg,#fef6e3 0,#fdeabe 100%);color:#483909}.traffic-disaster__map-wrapper{display:block;position:relative;line-height:0;-webkit-tap-highlight-color:transparent;background-color:#cfbc7b}.traffic-disaster__map{position:absolute;width:100%;height:auto;-webkit-border-radius:3px;border-radius:3px}.traffic-disaster__map_loaded_yes{border:1px solid #cabf92;margin:-1px}.traffic-disaster .card__title,.traffic-disaster ul,.traffic-disaster li,.traffic-disaster p{color:inherit}.traffic-disaster ul{padding:0;margin:0;list-style-type:none}.traffic-disaster ul>li{text-indent:3px}.traffic-disaster ul>li:before{content:'—';padding-right:3px}:link,.link:visited{color:#000;text-decoration:none}.link_theme_opacity{opacity:.5}.link_theme_white:link,.link_theme_white:visited{color:#fff}
+
+            .button{display:block;width:100%;height:44px;font-size:16px;line-height:44px;-webkit-border-radius:3px;border-radius:3px;background:#d1cfcc;text-align:center}.button,.button:link,.button:visited{color:inherit;-webkit-tap-highlight-color:transparent}.button.pressed{-webkit-transform:scale(.96);transform:scale(.96)}.traffic{background-image:-webkit-linear-gradient(323deg,#fef6e3 0,#fdeabe 100%);background-image:linear-gradient(-233deg,#fef6e3 0,#fdeabe 100%);color:#483909}.traffic .card__title{color:inherit}.traffic .button{color:#000;margin-top:24px;background-color:#fef8eb}.traffic__map-link{display:block;position:relative;line-height:0;padding-bottom:47.25%;-webkit-tap-highlight-color:transparent;background-color:#cfbc7b}.traffic__map{position:absolute;width:100%;height:auto;-webkit-border-radius:3px;border-radius:3px}.traffic__map_loaded_yes{border:1px solid #cabf92;margin:-1px}.traffic__jam{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-pack:justify;-webkit-justify-content:space-between;justify-content:space-between;margin:19px auto 0;padding:0 12px;-webkit-box-sizing:border-box;box-sizing:border-box}.traffic__jam-item{text-align:center;width:48px}.traffic__circle{border:2px solid;-webkit-border-radius:50%;border-radius:50%;height:30px;width:30px;font-size:18px;line-height:31px;margin:8px auto 0;color:#fff}.traffic__circle_color_red{background-color:#d62f28;border-color:#c00}.traffic__circle_color_yellow{background-color:#fc0;border-color:#e2ba1b}.traffic__circle_color_green{background-color:#81c83c;border-color:#70c32a}.traffic__jam{max-width:330px}
+
+            .card__content {
+                width: 320px;
+                margin: 30px 20px 10px 20px;
+                display: inline-block;
+            }
+
+            .card__title {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="maps"></div>
+        <script src="https://yastatic.net/jquery/2.1.4/jquery.min.js"></script>
+        <script>
+            function getRegions() {
+                $.get(
+                    '/bbox_regions/traffic/current/stat.xml', {dataType: 'xml'}
+                ).done(function(data) {
+                    var ids = [];
+
+                    $('region', data).each(function() {
+                        ids.push(Number($(this).attr('id')));
+                    });
+
+                    ids.sort(function(a, b) {
+                        return a - b;
+                    });
+
+                    ids = ids.filter(function(id) {
+                        return id !== 213;
+                    });
+
+                    ids.unshift(213);
+
+                    ids.forEach(function(id) {
+                        getRegionData(id);
+                    });
+                });
+            }
+
+            function getRegionData(id) {
+                $('body').append('<div id="region_' + id + '" class="traffic__alert card__content"></div>');
+
+                $.get(
+                    '/bbox_data/' + id
+                ).done(function(data) {
+                    drawMap(id, data);
+                });
+            }
+
+            var unzoomed = {
+                    //1: [213],
+                    2: [2, 213],
+                    4: [50, 51, 54, 55, 63, 64, 65, 75, 76, 145, 193, 197, 172],
+                    5: [66, 67, 194, 237]
+                },
+                shifted = {
+                    45: [0, -0.1],
+                    51: [0.2, 0],
+                    75: [0.2, 0],
+                    76: [0.1, 0],
+                    172: [0.1, 0.05],
+                    11504: [0, 0.2]
+                };
+
+            function drawMap(id, data) {
+                var longitude = data.longitude,
+                    longitude_size = data.longitude_size,
+                    latitude = data.latitude,
+                    latitiude_size = data.latitiude_size,
+                    mapSize = 3;
+
+                for (var zoom in unzoomed) {
+                    if (unzoomed.hasOwnProperty(zoom) && unzoomed[zoom].indexOf(id) > -1) {
+                        mapSize = zoom;
+
+                        break;
+                    }
+                }
+
+                if (shifted[id]) {
+                    longitude += longitude_size * shifted[id][0];
+                    latitude += latitiude_size * shifted[id][1];
+                }
+
+                var bbox =  (longitude - longitude_size / (2 * mapSize)).toFixed(4) + ',' +
+                            (latitude - latitiude_size / (2 * mapSize)).toFixed(4) + '~' +
+                            (longitude + longitude_size / (2 * mapSize)).toFixed(4) + ',' +
+                            (latitude + latitiude_size / (2 * mapSize)).toFixed(4);
+
+                var src = 'https://static-maps.yandex.ru/1.x/?bbox=' + bbox + '&amp;key=ABZehFMBAAAAuzuDMQMCmK2T3gDx6Ye64-s98Xm2qhZVCvAAAAAAAAAAAAAfNXTxDLM2AXbzEC2Pp7kftkUp6w==&amp;lg=0&amp;l=map,trf&amp;size=640,322';
+
+                $('#region_' + id).html('<div class="traffic__title card__title font-light">' + data.name + ', ' + id + '</div>' +
+                            '<a target="_blank" class="traffic__map-link" href="https://yandex.ru/maps/?l=trf">' +
+                                '<img class="traffic__map traffic__map_loaded_yes" src="' + src + '" width="320" height="151" alt="">' +
+                            '</a>');
+            }
+
+            //getRegionData(213);
+            getRegions();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS cart_items_order_id_catalog_type_origin_id;

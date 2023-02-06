@@ -1,0 +1,32 @@
+settings:
+    collection: promocode_refclaims
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key:
+      - name: series_id
+        type: ascending
+      - name: user_phone_id
+        type: ascending
+    unique: true
+wiki_info: |
+    ####dbtaxi.promocode_refclaims - реферальные промокоды, введенные друзьями
+
+    Коллекция хранит "поделиськи"/"поделяшки" с точки зрения "друга", т.е. пользователя, пробовавшего ввести промокод. Нужна, в частности, чтобы установить срок действия промокода как +N дней с момента ввода.
+
+    ```python
+    dbtaxi.promocode_refclaims = {
+        '_id': ObjectId(),                    # Генерируется Mongo, нами не используется
+        'series_id': строка,                  # Уникальный код промокода
+        'user_phone_id': ObjectId(),          # id телефона пользователя, который ввел промокод
+        'creator_phone_id': ObjectId(),       # id телефона пользователя, сгенерировавшего промокод
+        'created': datetime.datetime(),       # Временная отметка о создании промокода
+        'updated': datetime.datetime(),       # Временная отметка об изменении промокода
+                                              # Поля ниже по смыслу повторяют dbtaxi.promocode_series
+        'start': datetime.datetime(),         # Срок начала действия промокода (с 0 часов указанной даты по местному времени)
+        'finish': datetime.datetime(),        # Срок начала действия промокода (до 23:59 указанной даты по местному времени)
+        'value': число,                       # Номинал промокода
+        'currency': строка,                   # Код валюты промокода
+        'first_limit': 1,                     # Всегда на первую поездку
+    }
+    ```

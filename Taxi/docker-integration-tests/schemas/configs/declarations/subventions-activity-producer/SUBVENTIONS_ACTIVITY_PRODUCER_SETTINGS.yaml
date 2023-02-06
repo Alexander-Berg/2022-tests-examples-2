@@ -1,0 +1,229 @@
+default:
+    message_fetcher_settings:
+        fetcher_enabled: false
+        group_interval_ms: 60000
+        sleep_interval_ms: 50
+        message_fetch_limit: 100
+        message_fetch_endpoint: "subventions-candidates-reader"
+        message_fetch_topic: "candidate-reader"
+        pg_queries_settings:
+            __default__:
+                statement_timeout_ms: 250
+                execute_timeout_ms: 250
+    aggregation_settings:
+        aggregation_enabled: false
+        aggregate_delay_ms: 30000
+        sleep_interval_ms: 50
+        events_max_timediff_s: 10
+        max_missing_in_a_row: 1
+        aggregate_algorithm: "generalized"
+        pg_queries_settings:
+            __default__:
+                statement_timeout_ms: 250
+                execute_timeout_ms: 250
+    events_sender_settings:
+        sender_enabled: false
+        sleep_interval_ms: 50
+        events_chunk_size: 10
+        pg_queries_settings:
+            __default__:
+                statement_timeout_ms: 250
+                execute_timeout_ms: 250
+description: Настройки работы для сервиса subventions-activity-producer
+maintainers: [kimlyk, vkanaev]
+tags: ['notfallback']
+schema:
+    type: object
+    additionalProperties: false
+    required:
+      - aggregation_settings
+      - message_fetcher_settings
+      - events_sender_settings
+    properties:
+        message_fetcher_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - fetcher_enabled
+              - group_interval_ms
+              - sleep_interval_ms
+              - message_fetch_limit
+              - message_fetch_endpoint
+              - message_fetch_topic
+              - pg_queries_settings
+            properties:
+                fetcher_enabled:
+                    type: boolean
+                group_interval_ms:
+                    description: длина интегвала для группировки сырых событий
+                    type: integer
+                    minimum: 60000
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                sleep_interval_ms:
+                    description: аргумент для InterruptibleSleep в методе DoWork
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                message_fetch_limit:
+                    description: Лимит кол-ва сообщений при чтении из pgmq
+                    type: integer
+                    minimum: 1
+                message_fetch_endpoint:
+                    description: Сервис, откуда читать водительские события
+                    type: string
+                message_fetch_topic:
+                    description: Топик для водительских ивентов
+                    type: string
+                pg_queries_settings:
+                    $ref: '#/definitions/PgQueriesSettings'
+        aggregation_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - aggregation_enabled
+              - aggregate_delay_ms
+              - sleep_interval_ms
+              - events_max_timediff_s
+              - max_missing_in_a_row
+              - aggregate_algorithm
+              - pg_queries_settings
+            properties:
+                aggregation_enabled:
+                    type: boolean
+                aggregate_delay_ms:
+                    description: задержка завершения аггрегации по сообщению при отсутсвии
+                        новых событий
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                sleep_interval_ms:
+                    description: аргумент для InterruptibleSleep в методе DoWork
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                events_max_timediff_s:
+                    description: необходимое кол-во событий от водителя за минуту,
+                        чтобы зачесть нахождение в зоне
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::seconds
+                max_missing_in_a_row:
+                    description: кол-во пропущенных событий, пр котором можно считать
+                        интервал непрерывным
+                    type: integer
+                    minimum: 0
+                raw_events_select_limit:
+                    description: лимит при SELECT-запросе в таблицу с "сырыми" событиями
+                    type: integer
+                    minimum: 0
+                aggregate_algorithm:
+                    $ref: '#/definitions/AggregateAlgorithm'
+                pg_queries_settings:
+                    $ref: '#/definitions/PgQueriesSettings'
+                max_processed_items_per_iteration:
+                    description: количество элементов, после обработки которых периодическая
+                        задача попробует переключиться на другой шард
+                    type: integer
+                    minimum: 0
+        events_sender_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - sender_enabled
+              - sleep_interval_ms
+              - events_chunk_size
+              - pg_queries_settings
+            properties:
+                sender_enabled:
+                    description: включение воркера для отправки событий в биллинг
+                    type: boolean
+                sleep_interval_ms:
+                    description: пауза между итерациями работы
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                events_chunk_size:
+                    description: кол-во сообщений, обрабатываемых в одной итерации
+                        event-sender'а
+                    type: integer
+                    minimum: 1
+                pg_queries_settings:
+                    $ref: '#/definitions/PgQueriesSettings'
+                max_processed_items_per_iteration:
+                    description: количество элементов, после обработки которых периодическая
+                        задача попробует переключиться на другой шард
+                    type: integer
+                    minimum: 0
+                destinations:
+                    description: куда отправлять события биллинга
+                    type: array
+                    items:
+                        type: string
+                        enum:
+                          - replication
+                          - billing-orders
+                    minItems: 1
+        metrics_gatherer_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - enabled
+              - pg_queries_settings
+            properties:
+                enabled:
+                    description: включение периодической задачи сбора метрик
+                    type: boolean
+                pg_queries_settings:
+                    $ref: '#/definitions/PgQueriesSettings'
+        logbroker_consumer_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - enabled
+              - queue_timeout
+              - chunk_size
+              - config_poll_period
+            properties:
+                enabled:
+                    description: Включение читателя очереди сообщений из scr.
+                    type: boolean
+                queue_timeout:
+                    description: Таймаут на чтение из топика.
+                    type: integer
+                chunk_size:
+                    description: Максимальный размер чанка сообщений.
+                    type: integer
+                config_poll_period:
+                    description: Период ожидания(в мс), чтобы снова запросить, включен
+                        ли читатель.
+                    type: integer
+    definitions:
+        PgTimeouts:
+            type: object
+            required:
+              - statement_timeout_ms
+              - execute_timeout_ms
+            additionalProperties: false
+            properties:
+                statement_timeout_ms:
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                execute_timeout_ms:
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+        PgQueriesSettings:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/PgTimeouts'
+            required:
+              - __default__
+            properties:
+                __default__:
+                    $ref: '#/definitions/PgTimeouts'
+        AggregateAlgorithm:
+            type: string
+            description: метод аггрегации водительских событий
+            enum:
+              - generalized
+              - detailed

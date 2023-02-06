@@ -1,0 +1,80 @@
+{% load i18n tests_extras %}
+{% for test in tests %}
+    <tr>
+    <td>
+        {% if data_every_page.user_lang == 'en' %}
+            {{ test.test.title_en|default:test.test.title }}
+        {% else %}
+            {{ test.test.title }}
+        {% endif %}
+    </td>
+    <td>{{ test.user_result }}%</td>
+    <td>
+        {% if test.test.text_status == 'expired' or test.test.text_status == 'archive' %}
+        <div>
+            <!-- Button trigger modal -->
+            <button type="button" class="btn-dark btn-primary" data-toggle="modal" data-target="#_{{ test.pk }}">
+                {% trans 'Correct answers' %}
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="_{{ test.pk }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">
+                                {% if data_every_page.user_lang == 'en' %}
+                                    "{{ test.test.title_en|default:test.test.title }}"
+                                {% else %}
+                                    "{{ test.test.title }}"
+                                {% endif %}
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+
+                        {% for question in test.dump_test.questions %}
+                            <div>
+                            <h6>
+                            {% if data_every_page.user_lang == 'en' %}
+                                {{ question.question.q_en|default:question.question.q_ru }}
+                            {% else %}
+                                {{ question.question.q_ru }}
+                            {% endif %}
+                            </h6>
+                            {% if question.question.q_img %}
+                            <img src="{{ question.question.q_img|question_image_media_url }}">
+                            {% endif %}
+                            </div>
+                            <div>
+                            <h7>
+                            {% if question.question.without_correct %}
+                                {% trans 'There is no right answer.' %}
+                            {% endif %}
+
+                            {% for answer in question.answers %}
+                                {% if answer.is_correct %}
+                                    {% if data_every_page.user_lang == 'en' %}
+                                        {{ answer.answer_en|default:answer.answer_ru }}
+                                    {% else %}
+                                        {{ answer.answer_ru }}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            </h7>
+                            </div>
+                        {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        {% trans 'Correct answers will be available after' %} {{ test.test.published_until|date:"d.m.Y" }}
+        {% endif %}
+    </td>
+    </tr>
+{% endfor %}

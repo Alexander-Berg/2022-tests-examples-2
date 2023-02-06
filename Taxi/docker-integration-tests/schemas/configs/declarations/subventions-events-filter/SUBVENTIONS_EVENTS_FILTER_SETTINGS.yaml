@@ -1,0 +1,75 @@
+description: Settings for subventions-events-filter
+tags: [notfallback]
+maintainers: [maxmin, kimlyk]
+default:
+    enabled: false
+    bulk_size: 100
+schema:
+    type: object
+    required:
+      - enabled
+      - bulk_size
+    additionalProperties: false
+    properties:
+        enabled:
+            description: Включена ли фильтрация
+            type: boolean
+        bulk_size:
+            description: Балковый размер очереди сообщений
+            type: integer
+            minimum: 1
+        write_bulk_size:
+            description: Балковый размер для записи
+            type: integer
+            minimum: 1
+        use_rules_select_cache:
+            description: Включен ли кеш для ответов v1/rules/select
+            type: boolean
+        forward_to_queue:
+            description: В какую очередь отправляются сообщения
+            type: string
+            enum:
+              - logbroker
+              - pgmq
+              - both
+        logbroker_producer_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - max_in_fly_messages
+              - commit_timeout
+              - partitions_number
+            properties:
+                max_in_fly_messages:
+                    description: Число сообщений, которые были опубликованы, но чей
+                        коммит еще не был получен. max_in_fly_messages*size_of_message
+                        должен быть меньше 8mb
+                    type: integer
+                commit_timeout:
+                    description: Таймаут публикации сообщения в мс
+                    type: integer
+                partitions_number:
+                    description: Число партиций в топике filtered-events. Продьюсер
+                        использует это число для шардирования потока сообщений.
+                    type: integer
+        logbroker_consumer_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - enabled
+              - queue_timeout
+              - chunk_size
+              - config_poll_period
+            properties:
+                enabled:
+                    type: boolean
+                queue_timeout:
+                    description: Таймаут на чтение из топика.
+                    type: integer
+                chunk_size:
+                    description: Максимальный размер чанка сообщений.
+                    type: integer
+                config_poll_period:
+                    description: Период ожидания(в мс), чтобы снова запросить, включен
+                        ли читатель.
+                    type: integer

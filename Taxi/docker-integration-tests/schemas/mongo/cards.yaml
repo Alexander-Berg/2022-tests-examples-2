@@ -1,0 +1,70 @@
+description: cards, identified by registration plates
+settings:
+    collection: cards
+    connection: taxi
+    database: dbtaxi
+indexes:
+  - key: aliases
+    sparse: true
+    unique: false
+  - key: busy_with.order_id
+    sparse: true
+  - key: expiration_date
+    sparse: true
+  - key: number
+  - key:
+      - name: owner_uid
+        type: ascending
+      - name: billing_id
+        type: ascending
+    unique: true
+  - key:
+      - name: owner_uid
+        type: ascending
+      - name: payment_id
+        type: ascending
+    unique: true
+  - key: permanent_payment_id
+    sparse: true
+    unique: false
+  - key: updated
+wiki_info: |
+    ####dbtaxi.cards - кредитные карты пользователей
+
+    В этой коллекции содержатся как актуальные (привязанные к биллингу) карты, так отвязанные (они отмечаются флагом unbound). В любом случае, никогда не удаляем информацию по карте из коллекции.
+
+    ```python
+    card = {                            # Информация о карте:
+        'created': utcnow,              #   - дата создания записи
+        'updated': utcnow,              #   - дата обновления документа
+        'owner_uid': 'yandex_uid',      #   - yandex_uid владельца
+        'owner_name': '',               #   - имя владельца, может быть пустой строкой
+        'billing_id': '1234567',        #   - идентификатор карты в биллинге
+        'payment_id': 'card-1234567',   #   - идентификатор метода платежа в биллинге
+        'currency': 'RUB',              #   - валюта карты
+        'number': '555555****4444',     #   - маска карты
+        'system': 'Visa',               #   - платёжная система
+        'blocking_reason': '',          #   - причина блокировки, может быть пустой строкой
+        'region_id': 225,               #   - регион, в котором была привязана карта
+        'regions_checked': [            #   - множество регионов, в которых карты была успешно проверена
+            {'id': 225},
+            {'id': 123},
+        ],
+        'require_cvn': False,           #   - True, если требует CVN
+        'valid': self.valid,            #   - True, если валидна
+        'busy_with': [{                 #   - список заказов, оплачиваемых по карте:
+            'order_id': '(id заказа)',  #   - идентификатор заказа
+        }, ...],
+        'service_labels': [             #   - метки, присвоенные карте в биллинге, см. TRUST-804
+            'taxi:persistent_id:123456',
+            ...
+        ],
+        'persistent_id': 'label'        #   - persistent id карты, должен быть сквозным между разными картами, если это в реальности одинаковая карта
+        'possible_moneyless':  bool,    #   - соответствует флагу possible_moneyless_card от билинга, признак плохой карты
+        'unbound': bool,                #   - true, если пользователь отвязал карту, иначе отсутствует
+        'expiration_date': datetime,    #   - первый день последнего месяца действия карты, datetime(YYYY, MM, 1)
+        'permanent_payment_id': string, #   - сквозной идентификатор _карты_ в биллнге (в отличие от billing_id и payment_id,
+                                        #     которые могут быть идентификаторами _привязки_ карты к пользователю)
+        'aliases': [str, str, ...],     #   - список привязок данной карты у других пользователей (по правилам склеивания портальных и фониш аккунтов в паспорте)
+    }
+    ```

@@ -1,0 +1,424 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+marks:
+    # overrides need to be after defaults. pay attention to last_modified_at
+    # field - it must be greater in overrides
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+
+  - name: experiments3
+    kwargs:
+        filename: "exp3-services_menu-minimal.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+  - name: config
+    kwargs:
+        PLUS_SWEET_HOME_SUBSCRIPTION_VENDOR:
+            native_vendor: YANDEX
+            vendor_by_platform:
+                ios: APP_STORE
+                android: GOOGLE_PLAY
+                test: TEST_STORE
+
+mockserver:
+  - url: /fast-prices/billing/transitions
+    response:
+        body:
+            transitions:
+              - available: true
+                product:
+                    id: "ru.yandex.web.plus.native.1month.autorenewable.3month.trial.new_plus.199"
+                    vendor: "YANDEX"
+                transitionType: "SUBMIT"
+              - available: true
+                product:
+                    id: "ru.yandex.plus.30min.autorenewable.native.web.notrial.debug"
+                    vendor: "APP_STORE"
+                transitionType: "SUBMIT"
+              - available: true
+                product:
+                    id: "ru.yandex.plus.30min.autorenewable.native.web.notrial.debug"
+                    vendor: "TEST_STORE"
+                transitionType: "SUBMIT"
+
+tests:
+  - name: inapp_purchase_ok
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "INAPP"
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:mediabilling:use_vendor"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu", "state"]
+            supported_features:
+              - type: "inapp_purchases:plus"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+            menu_type: "NATIVE"
+            menu:
+                action_button:
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                    action: "PLUS.BUY.INAPP"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить"
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: inapp_unsupported
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "INAPP"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+            supported_features: []
+                # - type: "inapp_purchases:plus" -- missing field
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                # no action_button
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections: []
+
+  - name: native_mediabilling_vendor
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "NATIVE"
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:mediabilling:use_vendor"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["state"]
+            supported_features:
+              - type: "inapp_purchases:plus"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    # native subscription
+                    subscription_id: "ya_plus_rus_v2_trial"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+
+  - name: platform_mediabilling_vendor
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                # inapp triggers platform vendor
+                purchase_type: "INAPP"
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:mediabilling:use_vendor"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["state"]
+            supported_features:
+              - type: "inapp_purchases:plus"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    # platform subscription
+                    subscription_id: "ya_plus_rus_v2"
+                    status: "AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"
+
+  - name: filtered_subscriptions
+    marks:
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:plus_purchase_enabled"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+                purchase_type: "INAPP"
+      - name: experiments3
+        kwargs:
+            name: "sweet-home:mediabilling:use_vendor"
+            is_config: true
+            consumers:
+              - "plus-sweet-home/sdk-state-v2"
+            match:
+                enabled: true
+                predicate:
+                    type: "true"
+            clauses: []
+            default_value:
+                enabled: true
+    mockserver:
+      - url: /fast-prices/billing/transitions
+        response:
+            body:
+                transitions:
+                  - available: true
+                    product:
+                        id: "ru.yandex.web.plus.native.1month.autorenewable.3month.trial.new_plus.199"
+                        vendor: "YANDEX"
+                    transitionType: "SUBMIT"
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["state"]
+            supported_features:
+              - type: "inapp_purchases:plus"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            state:
+                notifications:
+                    unread_count: 1
+                settings:
+                    settings:
+                      - setting_id: "subscription_renewal_for_points"
+                        enabled: false
+                        is_local: false
+                        type: "boolean"
+                        value: true
+                        metrica_name: "PaySubscriptionByCashback"
+                      - setting_id: "composite_payment.enabled"
+                        enabled: false
+                        is_local: true
+                        type: "boolean"
+                        value: false
+                        metrica_name: "CompositePayment"
+                    version: "1"
+                subscription:
+                    subscription_id: ""
+                    # no subscription, cause mediabilling returns nothing
+                    status: "NOT_AVAILABLE"
+                    need_upgrade: false
+                wallets:
+                  - wallet_id: "test_wallet_id"
+                    balance: "120"
+                    currency: "RUB"

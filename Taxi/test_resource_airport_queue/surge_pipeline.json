@@ -1,0 +1,57 @@
+{
+  "name": "test_pipeline_name",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "request.point_a"
+        }
+      ],
+      "name": "resource_fetch",
+      "resources": [
+        {
+          "field": "airport_drivers",
+          "name": "airport_queue"
+        }
+      ],
+      "source_code": "return {airport_drivers: {point: point_a}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:category}"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "query": "drivers"
+                },
+                {
+                  "query": "drivers_prediction"
+                }
+              ],
+              "query": "by_category[category]"
+            }
+          ],
+          "domain": "resource",
+          "query": "airport_drivers"
+        }
+      ],
+      "name": "use_resource",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[category]"
+        }
+      ],
+      "source_code": "if (drivers_prediction === undefined) { drivers_prediction = -1; } return {data: {name: category, surge: {value: drivers || -1}, value_raw: drivers_prediction}};"
+    }
+  ],
+  "state": "active"
+}

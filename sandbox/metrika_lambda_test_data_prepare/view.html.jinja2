@@ -1,0 +1,103 @@
+<table style="border: thin solid black">
+    <thead>
+    <tr style="border: thin solid black">
+        <th style="border: thin solid black">
+            <div style="margin: 1px 5px 1px 5px; text-align: center;">YT</div>
+        </th>
+        <th style="border: thin solid black">
+            <div style="margin: 1px 5px 1px 5px; text-align: center;">YQL</div>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="border: thin solid black">
+            <div style="margin: 1px 5px 1px 5px; text-align: left;">{{ pipeline_state.completed_tables_percentage }}</div>
+        </td>
+        <td style="border: thin solid black">
+            <div style="margin: 1px 5px 1px 5px; text-align: left;">{{ pipeline_state.completed_queries_percentage }}</div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+{% if pipeline_state.tables|length > 0 or pipeline_state.queries|length > 0 or pipeline_state.files|length > 0 %}
+    <table style="border: thin solid black">
+        <thead>
+        <tr style="border: thin solid black">
+            <th style="border: thin solid black">
+                <div style="margin: 1px 5px 1px 5px; text-align: center;">Текущее состояние</div>
+            </th>
+            <th style="border: thin solid black">
+                <div style="margin: 1px 5px 1px 5px; text-align: center;">YT-операция / YQL-запрос</div>
+            </th>
+            <th style="border: thin solid black">
+                <div style="margin: 1px 5px 1px 5px; text-align: center;">Прогресс</div>
+            </th>
+            <th style="border: thin solid black">
+                <div style="margin: 1px 5px 1px 5px; text-align: center;">Исходная таблица</div>
+            </th>
+            <th style="border: thin solid black">
+                <div style="margin: 1px 5px 1px 5px; text-align: center;">Целевая таблица</div>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for table in pipeline_state.queries %}
+            <tr>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;">{{ table.current_state }}</div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="{{ table.share_url }}">{{ table.operation_id }}</a> ({{ table.status }})</div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: center;">&#x23F3;</div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="https://yt.yandex-team.ru/hahn/navigation?path={{ table.src }}&offsetMode=row">{{ table.src }}</a></div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="https://yt.yandex-team.ru/hahn/navigation?path={{ table.dst }}&offsetMode=row">{{ table.dst }}</a></div>
+                </td>
+            </tr>
+        {% endfor %}
+        {% for table in pipeline_state.tables %}
+            <tr>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;">{{ table.current_state }}</div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="{{ table.share_url }}">{{ table.operation_id }}</a> ({{ table.status }} - {{ table.operation_exists }})</div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;">{{ table.display_progress }}</div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="https://yt.yandex-team.ru/hahn/navigation?path={{ table.src }}&offsetMode=row">{{ table.src }}</a></div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="https://yt.yandex-team.ru/hahn/navigation?path={{ table.dst }}&offsetMode=row">{{ table.dst }}</a></div>
+                </td>
+            </tr>
+        {% endfor %}
+        {% for file in pipeline_state.files %}
+            <tr>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;">{{ file.current_state }}</div>
+                </td>
+                <td style="border: thin solid black">
+                </td>
+                <td style="border: thin solid black">
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="https://yt.yandex-team.ru/hahn/navigation?path={{ file.src }}">{{ file.src }}</a></div>
+                </td>
+                <td style="border: thin solid black">
+                    <div style="margin: 1px 5px 1px 5px; text-align: left;"><a href="https://yt.yandex-team.ru/hahn/navigation?path={{ file.dst }}">{{ file.dst }}</a></div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}

@@ -1,0 +1,65 @@
+host: taxi_stq-agent_testing
+telegram: warn_default
+type: rtc
+services:
+- service: stq-agent-invalid-stqs-configs
+  flaps:
+    stable_time: 600
+    critical_time: 2400
+    # STQ config: невалидные настройки stq очереди(-ей)
+    # Обращаться к luxenia, s0nov, lartag
+  telegram: taxi-core-infra-testing-alerts
+  times:
+  - days: Mon-Fri
+    time: 12-20
+    warn: 1
+    crit: 101%
+  - days: Sat-Sun
+    time: 12-20
+    warn: 101%
+    crit: 101%
+  - days: Mon-Sun
+    time: 21-11
+    warn: 101%
+    crit: 101%
+- service: core-files
+  telegram: taxi-core-infra-testing-alerts
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+templates:
+- template: rtc-atop-warning
+- template: taxi-statistics-client
+  telegram: taxi-core-infra-testing-alerts
+- template: test_cron
+- template: test_dns
+- template: test_forced-logrotate-count
+- template: test_ipv6
+- template: test_loadaverage
+- template: test_logrotate
+- template: test_nginx
+- template: test_ntp
+- template: test_pkgver
+- template: test_realsrv-slb-state
+- template: test_salt-minion
+- template: test_taxi_strongbox
+- template: test_unispace
+  telegram: taxi-core-infra-testing-alerts
+- template: test_vhost-500
+  telegram: taxi-core-infra-testing-alerts
+- template: hejmdal-rtc-oom
+  telegram: taxi-core-infra-testing-alerts
+- template: hejmdal-rtc-resource-usage
+  telegram: taxi-core-infra-testing-alerts
+- template: test_virtual-meta
+- template: hejmdal-rtc-net-usage
+  telegram: taxi-core-infra-testing-alerts
+- template: hejmdal-bad-rps
+  telegram: taxi-core-infra-testing-alerts
+- template: hejmdal-cutres-draft-notify
+  telegram: taxi-core-infra-testing-alerts
+- template: userver_congestion_control
+  telegram: taxi-core-infra-testing-alerts
+- template: thread_counter

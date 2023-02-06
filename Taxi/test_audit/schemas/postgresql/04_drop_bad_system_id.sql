@@ -1,0 +1,1 @@
+drop index audit_events.audit_events_logs_system_id;

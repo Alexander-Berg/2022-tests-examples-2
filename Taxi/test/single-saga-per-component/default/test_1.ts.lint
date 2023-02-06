@@ -1,0 +1,40 @@
+import React from 'react';
+
+import useSaga from '_hooks/use-saga';
+import useService from '_hooks/use-service';
+
+import * as saga from './saga';
+import * as saga2 from './saga2'; 
+import service from '../../sagas/services/TestService'; 
+
+const TestComponent: React.FC<{id: string}> = ({id}) => {
+    useSaga(saga, [id]);
+
+    return null;
+}
+
+const TestComponent2: React.FC<{id: string}> = ({id}) => {
+    useSaga(saga);
+    const {operationId} = useSaga(saga2, [id]);
+                          ~~~~~~~~~~~~~~~~~~~~ [error]
+
+    return null;
+}
+
+const TestComponent3: React.FC<{id: string}> = ({id}) => {
+    useService(service, [id]);
+    useSaga(saga);
+    ~~~~~~~~~~~~~ [error]
+    useService(service, [id]);
+    ~~~~~~~~~~~~~~~~~~~~~~~~~ [error]
+
+    return null;
+}
+
+const TestComponent4: React.FC<{id: string}> = ({id}) => {
+    useService(service, [id]);
+
+    return null;
+}
+
+[error]: Only one useSaga/useService could be used per component

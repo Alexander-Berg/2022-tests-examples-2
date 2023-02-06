@@ -1,0 +1,41 @@
+id: test_eap-superapp-orders-v1
+title: Ходим в трекинг за состоянием заказа
+
+parameters:
+  - group:
+      - config_enabled: true
+        orders_call_count: 0
+        orders_tracking_call_count: 1
+      - config_enabled: false
+        orders_call_count: 1
+        orders_tracking_call_count: 0
+
+configs:
+    values#object:
+      - key: grocery_orders_tracking_state_switching
+        value:
+            enabled#xget: /test-params/group/config_enabled
+
+source:
+    request:
+        method: post
+        url: /4.0/eda-superapp/lavka/v1/orders/v1/state
+    expectations:
+        response:
+            status-code: 200
+
+mocks:
+  - resource: grocery-orders-tracking
+    expectations:
+        request:
+            method: post
+        call-count#xget: /test-params/group/orders_tracking_call_count
+    response:
+        status-code: 200
+  - resource: grocery-orders
+    expectations:
+        request:
+            method: post
+        call-count#xget: /test-params/group/orders_call_count
+    response:
+        status-code: 200

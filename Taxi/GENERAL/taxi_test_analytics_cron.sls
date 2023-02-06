@@ -1,0 +1,20 @@
+custom_deploy:
+  gcc: 4:5.3.1-1ubuntu1
+  build-essential: 12.1ubuntu2
+  python-tk: 2.7.12-1~16.04
+  python-pip: 8.1.1-2ubuntu0.4
+  python3-pip: 8.1.1-2ubuntu0.4
+  python-virtualenv: 15.0.1+ds-3ubuntu1
+  python-setuptools: 20.7.0-1
+  libpython3.7-dev: 3.7.3-1+yandex1
+  libpython2.7-dev: 2.7.12-1ubuntu0~16.04.9
+  clickhouse-client: 19.17.4.11
+  clickhouse-common-static: 19.17.4.11
+  graphviz: 2.38.0-12ubuntu2.1
+  graphviz-dev: 2.38.0-12ubuntu2.1
+  yandex-taxi-graph-tools: any
+  yandex-search-kikimr-yql-client-bin: any
+  libssl-dev: any
+  libmysqlclient-dev: any
+  python-nile: any
+  python-nile-debug: any

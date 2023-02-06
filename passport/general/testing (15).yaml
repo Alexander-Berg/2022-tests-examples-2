@@ -1,0 +1,85 @@
+emitter:
+  args:
+    client_id: historydb/account_events_testing
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    decompress: true
+    per_host_config:
+      .*?:
+        targets:
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/auth
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/event
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/oauth
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/oauth
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/oauth
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/oauth
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: historydb2/testing/oauth
+    workers_count: 17
+  class: passport.backend.logbroker_client.core.consumers.simple.native_emitter.PartitionsCountNativeEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/xiva/
+policy:
+  max_unhealthy_cleanup_period: 3600
+  unhealthy_grace_period: 3600
+workers:
+  args:
+    handler:
+      args:
+        events:
+        - passport.backend.logbroker_client.core.events.events.AccountDisableEvent
+        - passport.backend.logbroker_client.core.events.events.AccountGlogoutEvent
+        - passport.backend.logbroker_client.core.events.events.AccountKarmaEvent
+        - passport.backend.logbroker_client.core.events.events.SessionKillEvent
+        - passport.backend.logbroker_client.core.events.events.TokenInvalidateEvent
+        - passport.backend.logbroker_client.core.events.events.SessionsRevokedEvent
+        - passport.backend.logbroker_client.core.events.events.AppPasswordsRevokedEvent
+        - passport.backend.logbroker_client.core.events.events.AccountDefaultAvatarEvent
+        extra_host: http://push-sandbox.yandex.ru
+        host: http://push-tst.yandex.ru
+        hub_host: http://push-tst.yandex.ru
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.xiva.handler.MailHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.native_worker.NativeLogbrokerWorker
+  count: 17

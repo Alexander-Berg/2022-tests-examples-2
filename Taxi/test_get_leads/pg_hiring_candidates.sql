@@ -1,0 +1,617 @@
+INSERT INTO hiring_candidates.candidates(
+    id,
+    personal_phone_id
+) VALUES (
+    '0000',
+    'ab5d889aab6d448091766a7649c604ce'
+),
+(
+    '0001',
+    'c6f13636554a492cb284e2b40c6fc0bb'
+),
+(
+    '0002',
+    'c6f13636554a492cb284e2b40c6fc0fb'
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    account_id,
+    account_created_ts,
+    created_ts,
+    is_rent,
+    personal_license_id,
+    license_country,
+    service,
+    workflow_type,
+    first_name,
+    personal_user_login_creator_id,
+    source_park_db_id,
+    vacancy,
+    customer,
+    profile_id,
+    status,
+    channel,
+    target_city,
+    tariff,
+    target_park_db_id,
+    employment_type,
+    activation_city,
+    activation_park_db_id,
+    park_condition_id,
+    activator_check,
+    active_10
+) VALUES (
+    'akjhsdf123',
+    '0000',
+    'test_acc',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    FALSE,
+    '37b48d6efd784ba4acc8ad33fc0bf218',
+    'RUS',
+    'taxi',
+    'Driver',
+    'Kirk',
+    '4dab92b509e74ab793ef24404d218c3b',
+    'test_source_park_db_id',
+    'test_vacancy',
+    'test_customer',
+    'profile_51b15ffeb0764865a41c9e4a',
+    'some_stat1',
+    'CHANNEL',
+    '213',
+    'Tariff',
+    'Park ID',
+    'Employment Type',
+    'Activation City',
+    'Activation Park ID',
+    '7b9752f7631f48198f49ed05c32',
+    'waiting',
+    '2020-01-10T00:00:00.000000'
+),
+(
+    'akjhsdf124',
+    '0001',
+    'test_acc',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    TRUE,
+    '84e68ba6534e49e2893151194a8b909b',
+    'RUS',
+    'taxi',
+    'Driver',
+    'Ivan',
+    'd4ba92b509e74ab793ef24404d218c3b',
+    'test_park_db_id',
+    NULL,
+    'test_customer',
+    'profile_b0764865a41c9e4a18e45aa9',
+    'some_stat2',
+    'DIOR',
+    '2',
+    'Tariff',
+    'Park ID',
+    'Employment Type',
+    'Activation City',
+    'Activation Park ID',
+    '9jf03fk23024499359uijfvmsps',
+    'rejected',
+    NULL
+),
+(
+    'akjhsdf125',
+    '0002',
+    'test_acc',
+    '2020-09-13T13:00:00'::TIMESTAMP,
+    '2020-09-14T13:00:00'::TIMESTAMP,
+    TRUE,
+    '84e68ba6534e49e2893151194a8b909c',
+    'RUS',
+    'taxi',
+    'Driver',
+    'Ivan',
+    NULL,
+    'test_park_db_id',
+    'test_courier',
+    'test_customer',
+    'profile_b0764865a41c9e4a18e45aa5',
+    'some_stat3',
+    'DIORD',
+    '2',
+    'Tariff',
+    'Park ID',
+    'Employment Type',
+    'Activation City',
+    'Activation Park ID',
+    'Park Condition Id',
+    'approved',
+    NULL
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    created_ts,
+    is_rent,
+    workflow_type,
+    customer,
+    status,
+    active_1,
+    active_5,
+    active_10,
+    active_15,
+    active_25,
+    active_50,
+    active_100
+) VALUES (
+    'status_lead_id_1',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'status_customer',
+    'test_status_1',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'status_lead_id_2',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Courier',
+    'status_customer',
+    'test_status_2',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'status_lead_id_3',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'status_customer',
+    'test_status_3',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'lead_not_active',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'active_customer',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'lead_active_1',
+    '0001',
+    '2021-05-15T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'active_customer',
+    NULL,
+    '2021-05-16'::DATE,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'lead_active_5',
+    '0001',
+    '2021-05-14T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'active_customer',
+    NULL,
+    '2021-05-15'::DATE,
+    '2021-05-16'::DATE,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'lead_active_10',
+    '0001',
+    '2021-05-13T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Courier',
+    'active_customer',
+    NULL,
+    '2021-05-14'::DATE,
+    '2021-05-15'::DATE,
+    '2021-05-16'::DATE,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'lead_active_15',
+    '0001',
+    '2021-05-12T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'active_customer',
+    NULL,
+    '2021-05-13'::DATE,
+    '2021-05-14'::DATE,
+    '2021-05-15'::DATE,
+    '2021-05-16'::DATE,
+    NULL,
+    NULL,
+    NULL
+),
+(
+    'lead_active_25',
+    '0001',
+    '2021-05-11T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Courier',
+    'active_customer',
+    NULL,
+    '2021-05-12'::DATE,
+    '2021-05-13'::DATE,
+    '2021-05-14'::DATE,
+    '2021-05-15'::DATE,
+    '2021-05-16'::DATE,
+    NULL,
+    NULL
+),
+(
+    'lead_active_50',
+    '0001',
+    '2021-05-10T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Courier',
+    'active_customer',
+    NULL,
+    '2021-05-11'::DATE,
+    '2021-05-12'::DATE,
+    '2021-05-13'::DATE,
+    '2021-05-14'::DATE,
+    '2021-05-15'::DATE,
+    '2021-05-16'::DATE,
+    NULL
+),
+(
+    'lead_active_100',
+    '0001',
+    '2021-05-09T13:00:00'::TIMESTAMP,
+    TRUE,
+    'Driver',
+    'active_customer',
+    NULL,
+    '2021-05-10'::DATE,
+    '2021-05-11'::DATE,
+    '2021-05-12'::DATE,
+    '2021-05-13'::DATE,
+    '2021-05-14'::DATE,
+    '2021-05-15'::DATE,
+    '2021-05-16'::DATE
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    created_ts,
+    customer,
+    is_rent,
+    workflow_type,
+    external_id
+) VALUES (
+    'lead_external_1',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    'external_id_consumer',
+    TRUE,
+    'Driver',
+    'some_id'
+),
+(
+    'lead_external_2',
+    '0001',
+    '2021-05-17T14:00:00'::TIMESTAMP,
+    'external_id_consumer',
+    TRUE,
+    'Driver',
+    'other_id'
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    created_ts,
+    customer,
+    is_rent,
+    vacancy,
+    employment_type
+) VALUES (
+    'lead_employment_some_type',
+    '0000',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    'employment_customer',
+    TRUE,
+    'Driver',
+    'SomeType'
+),
+(
+    'lead_employment_some_other_type',
+    '0001',
+    '2021-05-17T14:00:00'::TIMESTAMP,
+    'employment_customer',
+    TRUE,
+    'Driver',
+    'SomeOtherType'
+),
+(
+    'lead_employment_empty',
+    '0002',
+    '2021-05-17T15:00:00'::TIMESTAMP,
+    'employment_customer',
+    TRUE,
+    'Driver',
+    ''
+),
+(
+    'lead_employment_null',
+    '0002',
+    '2021-05-17T16:00:00'::TIMESTAMP,
+    'employment_customer',
+    TRUE,
+    'Driver',
+    NULL
+),
+(
+    'lead_employment_another_type',
+    '0002',
+    '2021-05-17T17:00:00'::TIMESTAMP,
+    'employment_customer',
+    TRUE,
+    'Driver',
+    'AnotherType'
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    created_ts,
+    customer,
+    is_rent,
+    workflow_type,
+    external_id
+) VALUES (
+    'paginations_1',
+    '0001',
+    '2021-05-17T11:00:00'::TIMESTAMP,
+    'paginator',
+    TRUE,
+    'Driver',
+    'some_id_1'
+),
+(
+    'paginations_2',
+    '0001',
+    '2021-05-17T12:00:00'::TIMESTAMP,
+    'paginator',
+    TRUE,
+    'Driver',
+    'other_id_1'
+),
+(
+    'paginations_3',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    'paginator',
+    TRUE,
+    'Driver',
+    'other_id_2'
+),
+(
+    'paginations_4',
+    '0001',
+    '2021-05-17T14:00:00'::TIMESTAMP,
+    'paginator',
+    TRUE,
+    'Driver',
+    'other_id_3'
+),
+(
+    'paginations_5',
+    '0001',
+    '2021-05-17T15:00:00'::TIMESTAMP,
+    'paginator',
+    TRUE,
+    'Driver',
+    'other_id_4'
+),
+(
+    'paginations_6',
+    '0001',
+    '2021-05-17T16:00:00'::TIMESTAMP,
+    'paginator',
+    TRUE,
+    'Driver',
+    'other_id_5'
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    created_ts,
+    customer,
+    target_city,
+    tariff
+) VALUES (
+    'by_city_moscow',
+    '0001',
+    '2021-05-17T11:00:00'::TIMESTAMP,
+    'by_city_and_tariff',
+    'Москва',
+    NULL
+),
+(
+    'by_city_samara',
+    '0001',
+    '2021-05-17T12:00:00'::TIMESTAMP,
+    'by_city_and_tariff',
+    'Самара',
+    NULL
+),
+(
+    'by_tariff_economy',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    'by_city_and_tariff',
+    NULL,
+    'Economy'
+),
+(
+    'by_city_and_tariff_moscow_comfort',
+    '0001',
+    '2021-05-17T14:00:00'::TIMESTAMP,
+    'by_city_and_tariff',
+    'Москва',
+    'Comfort'
+),
+(
+    'by_city_and_tariff_kazan_comfort+',
+    '0001',
+    '2021-05-17T15:00:00'::TIMESTAMP,
+    'by_city_and_tariff',
+    'Казань',
+    'Comfort+'
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    created_ts,
+    customer,
+    source_park_db_id
+) VALUES (
+    'by_source_park_db_id_1',
+    '0001',
+    '2021-05-17T11:00:00'::TIMESTAMP,
+    'by_source_park_db_id',
+    'DB_ID1'
+),
+(
+    'by_source_park_db_id_2',
+    '0001',
+    '2021-05-17T12:00:00'::TIMESTAMP,
+    'by_source_park_db_id',
+    'DB_ID2'
+),
+(
+    'by_source_park_db_id_3',
+    '0001',
+    '2021-05-17T13:00:00'::TIMESTAMP,
+    'by_source_park_db_id',
+    'DB_ID1'
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    extra
+) VALUES (
+    'with_extra_fields_1',
+    '0000',
+    '{}'
+),
+(
+    'with_extra_fields_2',
+    '0001',
+    '{"extra_field_1": "value"}'
+),
+(
+    'with_extra_fields_3',
+    '0002',
+    '{"extra_field_1": "value", "extra_field_2": 123, "extra_field_3": ["a", "b"]}'
+),
+(
+    'with_extra_fields_4',
+    '0000',
+    null
+);
+
+INSERT INTO hiring_candidates.leads(
+    lead_id,
+    candidate_id,
+    employment_type,
+    status,
+    tariff,
+    target_city,
+    source_park_db_id
+) VALUES (
+    'lead_translate',
+    '0000',
+    'self_employed',
+    'active_5',
+    'comfort',
+    '213',
+    'test_source_park_db_id'
+),
+(
+    'lead_empty_fields',
+    '0000',
+    'self_employed',
+    NULL,
+    NULL,
+    '213',
+    'test_source_park_db_id'
+);
+
+INSERT INTO hiring_candidates.assets (
+         asset_id,
+         lead_id,
+         sts,
+         plate_number,
+         vin,
+         brand,
+         model,
+         release_year,
+         color
+     ) VALUES (
+        'test_translate_car',
+        'lead_translate',
+        '101030405050234',
+        'Т217НТ777',
+        'XWB4A11BD8A139475',
+        'KIA',
+        'CEED',
+        '2010',
+        'black'
+     )

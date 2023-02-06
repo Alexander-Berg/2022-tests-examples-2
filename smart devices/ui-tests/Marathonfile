@@ -1,0 +1,59 @@
+# docs: https://marathonlabs.github.io/marathon/doc/configuration.html
+name: "Yandex TV tests"
+outputDir: "${marathon_output_dir}"
+retryStrategy:
+  type: "fixed-quota"
+  totalAllowedRetryQuota: 50
+  retryPerTestQuota: "${test_fail_retry_quantity}"
+uncompletedTestRetryQuota: "${uncompleted_test_retry_quantity}"
+testClassRegexes:
+  - "^((?!Abstract).)*$"
+filteringConfiguration:
+  allowlist:
+      - type: "${test_filter_type}"
+        values:
+          - "${test_filter_value}"
+  blocklist:
+      - type: "annotation"
+        values:
+          - "androidx.test.filters.Suppress"
+          - "${annotation_for_block_tests_1}"
+          - "${annotation_for_block_tests_2}"
+includeSerialRegexes:
+  - ".*${serial_number}.*"
+vendorConfiguration:
+  type: "Android"
+  allureConfiguration:
+    enabled: true
+  applicationApk: "${main_app_path}"
+  testApplicationApk: "${test_app_path}"
+  screenRecordConfiguration:
+    preferableRecorderType: "video"
+    videoConfiguration:
+      enabled: true
+      width: 1920
+      height: 1080
+      bitrateMbps: 2
+      timeLimit: 600
+    screenshotConfiguration:
+      enabled: true
+      width: 1920
+      height: 1080
+      delayMs: 200
+  instrumentationArgs:
+    debug: "false"
+  applicationPmClear: true
+  testApplicationPmClear: true
+  vendor: ADAM
+  adbInitTimeoutMillis: 300000
+  waitForDevicesTimeoutMillis: 300000
+  timeoutConfiguration:
+      # ISO_8601 duration
+      pushFile: "PT15M"
+      pullFile: "PT15M"
+      install: "PT15M"
+      screenrecorder: "PT30M"
+deviceInitializationTimeoutMillis: 600000
+testBatchTimeoutMillis: 2400000
+testOutputTimeoutMillis: 2400000
+debug: true

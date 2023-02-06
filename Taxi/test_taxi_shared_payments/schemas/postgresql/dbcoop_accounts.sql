@@ -1,0 +1,16 @@
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V001__initial_schema.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V002__schema_refinement.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V003__add_index_and_has_specific_limit.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V004__currency.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V005__limits.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V006__reports.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V007__shared_payments_deleted_at.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V008__account_has_rides.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V009__add_indices_to_accounts_and_members.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V010__add_debt_orders_table.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V011__shared_payments_updated.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V012__add_passport_family_account_id.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V013__add_phonish_family_members.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V015__members_add_attempt_counter.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V017__add_attempt_counters_table.sql
+\ir ../../../taxi_shared_payments/storage/dbcoop_accounts/migrations/V018__remove_attempt_counter_column.sql

@@ -1,0 +1,195 @@
+import pytest
+
+import pricing_modifications_validator.models.symbolic.dagparser as dparser
+
+
+@pytest.mark.parametrize(
+    'ast, expected_repr',
+    [
+        pytest.param(
+            'R(2.00000)',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(FLOAT::2.00000)])])])',
+            id='simple_return',
+        ),
+        pytest.param(
+            'R(B(1,+,2))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(OPERATION'
+            ':+:[(FLOAT::1),(FLOAT::2)])])])])',
+            id='return_binary_op',
+        ),
+        pytest.param(
+            'R(B(2,+,B(3,*,4)))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(OPERATION:+:'
+            '[(FLOAT::2),(OPERATION:*:[(FLOAT::3),(FLOAT::4)])])])])])',
+            id='nested_binary_op',
+        ),
+        pytest.param(
+            'CR(boarding=10,distance=20)',
+            '(PROGRAM::[(BLOCKS::[(COMPOSITERET::'
+            '[(FLOAT:boarding:10),(FLOAT:distance:20)])])])',
+            id='complex_return',
+        ),
+        pytest.param(
+            'IF(B(3,>,2),R(1),R(2))',
+            '(PROGRAM::[(BLOCKS::[(CONDITION::[(OPERATION:>:[(FLOAT::3),'
+            '(FLOAT::2)]),(BLOCKS::[(SIMPLERET::[(FLOAT::1)])]),'
+            '(BLOCKS::[(SIMPLERET::[(FLOAT::2)])])])])])',
+            id='condition',
+        ),
+        pytest.param(
+            'IF(true,IF(true,R(1)));R(1)',
+            '(PROGRAM::[(BLOCKS::[(CONDITION::[(FULLYQUALIFIEDNAME::true),'
+            '(BLOCKS::[(CONDITION::[(FULLYQUALIFIEDNAME::true),(BLOCKS::'
+            '[(SIMPLERET::[(FLOAT::1)])])])])]),(BLOCKS::[(SIMPLERET::'
+            '[(FLOAT::1)])])])])',
+            id='nested_condition',
+        ),
+        pytest.param(
+            'R(B(B(ride,.,F(ride)),.,F(time)))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(OPERATION:__dot__:['
+            '(OPERATION:__dot__:[(FULLYQUALIFIEDNAME::ride),(NAME::ride)]),'
+            '(NAME::time)])])])])',
+            id='nested_dot_op',
+        ),
+        pytest.param(
+            'IF(B("awesome_user",in,B(fix,.,F(tags))),R(1),R(2))',
+            '(PROGRAM::[(BLOCKS::[(CONDITION::[(OPERATION:in:['
+            '(STRINGLITERAL::"awesome_user"),(OPERATION:__dot__:['
+            '(FULLYQUALIFIEDNAME::fix),(NAME::tags)])]),(BLOCKS::['
+            '(SIMPLERET::[(FLOAT::1)])]),(BLOCKS::[(SIMPLERET::['
+            '(FLOAT::2)])])])])])',
+            id='in_operator',
+        ),
+        pytest.param(
+            'IF(U(?,B(B(fix,.,F(surge_params)),.,F(alpha))),R(1),R(2))',
+            '(PROGRAM::[(BLOCKS::[(CONDITION::[(OPERATION:?:['
+            '(OPERATION:__dot__:[(OPERATION:__dot__:[(FULLYQUALIFIEDNAME::fix)'
+            ',(NAME::surge_params)]),(NAME::alpha)])]),(BLOCKS::[(SIMPLERET::'
+            '[(FLOAT::1)])]),(BLOCKS::[(SIMPLERET::[(FLOAT::2)])])])])])',
+            id='condition_block_before_return',
+        ),
+        pytest.param(
+            'IF(true,R(1))',
+            '(PROGRAM::[(BLOCKS::[(CONDITION::[(FULLYQUALIFIEDNAME::true),'
+            '(BLOCKS::[(SIMPLERET::[(FLOAT::1)])])])])])',
+            id='return_under_condition',
+        ),
+        pytest.param(
+            'E("paid_waiting_time",B(B(ride,.,F(price)),.,'
+            'F(destination_waiting)));R(1)',
+            '(PROGRAM::[(BLOCKS::[(EMITEXPR::(STRINGLITERAL::'
+            '"paid_waiting_time")[(OPERATION:__dot__:[(OPERATION:__dot__:['
+            '(FULLYQUALIFIEDNAME::ride),(NAME::price)]),'
+            '(NAME::destination_waiting)])]),(BLOCKS::'
+            '[(SIMPLERET::[(FLOAT::1)])])])])',
+            id='emit_before_return',
+        ),
+        pytest.param(
+            'FUNC(foo,ARGS((a,std::map<int,int>),(b,int)),B(CR(res=1)));'
+            'R(FC(foo,NT(a=2),R(res=double)))',
+            '(PROGRAM::[(FUNCTION:foo:[(ARGS::[(ARG:std::map<int,int>:a),'
+            '(ARG:int:b)]),(BLOCKS::[(COMPOSITERET::[(FLOAT:res:1)])])]),'
+            '(BLOCKS::[(SIMPLERET::[(FUNCTION_CALL::foo'
+            '[(NAMED_TUPLE::[(FLOAT:a:2)]),(RETURN_TYPES::[\'res\'])])])])])',
+            id='function_call',
+        ),
+        pytest.param(
+            'FUNC(foo,ARGS(),B(CR(res=1)));' 'R(FC(foo,NT(),R(res=double)))',
+            '(PROGRAM::[(FUNCTION:foo:[(ARGS::),(BLOCKS::[(COMPOSITERET::'
+            '[(FLOAT:res:1)])])]),(BLOCKS::[(SIMPLERET::[(FUNCTION_CALL::'
+            'foo[(NAMED_TUPLE::),(RETURN_TYPES::[\'res\'])])])])])',
+            id='function_call_empty_tuple_empty_args',
+        ),
+        pytest.param(
+            'R(FA(bar,std::map<int,int>))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::'
+            '[(FUNCTION_ARG:std::map<int,int>:bar)])])])',
+            id='access_to_function_argument',
+        ),
+        pytest.param(
+            'SV(test,B(2,+,2));R(2)',
+            '(PROGRAM::[(BLOCKS::[(STORE_VALUE::[(NAME::test),(OPERATION:+:'
+            '[(FLOAT::2),(FLOAT::2)])]),(BLOCKS::'
+            '[(SIMPLERET::[(FLOAT::2)])])])])',
+            id='store_value',
+        ),
+        pytest.param(
+            'R(VA(test))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::'
+            '[(VALUE_ACCESS::(NAME::test))])])])',
+            id='value_access',
+        ),
+        pytest.param(
+            'R(B(FC(foo,NT(x=1),R(y=int)),.,TF(x)))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(OPERATION:__dot__:'
+            '[(FUNCTION_CALL::foo[(NAMED_TUPLE::[(FLOAT:x:1)]),'
+            '(RETURN_TYPES::[\'y\'])]),(TUPLE_FIELD::(NAME::x))])])])])',
+            id='access_to_function_result_tuple',
+        ),
+        pytest.param(
+            'R(FL(container,iterator,NT(x=1),NT(y=2)))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(FOLD_EXPRESSION::'
+            '[(FULLYQUALIFIEDNAME::container),(NAME::iterator),(NAMED_TUPLE::'
+            '[(FLOAT:x:1)]),(NAMED_TUPLE::[(FLOAT:y:2)])])])])])',
+            id='fold_operation',
+        ),
+        pytest.param(
+            'R(SL(1,1,2,2,B(SL(0,0,1,1,1),+,SL(3,3,4,4,2))))',
+            '(PROGRAM::[(BLOCKS::[(SIMPLERET::[(OPERATION:+:['
+            '(FLOAT::1)[0:0-1:1],(FLOAT::2)[3:3-4:4]])[1:1-2:2]])])])',
+            id='with_source_location',
+        ),
+        pytest.param(
+            'ASSERT(B(3,>,2));CR()',
+            '(PROGRAM::[(BLOCKS::[(ASSERTION:(OPERATION:>:[(FLOAT::3),'
+            '(FLOAT::2)])::ProofType.PROOF_ALWAYS:),(BLOCKS::'
+            '[(COMPOSITERET::)])])])',
+            id='assertion_no_message',
+        ),
+        pytest.param(
+            'ASSERT(B(3,>,2),"test message");CR()',
+            '(PROGRAM::[(BLOCKS::[(ASSERTION:(OPERATION:>:[(FLOAT::3),'
+            '(FLOAT::2)])::ProofType.PROOF_ALWAYS:"test message"),'
+            '(BLOCKS::[(COMPOSITERET::)])])])',
+            id='assertion_with_message',
+        ),
+        pytest.param(
+            'ASSUME(B("x",in,B(fix,.,F(exps))));CR()',
+            '(PROGRAM::[(ASSUMPTION::[(OPERATION:in:[(STRINGLITERAL::"x"),'
+            '(OPERATION:__dot__:[(FULLYQUALIFIEDNAME::fix),(NAME::exps)])]),'
+            '(BLOCKS::[(COMPOSITERET::)])])])',
+            id='assume',
+        ),
+        pytest.param(
+            'SV(x,NT(a=2.000000));SV(y,NT(b=3.000000));SV(z,CONCAT(VA(x),'
+            'VA(y)));ASSERT(B(B(VA(z),.,F(b)),>=,3.000000));CR()',
+            '(PROGRAM::[(BLOCKS::[(STORE_VALUE::[(NAME::x),(NAMED_TUPLE::'
+            '[(FLOAT:a:2.000000)])]),(BLOCKS::[(STORE_VALUE::[(NAME::y),'
+            '(NAMED_TUPLE::[(FLOAT:b:3.000000)])]),(BLOCKS::[(STORE_VALUE::'
+            '[(NAME::z),(CONCAT::[(VALUE_ACCESS::(NAME::x)),(VALUE_ACCESS::'
+            '(NAME::y))])]),(BLOCKS::[(ASSERTION:(OPERATION:>=:'
+            '[(OPERATION:__dot__:[(VALUE_ACCESS::(NAME::z)),(NAME::b)]),'
+            '(FLOAT::3.000000)])::ProofType.PROOF_ALWAYS:),'
+            '(BLOCKS::[(COMPOSITERET::)])])])])])])',
+        ),
+    ],
+)
+def test_parser_good(ast, expected_repr):
+    dag = dparser.to_dag(ast)
+    assert repr(dag) == expected_repr
+
+
+@pytest.mark.parametrize(
+    'source_name',
+    [
+        'prod_surge',
+        'prod_waiting',
+        'discount',
+        'prod_coupon',
+        'prod_yaplus_cashback_usermeta_driver',
+    ],
+)
+def test_parser_complex_asts(source_name, load):
+    ast = load(source_name).replace('\n', '')
+    dag = dparser.to_dag(ast)
+    assert dag is not None

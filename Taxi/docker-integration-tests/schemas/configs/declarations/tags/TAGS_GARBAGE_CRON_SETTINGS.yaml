@@ -1,0 +1,78 @@
+default:
+    __default__:
+        cleanup_tags:
+            execution_count: 1
+            limit: 2048
+            timeout: 1000
+        cleanup_tokens:
+            execution_count: 1
+            limit: 4096
+            timeout: 4000
+description: Настройки параметров запросов для крон-таски garbage-collector для каждого
+    инстанса сервиса тегов.
+tags: [notfallback]
+schema:
+    type: object
+    definitions:
+        query_settings:
+            type: object
+            description: Настройки SQL запроса
+            additionalProperties: false
+            properties:
+                execution_count:
+                    type: integer
+                    description: Количество запусков SQL запроса
+                    minimum: 0
+                limit:
+                    type: integer
+                    description: Ограничение на количество удаляемых объектов
+                    minimum: 1
+                timeout:
+                    type: integer
+                    description: Ограничение на время выполнения SQL запроса, ms
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                    minimum: 100
+            required:
+              - limit
+              - timeout
+
+        settings:
+            type: object
+            description: Настройки параметров для каждого запроса
+            required:
+              - cleanup_tags
+              - cleanup_tokens
+            additionalProperties: true
+            properties:
+                cleanup_tags:
+                    $ref: '#/definitions/query_settings'
+                cleanup_tokens:
+                    $ref: '#/definitions/query_settings'
+
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/settings'
+    additionalProperties:
+        $ref: '#/definitions/settings'
+
+samples:
+  - __default__:
+        cleanup_tags:
+            execution_count: 1
+            limit: 2048
+            timeout: 1000
+        cleanup_tokens:
+            execution_count: 1
+            limit: 4096
+            timeout: 4000
+    passenger_tags:
+        cleanup_tags:
+            execution_count: 3
+            limit: 1000
+            timeout: 1337
+        cleanup_tokens:
+            execution_count: 0
+            limit: 1
+            timeout: 2000

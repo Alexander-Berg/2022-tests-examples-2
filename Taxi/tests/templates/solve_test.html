@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load utils i18n tests_extras %}
+{% block title %}{% trans "Solve Test" %}{% endblock %}
+
+{% block h1 %}<h1>{% trans "Solve Test" %}</h1>{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-lg-12 col-12">
+            <div class="card">
+                <div class="card-header">
+                    {% if test.dump_test.title_en and data_every_page.user_lang == 'en' %}{{ test.dump_test.title_en }}{% else %}{{ test.dump_test.title }}{% endif %}</div>
+                <div class="card-body">
+                    <div id="clockdiv">
+                        <div class="alert alert-success" style="position: absolute; top:50px; right:15px;" role="alert">
+                            <span class="minutes"></span>:<span class="seconds"></span>
+                        </div>
+                    </div>
+                    <div id="deadline-clockdiv" class="hidden">
+                        <div class="alert alert-danger" style="position: fixed;" role="alert">00:00</div>
+                    </div>
+                    <span id="time-left-to-end-of-test" class="hidden">{{ test.time_left_to_submit_answer }}</span>
+                    <div id="test">
+                        <form id="test-form" action="{% url 'tests:solve-test' test.pk %}" method="post">
+                            {% csrf_token %}
+                            {% for question in test.dump_test.questions %}
+                                <div class="form-group">
+                                    <div class="d-flex">
+                                        <label class="font-weight-bold">{% if question.question.q_en and data_every_page.user_lang == 'en' %}{{ question.question.q_en }}{% else %}{{ question.question.q_ru }}{% endif %}</label>
+                                    </div>
+                                    {% if question.question.q_img %}
+                                    <div>
+                                        <img src="{{ question.question.q_img|question_image_media_url }}">
+                                    </div>
+                                    {% endif %}
+                                    {% for answer in question.answers %}
+                                        <div class="form-check">
+                                            <input class="form-check-input position-static"
+                                                   id="{{ forloop.parentloop.counter }}{{ forloop.counter }}"
+                                                   type="checkbox" name="q_{{ question.id|encode_base64 }}"
+                                                   value='{"a_ru":"{{ answer.answer_ru }}", "a_en":"{{ answer.answer_en }}"}'>
+                                            <label for="{{ forloop.parentloop.counter }}{{ forloop.counter }}">
+                                                {% if answer.answer_en and data_every_page.user_lang == 'en' %}{{ answer.answer_en }}{% else %}{{ answer.answer_ru }}{% endif %}
+                                                </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                            <button class="btn btn-yellow float-right" type="submit">{% trans 'Finish' %}</button>
+                        </form>
+                    </div>
+                    <div id="deadline-messadge" class="hidden">
+                        <hr>
+                        <p class="h6">{% trans 'Time is up, saving the result...' %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+   {% endblock %}

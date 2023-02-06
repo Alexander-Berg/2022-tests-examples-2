@@ -1,0 +1,22 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+sources:
+  - id: mainland-source
+    content-type: application/json
+    resource: mainland-resource
+    fail-policy:
+      - selector: fallbacking
+        action: disable
+  - id: reserve-source
+    content-type: application/json
+    resource: reserve-resource
+    enabled#not:
+        value#source-enabled: mainland-source
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#if:
+        condition#source-enabled: mainland-source
+        then#source-response-body: mainland-source
+        else#source-response-body: reserve-source

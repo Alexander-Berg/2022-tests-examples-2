@@ -1,0 +1,53 @@
+import pytest
+{% for import_module in import_modules %}
+from {{ import_module }} import *
+{% endfor %}
+
+__all__ = [
+    'test_ping',
+    'test_incremental_cache_update',
+{% if api_coverage_enabled %}
+    'test_api_coverage',
+{% endif %}
+{% for function in import_functions %}
+    '{{ function }}',
+{% endfor %}
+]
+
+
+# Every service must have this handler
+@pytest.mark.servicetest
+async def test_ping(taxi_{{underscore_service_name}}):
+    response = await taxi_{{underscore_service_name}}.get('ping')
+    # Status code must be checked for every request
+    assert response.status_code == 200
+    # Response content (even empty) must be checked for every request
+    assert response.content == b''
+
+
+async def test_incremental_cache_update(taxi_{{underscore_service_name}}):
+    await taxi_{{underscore_service_name}}.update_server_state()
+    await taxi_{{underscore_service_name}}.invalidate_caches(clean_update=False)
+
+
+{% if api_coverage_enabled %}
+async def test_api_coverage(
+    collect_coverage_report,
+    get_service_name,
+    request,
+{% if is_arcadia %}
+    metrics,
+{% endif %}
+):
+{% if is_arcadia %}
+    service_name = get_service_name
+    coverage_ratio = request.config.cache.get('service_api_coverage_ratio', None)
+    if not coverage_ratio:
+        return
+    metrics.set(
+        f'user.api_coverage.{service_name}.coverage_ratio',
+        coverage_ratio,
+    )
+{% endif %}
+    pass
+{% endif %}

@@ -1,0 +1,100 @@
+group:
+  type: rtc
+  name: some_dorblu_name
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+
+  some.test.hostname.net:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Not: [ StartsWith: { request_url: "/ping" } ]
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/__ping_GET:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "GET" }
+      - StartsWith: { request_url: "/ping" }
+    Options:
+      CustomHttp:
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 406 # Not acceptable
+        - 409 # Conflict
+        - 410 # Gone
+        - 429 # Too many requests
+
+  some.test.hostname.net/prefix/to/prepend/some/url/to/be/prepended_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/prefix/to/prepend/some/url/to/be/prepended/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 451
+          - 452
+          - 499 # Client closed request
+
+  some.test.hostname.net/prefix2/to/prepend/some/url/to/be/prepended_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/prefix2/to/prepend/some/url/to/be/prepended/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 451
+          - 452
+          - 499 # Client closed request
+
+  some.test.hostname.net/prefix/to/prepend/some/url/to/be/prepended/{some_id}_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/prefix/to/prepend/some/url/to/be/prepended/[^/]+/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 451
+          - 452
+          - 499 # Client closed request
+
+  some.test.hostname.net/prefix2/to/prepend/some/url/to/be/prepended/{some_id}_POST:
+    And:
+      - Equals: { http_host: "some.test.hostname.net" }
+      - Equals: { request_method: "POST" }
+      - Regex: { request_url: "/prefix2/to/prepend/some/url/to/be/prepended/[^/]+/?(\\?.*)?" }
+    Options:
+        CustomHttp:
+          - 400 # Bad request
+          - 401 # Unauthorized
+          - 403 # Forbidden
+          - 404 # Not found
+          - 429 # Too many requests
+          - 451
+          - 452
+          - 499 # Client closed request

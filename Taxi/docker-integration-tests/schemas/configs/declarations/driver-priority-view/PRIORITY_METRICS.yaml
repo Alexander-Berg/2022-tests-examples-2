@@ -1,0 +1,52 @@
+default:
+    __default__: {metric: 'ETR', metric_unit: 'percents', metric_values: {}}
+description: Настройки экрана-справки приоритета водителя
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/ZoneMetric'
+    properties:
+        __default__:
+            $ref: '#/definitions/ZoneMetric'
+    required:
+      - __default__
+
+    definitions:
+        Value:
+            description: Значение метрики для приоритета
+            type: object
+            additionalProperties: false
+            properties:
+                new_step:
+                    description: Является ли данное значение границей диапазона
+                    type: boolean
+                    default: true
+                value:
+                    description: Значение метрики
+                    type: integer
+            required:
+              - value
+
+        ZoneMetric:
+            type: object
+            description: Настройки метрики приоритета в тарифной зоне
+            additionalProperties: false
+            properties:
+                metric:
+                    description: Название метрики приоритета, необходим танкерный
+                        ключ
+                    type: string
+                metric_unit:
+                    description: Единица измерения метрики, необходим танкерный ключ
+                    type: string
+                metric_values:
+                    type: object
+                    description: Значение метрики для каждого приоритета. Ключи, не
+                        являющиеся натуральными числами, будут игнорироваться.
+                    additionalProperties:
+                        $ref: '#/definitions/Value'
+            required:
+              - metric
+              - metric_unit
+              - metric_values

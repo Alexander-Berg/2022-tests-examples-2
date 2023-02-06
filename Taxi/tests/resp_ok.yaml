@@ -1,0 +1,39 @@
+id: resp_ok
+title: Default request-response
+source:
+    request:
+        method: post
+        body:
+            apns_type: "apns_type_value"
+            push_tokens: {"apns_token": "apns_token_value", "gcm_token": "gcm_token_value",
+                "hms_token": "hms_token_value"}
+            push_settings: {"enabled_by_system": true, "included_tags": ["tag1"],
+                "excluded_tags": ["tag2"]}
+        headers:
+            X-YaTaxi-UserId: "user_id_value"
+            X-Request-Application: "app_brand=yataxi,app_build=release,app_name=android,platform_ver1=10,app_ver1=3,app_ver2=161,app_ver3=0"
+    expectations:
+        response:
+            status-code#integer: 200
+mocks:
+  - resource: ucommunications-user-notification-subscribe
+    response:
+        status-code: 200
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body:
+                user_id: "user_id_value"
+                application: "android"
+                build_type: "apns_type_value"
+                push_tokens: {"apns_token": "apns_token_value", "gcm_token": "gcm_token_value",
+                    "hms_token": "hms_token_value"}
+                push_settings: {"enabled_by_system": true, "included_tags": ["tag1"],
+                    "excluded_tags": ["tag2"]}
+            content-type: application/json
+
+experiments:
+    values:
+        user_push_subscribe:
+            enabled: true

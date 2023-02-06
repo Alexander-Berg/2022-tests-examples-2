@@ -1,0 +1,82 @@
+# --------------------------------------------------------------------------- #
+# Testing локейшены для всех брендов
+# --------------------------------------------------------------------------- #
+
+include lavkaweb/env/common;
+
+location /vokrugsveta {
+  return 307 https://lavka.yandex.ru/about/vokrugsveta$is_args$args;
+}
+
+# Проксируем чеки (https://st.yandex-team.ru/LAVKAFRONT-3156)
+location  ~ ^/receipts/(.*) {
+  proxy_set_header      Host grocery-authproxy.lavka.tst.yandex.net;
+
+  include lavkaweb/proxy/settings;
+
+  resolver [2a02:6b8::1:1] ipv6=on;
+
+  proxy_pass https://grocery-authproxy.lavka.tst.yandex.net/grocery-receipts/$1$is_args$args;
+}
+
+location /help/api/ {
+  include lavkaweb/proxy/settings;
+  proxy_pass https://help-frontend.taxi.tst.yandex.ru/api/;
+}
+
+location /help/foodtech/ {
+  include lavkaweb/proxy/settings;
+
+  proxy_set_header X-Host $host;
+  proxy_set_header X-Path help;
+
+  proxy_pass https://help-frontend.taxi.tst.yandex.ru/foodtech/;
+}
+
+location ~ ^/sitemap[-\d\w\.]*\.(xml|txt) {
+  if ($http_user_agent ~* googlebot) {
+    return 302 https://lavka-web-production.s3.yandex.net/sitemaps/testing/latest/$sitemap_host$request_uri;
+  }
+
+  include lavkaweb/proxy/settings;
+
+  proxy_hide_header x-robots-tag;
+
+  error_page 404 /not-found;
+
+  rewrite ^ /s3/lavka-web/sitemaps/testing/latest/$sitemap_host$request_uri break;
+  proxy_pass https://yastatic.net;
+}
+
+location = /robots.txt {
+  include lavkaweb/proxy/settings;
+
+  proxy_hide_header x-robots-tag;
+
+  error_page 404 /not-found;
+
+  rewrite ^ /robots.txt/$robots_txt_host/robots.txt break;
+  proxy_pass https://lavka-web-testing.s3.yandex.net;
+}
+
+# Verification for 10min.market.yandex.ru
+location /google0064c07e6501197e.html {
+  default_type text/html;
+  return 200 "google-site-verification: google0064c07e6501197e.html";
+}
+
+location / {
+  include lavkaweb/proxy/settings;
+
+  proxy_set_header      Host $host;
+  more_set_headers      "Vary: User-Agent";
+
+  proxy_pass            http://nodejs_upstream;
+
+  client_max_body_size  128m;
+
+  etag                  on;
+
+  add_header X-RTC-Host $host;
+  add_header X-RTC-Env  testing;
+}

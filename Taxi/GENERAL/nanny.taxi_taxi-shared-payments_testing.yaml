@@ -1,0 +1,632 @@
+group:
+  type: rtc
+  name: taxi_taxi-shared-payments_testing
+
+graphs:
+  Monitoring:
+    vhost-500:
+      Blacklist:
+        - Equals: { request_url: "/ping" }
+  shared-payments.taxi.tst.yandex.net:
+    Equals: { http_host: "shared-payments.taxi.tst.yandex.net" }
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 409 # Conflict
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/create_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Create cooperative account
+        - Equals: {request_url: "/4.0/coop_account/create"}
+        - Equals: {request_url: "/4.0/coop_account/create/"}
+        - StartsWith: {request_url: "/4.0/coop_account/create?"}
+        - StartsWith: {request_url: "/4.0/coop_account/create/?"}
+    Options:
+      CustomHttp:
+        - 400 # Report frequency should be passed with email
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/currencies_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get a list of selectable currencies
+        - Equals: {request_url: "/4.0/coop_account/currencies"}
+        - Equals: {request_url: "/4.0/coop_account/currencies/"}
+        - StartsWith: {request_url: "/4.0/coop_account/currencies?"}
+        - StartsWith: {request_url: "/4.0/coop_account/currencies/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/currency_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Select a currency for the account. Can be selected only once
+        - Equals: {request_url: "/4.0/coop_account/currency"}
+        - Equals: {request_url: "/4.0/coop_account/currency/"}
+        - StartsWith: {request_url: "/4.0/coop_account/currency?"}
+        - StartsWith: {request_url: "/4.0/coop_account/currency/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 409 # If the account currency is already selected and is not equal to the currency in the request
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/delete_DELETE:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "DELETE"}
+      - Or: # Mark a cooperative account as deleted
+        - Equals: {request_url: "/4.0/coop_account/delete"}
+        - Equals: {request_url: "/4.0/coop_account/delete/"}
+        - StartsWith: {request_url: "/4.0/coop_account/delete?"}
+        - StartsWith: {request_url: "/4.0/coop_account/delete/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/details_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Update cooperative account details
+        - Equals: {request_url: "/4.0/coop_account/details"}
+        - Equals: {request_url: "/4.0/coop_account/details/"}
+        - StartsWith: {request_url: "/4.0/coop_account/details?"}
+        - StartsWith: {request_url: "/4.0/coop_account/details/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/export_account_report_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Download account orders report
+        - Equals: {request_url: "/4.0/coop_account/export_account_report"}
+        - Equals: {request_url: "/4.0/coop_account/export_account_report/"}
+        - StartsWith: {request_url: "/4.0/coop_account/export_account_report?"}
+        - StartsWith: {request_url: "/4.0/coop_account/export_account_report/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/limit_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Update cooperative account limits
+        - Equals: {request_url: "/4.0/coop_account/limit"}
+        - Equals: {request_url: "/4.0/coop_account/limit/"}
+        - StartsWith: {request_url: "/4.0/coop_account/limit?"}
+        - StartsWith: {request_url: "/4.0/coop_account/limit/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/list_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Get owned cooperative account ids list by yandex_uid from PA headers (parsed by default) and bound uids
+        - Equals: {request_url: "/4.0/coop_account/list"}
+        - Equals: {request_url: "/4.0/coop_account/list/"}
+        - StartsWith: {request_url: "/4.0/coop_account/list?"}
+        - StartsWith: {request_url: "/4.0/coop_account/list/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/member/create_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Create cooperative account member
+        - Equals: {request_url: "/4.0/coop_account/member/create"}
+        - Equals: {request_url: "/4.0/coop_account/member/create/"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/create?"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/create/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/member/delete_DELETE:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "DELETE"}
+      - Or: # Mark a cooperative account member as deleted
+        - Equals: {request_url: "/4.0/coop_account/member/delete"}
+        - Equals: {request_url: "/4.0/coop_account/member/delete/"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/delete?"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/delete/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/member/details_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Change details and limits of a cooperative account member
+        - Equals: {request_url: "/4.0/coop_account/member/details"}
+        - Equals: {request_url: "/4.0/coop_account/member/details/"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/details?"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/details/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/member/invitation_sent_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Sets is_invitation_sent flag. If it is True, the invitation screen does not have to be shown on client' 
+        - Equals: {request_url: "/4.0/coop_account/member/invitation_sent"}
+        - Equals: {request_url: "/4.0/coop_account/member/invitation_sent/"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/invitation_sent?"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/invitation_sent/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/member/leave_group_DELETE:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "DELETE"}
+      - Or: # Member is leaving from a specific account
+        - Equals: {request_url: "/4.0/coop_account/member/leave_group"}
+        - Equals: {request_url: "/4.0/coop_account/member/leave_group/"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/leave_group?"}
+        - StartsWith: {request_url: "/4.0/coop_account/member/leave_group/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/payment_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Update cooperative account payment info
+        - Equals: {request_url: "/4.0/coop_account/payment"}
+        - Equals: {request_url: "/4.0/coop_account/payment/"}
+        - StartsWith: {request_url: "/4.0/coop_account/payment?"}
+        - StartsWith: {request_url: "/4.0/coop_account/payment/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/reports_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Update reports settings
+        - Equals: {request_url: "/4.0/coop_account/reports"}
+        - Equals: {request_url: "/4.0/coop_account/reports/"}
+        - StartsWith: {request_url: "/4.0/coop_account/reports?"}
+        - StartsWith: {request_url: "/4.0/coop_account/reports/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/ridehistory_item_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Get ride information by order_id
+        - Equals: {request_url: "/4.0/coop_account/ridehistory_item"}
+        - Equals: {request_url: "/4.0/coop_account/ridehistory_item/"}
+        - StartsWith: {request_url: "/4.0/coop_account/ridehistory_item?"}
+        - StartsWith: {request_url: "/4.0/coop_account/ridehistory_item/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not Found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/ridehistory_list_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Get rides history for account
+        - Equals: {request_url: "/4.0/coop_account/ridehistory_list"}
+        - Equals: {request_url: "/4.0/coop_account/ridehistory_list/"}
+        - StartsWith: {request_url: "/4.0/coop_account/ridehistory_list?"}
+        - StartsWith: {request_url: "/4.0/coop_account/ridehistory_list/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not Found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account/v2/member/details_PUT:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "PUT"}
+      - Or: # Change details and limits of a cooperative account member
+        - Equals: {request_url: "/4.0/coop_account/v2/member/details"}
+        - Equals: {request_url: "/4.0/coop_account/v2/member/details/"}
+        - StartsWith: {request_url: "/4.0/coop_account/v2/member/details?"}
+        - StartsWith: {request_url: "/4.0/coop_account/v2/member/details/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/coop_account_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get cooperative account info
+        - Equals: {request_url: "/4.0/coop_account"}
+        - Equals: {request_url: "/4.0/coop_account/"}
+        - StartsWith: {request_url: "/4.0/coop_account?"}
+        - StartsWith: {request_url: "/4.0/coop_account/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/4.0/paymentmethod_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get primary paymentmethod for processing in py2
+        - Equals: {request_url: "/4.0/paymentmethod"}
+        - Equals: {request_url: "/4.0/paymentmethod/"}
+        - StartsWith: {request_url: "/4.0/paymentmethod?"}
+        - StartsWith: {request_url: "/4.0/paymentmethod/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/activate_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Activate a cooperative account
+        - Equals: {request_url: "/internal/coop_account/activate"}
+        - Equals: {request_url: "/internal/coop_account/activate/"}
+        - StartsWith: {request_url: "/internal/coop_account/activate?"}
+        - StartsWith: {request_url: "/internal/coop_account/activate/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/check_available_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Check a cooperative account
+        - Equals: {request_url: "/internal/coop_account/check_available"}
+        - Equals: {request_url: "/internal/coop_account/check_available/"}
+        - StartsWith: {request_url: "/internal/coop_account/check_available?"}
+        - StartsWith: {request_url: "/internal/coop_account/check_available/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/deactivate_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Deactivate a cooperative account
+        - Equals: {request_url: "/internal/coop_account/deactivate"}
+        - Equals: {request_url: "/internal/coop_account/deactivate/"}
+        - StartsWith: {request_url: "/internal/coop_account/deactivate?"}
+        - StartsWith: {request_url: "/internal/coop_account/deactivate/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/history_info_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get cooperative account info for history (deleted accounts included)
+        - Equals: {request_url: "/internal/coop_account/history_info"}
+        - Equals: {request_url: "/internal/coop_account/history_info/"}
+        - StartsWith: {request_url: "/internal/coop_account/history_info?"}
+        - StartsWith: {request_url: "/internal/coop_account/history_info/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not Found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/order_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Write order for account
+        - Equals: {request_url: "/internal/coop_account/order"}
+        - Equals: {request_url: "/internal/coop_account/order/"}
+        - StartsWith: {request_url: "/internal/coop_account/order?"}
+        - StartsWith: {request_url: "/internal/coop_account/order/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/owner_info_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get account owner info
+        - Equals: {request_url: "/internal/coop_account/owner_info"}
+        - Equals: {request_url: "/internal/coop_account/owner_info/"}
+        - StartsWith: {request_url: "/internal/coop_account/owner_info?"}
+        - StartsWith: {request_url: "/internal/coop_account/owner_info/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Account or owner not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/paymentmethod/short_info_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get primary paymentmethod short info
+        - Equals: {request_url: "/internal/coop_account/paymentmethod/short_info"}
+        - Equals: {request_url: "/internal/coop_account/paymentmethod/short_info/"}
+        - StartsWith: {request_url: "/internal/coop_account/paymentmethod/short_info?"}
+        - StartsWith: {request_url: "/internal/coop_account/paymentmethod/short_info/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/paymentmethod_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get primary paymentmethod
+        - Equals: {request_url: "/internal/coop_account/paymentmethod"}
+        - Equals: {request_url: "/internal/coop_account/paymentmethod/"}
+        - StartsWith: {request_url: "/internal/coop_account/paymentmethod?"}
+        - StartsWith: {request_url: "/internal/coop_account/paymentmethod/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/coop_account/short_info_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get cooperative account short info
+        - Equals: {request_url: "/internal/coop_account/short_info"}
+        - Equals: {request_url: "/internal/coop_account/short_info/"}
+        - StartsWith: {request_url: "/internal/coop_account/short_info?"}
+        - StartsWith: {request_url: "/internal/coop_account/short_info/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/internal/stats_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get related accounts info (for paymentmethods/)
+        - Equals: {request_url: "/internal/stats"}
+        - Equals: {request_url: "/internal/stats/"}
+        - StartsWith: {request_url: "/internal/stats?"}
+        - StartsWith: {request_url: "/internal/stats/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/ping_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # ping
+        - Equals: {request_url: "/ping"}
+        - Equals: {request_url: "/ping/"}
+        - StartsWith: {request_url: "/ping?"}
+        - StartsWith: {request_url: "/ping/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/v1/admin/delete_DELETE:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "DELETE"}
+      - Or: # Mark a cooperative account as deleted
+        - Equals: {request_url: "/v1/admin/delete"}
+        - Equals: {request_url: "/v1/admin/delete/"}
+        - StartsWith: {request_url: "/v1/admin/delete?"}
+        - StartsWith: {request_url: "/v1/admin/delete/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/v1/admin/detail_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get account info
+        - Equals: {request_url: "/v1/admin/detail"}
+        - Equals: {request_url: "/v1/admin/detail/"}
+        - StartsWith: {request_url: "/v1/admin/detail?"}
+        - StartsWith: {request_url: "/v1/admin/detail/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Account not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/v1/admin/list_GET:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "GET"}
+      - Or: # Get related accounts info
+        - Equals: {request_url: "/v1/admin/list"}
+        - Equals: {request_url: "/v1/admin/list/"}
+        - StartsWith: {request_url: "/v1/admin/list?"}
+        - StartsWith: {request_url: "/v1/admin/list/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Phone/Accounts not found
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/v1/admin/send_account_report_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Send time report for the account
+        - Equals: {request_url: "/v1/admin/send_account_report"}
+        - Equals: {request_url: "/v1/admin/send_account_report/"}
+        - StartsWith: {request_url: "/v1/admin/send_account_report?"}
+        - StartsWith: {request_url: "/v1/admin/send_account_report/?"}
+    Options:
+      CustomHttp:
+        - 400 # Error occured
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Account doesn't exists or it has no email
+        - 429 # Too many requests
+
+  shared-payments.taxi.tst.yandex.net/v1/internal/takeout_POST:
+    And:
+      - Equals: {http_host: "shared-payments.taxi.tst.yandex.net"}
+      - Equals: {request_method: "POST"}
+      - Or: # Obtaining data on own and used accounts for Takeout service
+        - Equals: {request_url: "/v1/internal/takeout"}
+        - Equals: {request_url: "/v1/internal/takeout/"}
+        - StartsWith: {request_url: "/v1/internal/takeout?"}
+        - StartsWith: {request_url: "/v1/internal/takeout/?"}
+    Options:
+      CustomHttp:
+        - 400 # Bad request
+        - 401 # Unauthorized
+        - 403 # Forbidden
+        - 404 # Not found
+        - 429 # Too many requests

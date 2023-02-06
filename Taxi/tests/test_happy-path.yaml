@@ -1,0 +1,106 @@
+id: test_happy-path
+title: Проверяем, что ответы picker-orders и picker-timers верно сконкатенируются
+    при получении 200 от обоих сервисов
+
+source:
+    request:
+        method: get
+        query:
+            eats_id#string: 123456-123456
+            version#integer: 0
+        headers:
+            X-YaEda-CourierId#string: 12345678910
+            X-Measure-Version#string: 2
+            X-Request-Application-Version#string: 9.65 (5397)
+    expectations:
+        response:
+            status-code: 200
+            body:
+                payload:
+                    id: 1
+                    eats_id:
+                    place_id:
+                    status: 'new'
+                    created_at: '1937-01-01T12:00:27.870000+00:20'
+                    updated_at: '1937-01-01T12:00:27.870000+00:20'
+                    status_updated_at: '1937-01-01T12:00:27.870000+00:20'
+                    ordered_total: '1532.55'
+                    pickedup_total: '1532.55'
+                    total_weight:
+                    currency:
+                        code: 'RUB'
+                        sign: 'P'
+                    categories: []
+                    picker_items: []
+                    require_approval: false
+                    flow_type: 'picking_only'
+                meta:
+                timers:
+                  - timer_id: 123456
+                    eats_id: '123456-123456'
+                    picker_id: '12345678910'
+                    timer_type: 'order_picking_autostart'
+                    duration: 42
+                    started_at: '1937-01-01T12:00:27.870000+00:20'
+                    updated_at: '1937-01-01T12:00:27.870000+00:20'
+
+
+mocks:
+  - resource: eats-picker-orders-4-0-eats-picker-api-v1-order-get
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                eats_id#string: 123456-123456
+                version#string: 0
+            headers:
+                X-YaEda-CourierId#string: 12345678910
+                X-Measure-Version#string: 2
+                X-Request-Application-Version#string: 9.65 (5397)
+    response:
+        status-code: 200
+        body:
+            payload:
+                id: 1
+                eats_id:
+                place_id:
+                status: 'new'
+                created_at: '1937-01-01T12:00:27.870000+00:20'
+                updated_at: '1937-01-01T12:00:27.870000+00:20'
+                status_updated_at: '1937-01-01T12:00:27.870000+00:20'
+                ordered_total: '1532.55'
+                pickedup_total: '1532.55'
+                total_weight:
+                currency:
+                    code: 'RUB'
+                    sign: 'P'
+                categories: []
+                picker_items: []
+                require_approval: false
+                flow_type: 'picking_only'
+            meta:
+
+  - resource: eats-picker-timers-4-0-eats-picker-timers-api-v1-timers-get
+    expectations:
+        call-count: 1
+        request:
+            method: get
+            query:
+                eats_id#string: 123456-123456
+                version#string: 0
+            headers:
+                X-YaEda-CourierId#string: 12345678910
+                X-Measure-Version#string: 2
+                X-Request-Application-Version#string: 9.65 (5397)
+    response:
+        status-code: 200
+        body:
+            timers:
+              - timer_id: 123456
+                eats_id: '123456-123456'
+                picker_id: '12345678910'
+                timer_type: 'order_picking_autostart'
+                duration: 42
+                started_at: '1937-01-01T12:00:27.870000+00:20'
+                updated_at: '1937-01-01T12:00:27.870000+00:20'

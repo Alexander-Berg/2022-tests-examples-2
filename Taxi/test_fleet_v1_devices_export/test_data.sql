@@ -1,0 +1,300 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'has_everything',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+), (
+    2,
+    NULL,
+    TRUE,
+    'without_driver',
+    'pub_key_2',
+    '351756051523999',
+    'a5:90:c5:98:95:48',
+    '78:ff:28:f2:69:b1',
+    NULL,
+    'AB12FE45DD',
+    '1.02',
+    'bk+tiOIGu8pvtW6t1Ua4A5GWt0OVW0Y+9eMYu86lp7cTDQwiME5Ls+3FA6Ey2Anc',
+    '5R9B0pS+FUWoppjfv4jpyo3QnZtgvqeETTwsnjruUaM=',
+    'Eyu+mWRi9K6XhyxnXiy30qagNcQwIh8cuDNXbqkTWN9NBGXjwzdI8lwljEGW3fg1',
+    65536,
+    '{}',
+    2,
+    '2019-12-17T08:38:54',
+    '2019-12-17T08:38:54'
+), (
+    3,
+    NULL,
+    TRUE,
+    'just_device',
+    'pub_key_3',
+    NULL,
+    'ca:ff:4d:64:f2:79',
+    NULL,
+    '63:72:bf:26:5a:b3',
+    'FFEE33',
+    '2.01',
+    '7p117mV/CfzpOnevbsdfFC3g7nJ+dTliDx1QwMhOPBRCrLrSCMuUV6dLm+z2FchT',
+    '03Kl5ckWGKlUWmD4ZPq6dpVF5X5+oqycQgOJIZXfPg0=',
+    'RIVcPWACRArzJqxvXfm37l3HOaY41Ew3aIB4JhQYe/QQ+0XRWzsr9BNltXVHDhwUcgVLCmYBKn8PLvnqZg9V+A==',
+    256,
+    '{"foo":"bar"}',
+    NULL,
+    '2019-12-17T09:38:54',
+    '2019-12-17T09:38:54'
+), (
+    4,
+    NULL,
+    FALSE,
+    'move_to_other_park',
+    'pub_key_4',
+    NULL,
+    '32:41:27:d5:fb:ed',
+    'fb:43:3c:cd:1e:8f',
+    '23:5f:72:1c:04:39',
+    'FFFDEAD4',
+    '2.02',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    NULL,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+), (
+    5,
+    NULL,
+    FALSE,
+    'another_park',
+    'pub_key_5',
+    NULL,
+    '11:11:11:22:22:ff',
+    NULL,
+    NULL,
+    '1337587103',
+    'hw_5',
+    'jogmkRg+3f2FuNbK7Lgvj3q1oyA0jICe58u211+fau6EoApCqi2Y6Vvz7vfKR5ze',
+    'rXpTYgLEKFdpwQk4Mi364rwCcsGQ0G+nnB2sqIA9Fxs=',
+    '3hf1RADEjx4mzeHU8dQ6QFKhZ95eZoWBwPqlPXmaBYbGx3macCVRcWGiwvUfNoXv',
+    65536,
+    NULL,
+    NULL,
+    '2019-12-17T10:38:54',
+    '2019-12-17T11:38:54'
+);
+
+INSERT INTO signal_device_api.statuses
+(
+    id,
+    cpu_temperature,
+    disk_bytes_free_space,
+    disk_bytes_total_space,
+    root_bytes_free_space,
+    root_bytes_total_space,
+    ram_bytes_free_space,
+    gps_position_lat,
+    gps_position_lon,
+    gnss_latitude,
+    gnss_longitude,
+    gnss_speed_kmph,
+    gnss_accuracy_m,
+    gnss_direction_deg,
+    software_version,
+    uptime_ms,
+    sim_iccid,
+    sim_phone_number,
+    sim_imsi,
+    status_at,
+    created_at,
+    updated_at,
+    position_updated_at
+)
+VALUES
+(
+    1,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    73.3242,
+    54.9885,
+    53.3242,
+    34.9885,
+    10,
+    3,
+    100,
+    '2.31-2',
+    90555,
+    '89310410106543789301',
+    '+7 (913) 617-82-58',
+    '502130123456789',
+    '2020-01-23 15:44:02 +00:00',
+    '2019-09-04 T08:18:54 +00:00',
+    '2020-08-11 15:00:00 +00:00',
+    NULL
+),
+(
+    2,
+    36,
+    107374182,
+    1073741824,
+    107374183,
+    1073741835,
+    10737418,
+    73.3242,
+    54.9885,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    '2.31.32-3.xxx',
+    90555,
+    '89310410106543789300',
+    '+7 (913) 617-82-58',
+    '502130123456788',
+    '2020-01-23 15:44:02 +00:00',
+    '2019-09-04 T08:18:54 +00:00',
+    '2020-08-11 14:50:00 +00:00',
+    '2020-08-11 14:00:00 +00:00'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+)
+VALUES
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    1,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p1',
+    2,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    3,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p1',
+    4,
+    now(),
+    now(),
+    FALSE
+),
+(
+    'p2',
+    4,
+    now(),
+    now(),
+    TRUE
+),
+(
+    'p2',
+    5,
+    now(),
+    now(),
+    TRUE
+);
+
+INSERT INTO signal_device_api.car_device_bindings
+(
+    id,
+    park_id,
+    car_id,
+    device_id,
+    created_at,
+    detached_at,
+    updated_at
+)
+VALUES
+(
+    '1',
+    'p1',
+    'car1',
+    3,
+    '2019-12-17T10:38:54',
+    now(),
+    now()
+),
+(
+    '2',
+    'p1',
+    'car1',
+    1,
+    now(),
+    NULL,
+    now()
+),
+(
+    '3',
+    'p1',
+    'car2',
+    2,
+    now(),
+    NULL,
+    now()
+)

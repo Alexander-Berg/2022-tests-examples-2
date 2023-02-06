@@ -1,0 +1,81 @@
+# Service definitions for extension
+version: "2.3"
+
+services:
+    taxi-common:
+        image: registry.yandex.net/ubuntu:xenial
+        privileged: true
+        environment:
+          - REQUESTS_CA_BUNDLE=/usr/local/share/ca-certificates/rootCA.crt
+          - SSL_CERT_FILE=/usr/local/share/ca-certificates/rootCA.crt
+#         - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+        volumes:
+          - ./volumes/tools:/taxi/tools:ro
+          - ./volumes/configs:/taxi/configs:ro
+          - ./volumes/taxi-secdist:/etc/yandex/taxi-secdist:ro
+          - ./volumes/taximeter-secdist:/etc/yandex/taximeter-secdist
+          - ./volumes/run:/taxi/run:ro
+          - ./volumes/syslog-ng:/etc/syslog-ng:ro
+          - ./volumes/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+          - ./volumes/nginx/listen:/etc/nginx/listen:ro
+          - ./volumes/nginx/listen_https:/etc/nginx/listen_https:ro
+          - ./_logs:/taxi/logs:rw
+        cap_add:
+          - SYS_PTRACE
+    taxi-integration-xenial-base:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-base:${VERSION:-latest}
+    taxi-integration-bionic-base:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-bionic-base:${VERSION:-latest}
+    taxi-integration-xenial-testing:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-testing:${VERSION:-latest}
+    taxi-integration-xenial-unstable:
+        extends:
+            service: taxi-common
+        environment:
+          - LANG=ru_RU.UTF-8
+        image: registry.yandex.net/taxi/taxi-integration-xenial-unstable:${VERSION:-latest}
+    taxi-backend:
+        extends:
+            service: taxi-common
+        image: registry.yandex.net/taxi/taxi-integration/xenial/taxi-backend-py2:${IMAGE_VERSION:-test}
+        volumes:
+          - ./backend:/taxi/backend:ro
+        environment:
+          - TAXI_SETTINGS_MODULE=taxi_settings_docker
+          - PATH=/usr/lib/yandex/taxi-py2/bin:/usr/lib/yandex/taxi-py3-2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        build:
+            context: services
+            args:
+                project: taxi-backend
+                packages: yandex-taxi-admin yandex-taxi-cabinet yandex-taxi-import
+                    yandex-taxi-stq yandex-taxi-utils
+    taxi-backend-py3:
+        extends:
+            service: taxi-integration-xenial-base
+        volumes:
+          - ./backend-py3:/taxi/backend-py3:ro
+    taxi-backend-cpp:
+        extends:
+            service: taxi-common
+        volumes:
+          - ./backend-cpp:/taxi/backend-cpp:ro
+          - ../..:/arcadia:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/backend-cpp-build/}:${DOCKER_BUILD_VOLUME:-/tmp/backend-cpp-build/}
+    taxi-uservices:
+        extends:
+            service: taxi-common
+        volumes:
+          - ../..:/arcadia:rw
+          - ${HOST_BUILD_VOLUME:-/tmp/uservices-build/}:${DOCKER_BUILD_VOLUME:-/tmp/uservices-build/}

@@ -1,0 +1,170 @@
+id: subscription_entrypoint
+title: выдача шоткатов в зависимости от статуса подписки
+
+parameters:
+  - case:
+      - enabled: false
+        discovery:
+            blocks: [WhoopsBlock]
+            cells: [WhoopsCell]
+        expect:
+            blocks: []
+            cells: []
+      - enabled: true
+        discovery:
+            blocks: [SubscriptionBlock]
+            cells: [SubscriptionCell]
+        expect:
+            blocks: [SubscriptionBlock]
+            cells: [SubscriptionCell]
+
+source:
+    request:
+        method: post
+        headers:
+            X-YaTaxi-Pass-Flags: ya-plus
+        body:
+            state: {}
+            shortcuts: {"grids_support": [{"width": 6, "unit_width": 61}], "ndash_width": 9,
+                "mdash_width": 14}
+            position: [1, 2]
+            media_size_info: {}
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                screen:
+                    sections:
+                      - type: items_linear_grid
+                        shortcut_ids: [go_ride]
+                    offers:
+                        items:
+                          - shortcut_id: go_ride
+                            title: "Go кататься"
+                            type: media-stories
+                            width: 3
+                            height: 2
+                            background: {color: "#F1F0ED"}
+                            action: {type: media}
+                    layout: {"width": 6, "type": "linear_grid", "grid_id": "8ac5a10df9584cee94f1ddd86b3e3d4e"}
+                typed_experiments: {"items": []}
+                products:
+                  - {"tag": "taxi", "service": "taxi", "title": "Такси"}
+                  - {"tag": "scooters", "service": "scooters", "title": "Самокаты"}
+                modes:
+                  - {"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}
+                  - {"mode": "scooters", "parameters": {"product_tag": "scooters",
+                        "available": true}}
+
+configs:
+    values:
+        scooters_subscription_offer_params:
+            enabled#xget: /test-params/case/enabled
+
+mocks:
+  - resource: superapp-misc-v1-availability
+    response:
+        status-code: 200
+        body:
+            modes:
+              - {"mode": "taxi", "parameters": {"product_tag": "taxi", "available": true}}
+              - {"mode": "scooters", "parameters": {"product_tag": "scooters", "available": true}}
+            products:
+              - {"tag": "taxi", "service": "taxi", "title": "Такси"}
+              - {"tag": "scooters", "service": "scooters", "title": "Самокаты"}
+            typed_experiments: {"items": []}
+    expectations:
+        call-count: 1
+
+  - resource: scooters-misc-v1-shortcuts
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+
+  - resource: inapp-communications-blender
+    response:
+        status-code: 200
+        body: {}
+    expectations:
+        call-count: 1
+        request:
+            body:
+                screen: "scooters"
+                user_context:
+                    show_at: "2020-01-01T00:00:00+00:00"
+                    state: {}
+                    pin_position: [1, 2]
+                services_availability:
+                    products:
+                      - {"tag": "taxi", "service": "taxi", "title": "Такси"}
+                      - {"tag": "scooters", "service": "scooters", "title": "Самокаты"}
+                    modes:
+                      - {"parameters": {"available": true, "product_tag": "taxi"},
+                        "mode": "taxi"}
+                      - {"parameters": {"available": true, "product_tag": "scooters"},
+                        "mode": "scooters"}
+                    typed_experiments: {"items": []}
+
+  - resource: blender-v1-scooters-screen-grid
+    response:
+        status-code: 200
+        body:
+            grid:
+                blocks: [Block]
+                cells: [Cell]
+    expectations:
+        call-count: 1
+
+  - resource: shortcuts-v1-screen-scooters
+    response:
+        status-code: 200
+        body:
+            sections:
+              - type: items_linear_grid
+                shortcut_ids: [go_ride]
+            offers:
+                items:
+                  - shortcut_id: "go_ride"
+                    title: "Go кататься"
+                    type: "media-stories"
+                    width: 3
+                    height: 2
+                    background: {color: "#F1F0ED"}
+                    action: {type: media}
+            layout: {"width": 6, "type": "linear_grid", "grid_id": "8ac5a10df9584cee94f1ddd86b3e3d4e"}
+    expectations:
+        call-count: 1
+        request:
+            method: post
+            body#concat-objects:
+              - value:
+                    state: {}
+                    grid:
+                        blocks#concat-arrays:
+                          - value#array: [Block]
+                          - value#xget: /test-params/case/expect/blocks
+                        cells#concat-arrays:
+                          - value#array: [Cell]
+                          - value#xget: /test-params/case/expect/cells
+                    shortcuts:
+                        grids_support: [{"width": 6, "unit_width": 61}]
+                        ndash_width: 9
+                        mdash_width: 14
+                    position#array: [1, 2]
+                    media_size_info: {}
+              - value:
+                    additional_sections: []
+                enabled#xget: /test-params/case/enabled
+
+  - resource: scooters-subscriptions-offer-params
+    response:
+        status-code: 200
+        body:
+            discovery#xget: /test-params/case/discovery
+    expectations:
+        call-count#if:
+            condition#xget: /test-params/case/enabled
+            then#integer: 1
+            else#integer: 0

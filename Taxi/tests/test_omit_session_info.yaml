@@ -1,0 +1,42 @@
+id: test_omit_session_info
+title: Убираем информацию о session_info из "ошибочного" ответа
+
+source:
+    request:
+        method: post
+        headers:
+            session_id: SESSION_ID
+        body:
+            tag_name: TAG_NAME
+    expectations:
+        response:
+            status-code: 402
+            body:
+                error_details:
+                    http_code: 402
+                    ui_message: Резервируем залог
+                    special_info:
+                        error_code: required_deposit_is_not_held
+                        user_id: 5aa95fb9-01d9-45e0-b810-ba9cd4f4abdc
+
+parameters:
+  - special_info_param:
+      - error_code: required_deposit_is_not_held
+        user_id: 5aa95fb9-01d9-45e0-b810-ba9cd4f4abdc
+        session_info:
+            offer_check: required_deposit_is_not_held
+      - error_code: required_deposit_is_not_held
+        user_id: 5aa95fb9-01d9-45e0-b810-ba9cd4f4abdc
+        # sic: no session_info from source, proxy should still work
+
+mocks:
+  - resource: scooters-tag-evolve
+    response:
+        status-code: 402
+        body:
+            error_details:
+                http_code: 402
+                ui_message: Резервируем залог
+                special_info#xget: /test-params/special_info_param
+    expectations:
+        call-count: 1

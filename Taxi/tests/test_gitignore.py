@@ -1,0 +1,72 @@
+import pathlib
+
+import pytest
+
+import gitignore_parser2
+
+
+@pytest.mark.parametrize('rule,path,match', [
+    ('build', '/repo', False),
+    ('build', '/repo/dbuild', False),
+    ('build', '/repo/builds', False),
+    ('build', '/repo/builds/buil', False),
+    ('build', '/repo/dbuild/buil/d', False),
+    ('build', '/repo/build', True),
+    ('build', '/repo/build/data', True),
+    ('build', '/repo/build/data/file', True),
+    ('build', '/repo/data/build', True),
+    ('build', '/repo/data/build/file', True),
+    ('build', '/repo/data/build/build', True),
+    ('.ccache', '/repo/.ccache', True),
+    ('.ccache', '/repo/.ccache/file/in/ccache', True),
+    ('.ccache', '/repo/file.ccache', False),
+    ('.ccache', '/repo/ccache', False),
+    ('.ccache', '/repo/ccache/data', False),
+    ('/*build*/', '/repo', False),
+    ('/*build*/', '/repo/build', True),
+    ('/*build*/', '/repo/buildd', True),
+    ('/*build*/', '/repo/build-integration', True),
+    ('/*build*/', '/repo/build-integration/src/a.cpp', True),
+    ('/*build*/', '/repo/clion-build-debug', True),
+    ('/*build*/', '/repo/buil/build', False),
+    ('/tags', '/repo', False),
+    ('/tags', '/repo/tags', True),
+    ('/tags', '/repo/tagss', False),
+    ('/tags', '/repo/ctags', False),
+    ('/tags', '/repo/tag/tags', False),
+    ('/tags/', '/repo', False),
+    ('/tags/', '/repo/tags', True),
+    ('/tags/', '/repo/tagss', False),
+    ('/tags/', '/repo/ctags', False),
+    ('/tags/', '/repo/tag/tags', False),
+    ('*.pyc', '/repo', False),
+    ('*.pyc', '/repo/.pyc', True),
+    ('*.pyc', '/repo/.py', False),
+    ('*.pyc', '/repo/a.pyc', True),
+    ('*.pyc', '/repo/a.pycx', False),
+    ('*.pyc', '/repo/b/a.pyc', True),
+    ('*.pyc', '/repo/a.pyc/bb.py', True),
+    ('lib/src', '/repo/lib/src', True),
+    ('lib/src', '/repo/lib/src/zzz', True),
+    ('lib/src', '/repo/data/lib/src', False),
+    ('/services/*/debian/*', '/repo', False),
+    ('/services/*/debian/*', '/repo/debian/dd', False),
+    ('/services/*/debian/*', '/repo/services/debian/dd', False),
+    ('/services/*/debian/*', '/repo/services/asdf/debian/dd', True),
+    ('/services/*/debian/*', '/repo/services/asdf/debian', False),
+    ('/services/*/debian/*', '/repo/services/asdf/debian/a/b/c', True),
+    ('/services/*/debian/', '/repo/services/asdf/debian', True),
+    ('/services/*/debian/', '/repo/services/asdf/debian/a/b/c', True),
+    ('.*', '/repo', False),
+    ('.*', '/repo/data', False),
+    ('.*', '/repo/services/example', False),
+    ('.*', '/repo/services/.ccache', True),
+    ('.*', '/repo/services/file.py', False),
+    ('.*', '/repo/.ccache', True),
+    ('.*', '/repo/no.cache', False),
+    ('.*', '/repo/.ccache/config', True),
+])
+def test_gitignore(rule, path, match):
+    root_path = pathlib.Path('/repo')
+    parser = gitignore_parser2.rule_from_pattern(rule, str(root_path))
+    assert parser.match(path) == match, parser.regex

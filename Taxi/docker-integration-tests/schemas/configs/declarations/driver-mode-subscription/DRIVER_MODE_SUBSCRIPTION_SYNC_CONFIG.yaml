@@ -1,0 +1,104 @@
+description: Настройки для синхронизации экспериментов и режимов подписок
+default:
+    __default__:
+      - subscription_sync_enabled: false
+        schedule_timeshift_ms: 60000
+        sync_settings:
+            check_type: "none"
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/SyncSettingsList'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/SyncSettingsList'
+    definitions:
+        NoneCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - none
+        ExperimentCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+              - experiment
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - experiment
+                experiment:
+                    type: string
+                    minLength: 1
+        BannedByParkCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - banned_by_park
+        OnStartCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - on_start
+        OnStopCheck:
+            type: object
+            additionalProperties: false
+            required:
+              - check_type
+            properties:
+                check_type:
+                    type: string
+                    enum:
+                      - on_stop
+        SyncSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - subscription_sync_enabled
+              - schedule_timeshift_ms
+              - sync_settings
+            properties:
+                subscription_sync_enabled:
+                    type: boolean
+                reschedule_timeshift_ms:
+                    description: Задержка между перезапусками задачи. Если не задана,
+                        используется schedule_timeshift_ms, но не менее 1
+                    type: integer
+                    minimum: 1
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                schedule_timeshift_ms:
+                    description: Сдвиг во времени первого запуска задачи
+                    type: integer
+                    minimum: 0
+                    x-taxi-cpp-type: std::chrono::milliseconds
+                sync_settings:
+                    oneOf:
+                      - $ref: '#/definitions/ExperimentCheck'
+                      - $ref: '#/definitions/BannedByParkCheck'
+                      - $ref: '#/definitions/OnStartCheck'
+                      - $ref: '#/definitions/OnStopCheck'
+                      - $ref: '#/definitions/NoneCheck'
+        SyncSettingsList:
+            type: array
+            items:
+                $ref: '#/definitions/SyncSettings'

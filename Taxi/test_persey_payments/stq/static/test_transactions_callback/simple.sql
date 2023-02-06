@@ -1,0 +1,108 @@
+INSERT INTO persey_payments.fund
+    (
+        fund_id,
+        name,
+        offer_link,
+        operator_uid,
+        balance_client_id,
+        trust_partner_id,
+        trust_product_id
+    )
+VALUES
+    (
+        'friends',
+        'Имя фонда',
+        'http://fund.com',
+        '777',
+        'client1',
+        'partner_id1',
+        'product_id1'
+    );
+
+INSERT INTO persey_payments.ride_subs
+    (
+        yandex_uid,
+        phone_id,
+        brand,
+        fund_id,
+        mod,
+        locale
+    )
+VALUES
+    (
+        'portal_uid',
+        'cccccccccccccccccccccccc',
+        'yataxi',
+        'friends',
+        10,
+        'en'
+    ),
+    (
+        'market_uid',
+        NULL,
+        'market',
+        'friends',
+        10,
+        'en'
+    );
+
+INSERT INTO persey_payments.active_ride_subs
+    (
+        ride_subs_id,
+        yandex_uid,
+        brand
+    )
+VALUES
+    (
+        1,
+        'portal_uid',
+        'yataxi'
+    ),
+    (
+        2,
+        'market_uid',
+        'market'
+    );
+
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        yandex_uid,
+        sum,
+        status,
+        city,
+        ride_subs_id,
+        brand,
+        order_id
+    )
+VALUES
+    (
+        'friends',
+        'portal_uid',
+        '123.45',
+        'started',
+        'moscow',
+        1,
+        'yataxi',
+        'taxi_order_id'
+    ),
+    (
+        'friends',
+        'market_uid',
+        '123.45',
+        'finished',
+        'moscow',
+        2,
+        'market',
+        '777'
+    ),
+    (
+        'friends',
+        'portal_uid',
+        '123.45',
+        'not_authorized',
+        'moscow',
+        1,
+        'yataxi',
+        'failed_order_id'
+    );

@@ -1,0 +1,941 @@
+vendor: arista
+
+output: |
+  interface Ethernet43/1
+    description vla2-9s42 100ge1/0/3
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s42 in
+  ip community-list standard DONT_ANNOUNCE_COMMUNITY permit 13238:999
+  ip community-list standard GSHUT_COMMUNITY permit GSHUT
+  route-map S1_EXPORT_TOR permit 10
+    set community 13238:999 additive
+  route-map S1_IMPORT_TOR deny 10
+    match community DONT_ANNOUNCE_COMMUNITY
+  route-map S1_IMPORT_TOR permit 20
+    match community GSHUT_COMMUNITY
+    set local-preference 0
+  route-map S1_IMPORT_TOR permit 30
+    set local-preference 100
+  router bgp 65000.65051
+    bgp asn notation asdot
+    neighbor TOR peer group
+    maximum-paths 32 ecmp 32
+    neighbor TOR send-community
+    neighbor TOR passive
+    neighbor TOR bfd
+    neighbor TOR maximum-routes 12000
+    neighbor TOR route-map S1_IMPORT_TOR in
+    neighbor TOR route-map S1_EXPORT_TOR out
+    neighbor fe80::e42:d3%Et43/1 remote-as 65000.9042
+    neighbor fe80::e42:d3%Et43/1 peer group TOR
+    address-family ipv6
+      neighbor TOR activate
+
+
+acl: |
+  router bgp
+    bgp
+    maximum-paths
+    neighbor TOR
+    neighbor fe80::e42:d3%Et43/1
+    address-family
+      neighbor TOR
+      neighbor fe80::e42:d3%Et43/1
+  route-map S1_EXPORT_TOR
+    ~ %global
+  ip community-list standard DONT_ANNOUNCE_COMMUNITY
+  ip community-list expanded DONT_ANNOUNCE_COMMUNITY
+  ip community-list regexp DONT_ANNOUNCE_COMMUNITY
+  route-map S1_IMPORT_TOR
+    ~ %global
+  ip community-list standard DONT_ANNOUNCE_COMMUNITY
+  ip community-list standard GSHUT_COMMUNITY
+  interface (?i)Ethernet43/1
+    ~ %global=1
+
+
+input: |
+  # -------------------- vla-51d3.cfg --------------------
+  service routing configuration bgp no-equals-default
+  service routing protocols model multi-agent
+  service configuration session max completed 5
+  service configuration session max pending 20
+  switch forwarding-mode store-and-forward
+  logging trap debugging
+  logging monitor informational
+  no logging console
+  logging vrf MGMT host 2a02:6b8:b010:31::100
+  logging vrf MGMT host 2a02:6b8:0:1482::100
+  logging vrf MGMT host 2a02:6b8:0:3400::595
+  logging vrf MGMT source-interface Management1
+  hostname vla-51d3
+  ip name-server vrf MGMT 2a02:6b8::1:1
+  ip name-server vrf MGMT 2a02:6b8:0:c011::1
+  ip domain-name yndx.net
+  ntp local-interface vrf MGMT Management1
+  ntp server vrf MGMT 2a02:6b8:0:c011::1 version 2 source Management1
+  ntp server vrf MGMT 2a02:6b8:0:829::100 version 2 source Management1
+  ntp server vrf MGMT 2a02:6b8:0:829::101 version 2 source Management1
+  ntp server vrf MGMT 2a02:6b8:0:1a01::100 version 2 source Management1
+  ntp server vrf MGMT 2a02:6b8:0:1a01::101 version 2 source Management1
+  qos profile yandex
+    tx-queue 0
+      no priority
+      bandwidth percent 10
+    tx-queue 1
+      no priority
+      bandwidth percent 12
+    tx-queue 2
+      no priority
+      bandwidth percent 12
+    tx-queue 3
+      no priority
+      bandwidth percent 25
+    tx-queue 4
+      no priority
+      bandwidth percent 25
+      random-detect ecn minimum-threshold 100 kbytes maximum-threshold 200 kbytes max-mark-probability 100 weight 0
+    tx-queue 5
+      no priority
+      bandwidth percent 5
+    tx-queue 6
+      no priority
+      bandwidth percent 2
+    tx-queue 7
+      bandwidth percent 3
+  snmp-server community aish117 ro ipv6 2710
+  snmp-server community znoc ro ipv6 2710
+  snmp-server community racktables ro ipv6 2710
+  snmp-server vrf MGMT
+  snmp-server vrf MGMT local-interface Management1
+  snmp-server host 2A02:6B8:B010:31::100 vrf MGMT version 1 TzVZ8
+  snmp-server host 2A02:6B8:0:1482::100 vrf MGMT version 1 TzVZ8
+  snmp-server enable traps snmpConfigManEvent
+  snmp-server enable traps snmpConfigManEvent arista-config-man-event
+  username racktables privilege 15 role yandex secret sha512 $6$Uh.aAd3EhfRmlDTt$1jLpNSrb97k8G1aLQu8Syj96l6.E0G7.5F6kdnT1mdW6LD/Pyi1iotC3K1J3YulM6B1FxakslumAdte69Z4Nz.
+  username monitor role nocmon secret sha512 $6$jzOj42bffEE8ydJH$q7/xRD4z2CLOwjJDTx.URa9EsZBi0kuyheBA8Lpeqv.OBPWZO29r2hoOyuN1fSNK1hvcHqHL0PTyzCs2C125a/
+  username robot-noc-ck privilege 15 role yandex secret sha512 $6$h6nBRtQkq4JB155D$4UkVQFguWReU6OQCiMw2xfltb/xKCAEcsh7z.sgzla61u4m9OL/Ad1gIGnGdKGM.D8YyWAfuq2GyfZ9yk1Rrs1
+  username racktables ssh-key ssh-dss AAAAB3NzaC1kc3MAAACBAIxQL1SzRyKYG/Hixl9h3of/xwWtE/nw8CFOoV5qwSk9biYYMU6B3UVIIhe2IvvvkmMfRqZeo1ZUtWxN5uZOnRr5hm39gKCz8OsO0XYSk/fO5Y0EKN0EC8X1JmNHAokeEOP+L1vskv9QXr6dNU2ImfUxye3WakxgDBvSJnL7/GeXAAAAFQDjvnGDzNI8z5p/qTyqGf5CmdD9pwAAAIAB9nOxHVM70eTh62RpVChOyLX5/Hg8yZ9BmI0V/nBVPaL8fEmJ7uTW9QnKtqM1o7XuMJHMxlYjywp2OzoR4ghDvQ9MltYsIoUkpVXJkOC/CNDQd9unV03y2Juy7gmnyTKnX2SorXdnsRwQCedXdDXGsIbwGilzL7hwN2G5MS2JFgAAAIBdv6Fjb6wCefhcVVgoay9+8+EEd+MWR3Kf9CZtbgjXboEsGmka9vHgLRFLsFpZksScMKbOjjUrdv3rXZ0W4zzfbwgAMQlzOozKfWbWJaakHdG4x/p9gMPKPm40id3V9e9T7sE1vxqvmSSEOoulmDtXBCQtSduZAX/ELI9aLIMC2g== RackTables@Yandex
+  username robot-noc-ck ssh-key ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7nInxtvBXxvGZRIfz9PAcA1vyNfRJ3beD1OqUJ2FIQVz+Yrn//zdrs4y9Ba1UNIYXet1bRTP3AzOMaspQNV2oBY76EEmeGw4TGFL0ZxE8E+oMKu9QyZLkTUCWLsoF39FfydYS4aSJcaRU4tN9loXe970YWj69kjFpiAtpSvkvh9jTmEeZKl4oMWmRSPp7SNp6prHnFDL/YSIqZGTDRXAQdPl8m30vaKFS7zcNnvghkfiAfJ1+PtbgiZZcpnfzC4Rr2bQSclN/4UGjT20Z+KZVljutaB5msIXIQJEEOJc4/FAx9g6eVBWFCa9kK3y92XFogr2zNX+hJOi3hUdzAh4d
+  tacacs-server key 7 0972572A4C4F0302522B1D0F7D093967703235432015355E0E0F431016070C1C69
+  tacacs-server timeout 4
+  tacacs-server host 2a02:6b8:0:3400:0:8d0:0:1 vrf MGMT
+  aaa group server tacacs+ tacacs
+  aaa authentication login default local group tacacs+
+  aaa authentication login console local
+  aaa authentication enable default group tacacs+ local
+  aaa authorization exec default local group tacacs+
+  role yandex
+    5 permit mode exec command configure session
+    6 permit mode exec command configure replace
+    7 permit mode exec command configure convert
+    10 deny mode exec command configure terminal
+    15 deny mode exec command configure
+    20 permit mode exec command .*
+    30 permit mode config command .*
+    40 permit mode config-all command .*
+  role nocmon
+    5 permit mode exec command show
+  vrf instance MGMT
+  interface Ethernet1/1
+    description vla-1x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-1x3 in
+  interface Ethernet2/1
+    description vla-9x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-9x3 in
+  interface Ethernet3/1
+    description vla-2x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-2x3 in
+  interface Ethernet4/1
+    description vla-10x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-10x3 in
+  interface Ethernet5/1
+    description vla-3x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-3x3 in
+  interface Ethernet6/1
+    description vla-11x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-11x3 in
+  interface Ethernet7/1
+    description vla-4x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-4x3 in
+  interface Ethernet8/1
+    description vla-12x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-12x3 in
+  interface Ethernet9/1
+    description vla-5x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-5x3 in
+  interface Ethernet10/1
+    description vla-13x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-13x3 in
+  interface Ethernet11/1
+    description vla-6x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-6x3 in
+  interface Ethernet12/1
+    description vla-14x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-14x3 in
+  interface Ethernet13/1
+    description vla-7x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-7x3 in
+  interface Ethernet14/1
+    description vla-15x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-15x3 in
+  interface Ethernet15/1
+    description vla-8x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-8x3 in
+  interface Ethernet16/1
+    description vla-16x3 e3/12/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-16x3 in
+  interface Ethernet17/1
+    description vla-9x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-9x3-2 in
+  interface Ethernet18/1
+    description vla-9x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-9x3-3 in
+  interface Ethernet19/1
+    description vla-10x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-10x3-2 in
+  interface Ethernet20/1
+    description vla-10x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-10x3-3 in
+  interface Ethernet21/1
+    description vla-11x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-11x3-2 in
+  interface Ethernet22/1
+    description vla-11x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-11x3-3 in
+  interface Ethernet23/1
+    description vla-13x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-13x3-2 in
+  interface Ethernet24/1
+    description vla-12x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-12x3-2 in
+  interface Ethernet25/1
+    description vla-12x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-12x3-3 in
+  interface Ethernet26/1
+    description vla-13x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-13x3-3 in
+  interface Ethernet27/1
+    description vla-14x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-14x3-2 in
+  interface Ethernet28/1
+    description vla-14x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-14x3-3 in
+  interface Ethernet29/1
+    description vla-15x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-15x3-2 in
+  interface Ethernet30/1
+    description vla-15x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-15x3-3 in
+  interface Ethernet31/1
+    description vla-16x3 e3/8/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-16x3-2 in
+  interface Ethernet32/1
+    description vla-16x3 e3/16/1
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla-16x3-3 in
+  interface Ethernet33/1
+    description vla2-9s38 100ge1/0/3
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s38 in
+  interface Ethernet35/1
+    description vla2-9s39 100ge1/0/3
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s39 in
+  interface Ethernet37/1
+    description vla2-9s41 100ge1/0/3
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s41 in
+  interface Ethernet39/1
+    description vla2-9s40 100ge1/0/3
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s40 in
+  interface Ethernet43/1
+    description vla2-9s42 100ge1/0/3
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s42 in
+  interface Ethernet45/1
+    description vla2-9s44 swp51
+    ipv6 enable
+    ipv6 address fe80::51:c3/64 link-local
+    mtu 9000
+    service-profile yandex
+    no switchport
+    ipv6 access-group RETRANSMIT_RX_vla2-9s44 in
+  interface Management1
+    description vla2-i66 gi0/0/21
+    vrf MGMT
+    ipv6 enable
+    ipv6 address 2a02:6b8:0:c011:0:210:c:11c/64
+  interface Ethernet34/1
+    mtu 9000
+    no switchport
+  interface Ethernet36/1
+    mtu 9000
+    no switchport
+  interface Ethernet38/1
+    mtu 9000
+    no switchport
+  interface Ethernet40/1
+    mtu 9000
+    no switchport
+  interface Ethernet41/1
+    mtu 9000
+    no switchport
+  interface Ethernet42/1
+    mtu 9000
+    no switchport
+  interface Ethernet44/1
+    mtu 9000
+    no switchport
+  interface Ethernet46/1
+    mtu 9000
+    no switchport
+  interface Ethernet47/1
+    mtu 9000
+    no switchport
+  interface Ethernet48/1
+    mtu 9000
+    no switchport
+  interface Ethernet49/1
+    mtu 9000
+    no switchport
+  interface Ethernet50/1
+    mtu 9000
+    no switchport
+  interface Ethernet51/1
+    mtu 9000
+    no switchport
+  interface Ethernet52/1
+    mtu 9000
+    no switchport
+  interface Ethernet53/1
+    mtu 9000
+    no switchport
+  interface Ethernet54/1
+    mtu 9000
+    no switchport
+  interface Ethernet55/1
+    mtu 9000
+    no switchport
+  interface Ethernet56/1
+    mtu 9000
+    no switchport
+  interface Ethernet57/1
+    mtu 9000
+    no switchport
+  interface Ethernet58/1
+    mtu 9000
+    no switchport
+  interface Ethernet59/1
+    mtu 9000
+    no switchport
+  interface Ethernet60/1
+    mtu 9000
+    no switchport
+  interface Ethernet61/1
+    mtu 9000
+    no switchport
+  interface Ethernet62/1
+    mtu 9000
+    no switchport
+  interface Ethernet63/1
+    mtu 9000
+    no switchport
+  interface Ethernet64/1
+    mtu 9000
+    no switchport
+  interface Ethernet65
+    mtu 9000
+    no switchport
+  interface Ethernet66
+    mtu 9000
+    no switchport
+  ip access-list standard 2710
+    10 permit host 213.180.215.13
+    20 permit host 37.9.68.100
+    30 permit host 37.9.68.102
+    40 permit host 37.9.68.107
+    50 permit host 5.255.214.115
+    60 permit host 77.88.1.117
+    70 permit host 87.250.232.33
+    80 permit host 87.250.232.34
+    90 permit host 87.250.232.35
+    100 permit host 87.250.232.36
+    110 permit host 87.250.243.140
+    120 permit host 93.158.158.81
+    130 permit host 93.158.158.84
+    140 permit host 93.158.158.93
+    150 permit host 93.158.168.133
+    160 permit host 93.158.169.11
+    170 permit host 95.108.132.129
+    180 permit host 95.108.132.157
+    190 permit host 95.108.133.81
+    200 permit host 95.108.133.82
+    210 permit host 95.108.248.129
+  ipv6 access-list standard 2710
+    10 permit host 2a02:6b8:0:1423:225:90ff:fee4:2bb0
+    20 permit host 2a02:6b8:0:1482::100
+    30 permit host 2a02:6b8:0:1608::82c1:3e7d
+    40 permit host 2a02:6b8:0:1a43::5ff:d673
+    50 permit host 2a02:6b8:0:823::5f6c:849e
+    60 permit host 2a02:6b8:0:c012::10
+    70 permit host 2a02:6b8:0:c01a::54c9:b8c9
+    80 permit host 2a02:6b8:b010:31::100
+    90 permit host 2a02:6b8:b010:31::1000
+    100 permit host 2a02:6b8:b010:31::81
+    110 permit host 2a02:6b8:b010:50a4:225:90ff:fee3:ce8d
+    120 permit host 2a02:6b8:b010:50a4::81
+    130 permit host 2a02:6b8:b010:7012::2000
+    140 permit host 2a02:6b8:b010:8009::19
+    150 permit host 2a02:6b8:b010:8009::20
+    160 permit host 2a02:6b8:b010:8009::21
+    170 permit host 2a02:6b8:b010:8009::3
+    180 permit host 2a02:6b8:b010:88:216:3eff:fec9:1640
+    190 permit host 2a02:6b8:b010:88::101
+    200 permit host 2a02:6b8:b010:88::201
+    210 permit host 2a02:6b8:b010:e011::5f6c:f881
+    220 permit host 2a02:6b8:b011:6407:e61d:2dff:fe01:fa20
+  ipv6 access-list RETRANSMIT_RX_vla-1x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-9x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-2x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-10x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-3x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-11x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-4x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-12x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-5x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-13x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-6x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-14x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-7x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-15x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-8x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-16x3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-9x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-9x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-10x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-10x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-11x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-11x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-13x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-12x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-12x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-13x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-14x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-14x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-15x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-15x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-16x3-2
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla-16x3-3
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla2-9s38
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla2-9s39
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla2-9s41
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla2-9s40
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla2-9s42
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 access-list RETRANSMIT_RX_vla2-9s44
+    counters per-entry
+    10 permit ipv6 any any dscp 40
+    70 permit ipv6 any any dscp 46
+    1000 permit ipv6 any any
+  ipv6 route vrf MGMT ::/0 Management1 fe80::1
+  ipv6 route 2a02:6b8:c0e:400::/56 Null0
+  ipv6 route 2a02:6b8:c17::/48 Null0
+  ipv6 route 2a02:6b8:fc09:300::/56 Null0
+  ipv6 route 2a02:6b8:fc18::/48 Null0
+  ipv6 route 2a02:6b8:c0e:700::/56 Null0
+  ipv6 route 2a02:6b8:c18::/48 Null0
+  ipv6 route 2a02:6b8:fc09:400::/56 Null0
+  ipv6 route 2a02:6b8:fc19::/48 Null0
+  ipv6 route 2a02:6b8:c0e:300::/56 Null0
+  ipv6 route 2a02:6b8:c15::/48 Null0
+  ipv6 route 2a02:6b8:fc09:200::/56 Null0
+  ipv6 route 2a02:6b8:fc16::/48 Null0
+  ipv6 route 2a02:6b8:c0e:100::/56 Null0
+  ipv6 route 2a02:6b8:fc09:100::/56 Null0
+  ipv6 route 2a02:6b8:c0f::/48 Null0
+  ipv6 route 2a02:6b8:fc15::/48 Null0
+  ipv6 route 2a02:6b8:c0e:a00::/56 Null0
+  ipv6 route 2a02:6b8:c1f::/48 Null0
+  ipv6 route 2a02:6b8:fc21::/48 Null0
+  ipv6 route 2a02:6b8:fc09:700::/56 Null0
+  ipv6 route 2a02:6b8:c0e::/56 Null0
+  ipv6 route 2a02:6b8:c0d::/48 Null0
+  ipv6 route 2a02:6b8:fc14::/48 Null0
+  ipv6 route 2a02:6b8:fc09::/56 Null0
+  ipv6 route 2a02:6b8:c1d::/48 Null0
+  ipv6 route 2a02:6b8:c0e:900::/56 Null0
+  ipv6 route 2a02:6b8:fc09:600::/56 Null0
+  ipv6 route 2a02:6b8:fc1e::/48 Null0
+  no ip routing vrf MGMT
+  ip routing
+  ip community-list standard DONT_ANNOUNCE_COMMUNITY permit 13238:999
+  ip community-list standard GSHUT_COMMUNITY permit GSHUT
+  qos rewrite dscp
+  qos map dscp 0 2 3 4 5 6 7 to traffic-class 0
+  qos map dscp 8 9 10 11 12 13 14 15 to traffic-class 1
+  qos map dscp 1 25 33 to traffic-class 5
+  qos map traffic-class 0 to dscp 0
+  qos map traffic-class 1 to dscp 8
+  route-map S1_EXPORT_S2 deny 10
+    match community DONT_ANNOUNCE_COMMUNITY
+  route-map S1_EXPORT_S2 permit 20
+  route-map S1_EXPORT_TOR permit 10
+    set community 13238:999 additive
+  route-map S1_IMPORT_S2 permit 10
+    match community GSHUT_COMMUNITY
+    set community 13238:999 additive
+    set local-preference 0
+  route-map S1_IMPORT_S2 permit 20
+    set community 13238:999 additive
+    set local-preference 100
+  route-map S1_IMPORT_TOR deny 10
+    match community DONT_ANNOUNCE_COMMUNITY
+  route-map S1_IMPORT_TOR permit 20
+    match community GSHUT_COMMUNITY
+    set local-preference 0
+  route-map S1_IMPORT_TOR permit 30
+    set local-preference 100
+  router bgp 65000.65051
+    router-id 1.0.51.3
+    bgp asn notation asdot
+    neighbor S2 peer group
+    neighbor TOR peer group
+    neighbor fe80::3:b1%Et1/1 remote-as 65000.65000
+    neighbor S2 send-community
+    neighbor S2 bfd
+    maximum-paths 32 ecmp 32
+    neighbor S2 maximum-routes 12000
+    neighbor S2 route-map S1_IMPORT_S2 in
+    neighbor S2 route-map S1_EXPORT_S2 out
+    neighbor fe80::3:b17%Et2/1 remote-as 65000.65000
+    neighbor fe80::3:b2%Et3/1 remote-as 65000.65000
+    neighbor fe80::3:b18%Et4/1 remote-as 65000.65000
+    neighbor fe80::3:b3%Et5/1 remote-as 65000.65000
+    neighbor fe80::3:b19%Et6/1 remote-as 65000.65000
+    neighbor fe80::3:b4%Et7/1 remote-as 65000.65000
+    neighbor fe80::3:b20%Et8/1 remote-as 65000.65000
+    neighbor fe80::3:b5%Et9/1 remote-as 65000.65000
+    neighbor fe80::3:b21%Et10/1 remote-as 65000.65000
+    neighbor fe80::3:b6%Et11/1 remote-as 65000.65000
+    neighbor fe80::3:b22%Et12/1 remote-as 65000.65000
+    neighbor fe80::3:b7%Et13/1 remote-as 65000.65000
+    neighbor fe80::3:b23%Et14/1 remote-as 65000.65000
+    neighbor fe80::3:b8%Et15/1 remote-as 65000.65000
+    neighbor fe80::3:b24%Et16/1 remote-as 65000.65000
+    neighbor fe80::3:b9%Et17/1 remote-as 65000.65000
+    neighbor fe80::3:b25%Et18/1 remote-as 65000.65000
+    neighbor fe80::3:b10%Et19/1 remote-as 65000.65000
+    neighbor fe80::3:b26%Et20/1 remote-as 65000.65000
+    neighbor fe80::3:b11%Et21/1 remote-as 65000.65000
+    neighbor fe80::3:b27%Et22/1 remote-as 65000.65000
+    neighbor fe80::3:b13%Et23/1 remote-as 65000.65000
+    neighbor fe80::3:b28%Et24/1 remote-as 65000.65000
+    neighbor fe80::3:b12%Et25/1 remote-as 65000.65000
+    neighbor fe80::3:b29%Et26/1 remote-as 65000.65000
+    neighbor fe80::3:b14%Et27/1 remote-as 65000.65000
+    neighbor fe80::3:b30%Et28/1 remote-as 65000.65000
+    neighbor fe80::3:b15%Et29/1 remote-as 65000.65000
+    neighbor fe80::3:b31%Et30/1 remote-as 65000.65000
+    neighbor fe80::3:b16%Et31/1 remote-as 65000.65000
+    neighbor fe80::3:b32%Et32/1 remote-as 65000.65000
+    neighbor fe80::e38:d3%Et33/1 remote-as 65000.9038
+    neighbor TOR send-community
+    neighbor TOR passive
+    neighbor TOR bfd
+    neighbor TOR maximum-routes 12000
+    neighbor TOR route-map S1_IMPORT_TOR in
+    neighbor TOR route-map S1_EXPORT_TOR out
+    neighbor fe80::e39:d3%Et35/1 remote-as 65000.9039
+    neighbor fe80::e41:d3%Et37/1 remote-as 65000.9041
+    neighbor fe80::e40:d3%Et39/1 remote-as 65000.9040
+    neighbor fe80::e42:d3%Et43/1 remote-as 65000.9042
+    neighbor fe80::e44:d3%Et45/1 remote-as 65000.9044
+    neighbor fe80::3:b1%Et1/1 peer group S2
+    neighbor fe80::3:b17%Et2/1 peer group S2
+    neighbor fe80::3:b2%Et3/1 peer group S2
+    neighbor fe80::3:b18%Et4/1 peer group S2
+    neighbor fe80::3:b3%Et5/1 peer group S2
+    neighbor fe80::3:b19%Et6/1 peer group S2
+    neighbor fe80::3:b4%Et7/1 peer group S2
+    neighbor fe80::3:b20%Et8/1 peer group S2
+    neighbor fe80::3:b5%Et9/1 peer group S2
+    neighbor fe80::3:b21%Et10/1 peer group S2
+    neighbor fe80::3:b6%Et11/1 peer group S2
+    neighbor fe80::3:b22%Et12/1 peer group S2
+    neighbor fe80::3:b7%Et13/1 peer group S2
+    neighbor fe80::3:b23%Et14/1 peer group S2
+    neighbor fe80::3:b8%Et15/1 peer group S2
+    neighbor fe80::3:b24%Et16/1 peer group S2
+    neighbor fe80::3:b9%Et17/1 peer group S2
+    neighbor fe80::3:b25%Et18/1 peer group S2
+    neighbor fe80::3:b10%Et19/1 peer group S2
+    neighbor fe80::3:b26%Et20/1 peer group S2
+    neighbor fe80::3:b11%Et21/1 peer group S2
+    neighbor fe80::3:b27%Et22/1 peer group S2
+    neighbor fe80::3:b13%Et23/1 peer group S2
+    neighbor fe80::3:b28%Et24/1 peer group S2
+    neighbor fe80::3:b12%Et25/1 peer group S2
+    neighbor fe80::3:b29%Et26/1 peer group S2
+    neighbor fe80::3:b14%Et27/1 peer group S2
+    neighbor fe80::3:b30%Et28/1 peer group S2
+    neighbor fe80::3:b15%Et29/1 peer group S2
+    neighbor fe80::3:b31%Et30/1 peer group S2
+    neighbor fe80::3:b16%Et31/1 peer group S2
+    neighbor fe80::3:b32%Et32/1 peer group S2
+    neighbor fe80::e38:d3%Et33/1 peer group TOR
+    neighbor fe80::e39:d3%Et35/1 peer group TOR
+    neighbor fe80::e41:d3%Et37/1 peer group TOR
+    neighbor fe80::e40:d3%Et39/1 peer group TOR
+    neighbor fe80::e42:d3%Et43/1 peer group TOR
+    neighbor fe80::e44:d3%Et45/1 peer group TOR
+    address-family ipv6
+      neighbor S2 activate
+      neighbor TOR activate
+  ip tacacs vrf MGMT source-interface Management1
+  management ssh
+    idle-timeout 60
+    vrf MGMT
+      no shutdown
+  management telnet
+    idle-timeout 60
+    vrf MGMT
+      no shutdown
+  ip load-sharing trident fields ipv6 destination-port source-ip ingress-interface destination-ip source-port
+  ipv6 unicast-routing vrf MGMT
+  clock timezone Europe/Moscow
+  qos random-detect ecn allow non-ect
+  ipv6 unicast-routing
+  errdisable recovery cause link-flap
+  errdisable recovery interval 30

@@ -1,0 +1,81 @@
+vendor: nexus
+
+output: |2
+    interface mgmt0
+  +   no ip redirects
+  + ip domain-name yndx.net
+  + ip name-server 213.180.205.1 172.24.131.254
+  - logging server 77.88.1.117
+  - logging server 93.158.158.93
+  + logging server 213.180.205.184
+
+acl: |
+  logging
+  ip domain-name
+  ip name-server
+  interface mgmt0
+    ~
+
+input: |2
+  - class-map type network-qos QG1
+  -   match qos-group 1
+  - class-map type qos match-any BULK-SEARCH
+  -   match dscp 16,32
+  - class-map type qos match-any RLT-GOOD
+  -   match dscp 0,24
+  - class-map type queuing QG1
+  -   match qos-group 1
+    interface mgmt0
+  +   no ip redirects
+  - ip dhcp relay
+  + ip domain-name yndx.net
+  + ip name-server 213.180.205.1 172.24.131.254
+  - ipv6 dhcp relay
+  - logging server 77.88.1.117
+  - logging server 93.158.158.93
+  - ntp server 141.8.139.254 use-vrf management
+  + logging server 213.180.205.184
+  + ntp server 172.24.131.254 use-vrf management
+  - policy-map type network-qos SYSTEM-NETWORKCOS
+  -   class type network-qos class-default
+  -     mtu 9192
+  - policy-map type network-qos SYSTEM-QOS
+  -   class type network-qos QG1
+  -     mtu 9192
+  -     set cos 1
+  -   class type network-qos class-default
+  -     mtu 9192
+  -     set cos 3
+  - policy-map type queuing QUEUING-POLICY
+  -   class type queuing QG1
+  -     bandwidth percent 40
+  -     queue-limit 6000 kbytes
+  -   class type queuing class-default
+  -     bandwidth percent 50
+  - system qos
+  -   service-policy type network-qos SYSTEM-QOS
+  -   service-policy type qos input MARK-INBOUND
+  -   service-policy type queuing output QUEUING-POLICY
+  + username racktables sshkey ssh-dss AAAAB3NzaC1kc3MAAACBAIxQL1SzRyKYG/Hixl9h3of/xwWtE/nw8CFOoV5qwSk9biYYMU6B3UVIIhe2IvvvkmMfRqZeo1ZUtWxN5uZOnRr5hm39gKCz8OsO0XYSk/fO5Y0EKN0EC8X1JmNHAokeEOP+L1vskv9QXr6dNU2ImfUxye3WakxgDBvSJnL7/GeXAAAAFQDjvnGDzNI8z5p/qTyqGf5CmdD9pwAAAIAB9nOxHVM70eTh62RpVChOyLX5/Hg8yZ9BmI0V/nBVPaL8fEmJ7uTW9QnKtqM1o7XuMJHMxlYjywp2OzoR4ghDvQ9MltYsIoUkpVXJkOC/CNDQd9unV03y2Juy7gmnyTKnX2SorXdnsRwQCedXdDXGsIbwGilzL7hwN2G5MS2JFgAAAIBdv6Fjb6wCefhcVVgoay9+8+EEd+MWR3Kf9CZtbgjXboEsGmka9vHgLRFLsFpZksScMKbOjjUrdv3rXZ0W4zzfbwgAMQlzOozKfWbWJaakHdG4x/p9gMPKPm40id3V9e9T7sE1vxqvmSSEOoulmDtXBCQtSduZAX/ELI9aLIMC2g== RackTables@Yandex
+    interface Ethernet1/5
+  -   switchport trunk allowed vlan 812,2600-2601,2612
+  +   switchport trunk allowed vlan 812,2600,2601,2612
+    interface Ethernet1/12
+  -   switchport trunk allowed vlan 538,666,2600-2601,2628
+  +   switchport trunk allowed vlan 538,666,2600,2601,2628
+    interface Ethernet1/19
+  -   switchport trunk allowed vlan 2600-2601,2636
+  +   switchport trunk allowed vlan 2600,2601,2636
+    interface Ethernet1/21
+  -   switchport trunk allowed vlan 538,542,562,2600-2601,2612,2697
+  +   switchport trunk allowed vlan 538,542,562,2600,2601,2612,2697
+    interface Ethernet1/24
+  -   switchport trunk allowed vlan 538,666,2600-2601,2638
+  +   switchport trunk allowed vlan 538,666,2600,2601,2638
+    interface Ethernet1/46
+  +   switchport trunk allowed vlan 2-4094
+    interface Ethernet1/47
+  -   switchport trunk allowed vlan 1-140,142-399,401-407,413-415,417-422,424-427,430-432,435-440,442-447,449-460,462-541,543-561,563-574,576-599,601-628,630-651,653-4094
+  +   switchport trunk allowed vlan 2-140,142-399,401-407,413-415,417-422,424-427,430-432,435-440,442-447,449-460,462-541,543-561,563-574,576-599,601-628,630-651,653-4094
+    interface Ethernet1/48
+  -   switchport trunk allowed vlan 26

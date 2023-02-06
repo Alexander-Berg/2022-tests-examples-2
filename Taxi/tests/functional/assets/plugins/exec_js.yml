@@ -1,0 +1,35 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok: base.html
+  - wait:
+    - has: /html/body/h1
+
+  - exec_js: "console.log('Hello')"
+  - log: Hello
+  - _inner_test:
+      when:
+          browser: chrome
+      success: True
+      tap_description: Common case.
+
+  - exec_js: "some wrong js"
+  - _inner_test:
+      when:
+        browser: chrome
+      success: False
+      message: javascript error
+      tap_description: Chrome error
+  - exec_js: "some wrong js"
+  - _inner_test:
+      when:
+        browser: firefox
+      success: False
+      message: SyntaxError
+      tap_description: Firefox error

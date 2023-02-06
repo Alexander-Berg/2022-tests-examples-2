@@ -1,0 +1,94 @@
+default:
+    example:
+        ALGORITHMS:
+          - greedy
+          - hungarian
+          - hungarian_opt
+        APPLY_ALGORITHM: hungarian
+        APPLY_RESULTS: false
+        DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS: 0
+        ENABLED: false
+        OLD_LOOKUP_FALLBACK_WAIT_SECONDS: 30
+        RUNNING_INTERVAL: 60
+        ZONES: []
+description: Настройки буфферного диспатча (EFFICIENCYDEV-92)
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/agglomeration_settings'
+
+    definitions:
+        agglomeration_settings:
+            type: object
+            additionalProperties: false
+            required:
+              - ALGORITHMS
+              - APPLY_ALGORITHM
+              - APPLY_RESULTS
+              - DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS
+              - ENABLED
+              - OLD_LOOKUP_FALLBACK_WAIT_SECONDS
+#        - ORDERS_LIMIT
+              - RUNNING_INTERVAL
+              - ZONES
+            properties:
+                ALGORITHMS:
+                    description: Возможные алгоритмы матчинга водителей и заказов
+                    type: array
+                    items:
+                        type: string
+                APPLY_ALGORITHM:
+                    description: Какой алгоритм использовать
+                    type: string
+                    enum:
+                      - greedy
+                      - hungarian
+                      - hungarian_opt
+                APPLY_RESULTS:
+                    description: |
+                        Применять ли разыгранных водителей или
+                        сфолбечиться на прямое назначение
+                    type: boolean
+                DISPATCH_ORDER_AFTER_FIRST_RUN_SECONDS:
+                    description: Минимальное время пребывания заказа в буфере
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 0
+                ENABLED:
+                    description: Включение буферного диспатча
+                    type: boolean
+                OLD_LOOKUP_FALLBACK_WAIT_SECONDS:
+                    description: |
+                        Максимальное время нахождения заказа в буфере, после которого
+                        заказ фолбечится на прямое назначение
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 0
+                ORDERS_LIMIT:
+                    description: Ограничение на количество заказов в одном розыгрыше
+                    type: integer
+                    x-taxi-cpp-type: std::uint32_t
+                    minimum: 0
+                RUNNING_INTERVAL:
+                    description: Период запуска таски розыгрыша
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 0
+                USE_CANDIDATES:
+                    description: Ходить в сервис candidates вместо tracker
+                    type: boolean
+                USE_LOOKUP_ORDERING:
+                    description: |
+                        Ходить в сервис lookup-ordering за бонусами или считать локально
+                    type: boolean
+                BACKGROUND_LOOKUP_ORDERING:
+                    description: |
+                        Ходить в сервис lookup-ordering за бонусами в фоне
+                        (USE_LOOKUP_ORDERING должен быть отключен)
+                    type: boolean
+                ZONES:
+                    description: Зоны в данной агломерации
+                    type: array
+                    items:
+                        type: string

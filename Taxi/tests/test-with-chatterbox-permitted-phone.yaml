@@ -1,0 +1,108 @@
+id: test-with-chatterbox-permitted-phone
+title: |
+    Проверка ответа /admin-orders/v1/orders, если чаттербокс разрешает выдачу
+    данных пользователю (поиск по телефону)
+
+source:
+    request:
+        method: post
+        query:
+            with_warnings#string: true
+            user_validation#string: true
+            __chatterbox_id: "601274498ff3c039eaa8eaa0"
+        body:
+            skip: 0
+            limit: 50
+            phone: "+79600767606"
+        headers:
+            content-type: application/json
+            X-Yandex-UID: yandex_uid
+    expectations:
+        response:
+            status-code: 200
+            body:
+                items:
+                  - application: "cargo"
+                    city: "Moscow"
+                    cost: 135
+                    created: "2021-03-29T13:43:32+03:00"
+                    destinations_fullnames:
+                      - "Россия, Москва, Садовническая улица, 82с2"
+                    due: "2021-03-29T13:48:00+03:00"
+                    order_currency: "RUB"
+                    order_currency_localized: "rub"
+                    order_currency_sign: "₽"
+                    order_id: "cbc7282eba6b2ecc90e3cb08b020eca3"
+                    park_info:
+                        id: "100500"
+                        name: "Лещ"
+                    payment_type: "corp"
+                    source_fullname: "Россия, Москва, Садовническая улица, 82с2"
+                    status: "finished"
+                    status_updated: "13:54"
+                    surge_price: 1
+                    tariff_class: "Courier"
+                    taxi_status: "complete"
+                    type: "soon"
+                    user_id: "c80ba8321b6e4ca49e9ad4d8bda59352"
+                warnings: []
+
+mocks:
+  - resource: admin-orders-v1-orders-list
+    expectations:
+        request:
+            body:
+                skip: 0
+                limit: 50
+                phone: "+79600767606"
+            query:
+                with_warnings#string: true
+    response:
+        status-code: 200
+        headers:
+            content-type: 'application/json; charset=utf-8'
+        body:
+            items:
+              - application: "cargo"
+                city: "Moscow"
+                cost: 135
+                created: "2021-03-29T13:43:32+03:00"
+                destinations_fullnames:
+                  - "Россия, Москва, Садовническая улица, 82с2"
+                due: "2021-03-29T13:48:00+03:00"
+                order_currency: "RUB"
+                order_currency_localized: "rub"
+                order_currency_sign: "₽"
+                order_id: "cbc7282eba6b2ecc90e3cb08b020eca3"
+                park_info:
+                    id: "100500"
+                    name: "Лещ"
+                payment_type: "corp"
+                source_fullname: "Россия, Москва, Садовническая улица, 82с2"
+                status: "finished"
+                status_updated: "13:54"
+                surge_price: 1
+                tariff_class: "Courier"
+                taxi_status: "complete"
+                type: "soon"
+                user_id: "c80ba8321b6e4ca49e9ad4d8bda59352"
+            warnings: []
+  - resource: chatterbox-v1-user-check_data_access
+    expectations:
+        request:
+            body:
+                chatterbox_id: "601274498ff3c039eaa8eaa0"
+                meta_info:
+                    user_phone: "+79600767606"
+    response:
+        status-code: 200
+        headers:
+            content-type: 'application/json; charset=utf-8'
+        body:
+            access_status: permitted
+
+taxi_config:
+    UAFS_USER_ADMIN_ORDERS_LIST_CHECK_ACCESS_ENABLED: false
+    UAFS_USER_ADMIN_ORDERS_LIST_CHECK_REQUEST_VALID_ENABLED: false
+    UAFS_USER_ADMIN_ORDERS_CHATTERBOX_CHECK_ENABLED: true
+experiments: {}

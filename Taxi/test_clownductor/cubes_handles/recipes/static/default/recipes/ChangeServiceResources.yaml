@@ -1,0 +1,315 @@
+data:
+    name: ChangeServiceResources
+    provider_name: clownductor
+    job_vars:
+      - nanny_name
+      - changes
+      - pod_naming_mode
+      - comment
+      - service_id
+      - branch_id
+      - new_parameters
+      - instances_count
+      - datacenters_count
+      - environment
+      - ticket
+      - nanny_subsystem_info
+      - project_name
+      - subsystem_name
+      - project_id
+      - text_approved
+      - use_active
+      - environment
+    stages:
+      # make params
+      - name: InternalGetServiceInformation
+        provider_name: clownductor
+        input:
+            service_id: service_id
+        output:
+            yp_quota_abc: yp_quota_abc
+            abc_service: abc_service
+            service_name: name
+
+      - name: GetPrestableForDiff
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+        output:
+            prestable_environment: prestable_environment
+            prestable_nanny_name: prestable_nanny_name
+            prestable_branch_id: prestable_branch_id
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: prestable_nanny_name
+            use_active: use_active
+        output:
+            pre_man_pod_ids: man
+            pre_vla_pod_ids: vla
+            pre_sas_pod_ids: sas
+            pre_man_region: man_region
+            pre_vla_region: vla_region
+            pre_sas_region: sas_region
+            pre_pod_ids_by_region: pod_ids_by_region
+
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_name
+            use_active: use_active
+        output:
+            man_pod_ids: man
+            vla_pod_ids: vla
+            sas_pod_ids: sas
+            man_region: man_region
+            vla_region: vla_region
+            sas_region: sas_region
+            pod_ids_by_region: pod_ids_by_region
+
+      - name: DetermineAmountOfInstances
+        provider_name: clownductor
+        input:
+            man_pod_ids: man_pod_ids
+            pre_man_pod_ids: pre_man_pod_ids
+            sas_pod_ids: sas_pod_ids
+            pre_sas_pod_ids: pre_sas_pod_ids
+            vla_pod_ids: vla_pod_ids
+            pre_vla_pod_ids: pre_vla_pod_ids
+            instances_count: instances_count
+            datacenters_count: datacenters_count
+        output:
+            man_instances: man_instances
+            vla_instances: vla_instances
+            sas_instances: sas_instances
+            pre_man_instances: pre_man_instances
+            pre_vla_instances: pre_vla_instances
+            pre_sas_instances: pre_sas_instances
+
+      - name: MakeFlowChangeServiceResources
+        provider_name: clownductor
+        input:
+            nanny_subsystem_info: nanny_subsystem_info
+        output:
+            first_job_name: first_job_name
+            second_job_name: second_job_name
+
+      - name: MetaCubeStartJobChangeResourcesByName
+        provider_name: clownductor
+        input:
+            job_name: first_job_name
+            nanny_name: prestable_nanny_name
+            man_pod_ids: pre_man_pod_ids
+            vla_pod_ids: pre_vla_pod_ids
+            sas_pod_ids: pre_sas_pod_ids
+            man_region: pre_man_region
+            vla_region: pre_vla_region
+            sas_region: pre_sas_region
+            man_instances: pre_man_instances
+            vla_instances: pre_vla_instances
+            sas_instances: pre_sas_instances
+            yp_quota_abc: yp_quota_abc
+            changes: changes
+            project_name: project_name
+            service_name: service_name
+            service_id: service_id
+            project_id: project_id
+            branch_id: prestable_branch_id
+        output:
+            pre_first_job_id: job_id
+            pre_first_comment: comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: ticket
+            text: pre_first_comment
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: pre_first_job_id
+
+      - name: MetaCubeStartJobChangeResourcesByName
+        provider_name: clownductor
+        input:
+            job_name: second_job_name
+            nanny_name: prestable_nanny_name
+            man_pod_ids: pre_man_pod_ids
+            vla_pod_ids: pre_vla_pod_ids
+            sas_pod_ids: pre_sas_pod_ids
+            man_region: pre_man_region
+            vla_region: pre_vla_region
+            sas_region: pre_sas_region
+            man_instances: pre_man_instances
+            vla_instances: pre_vla_instances
+            sas_instances: pre_sas_instances
+            yp_quota_abc: yp_quota_abc
+            changes: changes
+            project_name: project_name
+            service_name: service_name
+            service_id: service_id
+            project_id: project_id
+            branch_id: prestable_branch_id
+        output:
+            pre_second_job_id: job_id
+            pre_second_comment: comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: ticket
+            text: pre_second_comment
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: pre_second_job_id
+
+      # End deploy prestable
+      # Start deploy stable (or custom)
+
+      - name: ApproveCubeGetApprovers
+        provider_name: clownductor
+        input:
+            service_id: service_id
+        output:
+            approving_managers: approving_managers
+            approving_developers: approving_developers
+
+      - name: StartrekCubeGetTicketInfo
+        provider_name: clownductor
+        input:
+            ticket: ticket
+        output:
+            tickets_info: tickets_info
+
+      - name: ApproveCubeGenerateCommentChangeResources
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            tickets_info: tickets_info
+            environment: environment
+        output:
+            border_comment: border_comment
+            release_key_phrase: release_key_phrase
+            release_id: release_id
+            skip_approve: skip
+            summonees_users: summonees
+
+      - name: ApproveCubeOptionalLiteEnsureComment
+        provider_name: clownductor
+        input:
+            comment: border_comment
+            st_key: ticket
+            skip: skip_approve
+            summonees: summonees_users
+
+      - name: ApproveCubeLiteWaitForDevelopersApprove
+        provider_name: clownductor
+        input:
+            st_key: ticket
+            release_id: release_id
+            developers: approving_developers
+            release_key_phrase: release_key_phrase
+            skip: skip_approve
+            service_id: service_id
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            skip_add_comment: skip_approve
+            st_task: ticket
+            text: text_approved
+
+      # start prod/custom
+      - name: MetaCubeStartJobChangeResourcesByName
+        provider_name: clownductor
+        input:
+            job_name: first_job_name
+            nanny_name: nanny_name
+            man_pod_ids: man_pod_ids
+            vla_pod_ids: vla_pod_ids
+            sas_pod_ids: sas_pod_ids
+            man_region: man_region
+            vla_region: vla_region
+            sas_region: sas_region
+            man_instances: man_instances
+            vla_instances: vla_instances
+            sas_instances: sas_instances
+            yp_quota_abc: yp_quota_abc
+            changes: changes
+            project_name: project_name
+            service_name: service_name
+            service_id: service_id
+            project_id: project_id
+            branch_id: branch_id
+        output:
+            first_job_id: job_id
+            first_comment: comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: ticket
+            text: first_comment
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: first_job_id
+
+      - name: MetaCubeStartJobChangeResourcesByName
+        provider_name: clownductor
+        input:
+            job_name: second_job_name
+            nanny_name: nanny_name
+            man_pod_ids: man_pod_ids
+            vla_pod_ids: vla_pod_ids
+            sas_pod_ids: sas_pod_ids
+            man_region: man_region
+            vla_region: vla_region
+            sas_region: sas_region
+            man_instances: man_instances
+            vla_instances: vla_instances
+            sas_instances: sas_instances
+            yp_quota_abc: yp_quota_abc
+            changes: changes
+            project_name: project_name
+            service_name: service_name
+            service_id: service_id
+            project_id: project_id
+            branch_id: branch_id
+        output:
+            second_job_id: job_id
+            second_comment: comment
+
+      - name: StartrekCubeAddComment
+        provider_name: clownductor
+        input:
+            st_task: ticket
+            text: second_comment
+
+      - name: MetaCubeWaitForJobCompletion
+        provider_name: clownductor
+        input:
+            job_id: second_job_id
+
+      - name: SaveRemoteSubsystemConfig
+        provider_name: clownductor
+        input:
+            service_id: service_id
+            branch_id: branch_id
+            environment: environment
+            parameters: new_parameters
+            subsystem_name: subsystem_name
+        output:
+            parameters_ids: parameters_ids
+
+      - name: StartrekCubeCloseTicket
+        provider_name: clownductor
+        input:
+            new_service_ticket: ticket
+

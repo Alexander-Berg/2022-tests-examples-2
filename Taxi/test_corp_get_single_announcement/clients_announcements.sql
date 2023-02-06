@@ -1,0 +1,64 @@
+INSERT INTO corp_announcements.clients_announcements (
+    client_id,
+    user_yandex_uid,
+    announcement_id,
+    status,
+    cta_clicked
+)
+VALUES 
+(
+    'client_id',
+    '123456',
+    '12345',
+    'not_read',
+    TRUE
+),
+(
+    'client_id',
+    '234567',
+    '12345',
+    'not_read',
+    FALSE
+),
+(
+    'client_id',
+    '345678',
+    '12345',
+    'not_read',
+    TRUE
+),
+(
+    'client_id',
+    '456789',
+    '12345',
+    'not_read',
+    FALSE
+),
+(
+    'client_id',
+    '123456',
+    '54321',
+    'not_read',
+    TRUE
+),
+(
+    'client_id',
+    '234567',
+    '54321',
+    'not_read',
+    FALSE
+),
+(
+    'client_id',
+    '345678',
+    '54321',
+    'not_read',
+    TRUE
+),
+(
+    'client_id',
+    '456789',
+    '54321',
+    'not_read',
+    FALSE
+)

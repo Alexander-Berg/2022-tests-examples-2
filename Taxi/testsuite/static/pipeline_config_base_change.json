@@ -1,0 +1,80 @@
+{
+  "test": {
+    "definitions": {
+      "data-sinks": {
+        "pp-test-adjusted": {
+          "config": {
+            "address": "channel:test:adjusted2",
+            "channel-type": "adjusted",
+            "protocol": "edge",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        },
+        "pp-test-predicted": {
+          "config": {
+            "address": "channel:test:predicted2",
+            "channel-type": "predicted",
+            "protocol": "edge",
+            "redis-name": "taxi-passing"
+          },
+          "type": "geobus"
+        }
+      },
+      "data-streams": {
+        "pp-test-positions2": {
+          "partitions": 1,
+          "protocol": "positions"
+        }
+      }
+    },
+    "yaga": {
+      "subpipelines": [
+        {
+          "adjust_settings": {
+            "adjust_for": [
+              0,
+              10
+            ]
+          },
+          "destinations": {
+            "adjusted": {
+              "data-sinks": [
+                "pp-test-adjusted"
+              ],
+              "processors": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "operation": "include",
+                  "type": "time-shift-processor"
+                }
+              ]
+            },
+            "predicted": {
+              "data-sinks": [
+                "pp-test-predicted"
+              ],
+              "processors": [
+                {
+                  "begin": 0,
+                  "end": 1,
+                  "operation": "exclude",
+                  "type": "time-shift-processor"
+                }
+              ]
+            }
+          },
+          "input": {
+            "default": {
+              "data-streams": [
+                "pp-test-positions2"
+              ]
+            }
+          },
+          "signal_source": "Adjusted"
+        }
+      ]
+    }
+  }
+}

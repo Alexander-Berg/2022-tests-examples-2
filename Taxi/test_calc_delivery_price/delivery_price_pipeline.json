@@ -1,0 +1,134 @@
+{
+  "comment": "",
+  "name": "delivery_price_pipeline",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "position{place_position}"
+            },
+            {
+              "query": "region_id"
+            }
+          ],
+          "domain": "input",
+          "query": "request.place_info"
+        },
+        {
+          "children": [
+            {
+              "query": "position{user_position}"
+            }
+          ],
+          "domain": "input",
+          "query": "request.user_info"
+        }
+      ],
+      "name": "fetch_taxi_price",
+      "resources": [
+        {
+          "name": "taxi_pricing"
+        }
+      ],
+      "source_code": "return {taxi_pricing: {place_position: place_position, customer_position: user_position, region_id: region_id}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "brand_id"
+            },
+            {
+              "query": "region_id"
+            }
+          ],
+          "domain": "input",
+          "query": "request.place_info"
+        }
+      ],
+      "name": "fetch_commission_data",
+      "resources": [
+        {
+          "name": "commission_data"
+        }
+      ],
+      "source_code": "return {commission_data: {brand_id: brand_id, region_id: region_id}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "user_id"
+            }
+          ],
+          "domain": "input",
+          "query": "request.user_info"
+        }
+      ],
+      "name": "fetch_eater_orders_stats",
+      "resources": [
+        {
+          "name": "eater_orders_stats"
+        }
+      ],
+      "source_code": "return {eater_orders_stats: {eater_id: user_id || null}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "taxi_pricing"
+        },
+        {
+          "domain": "resource",
+          "query": "commission_data"
+        },
+        {
+          "domain": "resource",
+          "query": "eater_orders_stats"
+        },
+        {
+          "domain": "input",
+          "query": "settings.thresholds"
+        },
+        {
+          "domain": "input",
+          "query": "delivery_free_settings.is_free_delivery_fee"
+        },
+        {
+          "domain": "input",
+          "query": "delivery_free_settings.thresholds_free_delivery"
+        },
+        {
+          "domain": "input",
+          "query": "delivery_free_settings.number_of_orders_to_set_free_delivery_fee"
+        }
+      ],
+      "name": "calc_delivery_fee",
+      "out_bindings": [
+        {
+          "alias": "fees",
+          "query": "fees"
+        },
+        {
+          "alias": "is_fallback",
+          "query": "is_fallback"
+        },
+        {
+          "alias": "extra",
+          "query": "extra"
+        }
+      ],
+      "source_code": "let price = -1; let choosen_category = ''; for (let i in taxi_pricing.prices) {   let price_data = taxi_pricing.prices[i];   if (price < 0 || price > price_data.price) {     price = price_data.price;     choosen_category = price_data.category;   } } if (price < 0) {   throw 'Cannot choose taxi price: ' + JSON.stringify(taxi_pricing); } let fees = []; for (let i in thresholds) {   fees.push({     delivery_cost: price + thresholds[i].addition - commission_data.rpo_commission,     order_price: thresholds[i].value   }); } return {   fees: fees, is_fallback: false, extra: {choosen_category: choosen_category, is_free_delivery_fee: is_free_delivery_fee, thresholds_free_delivery: thresholds_free_delivery, number_of_orders_to_set_free_delivery_fee: number_of_orders_to_set_free_delivery_fee, eater_orders_stats: eater_orders_stats}}"
+    }
+  ],
+  "state": "active"
+}

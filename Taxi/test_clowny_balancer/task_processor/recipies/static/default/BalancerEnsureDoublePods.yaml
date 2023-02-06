@@ -1,0 +1,118 @@
+data:
+    name: BalancerEnsureDoublePods
+    provider_name: clowny-balancer
+    job_vars:
+      - balancer_nanny_service
+      - awacs_namespace
+    stages:
+      - name: AwacsL3GetBalancer
+        provider_name: clowny-balancer
+        input:
+            namespace_id: awacs_namespace
+        output:
+            l3mgr_service_id: l3mgr_service_id
+
+      - name: NannyGetPods
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+        output:
+            pod_ids: pod_ids
+            region: region
+      - name: NannyGetPodsInfo
+        provider_name: clownductor
+        input:
+            region: region
+            pod_ids: pod_ids
+        output:
+            old_pod_info: pod_info
+
+      - name: NannyAllocateAdditionalPods
+        provider_name: clownductor
+        input:
+            region: region
+            pod_info: old_pod_info
+            nanny_name: balancer_nanny_service
+            instances: 1
+        output:
+            new_pod_ids: new_pod_ids
+      - name: NannyCubeAddPodsToDeploy
+        provider_name: clownductor
+        input:
+            name: balancer_nanny_service
+            region: region
+            regions: []
+            vla_pods: []
+            sas_pods: []
+            man_pods: []
+        output:
+            snapshot_id: snapshot_id
+      - name: NannyCubeDeploySnapshot
+        provider_name: clownductor
+        input:
+            name: balancer_nanny_service
+            snapshot_id: snapshot_id
+            comment:
+      - name: NannyCubeWaitForDeploy
+        provider_name: clownductor
+        input:
+            name: balancer_nanny_service
+            snapshot_id: snapshot_id
+
+      - name: NannyGetPods
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+        output:
+            existing_pod_ids: pod_ids
+      - name: L3MGRWaitKnowNewPods
+        provider_name: clowny-balancer
+        input:
+            pod_ids: existing_pod_ids
+            l3mgr_service_id: l3mgr_service_id
+
+      - name: NannyGetNewestPod
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+        output:
+            newest_pod_id: newest_pod_id
+      - name: NannyPrepareAllocationRequest
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+            nanny_pod_id: newest_pod_id
+            region: region
+            reallocation_coefficient: 0.5
+            ignore_properties: ['persistentVolumes']
+        output:
+            prepared_allocation_request: prepared_allocation_request
+      - name: ClownNannyReallocatePods
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+            allocation_request: prepared_allocation_request
+        output:
+            reallocation_id: reallocation_id
+      - name: InternalSleepFor
+        provider_name: clowny-balancer
+        input:
+            sleep: 10
+            max_retries: 3
+      - name: ClownNannyWaitForReallocation
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+            reallocation_id: reallocation_id
+
+      - name: NannyGetPods
+        provider_name: clownductor
+        input:
+            nanny_name: balancer_nanny_service
+        output:
+            existing_pod_ids: pod_ids
+      - name: L3MGRWaitKnowNewPods
+        provider_name: clowny-balancer
+        input:
+            pod_ids: existing_pod_ids
+            l3mgr_service_id: l3mgr_service_id

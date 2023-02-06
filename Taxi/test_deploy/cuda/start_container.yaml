@@ -1,0 +1,21 @@
+  - hosts: test
+    gather_facts: false
+    tasks:
+      - name: Re-create container
+        community.docker.docker_container:
+            name: yandex-cctv-processor
+            image: yandex-cctv-processor-cuda:latest
+            volumes:
+              - /var/yandex/cctv/processor:/var/yandex/cctv/processor
+            log_driver: json-file
+            log_options:
+                max-size: 100m
+                max-file: 3
+            state: started
+            network_mode: host
+            recreate: true
+            device_requests:
+              - driver: nvidia
+                count: -1 #all gpus
+                capabilities:
+                  - ["gpu", "utility", "compute"]

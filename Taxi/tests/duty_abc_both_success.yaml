@@ -1,0 +1,51 @@
+id: duty_abc_both_success
+title: Get info with duty_abc from abc
+timestamp: 2021-08-19T07:22:40.721471+0000
+source:
+    request:
+        method: get
+        url: /infra/duty/group_info
+        query:
+            duty_abc#string: 32591
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                abc:
+                    duty-login: akhabutdinov
+                    duty-group-name: Название
+                    duty-group-link: https://abc.yandex-team.ru/services/32591
+
+
+mocks:
+
+  - resource: api-abc-duty-shifts
+    response:
+        status-code: 200
+        body:
+            results:
+              - person:
+                    login: akhabutdinov
+    expectations:
+        request:
+            query:
+                service#string: 32591
+                lang: ru
+                date_from: 2021-08-19
+                date_to: 2021-08-19
+                fields: person.login
+        call-count: 1
+
+  - resource: api-abc-services
+    response:
+        status-code: 200
+        body:
+            results:
+              - name:
+                    ru: Название
+    expectations:
+        request:
+            query:
+                id#string: 32591
+                fields: name
+        call-count: 1

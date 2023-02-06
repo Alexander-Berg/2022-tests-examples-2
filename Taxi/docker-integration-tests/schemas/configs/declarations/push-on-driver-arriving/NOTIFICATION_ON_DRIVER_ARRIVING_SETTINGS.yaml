@@ -1,0 +1,45 @@
+default:
+    __default__:
+        __default__:
+            hide_waiting_if_longer_than_mins: 3
+            send_free_waiting: true
+            send_notification_timings:
+              - from: 0
+                send_eta: 90
+                to: 120
+              - from: 120
+                send_eta: 100
+                to: 180
+              - from: 180
+                send_eta: 150
+description: Настройки отправки пушей по зонам и тарифам
+tags: []
+validators:
+  - $default_dict:
+        key_validators:
+          - $string
+        value_validators:
+          - $default_dict:
+                key_validators:
+                  - $string
+                value_validators:
+                  - $dictionary:
+                        extra_ok: false
+                        missing_ok: false
+                        scheme:
+                            hide_waiting_if_longer_than_mins:
+                              - $integer
+                              - $gte: 0
+                            send_free_waiting:
+                              - $boolean
+                            send_notification_timings:
+                              - $sequence_of:
+                                  - $dictionary_of:
+                                        key_validators:
+                                          - $string
+                                        required_keys:
+                                          - from
+                                          - send_eta
+                                        value_validators:
+                                          - $integer
+                                          - $gte: 0

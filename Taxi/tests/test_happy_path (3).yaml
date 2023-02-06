@@ -1,0 +1,50 @@
+id: test_happy_path
+title: Happy path
+source:
+    request:
+        method: post
+        query:
+            flow: claims
+            entity_id: some_order_id
+        headers:
+            Some-Header: some_header_value
+            Content-Type: application/json
+        body:
+            operation_token: some_operation_token
+            new_sum: '12.5000'
+            reason:
+                st_ticket: some_st_ticket
+    expectations:
+        response:
+            status-code: 200
+            body:
+                some_key: some_value
+
+mocks:
+  - resource: support-info-v1_admin_check_ticket_exists
+    response:
+        status-code: 200
+    expectations:
+        request:
+            method: get
+            query:
+                ticket_id: some_st_ticket
+
+  - resource: cargo-finance-admin_cargo_finance_pay_order_change_order_sum
+    response:
+        status-code: 200
+        body:
+            some_key: some_value
+    expectations:
+        request:
+            method: post
+            query:
+                flow: claims
+                entity_id: some_order_id
+            headers:
+                Some-Header: some_header_value
+            body:
+                operation_token: some_operation_token
+                new_sum: '12.5000'
+                reason:
+                    st_ticket: some_st_ticket

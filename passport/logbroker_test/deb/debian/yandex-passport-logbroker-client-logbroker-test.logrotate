@@ -1,0 +1,25 @@
+/var/log/yandex/logbroker-client/logbroker-test/*.log {
+    daily
+    rotate 15
+    compress
+    delaycompress
+    missingok
+    create 644 www-data www-data
+    sharedscripts
+    prerotate
+        /bin/sleep $[RANDOM % 3600]
+    endscript
+    postrotate
+        chmod 0000 /etc/yandex/logbroker-client/logbroker-test/logrotate.ping
+
+        service yandex-passport-logbroker-client-logbroker-test restart &> /dev/null
+        if [ -x /bin/systemctl ]; then
+            systemctl restart yandex-passport-xunistater@lbc-logbroker-test &> /dev/null
+        else
+            service yandex-passport-xunistater restart lbc-logbroker-test &> /dev/null
+        fi
+
+        /bin/sleep 60
+        chmod 0644 /etc/yandex/logbroker-client/logbroker-test/logrotate.ping
+    endscript
+}

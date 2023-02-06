@@ -1,0 +1,27 @@
+default: {}
+description: Конфиг для упрощённого логина водителя для внутренних сервисов. Включение
+    клиента в этот конфиг отключает стандартные проверки через SMS. Изначально это
+    было использовано для беспилотного такси. ПРИ УКАЗАНИИ сервиса-источника обязательно
+    указывать имя TVM-сервиса в TVM_SERVICES. Формат - Название из TVM_SERVICES как
+    ключ и список id парков как значение.
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/LoginSettings'
+    definitions:
+        LoginSettings:
+            type: object
+            additionalProperties: false
+            required:
+              - park_ids
+            properties:
+                park_ids:
+                    type: array
+                    x-taxi-cpp-type: std::unordered_set
+                    description: |
+                        ID парков, в которые разрешено логиниться соответсвующему сервису tvm. 
+                        Например, у беспилотников должен быть прописан только их парк.
+                    items:
+                        type: string
+                        minLength: 1

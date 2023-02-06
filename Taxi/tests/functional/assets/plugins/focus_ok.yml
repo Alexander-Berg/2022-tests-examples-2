@@ -1,0 +1,36 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+  - wait:
+      - has: /html/body/div/p
+
+  - focus_ok: /html/body/div/p
+  - _inner_test: [True, Passed focus on text element.]
+  - eq: [css:.log, Focused non focusable]
+  - _inner_test: [False, Failed really focus on text element.]
+
+  - focus_ok: css:input#first
+  - _inner_test: [True, Passed focus with css selector.]
+
+  - focus_ok: css:button#to-focus
+  - _inner_test: [True, Passed focus with css selector.]
+  - eq: [css:.log, Focused]
+  - _inner_test: [True, Really focused.]
+
+  - focus_ok: /html/body/div/div/div  # not existing
+  - _inner_test: [False, Passed focus with css selector.]
+
+  - focus_ok: css:#link-to-focus
+  - _inner_test: [True, Focus to link.]
+  - eq: [css:.log, Focused link]
+  - _inner_test: [True, Really focused link.]
+  - url: /base.html
+  - _inner_test: [True, Focused but not clicked on link.]

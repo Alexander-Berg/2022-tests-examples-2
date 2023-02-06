@@ -1,0 +1,52 @@
+emitter:
+  args:
+    client_id: passport/lbc-mail-unsubscriptions
+    data_port: 2135
+    credentials_config:
+      credentials_type: tvm
+      tvm_alias: logbroker_api
+    connect_timeout: 5.0
+    decompress: true
+    per_host_config:
+      .*?:
+        targets:
+          - host: myt.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-account-modification-log-fast-testing
+          - host: man.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-account-modification-log-fast-testing
+          - host: sas.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-account-modification-log-fast-testing
+          - host: vla.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-account-modification-log-fast-testing
+          - host: iva.logbroker.yandex.net
+            ssl: true
+            topic: passport/passport-account-modification-log-fast-testing
+    workers_count: 10
+  class: passport.backend.logbroker_client.core.consumers.simple.native_emitter.PartitionsCountNativeEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+logpath: /var/log/yandex/logbroker-client/mail-unsubscriptions/
+blackbox:
+  url: https://pass-test.yandex.ru/
+  timeout: 1
+  retries: 2
+  use_tvm: false
+  get_hidden_aliases: false
+sender_api:
+  url: https://test.sender.yandex-team.ru
+  timeout: 1
+  retries: 2
+  unsubscribe_ext_account: passport-ext
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.mail_unsubscriptions.handler.MailUnsubscriptionsHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.native_worker.NativeLogbrokerWorker
+  count: 10

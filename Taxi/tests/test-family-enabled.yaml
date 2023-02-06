@@ -1,0 +1,46 @@
+id: test-family-enabled
+title: Проверка ответа family
+source:
+    request:
+        method: post
+        headers:
+            X-Request-Language: ru
+            X-Remote-IP: amazing-ip
+            X-Yandex-UID: yandex-uid
+            X-YaTaxi-PhoneId: phone-id
+    expectations:
+        response:
+            status-code: 200
+            body:
+                family_info:
+                    family:
+                        id: f123
+                        name: 'Семья'
+                        role: 'owner'
+                    invites:
+                      - link: 'link1'
+                      - link: 'link2'
+
+mocks:
+  - resource: family-v1-launch
+    response:
+        status-code: 200
+        body:
+            family:
+                id: f123
+                name: 'Семья'
+                role: 'owner'
+            invites:
+              - link: 'link1'
+              - link: 'link2'
+    expectations:
+        call-count: 1
+        request:
+            headers:
+                X-Remote-IP: amazing-ip
+                X-Yandex-UID: yandex-uid
+                X-YaTaxi-PhoneId: phone-id
+                X-Request-Language: ru
+  - resource: exp3-matcher-typed-experiments
+    response:
+        status-code: 500

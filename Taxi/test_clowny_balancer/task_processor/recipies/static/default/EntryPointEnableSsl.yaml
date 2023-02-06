@@ -1,0 +1,141 @@
+data:
+    name: EntryPointEnableSsl
+    provider_name: clowny-balancer
+    job_vars:
+      - entry_point_id
+      - awacs_namespace_id
+      - awacs_domain_id
+      - new_protocol
+      - author
+      - st_ticket
+    stages:
+      - name: StartrekEnsureDutyTicketExists
+        output:
+            st_ticket: st_ticket
+        input:
+            author: author
+            st_ticket: st_ticket
+            awacs_namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: AwacsL3GetBalancer
+        output:
+            l3mgr_service_id: l3mgr_service_id
+        input:
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: AwacsDomainChangeProtocol
+        output:
+            awacs_cert_id: new_cert_id
+        input:
+            domain_id: awacs_domain_id
+            namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+
+      - name: AwacsGetL7NannyServices
+        output:
+            nanny_services: nanny_services
+            nanny_sas: nanny_sas
+            nanny_vla: nanny_vla
+            nanny_man: nanny_man
+        input:
+            fqdn: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_sas
+        output:
+            sas_pods: sas
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_vla
+        output:
+            vla_pods: vla
+      - name: NannyGetServicePods
+        provider_name: clownductor
+        input:
+            nanny_name: nanny_man
+        output:
+            man_pods: man
+            pod_ids_by_region: pod_ids_by_region
+      - name: MetaStartBalancerEnsureDoublePods
+        input:
+            namespace_id: awacs_namespace_id
+            sas_pods: sas_pods
+            vla_pods: vla_pods
+            man_pods: man_pods
+            nanny_services: nanny_services
+            st_ticket: st_ticket
+        output:
+            ensure_balancer_double_pods_job_ids: job_ids
+        provider_name: clowny-balancer
+      - name: MetaCubeWaitForJobsCommon
+        input:
+            job_ids: ensure_balancer_double_pods_job_ids
+        provider_name: clowny-balancer
+
+      - name: MetaStartBalancerEnsureHttpsEnabled
+        output:
+            ensure_balancer_https_job_id: job_id
+        input:
+            awacs_namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: MetaCubeWaitForJobCommon
+        input:
+            job_id: ensure_balancer_https_job_id
+        provider_name: clowny-balancer
+      - name: AwacsDomainWaitFor
+        input:
+            domain_id: awacs_domain_id
+            entry_point_id: entry_point_id
+        provider_name: clowny-balancer
+
+      - name: L3MGRAdd443Port
+        output:
+            l3mgr_config_id: l3mgr_config_id
+            l3_update_succeeded: l3_update_succeeded
+        input:
+            l3mgr_service_id: l3mgr_service_id
+        provider_name: clowny-balancer
+      - name: L3MGRDeployConfiguration
+        input:
+            l3mgr_config_id: l3mgr_config_id
+            l3mgr_service_id: l3mgr_service_id
+            l3_update_succeeded: l3_update_succeeded
+        provider_name: clowny-balancer
+      - name: L3MGRWaitConfigActivated
+        input:
+            l3mgr_config_id: l3mgr_config_id
+            l3mgr_service_id: l3mgr_service_id
+            l3_update_succeeded: l3_update_succeeded
+        provider_name: clowny-balancer
+      - name: StartrekGenerateCommentAdd443OnL3
+        output:
+            add_443_border_comment: border_comment
+        input:
+            skip: l3_update_succeeded
+            st_ticket: st_ticket
+            l3mgr_service_id: l3mgr_service_id
+        provider_name: clowny-balancer
+      - name: StartrekWaitBorderComment
+        input:
+            skip: l3_update_succeeded
+            st_ticket: st_ticket
+            border_comment: add_443_border_comment
+        provider_name: clowny-balancer
+
+      - name: MetaStartBalancerReallocateAllPods
+        output:
+            reallocate_pods_job_id: job_id
+        input:
+            awacs_namespace_id: awacs_namespace_id
+        provider_name: clowny-balancer
+      - name: MetaCubeWaitForJobCommon
+        input:
+            job_id: reallocate_pods_job_id
+        provider_name: clowny-balancer
+      - name: StartrekCubeCloseTicket
+        input:
+            new_service_ticket: st_ticket
+        provider_name: clownductor

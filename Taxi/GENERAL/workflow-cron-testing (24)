@@ -1,0 +1,17 @@
+# DO NOT DELETE THIS FILE
+# File workflow-cron-production will be used on development and testing environments without this file.
+
+PATH="/usr/lib/yandex/taxi-dmp-deps-py3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+PYTHONPATH=/usr/lib/yandex/taxi-dmp-taxi-etl
+LANG=en_US.UTF-8
+LR3="python3.7 -m dmp_suite.runner sh"
+LRPY3="python3.7 -m dmp_suite.runner python"
+LRSH3="python3.7 -m dmp_suite.runner sh"
+
+# ##############################  PROCESS KILLER  ####################################
+ */2    * * * *    www-data       $LRPY --no-scheduler-lock -L "dmp_suite.maintenance.process_killer.cmd"
+ 10    22 * * *    www-data       $LRPY --no-scheduler-lock -L "dmp_suite.maintenance.process_killer.cmd_clean"
+
+# Удаляем дампы объектов в памяти, старее 3 дней:
+ 0    4 * * *    www-data       find /var/spool/yandex/taxidwh/memory-traces/ -mtime +3 -exec rm {} \;
+ 5    4 * * *    www-data       find /var/spool/yandex/taxidwh/memory-traces/*/* -mtime +3 -type d -exec rmdir {} \;

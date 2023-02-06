@@ -1,0 +1,38 @@
+  - file:
+        path: "/taxi/logs/*.log"
+        sincedb_path: "/var/tmp/yandex-taxi-logs.sincedb"
+        start_from_begin: false
+        ignore_older: 1d
+        discover_interval: 60s
+        read_interval: 500ms
+    filter:
+        removals:
+          - timestamp
+          - metadata
+          - host
+        put_message: false
+        renames:
+          - from: _type
+            to: type
+        additions: '"tags":["_pilorama_parsed"],"cgroups":["pocket_taxi"]'
+        defaults:
+          - key: type
+            value: log
+        transform_date: true
+        timezone: 'Europe/Moscow'
+        cgroups: false
+        drop_empty_fields: true
+        max_read_size: 16777216
+    output:
+        elastic_version: 7
+        send_timeout: "120s"
+        max_retries: "1"
+        initial_retry_delay: 500ms
+        max_retry_delay: 5s
+        limit_all_retries: false
+        index: yandex-taxi-%Y.%m.%d.%H
+        error_index: errors-yandex-taxi-%Y.%m.%d
+        balancing_group: main
+        max_in_flight_requests: 5
+        hosts:
+          - http://elasticsearch.taxi.yandex:9200/_bulk

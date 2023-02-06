@@ -1,0 +1,60 @@
+default:
+    balance_headers_path: 'features/oebs/pmt_balance/balance_headers/'
+    yt_clusters: ['hahn']
+    balances_load_chunk_size: 10000
+    update_cursor_chunk_size: 2500
+    save_balance_docs_chunk_size: 100
+    cursor_max_updates: 500
+description: |
+    balance_headers_path - путь до папки с балансами
+    yt_clusters - кластеры YT, на которых запускается map_reduce. Выбирается случайным образом.
+    balances_load_chunk_size - сколько балансов загружать из YT за 1 раз
+    update_cursor_chunk_size - как часто обновлять курсор (каждые update_cursor_chunk_size сгруппированных балансов)
+    save_balance_docs_chunk_size - сколько балансов сохранять в billing-docs (и запрашивать в billing-replication) за раз
+    cursor_max_updates - максимальное кол-во обновлений в одном документе курсора
+tags: [notfallback]
+maintainers: [adankovich]
+schema:
+    type: object
+    additionalProperties: false
+    properties:
+        balance_headers_path:
+            type: string
+        yt_clusters:
+            type: array
+            items:
+                type: string
+            minItems: 1
+        balances_load_chunk_size:
+            type: integer
+            minimum: 1
+        update_cursor_chunk_size:
+            type: integer
+            minimum: 1
+        save_balance_docs_chunk_size:
+            type: integer
+            minimum: 1
+        cursor_max_updates:
+            type: integer
+            minimum: 1
+    required:
+      - balance_headers_path
+      - yt_clusters
+      - balances_load_chunk_size
+      - update_cursor_chunk_size
+      - save_balance_docs_chunk_size
+      - cursor_max_updates
+samples:
+  - balance_headers_path: '/features/oebs/pmt_hst'
+    yt_clusters: ['hahn']
+    balances_load_chunk_size: 100
+    update_cursor_chunk_size: 1000
+    save_balance_docs_chunk_size: 150
+    cursor_max_updates: 1000
+invalid-samples:
+  - payment_history_path: 4
+    yt_clusters: []
+    balances_load_chunk_size: 0
+    update_cursor_chunk_size: -1
+    save_balance_docs_chunk_size: false
+    cursor_max_updates: -1

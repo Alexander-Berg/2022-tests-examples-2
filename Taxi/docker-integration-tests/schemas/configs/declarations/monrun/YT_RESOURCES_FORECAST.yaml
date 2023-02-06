@@ -1,0 +1,46 @@
+default:
+    __default__:
+        __default__:
+            disk_space_default:
+                grow_rate:
+                    critical: 10
+                    gap_at_decrease_critical: 5
+                    gap_at_decrease_warning: 2
+                    warning: 4
+                remaining_days:
+                    critical: 21
+                    gap_at_decrease_critical: 14
+                    gap_at_decrease_warning: 7
+                    reverse_metric: true
+                    warning: 50
+            disk_space_ssd_blobs:
+                grow_rate:
+                    critical: 6
+                    gap_at_decrease_critical: 2
+                    gap_at_decrease_warning: 1
+                    warning: 3
+                remaining_days:
+                    critical: 21
+                    gap_at_decrease_critical: 14
+                    gap_at_decrease_warning: 7
+                    reverse_metric: true
+                    warning: 50
+description: Пороги для мониторинга на количество оставшихся дней использования ресурсов
+    с текущей квотой. remaining_days - количество оставшихся дней, при котором надо
+    зажечь мониторинг соответствующего уровня. grow_rate - отношение текущей скорости
+    роста к скорости роста за прошлый рассматриваемый промежуток времени.
+tags: []
+validators:
+  - $get_yt_resources_config:
+        metrics:
+          - disk_space_default
+          - disk_space_ssd_blobs
+        monrun_validator:
+            $dictionary:
+                extra_ok: false
+                missing_ok: true
+                scheme:
+                    grow_rate:
+                      - $monrun_check_config
+                    remaining_days:
+                      - $monrun_check_config

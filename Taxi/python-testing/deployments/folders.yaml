@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: folders
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: folders
+  template:
+    metadata:
+      labels:
+        app: folders
+    spec:
+      containers:
+        - name: folders
+          image: cr.yandex/crpss8bfd1shnvbptaji/kiosk-4.0/folders:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DB_USERPASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-user
+                  key: userpass
+            - name: ORIGIN
+              value: http://router.internal
+            - name: DB_URL
+              value: postgres://$(DB_USERPASS)@rc1a-i1mk6kh8gi4em5ho.mdb.yandexcloud.net:6432/folders
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: folders
+spec:
+  type: ClusterIP
+  selector:
+    app: folders
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000

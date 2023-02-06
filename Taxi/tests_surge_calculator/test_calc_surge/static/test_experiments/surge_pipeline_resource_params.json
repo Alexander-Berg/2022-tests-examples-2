@@ -1,0 +1,45 @@
+{
+  "consumer": "taxi-surge",
+  "name": "default",
+  "stages": [
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "zone.experiment.experiment_name{exp}"
+        },
+        {
+          "domain": "input",
+          "query": "request.user_id{args}"
+        }
+      ],
+      "name": "sample_fetch",
+      "resources": [
+        {
+          "field": "candidates",
+          "name": "count_by_categories"
+        }
+      ],
+      "source_code": "if (exp == 'my_experiment') { return {candidates: {request: {point: [1.0, 2.0], allowed_classes: [], limit: 400, max_distance: 2500}, layer_meta: JSON.parse(args)}}; } return {candidates: {request: {point: [1.0, 2.0], allowed_classes: [], limit: 400, max_distance: 2500}}};"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:category}"
+        }
+      ],
+      "name": "main",
+      "out_bindings": [
+        {
+          "alias": "data",
+          "query": "classes[category]"
+        }
+      ],
+      "source_code": "return {data: {name: category, value_raw: 1.0, surge: {value: 7}}};"
+    }
+  ],
+  "state": "active"
+}

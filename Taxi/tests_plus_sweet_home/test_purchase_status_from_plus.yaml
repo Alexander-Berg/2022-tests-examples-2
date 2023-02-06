@@ -1,0 +1,122 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+mockserver:
+  - url: /plus/4.0/plus/v1/subscriptions/purchase
+    response:
+        body:
+            status: "success"
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+  - name: experiments3
+    kwargs:
+      # plus as source of purchase status is enabled for yandex_uids:
+      # - 111111
+        filename: "exp3-purchase_status-use_plus.json"
+
+tests:
+  - name: success purchase
+    request:
+        method: GET
+        path: /4.0/sweet-home/v1/subscriptions/purchase/status
+        query_params:
+            purchase_id: "id"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    response:
+        status: 200
+        body:
+            status: "success"
+
+  - name: plus_purchase_info_return_400
+    request:
+        method: GET
+        path: /4.0/sweet-home/v1/subscriptions/purchase/status
+        query_params:
+            purchase_id: "id"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    mockserver:
+      - url: /plus/4.0/plus/v1/subscriptions/purchase
+        response:
+            status: 400
+            body: {}
+    response:
+        status: 400
+
+  - name: plus_purchase_info_return_409
+    request:
+        method: GET
+        path: /4.0/sweet-home/v1/subscriptions/purchase/status
+        query_params:
+            purchase_id: "id"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    mockserver:
+      - url: /plus/4.0/plus/v1/subscriptions/purchase
+        response:
+            status: 409
+            body: {}
+    response:
+        status: 409
+
+  - name: plus_purchase_info_return_429
+    request:
+        method: GET
+        path: /4.0/sweet-home/v1/subscriptions/purchase/status
+        query_params:
+            purchase_id: "id"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    mockserver:
+      - url: /plus/4.0/plus/v1/subscriptions/purchase
+        response:
+            status: 429
+            body: {}
+    response:
+        status: 429
+
+  - name: plus_purchase_info_return_500
+    request:
+        method: GET
+        path: /4.0/sweet-home/v1/subscriptions/purchase/status
+        query_params:
+            purchase_id: "id"
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "10.10.10"
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "192.168.0.1"
+    mockserver:
+      - url: /plus/4.0/plus/v1/subscriptions/purchase
+        response:
+            status: 500
+            body: {}
+    response:
+        status: 500

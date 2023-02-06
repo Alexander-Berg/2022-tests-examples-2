@@ -1,0 +1,194 @@
+<test>
+    <variables>
+        <path>
+            <instance id="reg_completion_check">registration_status/check</instance>
+            <instance id="reg_completion_postpone">registration_status/postpone</instance>
+        </path>
+
+        <cookie name="Session_id" func="gensessid">
+            <arg name="version">3</arg>
+
+            <!-- users for /registration_status/check tests:
+            71016 - user with neophonish
+            70496 - beta tester
+            113   - non-existing user
+            -->
+            <instance id="ru_71016">
+                <arg name="uid">71016</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authtime">1564760242111</arg>
+                <arg name="time">-10</arg>
+                <arg name="flags_1">202</arg>
+                <arg name="socprofile_1">333221</arg>
+                <arg name="pwdtime_1">777</arg>
+            </instance>
+            <instance id="ru_70496_71016">
+                <arg name="uid">70496</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authtime">1564760242111</arg>
+                <arg name="time">-10</arg>
+                <arg name="uid_1">71016</arg>
+                <arg name="flags_1">2</arg>
+            </instance>
+            <instance id="ru_70496">
+                <arg name="uid">70496</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authtime">1564760242111</arg>
+                <arg name="time">-10</arg>
+            </instance>
+            <instance id="ru_113">
+                <arg name="uid">113</arg>
+                <arg name="host">yandex.ru</arg>
+                <arg name="type">valid</arg>
+                <arg name="authip">127.0.0.1</arg>
+                <arg name="authid">127</arg>
+                <arg name="authtime">1564760242111</arg>
+                <arg name="time">-10</arg>
+            </instance>
+        </cookie>
+
+        <cookie name="yp" func="gen_yp">
+            <instance id="passed_1_hour">
+                <arg name="time">-3600</arg>
+                <arg name="name">lrcs</arg>
+                <arg name="expired">expired</arg>
+            </instance>
+            <instance id="passed_1_month">
+                <arg name="time">-2592000</arg>
+                <arg name="name">lrcs</arg>
+                <arg name="expired">expired</arg>
+            </instance>
+            <instance id="invalid">
+                <arg name="time">-2592000</arg>
+                <arg name="name">lrcs</arg>
+                <arg name="expired">.</arg>
+            </instance>
+        </cookie>
+
+        <header name="Host">
+            <instance id="api.passport.yandex.ru">api.my-passport.yandex.ru</instance>
+        </header>
+
+        <header name="X-Real-IP">
+            <instance id="yandex_internal">95.108.132.35</instance>
+        </header>
+
+        <result name="status_true">
+            <body func="matchjsonpoint">
+                <arg name="/is_completion_recommended">true</arg>
+            </body>
+        </result>
+
+        <result name="status_false">
+            <body func="matchjsonpoint">
+                <arg name="/is_completion_recommended">false</arg>
+            </body>
+        </result>
+
+        <cgi name="ci">
+            <instance id="good">s:1564760242111:AQAAfw:127</instance>
+            <instance id="bad">s:1564760242111:AQAAfw:128</instance>
+        </cgi>
+
+       <result name="with_lrcs">
+           <set-cookie name="yp">
+               <value func="check_yp_with_ts">
+                   <arg name="name">lrcs</arg> <arg name="time">0</arg> <arg name="allowed_delta">60</arg>
+               </value>
+               <attribute name="path">/</attribute>
+               <attribute name="domain">yandex.ru</attribute>
+               <attribute name="secure"/>
+               <attribute name="HttpOnly"/>
+               <attribute name="SameSite">None</attribute>
+           </set-cookie>
+           <body func="ignore"></body>
+       </result>
+
+        <result name="no_lrcs">
+            <body func="ignore"></body>
+        </result>
+
+        <result name="invalid_yp">
+            <status-code>206</status-code>
+            <body func="ignore"></body>
+        </result>
+
+    </variables>
+
+    <node>
+        <description>Sezamapi: reg_completion handles</description>
+        <case>
+            <description>Check GET</description>
+            <path>reg_completion_check</path>
+            <cookie name="Session_id" withnull="1">*</cookie>
+            <cookie name="yp" withnull="1">*</cookie>
+            <header name="Host">*</header>
+            <header name="X-Real-IP">*</header>
+
+            <check>
+                <cookie name="yp">passed_1_hour</cookie>
+                <cookie name="Session_id">ru_71016</cookie>
+                <result>status_false</result>
+            </check>
+            <check>
+                <cookie name="yp">passed_1_month</cookie>
+                <cookie name="Session_id">ru_71016</cookie>
+                <result>status_true</result>
+            </check>
+            <check>
+                <cookie name="yp" withnull="1">*</cookie>
+                <cookie name="Session_id" withnull="1">ru_71016;ru_70496_71016;ru_70496;ru_113</cookie>
+                <result>status_false</result>
+            </check>
+
+        </case>
+        <case>
+            <description>Check POST</description>
+            <path>reg_completion_postpone</path>
+            <cookie name="Session_id" withnull="1">*</cookie>
+            <header name="Host">*</header>
+            <header name="X-Real-IP">*</header>
+            <cookie name="yp" withnull="1">*</cookie>
+            <post/>
+            <cgi name="ci" withnull="1">*</cgi>
+
+            <check>
+                <cookie name="Session_id">ru_71016;ru_70496_71016;ru_70496</cookie>
+                <cookie name="yp" withnull="1">passed_1_hour;passed_1_month</cookie>
+                <cgi name="ci">good</cgi>
+                <result>with_lrcs</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id">ru_71016;ru_70496_71016;ru_70496</cookie>
+                <cookie name="yp">invalid</cookie>
+                <cgi name="ci">good</cgi>
+                <result>invalid_yp</result>
+            </check>
+
+            <check>
+                <cookie name="Session_id" withnull="1">ru_113</cookie>
+                <cookie name="yp" withnull="1">*</cookie>
+                <cgi name="ci">good</cgi>
+                <result>no_lrcs</result>
+            </check>
+
+            <check>
+                <cgi name="ci" withnull="1">bad</cgi>
+                <cookie name="yp" withnull="1">*</cookie>
+                <result>no_lrcs</result>
+            </check>
+
+        </case>
+    </node>
+
+</test>

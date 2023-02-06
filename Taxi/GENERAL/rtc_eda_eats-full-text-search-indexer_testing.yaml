@@ -1,0 +1,24 @@
+- service: eats-full-text-search-indexer-places-with-errors-testing
+  description: >-
+    Есть магазины с ошибками при отправке на индексацию, число магазинов: {{expression.count_to_show}}
+
+    Ответственные:
+    DreamTeam (Slack: dreamteam),
+    @kurbatskaia (Стафф: vikurb),
+    @apinvent (Стафф: emyachenkov).
+  alert_type: expression
+  checkExpression: 'false'
+  period: 300 # сек = 5 минут
+  program: |-
+    let selector = {
+      project = 'taxi',
+      cluster = 'testing_uservices',
+      service = 'uservices',
+      application = 'eats-full-text-search-indexer',
+      group = 'eda_eats-full-text-search-indexer*',
+      host = 'cluster',
+      sensor = 'update_retail_place.places_with_errors'
+    };
+    let count = last(group_lines('max', selector));
+    let count_to_show = to_fixed(count, 0);
+    warn_if(count > 0);

@@ -1,0 +1,55 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - count: [css:p.to-count, 3]
+  - _inner_test: [True, Several elements.]
+
+  - count: [css:p.to-count, 3, With description.]
+  - _inner_test: [True, Several elements with description.]
+
+  - count: [/html/body/not-existing, 0]
+  - _inner_test: [True, Zero of not existing elements.]
+
+  - count:
+      css: p.to-count
+      value: 3
+      description: With description.
+  - _inner_test: [True, Long form with description.]
+
+  - test: count
+    css: p.to-count
+    value: 3
+    description: Plain form.
+  - _inner_test: [True, Plain form.]
+
+  - count:
+      css: p.to-count
+      value: 3
+      description: With description and timeout.
+      timeout: 10
+  - _inner_test: [True, Long form with description and timeout.]
+
+  - count:
+      xpath: //p[contains(@class, 'to-count')]
+      value: 3
+  - _inner_test:
+      success: True
+      description: "Count of //p[contains(@class, 'to-count')]"
+      tap_description: Full default desc with xpath
+
+  - count:
+      css: p.to-count
+      value: 3
+  - _inner_test:
+      success: True
+      description: 'Count of p.to-count'
+      tap_description: Full default desc with css

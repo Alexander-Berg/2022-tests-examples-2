@@ -1,0 +1,45 @@
+type: apitest
+version: 0
+service: taxi_card_filter
+
+mockserver:
+  - url: /cardstorage/v1/payment_methods
+    response:
+        body:
+            available_cards: []
+            yandex_accounts: []
+            yandex_cards:
+                available_cards:
+                  - id: yandex-card-id-1
+                    currency: RUB
+                  - id: yandex-card-id-2
+                    currency: EUR
+
+  - url: /card-antifraud/v1/payment/availability
+    response:
+        body:
+            all_payments_available: true
+            available_cards: []
+
+tests:
+  - name: yandex_cards
+    request:
+        method: POST
+        path: /v1/filteredcards
+        body:
+            yandex_uid: "111111"
+            user_id: user_id
+        headers:
+            X-Yandex-UID: "111111"
+            X-Remote-IP: "213.180.193.1"
+    response:
+        status: 200
+        body:
+            available_cards: []
+            wallets: []
+            yandex_cards:
+                available_cards:
+                  - id: yandex-card-id-1
+                    currency: RUB
+                  - id: yandex-card-id-2
+                    currency: EUR

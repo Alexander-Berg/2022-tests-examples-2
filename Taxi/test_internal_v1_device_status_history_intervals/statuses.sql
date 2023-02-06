@@ -1,0 +1,334 @@
+INSERT INTO signal_device_api.devices
+(
+    id,
+    name,
+    is_alive,
+    public_id,
+    public_key,
+    imei,
+    mac_wlan0,
+    mac_eth0,
+    mac_usb_modem,
+    serial_number,
+    hardware_version,
+    bluetooth_password,
+    wifi_password,
+    user_password,
+    total_ram_bytes,
+    comment,
+    partner_id,
+    created_at,
+    updated_at
+)
+VALUES
+(
+    1,
+    NULL,
+    TRUE,
+    'd1',
+    'pub_key_1',
+    '990000862471854',
+    '07:f2:74:af:8b:b1',
+    NULL,
+    NULL,
+    'AB1',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+),
+(
+    2,
+    NULL,
+    TRUE,
+    'd2',
+    'pub_key_2',
+    '990000862471852',
+    '07:f2:74:af:8b:b2',
+    NULL,
+    NULL,
+    'AB2',
+    '1.01',
+    '0gp72Eh6hA5qjcgpohV3HnWgMGOgezJBMrCzF/Rp/YqQt8U0l4tutD09xWZmlWai',
+    'qUOqr6n0bzKUcxsVVzywQKJNTmxIqDNfW9usyTB5wdg=',
+    'rkmTiizJVfTN/YwkOH3A26y5j36X0Y8jZmorCEXmJgufrQq0FeP5PPAzwU403Buv',
+    NULL,
+    NULL,
+    1,
+    '2019-12-17T07:38:54',
+    '2019-12-17T07:38:54'
+);
+
+INSERT INTO signal_device_api.park_device_profiles
+(
+    park_id,
+    device_id,
+    created_at,
+    updated_at,
+    is_active
+) 
+VALUES
+(
+    'p1',
+    1,
+    '2020-02-25T22:30:00+03',
+    '2020-02-26T02:00:00+03',
+    TRUE
+),
+(
+    'p1',
+    2,
+    '2020-02-25T22:30:00+03',
+    '2020-02-26T02:00:00+03',
+    TRUE
+);
+
+INSERT INTO signal_device_api.status_states
+(
+    id,
+    states
+) 
+VALUES
+(
+    1,
+    '{"dms.analytics.CameraPose": false, "some_random_shit": false}'
+),
+(
+    2,
+    '{"dms.analytics.CameraPose": true, "dms.analytics.TrashFrames": true, "some_random_shit": false}'
+);
+
+INSERT INTO signal_device_api.status_history
+(
+    device_id, 
+    software_version, 
+    status_at, 
+    updated_at, 
+    states_id
+) 
+VALUES
+(
+    1,
+    '2.31',
+    '2021-01-02T00:06:00+03:00',
+    '2021-01-02T00:06:00+03:00',
+    NULL
+),
+(
+    1,
+    '2.31',
+    '2021-01-02T00:08:00+03:00',
+    '2021-01-02T00:08:00+03:00',
+    NULL
+),
+(
+    1,
+    '2.31',
+    '2021-01-02T00:09:00+03:00',
+    '2021-01-02T00:09:00+03:00',
+    NULL
+),
+(
+    1,
+    '2.31',
+    '2021-01-02T20:58:00+03:00',
+    '2021-01-02T20:58:00+03:00',
+    NULL
+),
+(
+    2,
+    '2.31',
+    '2021-03-03T23:59:00+03:00',
+    '2021-03-03T23:59:00+03:00',
+    1
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T00:03:00+03:00',
+    '2021-03-04T00:03:00+03:00',
+    1
+),
+( -- ошибочная повторная запись, которая должна быть отброшена
+    2,
+    '2.31',
+    '2021-03-04T00:03:00+03:00',
+    '2021-03-04T01:03:00+03:00',
+    NULL
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T00:06:00+03:00',
+    '2021-03-04T00:06:00+03:00',
+    NULL
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T00:09:00+03:00',
+    '2021-03-04T00:09:00+03:00',
+    NULL
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T20:50:00+03:00',
+    '2021-03-04T20:50:00+03:00',
+    2
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T20:51:00+03:00',
+    '2021-03-04T20:51:00+03:00',
+    2
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T21:30:00+03:00',
+    '2021-03-04T21:30:00+03:00',
+    NULL
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T21:33:00+03:00',
+    '2021-03-04T21:33:00+03:00',
+    NULL
+),
+(
+    2,
+    '2.31',
+    '2021-03-04T21:45:00+03:00',
+    '2021-03-04T21:45:00+03:00',
+    1
+),
+(
+    1,
+    '2.31',
+    NOW() - INTERVAL '5 MINUTES',
+    NOW() - INTERVAL '5 MINUTES',
+    NULL
+),
+(
+    2,
+    '2.31',
+    NOW() - INTERVAL '1 WEEK' - INTERVAL '10 MINUTES',
+    NOW() - INTERVAL '1 WEEK' - INTERVAL '10 MINUTES',
+    NULL
+),
+(
+    2,
+    '2.31',
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '4 MINUTES',
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '4 MINUTES',
+    NULL
+),
+(
+    2,
+    '2.31',
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '7 MINUTES',
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '7 MINUTES',
+    NULL
+),
+(
+    2,
+    '2.31',
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '9 MINUTES',
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '9 MINUTES',
+    NULL
+),
+(
+    2,
+    '2.31',
+    NOW() - INTERVAL '4 MINUTES',
+    NOW() - INTERVAL '4 MINUTES',
+    NULL
+);
+
+INSERT INTO signal_device_api.events
+(
+    id,
+    public_event_id,
+    event_id,
+    device_id,
+    created_at,
+    updated_at,
+    event_at,
+    event_type,
+    park_id
+)
+VALUES
+(
+    1,
+    '54b3d7ec-30f6-43cf-94a8-911bc8fe404c',
+    '5e94c0875963785801eed76c4322b394',
+    2,
+    NOW(),
+    NOW(),
+    '2021-03-03T21:10:00+00:00',
+    'shutdown',
+    'p1'
+),
+(
+    2,
+    'xxxsdf-30f6-43cf-94a8-911bc8fe404c',
+    'yyyyyyy4b7816b84ccf4fcb7d886f7',
+    2,
+    NOW(),
+    NOW(),
+    '2021-03-04T17:49:00+00:00',
+    'boot',
+    'p1'
+),
+(
+    3,
+    '4213d7ec-gggg-llll-94a8-11dbv8ae404c',
+    '5120466elko331b3a7d35c585983076a',
+    2,
+    NOW(),
+    NOW(),
+    '2021-03-04T18:10:00+00:00',
+    'shutdown',
+    'p1'
+),
+(
+    4,
+    '1233d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    '0ef0466elko331b3a7d35c585983076a',
+    2,
+    NOW(),
+    NOW(),
+    '2021-03-04T18:20:00+00:00',
+    'boot',
+    'p1'
+),
+(
+    5,
+    '87654321-30f6-43cf-94a8-11dbv8ae404c',
+    '66elko331b3a7d35c585983076a0ef04',
+    2,
+    NOW(),
+    NOW(),
+    '2021-03-04T18:37:00+00:00',
+    'shutdown',
+    'p1'
+),
+(
+    6,
+    '4245d7ec-30f6-43cf-94a8-11dbv8ae404c',
+    '1rwr236elko331b3a7d35c585983076a',
+    2,
+    NOW(),
+    NOW(),
+    NOW() - INTERVAL '1 WEEK' + INTERVAL '3 MINUTES',
+    'boot',
+    'p1'
+);

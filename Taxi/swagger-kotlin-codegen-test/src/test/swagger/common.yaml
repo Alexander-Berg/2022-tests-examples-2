@@ -1,0 +1,109 @@
+openapi: 3.0.0
+info:
+  description: Test additional properties with all of
+  title: Test additional properties with all of
+  version: '1.0'
+
+paths:
+  /test/common/withparams:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_common
+      parameters:
+        - name: Accept-Language
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: park_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: session
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: '#/components/responses/200OK'
+
+  /test/common:
+    x-generator-tags:
+      - android-client
+    get:
+      tags:
+        - test_common
+      responses:
+        200:
+          $ref: '#/components/responses/200OK'
+
+        304:
+          description: not modified
+
+        404:
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+    post:
+      tags:
+        - test_common
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommonRequest'
+
+      responses:
+        200:
+          $ref: '#/components/responses/200OK'
+
+
+components:
+  responses:
+    200OK:
+      description: Test
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CommonResponse'
+
+  schemas:
+    CommonRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+      required:
+        - id
+
+    CommonResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          type: string
+      required:
+        - version
+
+    NotFoundError:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: integer
+        message:
+          type: string

@@ -1,0 +1,51 @@
+INSERT INTO fleet_drivers_scoring.yt_updates
+(
+    id,
+    name,
+    path,
+    revision,
+    created_at
+)
+VALUES
+(
+    1,
+    'ratings',
+    '//home/opteum/fm/testing/features/scoring/ratings/2020-05-04',
+    '2020-05-04',
+    CURRENT_TIMESTAMP
+),
+(
+    2,
+    'orders',
+    '//home/opteum/fm/testing/features/scoring/orders/2020-05-05',
+    '2020-05-05',
+    CURRENT_TIMESTAMP
+),
+(
+    3,
+    'quality_metrics',
+    '//home/opteum/fm/testing/features/scoring/quality/2020-05-06',
+    '2020-05-06',
+    CURRENT_TIMESTAMP
+),
+(
+    4,
+    'high_speed_driving',
+    '//home/opteum/fm/testing/features/scoring/high_speed_driving/2020-05-06',
+    '2020-05-07',
+    CURRENT_TIMESTAMP
+),
+(
+    5,
+    'passenger_tags',
+    '//home/opteum/fm/testing/features/scoring/passenger_tags/2020-05-06',
+    '2020-05-08',
+    CURRENT_TIMESTAMP
+),
+(
+    6,
+    'driving_style',
+    '//home/opteum/fm/testing/features/scoring/driving_style/2020-05-06',
+    '2020-05-08',
+    CURRENT_TIMESTAMP
+)

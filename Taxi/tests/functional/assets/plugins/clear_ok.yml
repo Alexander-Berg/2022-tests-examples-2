@@ -1,0 +1,37 @@
+options:
+  base_url: http://nginx
+  list:
+    - browser: chrome
+      selenium_hub_url: http://127.0.0.1:4450/wd/hub
+    - browser: firefox
+      selenium_hub_url: http://127.0.0.1:4451/wd/hub
+
+tests:
+  - get_ok:
+      url: base.html
+
+  - exec_js: "$('input#first').val('Some text')"
+  - like: [css:input#first, Some text.]
+  - clear_ok:
+    - css: input#first
+    - css: input#second
+  - _inner_test:
+      success: True
+      tap_description: Common clear has no errors.
+  - unlike: [css:input#first, Some text.]
+  - _inner_test:
+      success: True
+      tap_description: Common clear really works.
+
+  - exec_js: "$('input#first').val('Some text')"
+  - like: [css:input#first, Some text.]
+  - clear_ok:
+      desc: First / second
+      fields:
+        - css: input#first
+        - css: input#second
+  - _inner_test:
+      success: True
+      tap_description: Full form.
+  - unlike: [css:input#first, Some text.]
+  - _inner_test: [True, Full form really works.]

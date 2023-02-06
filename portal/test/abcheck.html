@@ -1,0 +1,184 @@
+[%- ttppnomin=1 -%]
+[%- ttppmobile=1 -%]
+[%- ttppspace_in_html_tag=1 -%]
+[%- space_in_html_tag=1 -%]
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AB Condition checker</title>
+    <script type="text/javascript" src="//yandex.st/jquery/2.0.3/jquery.js"></script>
+    <script type="text/javascript" src="//yandex.st/bootstrap/3.0.2/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="//yandex.st/bootstrap/3.0.2/css/bootstrap.css" />
+    <style>
+        mark.result-error-mark {
+            background-color: #d9534f;
+            color: #fff;
+        }
+    </style>
+    <script type="text/javascript">
+        function update (data) {
+            if (data.empty) {
+                $("#result-label")
+                    .removeClass("label-info label-success label-danger")
+                    .addClass("label-info")
+                    .text("Empty condition")
+                $("#tree-label")
+                    .removeClass("label-info label-success label-danger")
+                    .addClass("label-info")
+                    .text("Empty condition")
+                $("#result").text("");
+                $("#tree").text("");
+            }
+            else if (data.ok) {
+                $("#result-label")
+                    .removeClass("label-info label-success label-danger")
+                    .addClass("label-success")
+                    .text("Success")
+                $("#tree-label")
+                    .removeClass("label-info label-success label-danger")
+                    .addClass("label-success")
+                    .text("Success")
+                $("#result").text(data.normalized);
+                $("#tree").text(data.dump);
+            }
+            else {
+                $("#result-label")
+                    .removeClass("label-info label-success label-danger")
+                    .addClass("label-danger")
+                    .text("Error")
+                $("#tree-label")
+                    .removeClass("label-info label-success label-danger")
+                    .addClass("label-danger")
+                    .text("Error");
+                $("#tree").text("");
+                if (data.error) {
+                    var error = data.error;
+                    if (error.pos >= error.str.length) {
+                        $("#result").text(
+                            "Error: " + error.msg + " at the end of string\n"
+                            + error.str
+                        );
+                    }
+                    else {
+                        $("#result").text("Error: " + error.msg + "\n");
+                        $("#result").append(
+                            $("<div>").text(error.str.substr(0, error.pos)).html(),
+                            "<mark class=\"result-error-mark\">"
+                            + $("<div>").text(error.str.substr(error.pos)).html()
+                            + "</mark>"
+                        );
+                    }
+                }
+                else if (data.error_text) {
+                    $("#result").text("Error: " + data.error_text);
+                }
+                else {
+                    $("#result").text("Error: unknown error");
+                }
+            }
+        }
+        $(document).ready(function() {
+            $("#validate").on("click", function () {
+                var cond = $("#cond").val();
+                if (!cond) {
+                    update({empty : 1});
+                }
+                else {
+                    $.ajax({
+                        url: '/test/abcheck/parse/',
+                        type: 'GET',
+                        data: {
+                            condition: $("#cond").val()
+                        },
+                        dataType: 'json',
+                        success: update,
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            update({
+                                ok: 0,
+                                error_text : "failed request: " + errorThrown
+                            });
+                        },
+                    });
+                }
+                if (history.pushState) {
+                    var newurl = window.location.protocol
+                         + "//" + window.location.host + window.location.pathname;
+                    if (cond) {
+                        newurl += '?condition=' + encodeURIComponent(cond);
+                    }
+                    window.history.pushState({path:newurl},'',newurl);
+                }
+            });
+        });
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center">AB Condition checker</h1>
+        <div class="row">
+          <div class="col-md-12">
+            <h4>Your condition</h4>
+            <textarea class="form-control" id="cond" rows="3">
+            	[%- IF ! parsed.empty -%]
+                    [%- FILTER html -%]
+                        [%- parsed.src -%]
+                    [%- END -%]
+                [%- END -%]</textarea>
+            <br>
+            <a class="btn btn-info" href="#" id="validate" role="button">validate</a>
+          </div> <!-- class="col-md-12" -->
+        </div> <!-- row -->
+        [%- IF parsed.empty -%]
+            [%- label_class = 'label-info' -%]
+            [%- label_text  = 'Empty condition' -%]
+        [%- ELSIF parsed.ok -%]
+            [%- label_class = 'label-success' -%]
+            [%- label_text  = 'Success' -%]
+        [%- ELSE -%]
+            [%- label_class = 'label-danger' -%]
+            [%- label_text  = 'Error' -%]
+        [%- END -%]
+        <div class="row">
+          <div class="col-md-12">
+            <h4>Result <span id="result-label" class="label [% label_class %]">[% label_text %]</span></h4>
+            <pre id="result">
+            	[%- IF parsed.empty -%]
+                [%- ELSIF parsed.ok -%]
+                [%- FILTER html -%]
+                [%- parsed.normalized -%]
+                [%- END -%]
+                [%- ELSIF parsed.error.pos < parsed.error.str.length -%]
+[%- FILTER html -%]
+Error: [% parsed.error.msg %]
+[% parsed.error.str.substr(0, parsed.error.pos) %]
+[%- END -%]
+<mark class="result-error-mark">
+[%- FILTER html -%]
+[% parsed.error.str.substr(parsed.error.pos) %]
+[%- END -%]
+</mark>
+                [%- ELSE -%]
+[%- FILTER html -%]
+Error: [% parsed.error.msg %] at the end of string
+[% parsed.error.str %]
+[%- END -%]
+                [%- END -%]</pre>
+          </div> <!-- class="col-md-12" -->
+        </div> <!-- row -->
+        <div class="row">
+          <div class="col-md-12">
+            <h4>Tree <span id="tree-label" class="label [% label_class %]">[% label_text %]</span></h4>
+            <pre id="tree">
+                [%- FILTER html -%]
+            	[%- IF !parsed.empty && parsed.ok -%]
+                [%- parsed.dump -%]
+                [%- END -%]
+                [%- END -%]</pre>
+          </div> <!-- class="col-md-12" -->
+        </div> <!-- row -->
+      </div> <!-- container -->
+  </body>
+</html>

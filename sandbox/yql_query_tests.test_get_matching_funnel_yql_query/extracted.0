@@ -1,0 +1,212 @@
+/*
+Как поживает БК oderid?
+input:
+1. БК orderid
+2. Даты для анализа
+3. Ограничения на блоки(если они есть)
+4. Путь, по которому будут сохраняться промежуточные данные
+5. Настройте ваш пул для вычислений по необходимости
+6. Добавьте следующие библиотеки(скрепка):
+   functions.sql arc://yabs/analytics/libs/yql/functions.sql?rev=7740195
+   constants.sql arc://yabs/analytics/libs/yql/constants.sql?rev=7713023
+
+ex: https://yql.yandex-team.ru/Operations/YE8NBfMBw2RBcOLlRkDe5QJ_xrFj-aKTkGJ1Dyy6EBA=
+*/
+
+-------------------------------SETTINGS-----------------------------------------
+
+$orderid = CAST(155148326 as Int32);
+
+$first_day  = '2022-02-22';
+$last_day = '2022-02-23';
+
+$path = 'path/to/tmp/folder/SUPBS-18584/155148326/';
+
+use hahn;
+
+PRAGMA dq.AnalyzeQuery = "1";
+pragma yt.InferSchema;
+pragma yt.PoolTrees = "physical";
+pragma yt.TentativePoolTrees = "cloud";
+--pragma yt.Pool = "yabs-analytics";
+pragma yt.DefaultOperationWeight = '1000.0';
+-------------------------------SETTINGS-----------------------------------------
+
+
+-- логи
+$logs = AsDict(
+    AsTuple('RTB', 'logs/bs-rtb-log/1d'), -- ртб
+    AsTuple('DSP', 'logs/bs-dsp-log/1d'), -- дсп
+    AsTuple('CHDSP', 'logs/bs-dsp-checked-log/1d'), -- дсп с антифродом
+    AsTuple('COOKED_DSP', 'statbox/cooked_logs/bs-dsp-cooked-log/v1/1d'), -- cooked дсп с антифродом
+    AsTuple('HIT', 'logs/bs-hit-log/1d'), -- хит
+    AsTuple('PFHIT', 'logs/bs-proto-prefetchhit-log/1d'), -- прехит(инфа о "предзапросах" в движок. Пользователь стал вводить что-то в поисковую строку, а мы уже ищем рекламу заранее)
+    AsTuple('EVENT', 'logs/bs-event-log/1d'), -- евент
+    AsTuple('CHEVENT', 'logs/bs-chevent-log/1d'), -- евент с антифродом
+    AsTuple('COOKED_EVENT', 'statbox/cooked_logs/bs-chevent-cooked-log/v2/1d'), -- cooked евент с антифродом
+    AsTuple('EFH', 'home/bs/logs/JoinedEFH/1h'), -- join лог (event + fraud + hit + visit)
+    AsTuple('ABUSE', 'logs/bs-abuse-log/1d'), -- лог нажатий на крестик и like/dislike
+    AsTuple('ADFOX_EVENT', 'logs/adfox-event-log/1d'), -- лог event'ов adfox
+    AsTuple('COOKED_VISIT_PUBLIC', 'statbox/cooked_logs/visit-cooked-log/v1/1d'), -- public visit-log с яндексовыми счётчиками
+    AsTuple('COOKED_VISIT_PRIVATE', 'statbox/cooked_logs/visit-cooked-private-log/v1/1d'), -- public visit-log с внешними счётчиками
+    AsTuple('FILTER', 'home/logfeller/logs/bs-filter-log/1d'), -- фильтр
+    AsTuple('MATCH', 'home/logfeller/logs/bs-match-log/1d'), -- матч
+    AsTuple('MOBILE_POSTCLICK', 'logs/bs-mobile-postclick-log/1d'), -- директория лога с мобильными установками
+    AsTuple('MOBILE_INSTALL', 'logs/bs-mobile-install-log/1d'), -- директория с ассоциированными инсталлами(установки обнаруживаются метрикой, если был клик в течении дня, значит мы привели к этой установке)
+    AsTuple('DESKTOP_BROWSER', 'logs/bar-navig-log/1d'), -- десктопный ЯБро (+ сюда льется часть мобильного трафика)
+    AsTuple('MOBILE_BROWSER', 'logs/browser-metrika-mobile-log/1d'), -- мобильный ЯБро
+    AsTuple('UPBL', 'logs/bs-uniform-postback-log/1d'), -- логи с событиями, которые нам отправляют трекеры
+    AsTuple('ABT_YUIDS', 'home/abt/yuid_testids'), -- yuids экспериментов абшницы; пример запроса: https://yql.yandex-team.ru/Operations/YBKxqyyLNQXhn5iRkWRRZO65ci6Wf8S7gpbO5ebM5dc=
+);
+
+$dicts = AsDict(
+    AsTuple('Page', 'home/bigb/caesar/stable/pages_export/CaesarPage/CaesarPage'), -- страницы на которых откручивается реклама
+    AsTuple('OrderInfo', 'home/yabs/dict/CaesarOrderInfo'), -- словарь рекламных кампаний
+    AsTuple('Banner', 'home/yabs-cs/export/YTBanner'), -- словарь рекламных объявлений(динамический)
+    AsTuple('PageImp', 'home/yabs/dict/replica/PageImp'), -- словарь со свойствами блоков
+    AsTuple('PageDSP', 'home/yabs/dict/replica/PageDSP'), -- словарь с настройками блоков
+    AsTuple('PageImpArtmon', 'home/yabs/dict/replica/PageImpArtmon'), -- синтетический словарь блоков
+    AsTuple('WideGoodEvent', 'home/yabs/dict/replica/WideGoodEvent'), -- словарь фильтров Антифрода
+    AsTuple('BMCategory', 'home/yabs/dict/replica/BMCategory'), -- словарь категорий BMCategory
+    AsTuple('AutoBudgetOrder', 'home/yabs/dict/CaesarAutoBudgetOrder'), -- информация об автобюджетных кампаниях
+    AsTuple('CaesarBanner', 'home/bs/logs/AdsCaesarBannersFullDump/latest'), -- словарь рекламных баннеров (динамический); самый свежий и актуальный, кроме старой бананы - ее брать в home/yabs-cs/export/YTBanner ex: https://yql.yandex-team.ru/Operations/YLdgRb94hkmJ192IlJNgMWkzoes79aNXzlu4CXptI5Q=
+    -- так парсить поля: https://a.yandex-team.ru/arc/trunk/arcadia/ads/bsyeti/libs/events/proto/banner_resources.proto?rev=8271780&blame=true#L42
+    -- какие есть поля: https://a.yandex-team.ru/arc/trunk/arcadia/ads/bsyeti/caesar/libs/profiles/proto/banner.proto
+    -- какие есть поля в ресурсах: https://a.yandex-team.ru/arc/trunk/arcadia/ads/bsyeti/libs/events/proto/banner_resources.proto
+    AsTuple('ResoursesBySmartBannerid', 'home/yabs-cs/export/SmartResources'), -- дамп в котором лежат ресурсы по каждому смарт баннеру
+    AsTuple('Campaigns', 'home/direct/db-archive/current/campaigns'), -- справочник Директа про РК, аналог OrderInfo, но с директоспецифичными данными
+    AsTuple('AppByBannerID', 'home/bs/ads/apps/banners/latest'), -- приложение по BannerID(РПМ)
+    AsTuple('AppExtentedInfo', 'home/bs/ads/apps/info/latest'), -- детализированная информация по каждому аппу(YA/notYA, тип приложения)
+    AsTuple('ClientTiers', 'home/comdep-analytics/public/client_tiers/fact/latest'), -- справочник КД, откуда можно достать тир, логин и агентство рекламодателя, OrderID/cid может быть неуникальным ключом в силу множественности логинов, пример - https://a.yandex-team.ru/arc/trunk/arcadia/yabs/analytics/yql_examples/get_client_tiers.yql
+    AsTuple('PhrasePrice', 'home/yabs-cs/export/PhrasePrice') -- по заказу можно достать все PhraseID и ставки
+);
+
+
+$auction_data = $path || '1.1_auction_match';--матчлог для анализа конкурентов в стадии PMATCH_RESULT
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+--A.                            MATCH
+---MATCH MATCH MATCH MATCH MATCH MATCH MATCH MATCH MATCH MATCH MATCH MATCH MATCH
+
+-- Список всех аукционов в которых был наш orderid
+$hitlogids = (
+select
+    hitlogid
+from
+    range($logs['MATCH'], $first_day, $last_day)
+where
+        orderid is not null
+    and cast(orderid as Int64) == $orderid and stage == 'PMATCH_RESULT'
+);
+
+--тип страницы
+$page_type =
+($row) ->
+{
+    return
+    case
+        when $row.TargetType == 0 or $row.TargetType == 2 then 'search'
+        when $row.TargetType == 3 and ($row.OptionsYandexPage == True or $row.OptionsBusinessUnit == True) then 'yan_internal'
+        when $row.TargetType == 3 and ($row.OptionsYandexPage == False and $row.OptionsBusinessUnit == False) then 'yan_external'
+        else 'other'
+    end
+};
+
+$page_table = $dicts['Page'];
+$page_info =
+(
+    select
+        cast(p.PageID as String) as pageid,
+        $page_type(TableRow()) as pagetype
+    from
+        $page_table as p
+    where
+        not (p.OptionsDistribAdv or p.OptionsDistribMorda or p.OptionsDistribSerp) --убираем всю дистрибуционные страницы
+);
+
+$realcost = ($realcost_str) -> {
+    return cast($realcost_str as Double)/1000000.0 ?? 0.0
+};
+
+$multiply = ($realcost_str, $ctr) -> {
+    RETURN $realcost($realcost_str)  * cast($ctr as Double)
+};
+
+$product_type = ($producttype) -> {
+    return if($producttype like '%reach%', 'cpm', 'cpc')
+};
+
+$date_format = DateTime::Format("%Y-%m-%d");
+
+--берем все хиты в которых есть наши аукционы
+$auction_logs_match = (
+select
+    match_log.hitlogid as hitlogid,
+    $date_format(AddTimezone(DateTime::FromSeconds(CAST(match_log._logfeller_timestamp as Uint32)), 'Europe/Moscow')) as _date,
+
+    cast(match_log.orderid as Int64) ?? -1 as orderid,
+    cast(match_log.bannerid as Int64) ?? -1 as bannerid,
+    cast(match_log.pageid as Int64) ?? -1 as pageid,
+    cast(match_log.impid as Int64) ?? -1 as impid,
+
+    page.pagetype,
+
+    case
+        when page.pagetype != 'search'
+            then if($product_type(match_log.producttype) == 'cpc',$multiply(realcost, ctrguarantee), $realcost(realcost)) --рся
+        else if(True, $multiply(realcost, ctrguarantee), $multiply(realcost, ctrpremium))
+    end as pval,
+
+    cast(match_log.sourcecost as Double)/1000000.0 ?? 0.0 as sourcecost,
+    cast(match_log.realcost as Double)/1000000.0 ?? 0.0 as realcost,
+
+    --TODO: по хорошему, здесь нужно сохранять одно значение в зависимости от типа заказа
+    cast(match_log.ctrpremium as Double) ?? 0.0 as ctrpremium,
+    cast(match_log.ctrguarantee  as Double) ?? 0.0 as ctrguarantee,
+
+    if(match_log.producttype like '%reach%', 'cpm', 'cpc') as product_type,
+
+from
+    range($logs['MATCH'], $first_day, $last_day) as match_log
+
+join $hitlogids as hit on hit.hitlogid == match_log.hitlogid
+
+left join $page_info AS page on (match_log.pageid == page.pageid)
+
+
+where
+        match_log.hitlogid  is not null
+    and (stage == "PMATCH_RESULT")
+
+);
+
+-- для каждого хит добавляем  максимальный pval для заданного order_id
+$max_pval = (
+select
+    hitlogid,
+    MAX(pval) as ourPval
+from
+    $auction_logs_match
+where
+    orderid = $orderid
+group by
+    hitlogid
+);
+
+--для каждого хита добавляем только те order_id, pval которых больше  нашего pval, сохраняем
+insert into
+    $auction_data
+with truncate
+select
+    *
+from
+    $auction_logs_match as main
+left join
+    $max_pval as mx_pval
+on
+    main.hitlogid = mx_pval.hitlogid
+where
+    main.pval >= mx_pval.ourPval;

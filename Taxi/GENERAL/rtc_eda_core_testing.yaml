@@ -1,0 +1,24 @@
+# тайминги rabbitmq, EDAOPS-2037
+- service: rabbitmq_timings
+  alert_type: expression
+  description: |-
+    Тайминги aliveness-test на %eda_test_testing_rabbit
+  program: |
+    let selector = {project="eda", cluster="prod_monitoring", service="monitoring", sensor="aliveness_test_time", application="rabbitmq-timings-meter", rabbitmq_cluster="eda_test_rabbitmq"};
+    let top_border = group_lines("max", selector);
+    let bottom_border = group_lines("min", selector);
+    alarm_if(max(top_border) > 1 || min(bottom_border) < 0);
+  checkExpression: 'false'
+  period: 300
+# тайминги redis, EDAOPS-2025
+- service: redis_timings
+  alert_type: expression
+  description: |-
+    Тайминги ping на redis-ах Еды
+  program: |
+    let selector = {project="eda", cluster="prod_monitoring", service="monitoring", sensor="ping_response_time", application="redis-timings-meter", redis_cluster="eda_core_common_redis_testing"};
+    let top_border = group_lines("max", selector);
+    let bottom_border = group_lines("min", selector);
+    alarm_if(max(top_border) > 1 || min(bottom_border) < 0);
+  checkExpression: 'false'
+  period: 300

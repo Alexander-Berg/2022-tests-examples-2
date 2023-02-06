@@ -1,0 +1,282 @@
+INSERT INTO persey_payments.fund
+    (
+        fund_id,
+        name,
+        offer_link,
+        operator_uid,
+        balance_client_id,
+        trust_partner_id,
+        trust_product_id
+    )
+VALUES
+    (
+        'friends',
+        'Имя фонда',
+        'http://fund.com',
+        '777',
+        'client1',
+        'partner_id1',
+        'product_id1'
+    ),
+    (
+        'gift_to_an_angel',
+        'Имя фонда',
+        'http://fund.com',
+        '777',
+        'client1',
+        'partner_id1',
+        'product_id1'
+    );
+
+INSERT INTO persey_payments.ride_subs
+    (
+        yandex_uid,
+        phone_id,
+        brand,
+        fund_id,
+        mod,
+        locale,
+        created_at
+    )
+VALUES
+    (
+        'phonish_uid',
+        'af35af35af35af35af35af35',
+        'yataxi',
+        'friends',
+        10,
+        'en',
+        '2019-01-11T22:49:56+0300'
+    ),
+    (
+        'portal_uid',
+        'af35af35af35af35af35af35',
+        'yataxi',
+        'friends',
+        10,
+        'en',
+        '2019-01-12T22:49:56+0300'
+    ),
+    (
+        'portal_uid',
+        'af35af35af35af35af35af35',
+        'lavka',
+        'friends',
+        10,
+        'en',
+        '2019-01-13T22:49:56+0300'
+    ),
+    (
+        'portal_uid',
+        'af35af35af35af35af35af35',
+        'market',
+        'friends',
+        10,
+        'en',
+        '2019-01-13T22:49:56+0300'
+    );
+
+INSERT INTO persey_payments.active_ride_subs
+    (
+        ride_subs_id,
+        yandex_uid,
+        brand
+    )
+VALUES
+    (
+        1,
+        'phonish_uid',
+        'yataxi'
+    ),
+    (
+        2,
+        'portal_uid',
+        'yataxi'
+    ),
+    (
+        3,
+        'portal_uid',
+        'lavka'
+    ),
+    (
+        4,
+        'portal_uid',
+        'market'
+    );
+
+
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        yandex_uid,
+        sum,
+        status,
+        ride_subs_id,
+        order_id,
+        brand,
+        created_at
+    )
+VALUES
+    (
+        'friends',
+        'phonish_uid',
+        '321',
+        'finished',
+        1,
+        'order1',
+        'yataxi',
+        '2019-01-14T22:49:56+0300'
+    ),
+    (
+        'friends',
+        'phonish_uid',
+        '321',
+        'finished',
+        1,
+        'order2',
+        'yataxi',
+        '2019-01-15T22:49:56+0300'
+    ),
+    (
+        'friends',
+        'portal_uid',
+        '123',
+        'finished',
+        2,
+        'order3',
+        'yataxi',
+        '2019-01-16T22:49:56+0300'
+    ),
+    (
+        'friends',
+        'portal_uid',
+        '123',
+        'finished',
+        3,
+        'order4',
+        'lavka',
+        '2019-01-17T22:49:56+0300'
+    );
+
+INSERT INTO persey_payments.subs_product
+    (
+        amount,
+        period,
+        retry_charging_limit,
+        retry_charging_delay,
+        trust_product_id
+    )
+VALUES
+    (
+        '123',
+        '1M',
+        '8D',
+        '1D',
+        'some_subs_product_id'
+    );
+
+INSERT INTO persey_payments.subs
+    (
+        external_id,
+        subs_product_id,
+        fund_id,
+        yandex_uid,
+        user_name,
+        user_email,
+        trust_order_id,
+        status,
+        created_at
+    )
+VALUES
+    (
+        'first_external_id',
+        1,
+        'friends',
+        'portal_uid',
+        'some_user_name',
+        'some_email',
+        'some_order_id',
+        'in_progress',
+        '2019-01-18T22:49:56+0300'
+    ),
+    (
+        'second_external_id',
+        1,
+        'friends',
+        'portal_uid',
+        'some_user_name',
+        'some_email',
+        'some_order_id',
+        'in_progress',
+        '2019-01-19T22:49:56+0300'
+    );
+
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        sum,
+        yandex_uid,
+        user_name,
+        user_email,
+        purchase_token,
+        trust_order_id,
+        subs_id,
+        status,
+        created_at
+    )
+VALUES
+    (
+        'friends',
+        '123',
+        'portal_uid',
+        'some_user_name',
+        'some_user_email',
+        'trust-basket-token',
+        'some_order_id',
+        1,
+        'finished',
+        '2019-01-20T22:49:56+0300'
+    ),
+    (
+        'friends',
+        '123',
+        'portal_uid',
+        'some_user_name',
+        'some_user_email',
+        'trust-basket-token',
+        'some_order_id',
+        2,
+        'finished',
+        '2019-01-21T22:49:56+0300'
+    );
+
+
+INSERT INTO persey_payments.donation
+    (
+        fund_id,
+        yandex_uid,
+        sum,
+        user_name,
+        user_email,
+        purchase_token,
+        trust_order_id,
+        status,
+        city,
+        created_at
+    )
+VALUES
+    (
+        'friends', 'portal_uid', '123.45', 'aaa', 'bbb',
+        'trust-basket-token', 'ddd', 'started', 'Moscow',
+        '2019-01-22T22:49:56+0300'
+    ),
+    (
+        'gift_to_an_angel', 'portal_uid', '543.21', 'aaa', 'bbb',
+        'trust-basket-token', 'ddd', 'finished', 'Moscow',
+        '2019-01-23T22:49:56+0300'
+    ),
+    (
+        'friends', 'portal_uid', '700000', 'aaa', 'bbb',
+        'trust-basket-token', 'ddd', 'finished', 'SPb',
+        '2019-01-23T22:49:57+0300'
+    );

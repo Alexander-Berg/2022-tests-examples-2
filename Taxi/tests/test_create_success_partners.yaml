@@ -1,0 +1,73 @@
+id: test_create_success_partners
+title: Проверка получения ошибочного ответа из сервиса eats-partners
+
+parameters:
+  - group:
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+            timezone: Moscow
+            roles: [2, 8]
+            countryCode: RU
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+            is_fast_food: false
+            timezone: Moscow
+            roles: [2, 8]
+            country_code: RU
+      - input_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            restaurants: [1, 2, 3]
+            isFastFood: false
+            timezone: Moscow
+            countryCode: RU
+        expected_request_body:
+            email: test@test.test
+            name: test_name
+            password: some_password
+            places: [1, 2, 3]
+            is_fast_food: false
+            timezone: Moscow
+            country_code: RU
+
+source:
+    request:
+        method: post
+        url: /api/v1/server/users
+        body#xget: /test-params/group/input_request_body
+
+    expectations:
+        response:
+            status-code: 200
+            body: {"isSuccess": true, "payload": {"id": 1}}
+
+mocks:
+  - resource: backend-service-vendor-v1-server-users
+    expectations:
+        call-count: 0
+
+  - resource: eats-partners-internal-v1-create
+    response:
+        status-code: 200
+        body:
+            payload:
+                id: 1
+    expectations:
+        call-count: 1
+        request:
+            body#xget: /test-params/group/expected_request_body
+
+experiments:
+    values#object:
+      - key: eats-restapp-partners-switch
+        value:
+            proxy_write: true
+        enabled: true

@@ -1,0 +1,71 @@
+# This file is generated automatically, do not edit it by hand!
+dashboard_update:
+    templating:
+        list:
+          - label: table_schema
+            allValue: '*'
+            allFormat: 'glob'
+            datasource: Solomon
+            hide: 0
+            multi: false
+            includeAll: true
+            name: table_schema
+            query: "{'application'='reposition-watcher', 'cluster'='testing_uservices',\
+                \ 'host'!='cluster|Man|Sas|Vla|Myt|Iva', 'project'='taxi', 'sensor'='table-stats.*.tables.row_count',\
+                \ 'service'='uservices'} #sensor"
+            refresh: 1
+            regex: 'table-stats\.(.*)\.tables\.row_count'
+            sort: 1
+            tagValuesQuery: ''
+            tags: []
+            tagsQuery: ''
+            type: query
+            useTags: false
+
+clownductor_config: taxi:reposition-watcher:testing
+
+http_hosts:
+  - reposition-watcher.taxi.tst.yandex.net
+layout:
+  - rps_share
+  - system
+  - userver_common:
+        collapsed: true
+        uservice_name: reposition-watcher
+  - include:
+        path: reposition-watcher/table-stats_row-counts.json
+        title: Postgres rows
+        collapsed: true
+        variables:
+            cluster: testing_uservices
+  - include:
+        path: reposition-watcher/table-stats_byte-sizes.json
+        title: Postgres sizes
+        collapsed: true
+        variables:
+            cluster: testing_uservices
+  - include:
+        collapsed: false
+        path: taxi_uservices_pg_cron_tasks.json
+        title: Cron
+        variables:
+          - uservice_name: reposition-watcher
+          - cluster: testing_uservices
+  - include:
+        collapsed: false
+        path: reposition-watcher/checks.json
+        title: Checks timings
+        variables:
+          - uservice_name: reposition-watcher
+          - cluster: testing_uservices
+  - include:
+        collapsed: true
+        path: reposition-watcher/order-events-processor.json
+        title: Order events processor
+        variables:
+          - cluster: testing_uservices
+        row_panels:
+          - 2
+          - 1
+  - http:
+        collapsed: true

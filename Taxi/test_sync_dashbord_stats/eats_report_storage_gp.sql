@@ -1,0 +1,67 @@
+INSERT INTO snb_eda.rad_quality (
+    place_id,
+    brand_id,
+    name,
+    address,
+    rating,
+    orders,
+    avg_check,
+    cancel_rating,
+    pict_share,
+    plus_flg,
+    dish_as_gift_flg,
+    discount_flg,
+    second_for_free_flg,
+    pickup_flg,
+    mercury_flg)
+VALUES
+  (
+     1,
+     1,
+     'Макдоналдс1',
+     'улица Декабристов, 11',
+     2977.1666666666666667,
+     1,
+     1.1,
+     1.1,
+     1.1,
+     true,
+     false,
+     NULL,
+     NULL,
+     NULL,
+     NULL
+  ),
+  (
+     2,
+     2,
+     'Макдоналдс2',
+     'улица Декабристов, 22',
+     2.2,
+     2,
+     2.2,
+     2.2,
+     2.2,
+     true,
+     false,
+     NULL,
+     NULL,
+     NULL,
+     NULL
+  );
+
+INSERT INTO snb_eda.rad_suggests (
+    suggest,
+    prioriy,
+    place_id)
+VALUES
+  (
+    'cancels',
+    1.1,
+    1
+  ),
+  (
+    'pict_share',
+    2.2,
+    1
+  );

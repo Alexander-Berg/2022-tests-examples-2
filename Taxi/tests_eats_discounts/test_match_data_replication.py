@@ -1,0 +1,94 @@
+import json
+from typing import Optional
+
+import pytest
+
+from tests_eats_discounts import common
+
+
+@pytest.mark.now('2019-01-01T00:00:00+00:00')
+@pytest.mark.pgsql('eats_discounts', files=['init.sql'])
+@pytest.mark.parametrize(
+    'rules, expected_exclusions',
+    (
+        pytest.param(
+            [
+                {
+                    'condition_name': 'active_period',
+                    'values': [
+                        {
+                            'start': '2020-01-01T09:00:01+00:00',
+                            'is_start_utc': True,
+                            'end': '2021-01-01T00:00:00+00:00',
+                            'is_end_utc': True,
+                        },
+                    ],
+                },
+                {
+                    'condition_name': 'region',
+                    'values': 'Any',
+                    'exclusions': [12345],
+                },
+                {'condition_name': 'brand', 'values': [1]},
+                {'condition_name': 'place', 'values': [1]},
+            ],
+            {'region': [12345]},
+            id='menu_discounts',
+        ),
+    ),
+)
+@pytest.mark.config(
+    DISCOUNTS_MATCH_REPLICATION_SETTINGS={
+        '__default__': {'match_data': {'enabled': True, 'chunk_size': 10}},
+    },
+)
+async def test_match_data_replication(
+        client,
+        mockserver,
+        check_add_rules_validation,
+        rules,
+        expected_exclusions,
+):
+    def _prepare_response(response: Optional[dict]) -> Optional[dict]:
+        if response:
+            for data in response:
+                data['data']['data'].pop('create_draft_id', None)
+        return response
+
+    data = []
+    hierarchy_name = 'menu_discounts'
+
+    is_check = False
+    await check_add_rules_validation(
+        is_check,
+        {'affected_discount_ids': [], 'revisions': []},
+        hierarchy_name,
+        rules,
+    )
+
+    @mockserver.json_handler('/replication/data/eats_discounts_match_data')
+    def _put_data_handler(request):
+        items = json.loads(request.get_data())['items']
+        data.extend(items)
+        return {
+            'items': [{'id': item['id'], 'status': 'ok'} for item in items],
+        }
+
+    await client.run_task('match-data-replication-task')
+    assert _prepare_response(data) == [
+        {
+            'id': common.START_DATA_ID,
+            'data': {
+                'id': common.START_DATA_ID,
+                'created_at': '2019-01-01 00:00:00',
+                'data': {
+                    'discount': common.small_menu_discount(),
+                    'hierarchy_name': hierarchy_name,
+                    'exclusions': expected_exclusions,
+                },
+            },
+        },
+    ]
+    data.clear()
+    await client.run_task('match-data-replication-task')
+    assert _prepare_response(data) == []

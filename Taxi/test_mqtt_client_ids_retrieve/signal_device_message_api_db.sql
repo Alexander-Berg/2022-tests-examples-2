@@ -1,0 +1,30 @@
+INSERT INTO signal_device_message_api.mqtt_device_bindings (
+    serial_number,
+    registry_id,
+    public_key,
+    client_id
+) VALUES 
+(
+    'AB3',
+    'xxx',
+    'test',
+    'CL1'
+),
+(
+    'AB6',
+    'xxx',
+    'test',
+    'CL2'
+),
+(
+    'AB7',
+    'xxx',
+    'test',
+    'CL3'
+),
+(
+    'AB9',
+    'xyz',
+    'test',
+    'CL4'
+);

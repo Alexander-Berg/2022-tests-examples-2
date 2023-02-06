@@ -1,0 +1,66 @@
+id: test_bt_flow
+title: |
+    тест bluetooth-flow с возвратом информации из car/details
+
+parameters:
+  - case:
+      - bluetooth_flow_enabled: true
+        expected_response:
+            status-code: 200
+            body:
+                bluetooth:
+                    password: SESSION_KEY
+                    mac: MAC
+                    imei: IMEI
+                    name: ZK600
+      - bluetooth_flow_enabled: false
+        expected_response:
+            status-code: 500
+            body:
+                telematic_status: connection_not_found
+
+source:
+    request:
+        method: post
+        body:
+            action: blink-n-horn
+            car_id: CAR_ID
+    expectations:
+        response#xget: /test-params/case/expected_response
+
+mocks:
+  - resource: scooters-car-control
+    response:
+        status-code: 500
+        body:
+            telematic_status: connection_not_found
+    expectations:
+        call-count: 1
+        request:
+            body:
+                action: blink-n-horn
+                car_id: CAR_ID
+
+  - resource: scooters-car-details
+    response:
+        status-code: 200
+        body:
+            cars:
+              - imei: IMEI
+                telematics:
+                    ble_mac: MAC
+                    ble_session_key: SESSION_KEY
+    expectations:
+        request:
+            query:
+                car_id: CAR_ID
+                report: user_app
+                sensors: ble_mac,ble_session_key
+                traits: ReportIMEI,ReportBluetoothInfo
+            headers:
+                ReportBluetoothInfo#string: 1
+
+experiments:
+    values#object:
+      - scooters-bluetooth-flow-enabled:
+            enabled#xget: /test-params/case/bluetooth_flow_enabled

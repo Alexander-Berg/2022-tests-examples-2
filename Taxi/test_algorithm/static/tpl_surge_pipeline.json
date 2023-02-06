@@ -1,0 +1,1469 @@
+{
+  "consumer": "taxi-surge",
+  "global_scope": {
+    "source_code": "function is_present(value) { return value !== null && value !== undefined; }"
+  },
+  "name": "default",
+  "stages": [
+    {
+      "args": [
+        {
+          "description": "Проверяемое значение",
+          "name": "value"
+        }
+      ],
+      "in_bindings": [],
+      "name": "is_true",
+      "source_code": "return value === true;"
+    },
+    {
+      "args": [
+        {
+          "description": "Проверяемое значение",
+          "name": "value"
+        }
+      ],
+      "in_bindings": [],
+      "name": "is_present",
+      "source_code": "return is_present(value);"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "zone"
+        }
+      ],
+      "name": "is_in_zone",
+      "source_code": "return Boolean(zone);"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "zone.experiment"
+        }
+      ],
+      "name": "is_in_zone_experiment",
+      "source_code": "return Boolean(experiment);"
+    },
+    {
+      "args": [
+        {
+          "description": "Название эксперимента",
+          "name": "name"
+        }
+      ],
+      "in_bindings": [],
+      "name": "is_in_experiment3",
+      "source_code": "return name in experiments3;"
+    },
+    {
+      "args": [
+        {
+          "description": "Название тарифа",
+          "name": "category"
+        }
+      ],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "zone.experiment.rules"
+        }
+      ],
+      "name": "has_rules",
+      "source_code": "return rules && category in rules && rules[category];"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "layer_meta"
+        },
+        {
+          "children": [
+            {
+              "query": "enable"
+            },
+            {
+              "query": "max_jump_up"
+            },
+            {
+              "query": "max_jump_down"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone.experiment.smooth_surge"
+        }
+      ],
+      "name": "is_smoothing_active",
+      "source_code": "return layer_meta && enable && max_jump_up !== undefined && max_jump_up !== null && max_jump_down !== undefined && max_jump_down !== null;"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "config.surge_apply_bounds_to_linear_dependency_with_base_table{enabled}"
+        }
+      ],
+      "name": "is_linear_dependency_with_base_table_bounds_enabled",
+      "source_code": "return enabled === true;"
+    },
+    {
+      "args": [
+        {
+          "description": "Название тарифа",
+          "name": "category"
+        }
+      ],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "request.fixed_price_classes"
+        },
+        {
+          "domain": "resource",
+          "query": "config.surge_enable_antisurge{enabled_in_config}"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.experiment.antisurge_discount_enabled{enabled_in_experiment}"
+        }
+      ],
+      "name": "is_antisurge_disabled",
+      "source_code": "return enabled_in_config !== true || enabled_in_experiment !== true || (fixed_price_classes && Object.values(fixed_price_classes).indexOf(category) < 0);"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "config.surge_enable_explicit_antisurge{enabled_in_config}"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.experiment.explicit_antisurge_enabled{enabled_in_experiment}"
+        }
+      ],
+      "name": "is_explicit_antisurge_enabled",
+      "source_code": "return enabled_in_config === true && enabled_in_experiment === true;"
+    },
+    {
+      "args": [
+        {
+          "description": "Сглаженное значение сурджа",
+          "name": "value"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [],
+          "domain": "resource",
+          "query": "zone.experiment.explicit_antisurge_threshold{threshold}"
+        }
+      ],
+      "name": "is_explicit_antisurge_satisfied",
+      "source_code": "return threshold && value && value < threshold;"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "request.due"
+        }
+      ],
+      "name": "is_not_due",
+      "source_code": "return due === null || due === undefined;"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "children": [],
+          "domain": "resource",
+          "query": "config.surge_enable_umlaas_statistics{enabled_in_config}"
+        },
+        {
+          "children": [],
+          "domain": "resource",
+          "query": "zone.experiment.ml.action"
+        }
+      ],
+      "name": "is_umlaas_statistics_needed",
+      "source_code": "return action && (action !== \"ignore\") && enabled_in_config === true;"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "config.surge_enable_surcharge{enabled_in_config}"
+        },
+        {
+          "domain": "resource",
+          "query": "zone.experiment.surcharge_enabled{enabled_in_experiment}"
+        }
+      ],
+      "name": "is_surcharge_enabled",
+      "source_code": "return enabled_in_config === true && enabled_in_experiment === true;"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "experiments3"
+        }
+      ],
+      "name": "is_weighted_adjustment_experiment_enabled",
+      "source_code": "return \"weighted_surge_adjustment\" in experiments3;"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "required_categories.*{:category}"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "query": "surge_value{fixed_surge_value}"
+                },
+                {
+                  "query": "reason{fixed_reason}"
+                },
+                {
+                  "query": "time_rules"
+                },
+                {
+                  "query": "linear_dependency_formula.enabled{linear_dependency_enabled}"
+                }
+              ],
+              "query": "rules[category]"
+            },
+            {
+              "query": "balance"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone.experiment"
+        }
+      ],
+      "name": "initialize",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "class_info",
+          "query": "classes[category]"
+        }
+      ],
+      "source_code": "<initialize.js>"
+    },
+    {
+      "args": [
+        {
+          "description": "Причина сурджа",
+          "name": "reason"
+        }
+      ],
+      "in_bindings": [],
+      "name": "is_balance_equation",
+      "source_code": "return reason === 'pins_free';"
+    },
+    {
+      "args": [],
+      "in_bindings": [
+        {
+          "domain": "output",
+          "query": "classes"
+        }
+      ],
+      "name": "is_balance_equation_needed",
+      "source_code": "<is_balance_equation_needed.js>"
+    },
+    {
+      "args": [
+        {
+          "description": "Причина сурджа",
+          "name": "reason"
+        }
+      ],
+      "in_bindings": [],
+      "name": "is_linear_dependency",
+      "source_code": "return reason === 'linear_dependency';"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_balance_equation_needed",
+          "type": "predicate"
+        }
+      ],
+      "name": "group0",
+      "stages": [
+        {
+          "conditions": [],
+          "name": "group1",
+          "stages": [
+            {
+              "conditions": [],
+              "in_bindings": [
+                {
+                  "domain": "output",
+                  "query": "classes"
+                },
+                {
+                  "domain": "input",
+                  "query": "request.point_a"
+                },
+                {
+                  "domain": "input",
+                  "query": "request.tariff_zone"
+                },
+                {
+                  "domain": "input",
+                  "query": "layer_meta"
+                }
+              ],
+              "name": "fetch_drivers_info",
+              "optional": false,
+              "resources": [
+                {
+                  "field": "drivers_info",
+                  "name": "count_by_categories"
+                }
+              ],
+              "source_code": "<fetch_drivers_info.js>"
+            },
+            {
+              "conditions": [],
+              "in_bindings": [
+                {
+                  "domain": "output",
+                  "query": "classes"
+                },
+                {
+                  "domain": "input",
+                  "query": "request.point_a"
+                },
+                {
+                  "domain": "resource",
+                  "query": "drivers_info.radius"
+                },
+                {
+                  "domain": "input",
+                  "query": "layer_meta"
+                }
+              ],
+              "name": "fetch_pins_info",
+              "optional": false,
+              "resources": [
+                {
+                  "field": "pins_info",
+                  "name": "pin_stats"
+                }
+              ],
+              "source_code": "<fetch_pins_info.js>"
+            },
+            {
+              "conditions": [
+                {
+                  "args": [],
+                  "predicate": "is_umlaas_statistics_needed",
+                  "type": "predicate"
+                }
+              ],
+              "in_bindings": [
+                {
+                  "children": [
+                    {
+                      "query": "point_a"
+                    },
+                    {
+                      "query": "user_id"
+                    },
+                    {
+                      "query": "phone_id"
+                    },
+                    {
+                      "query": "distance"
+                    },
+                    {
+                      "query": "payment_type"
+                    },
+                    {
+                      "query": "orders_complete"
+                    },
+                    {
+                      "query": "point_b"
+                    },
+                    {
+                      "query": "tariff_zone"
+                    },
+                    {
+                      "query": "classes{categories}"
+                    }
+                  ],
+                  "domain": "input",
+                  "query": "request"
+                },
+                {
+                  "children": [
+                    {
+                      "query": "radius"
+                    },
+                    {
+                      "query": "generic{drivers_by_category}"
+                    },
+                    {
+                      "query": "reposition{reposition_by_category}"
+                    }
+                  ],
+                  "domain": "resource",
+                  "query": "drivers_info"
+                },
+                {
+                  "children": [],
+                  "domain": "input",
+                  "query": "application_info{client}"
+                },
+                {
+                  "children": [
+                    {
+                      "query": "pins"
+                    },
+                    {
+                      "query": "pins_with_b{pins_b}"
+                    },
+                    {
+                      "query": "pins_with_order{pins_order}"
+                    },
+                    {
+                      "query": "pins_with_driver{pins_driver}"
+                    },
+                    {
+                      "query": "prev_pins"
+                    },
+                    {
+                      "query": "values_by_category{pins_meta_by_category}"
+                    }
+                  ],
+                  "domain": "resource",
+                  "query": "pins_info"
+                }
+              ],
+              "name": "fetch_surge_statistics",
+              "optional": true,
+              "resources": [
+                {
+                  "field": "surge_statistics_info",
+                  "name": "surge_statistics"
+                }
+              ],
+              "source_code": "<fetch_surge_statistics.js>"
+            },
+            {
+              "conditions": [
+                {
+                  "args": [
+                    {
+                      "name": "value",
+                      "value": "counts"
+                    }
+                  ],
+                  "predicate": "is_present",
+                  "type": "predicate"
+                },
+                {
+                  "args": [
+                    {
+                      "name": "reason",
+                      "value": "reason"
+                    }
+                  ],
+                  "predicate": "is_balance_equation",
+                  "type": "predicate"
+                }
+              ],
+              "in_bindings": [
+                {
+                  "children": [],
+                  "domain": "output",
+                  "query": "classes.*{category:}.calculation_meta.reason"
+                },
+                {
+                  "domain": "resource",
+                  "query": "config.surge_latest_pins_delta_time"
+                },
+                {
+                  "domain": "resource",
+                  "query": "dynamic_config.sample_dynamic_config"
+                },
+                {
+                  "children": [
+                    {
+                      "query": "base_class"
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "query": "surge_rules"
+                            }
+                          ],
+                          "query": "rules[category]"
+                        },
+                        {
+                          "children": [
+                            {
+                              "query": "min_pins"
+                            },
+                            {
+                              "query": "min_total"
+                            },
+                            {
+                              "query": "f_init"
+                            },
+                            {
+                              "query": "f_equal"
+                            },
+                            {
+                              "query": "f_delta_left"
+                            },
+                            {
+                              "query": "f_delta_right"
+                            },
+                            {
+                              "query": "add_free"
+                            },
+                            {
+                              "query": "add_total"
+                            },
+                            {
+                              "query": "fs_intercept"
+                            },
+                            {
+                              "query": "fs_coef_chain"
+                            },
+                            {
+                              "query": "fs_coef_total"
+                            },
+                            {
+                              "query": "chain_factor"
+                            },
+                            {
+                              "query": "reposition_discount"
+                            },
+                            {
+                              "query": "utilization_for_non_econom{utilization_for_non_base}"
+                            },
+                            {
+                              "query": "table_coef_ps"
+                            }
+                          ],
+                          "query": "balance"
+                        }
+                      ],
+                      "query": "experiment"
+                    }
+                  ],
+                  "domain": "resource",
+                  "query": "zone"
+                },
+                {
+                  "children": [
+                    {
+                      "query": "radius"
+                    },
+                    {
+                      "query": "generic[category]{counts}"
+                    },
+                    {
+                      "query": "reposition[category]{reposition_counts}"
+                    },
+                    {
+                      "query": "generic[base_class]{base_class_counts}"
+                    },
+                    {
+                      "query": "reposition[base_class]{reposition_base_class_counts}"
+                    }
+                  ],
+                  "domain": "resource",
+                  "query": "drivers_info"
+                },
+                {
+                  "children": [
+                    {
+                      "query": "pins"
+                    },
+                    {
+                      "query": "pins_with_b"
+                    },
+                    {
+                      "query": "pins_with_order"
+                    },
+                    {
+                      "query": "pins_with_driver"
+                    },
+                    {
+                      "query": "prev_pins"
+                    },
+                    {
+                      "query": "values_by_category{pins_meta_by_category}"
+                    }
+                  ],
+                  "domain": "resource",
+                  "query": "pins_info"
+                },
+                {
+                  "children": [],
+                  "domain": "resource",
+                  "query": "surge_statistics_info.by_category[category]{surge_statistics}"
+                }
+              ],
+              "name": "balance_equation",
+              "optional": false,
+              "out_bindings": [
+                {
+                  "alias": "calculation_meta",
+                  "query": "classes[category].calculation_meta"
+                },
+                {
+                  "alias": "value_raw",
+                  "query": "classes[category].value_raw"
+                }
+              ],
+              "source_code": "<balance_equation.js>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_smoothing_active",
+          "type": "predicate"
+        }
+      ],
+      "name": "group2",
+      "stages": [
+        {
+          "conditions": [],
+          "in_bindings": [
+            {
+              "domain": "input",
+              "query": "request.point_a"
+            },
+            {
+              "domain": "output",
+              "query": "classes"
+            },
+            {
+              "domain": "input",
+              "query": "layer_meta"
+            }
+          ],
+          "name": "fetch_point_a_smoothing_info",
+          "optional": false,
+          "resources": [
+            {
+              "field": "point_a_smoothing_info",
+              "name": "surge_value_map"
+            }
+          ],
+          "source_code": "<fetch_point_a_smoothing_info.js>"
+        },
+        {
+          "conditions": [
+            {
+              "args": [
+                {
+                  "name": "value",
+                  "value": "point_b"
+                }
+              ],
+              "predicate": "is_present",
+              "type": "predicate"
+            }
+          ],
+          "in_bindings": [
+            {
+              "domain": "input",
+              "query": "request.point_b"
+            },
+            {
+              "domain": "output",
+              "query": "classes"
+            },
+            {
+              "domain": "input",
+              "query": "layer_meta"
+            }
+          ],
+          "name": "fetch_point_b_smoothing_info",
+          "optional": false,
+          "resources": [
+            {
+              "field": "point_b_smoothing_info",
+              "name": "surge_value_map"
+            }
+          ],
+          "source_code": "<fetch_point_b_smoothing_info.js>"
+        },
+        {
+          "conditions": [],
+          "in_bindings": [
+            {
+              "domain": "input",
+              "query": "request.point_b"
+            },
+            {
+              "children": [
+                {
+                  "query": "value_raw"
+                }
+              ],
+              "domain": "output",
+              "query": "classes.*{category:}"
+            },
+            {
+              "children": [
+                {
+                  "query": "max_jump_up"
+                },
+                {
+                  "query": "max_jump_down"
+                },
+                {
+                  "query": "default_smooth_surge{default_smooth_surge_a}"
+                },
+                {
+                  "query": "default_smooth_surge_b"
+                }
+              ],
+              "domain": "resource",
+              "query": "zone.experiment.smooth_surge"
+            },
+            {
+              "domain": "resource",
+              "query": "point_a_smoothing_info[category]{value_smooth_a}"
+            },
+            {
+              "domain": "resource",
+              "query": "point_b_smoothing_info[category]{value_smooth_b}"
+            }
+          ],
+          "name": "smooth_surge",
+          "optional": false,
+          "out_bindings": [
+            {
+              "alias": "smooth_a",
+              "query": "classes[category].calculation_meta.smooth.point_a"
+            },
+            {
+              "alias": "smooth_b",
+              "query": "classes[category].calculation_meta.smooth.point_b"
+            },
+            {
+              "alias": "value",
+              "query": "classes[category].surge.value"
+            }
+          ],
+          "source_code": "<smooth_surge.js>"
+        }
+      ]
+    },
+    {
+      "conditions": [
+        {
+          "stage_name": "smooth_surge",
+          "stage_statuses": [
+            "omitted"
+          ],
+          "type": "stage_status"
+        }
+      ],
+      "in_bindings": [
+        {
+          "domain": "input",
+          "query": "request.point_b"
+        },
+        {
+          "children": [
+            {
+              "query": "id{zone_id}"
+            },
+            {
+              "children": [
+                {
+                  "query": "default_smooth_surge{default_smooth_surge_a}"
+                },
+                {
+                  "query": "default_smooth_surge_b"
+                }
+              ],
+              "query": "experiment.smooth_surge"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        },
+        {
+          "domain": "resource",
+          "query": "config.surge_use_default_surge_if_no_smoothing[zone_id]{use_default_surge_if_no_smoothing}"
+        },
+        {
+          "children": [
+            {
+              "query": "value_raw"
+            }
+          ],
+          "domain": "output",
+          "query": "classes.*{category:}"
+        }
+      ],
+      "name": "set_default_smooth",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "smooth_a",
+          "query": "classes[category].calculation_meta.smooth.point_a"
+        },
+        {
+          "alias": "smooth_b",
+          "query": "classes[category].calculation_meta.smooth.point_b"
+        },
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<set_default_smooth.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [
+            {
+              "name": "category",
+              "value": "category"
+            }
+          ],
+          "predicate": "has_rules",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "surge.value"
+            }
+          ],
+          "domain": "output",
+          "query": "classes.*{category:}"
+        },
+        {
+          "children": [
+            {
+              "query": "surge_min_bound"
+            },
+            {
+              "query": "surge_max_bound"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone.experiment.rules[category]"
+        }
+      ],
+      "name": "bound_coeffs_1",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<bound_coeffs.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_weighted_adjustment_experiment_enabled",
+          "type": "predicate"
+        },
+        {
+          "args": [],
+          "predicate": "is_in_zone_experiment",
+          "type": "predicate"
+        },
+        {
+          "args": [
+            {
+              "name": "value",
+              "value": "enabled"
+            }
+          ],
+          "predicate": "is_true",
+          "type": "predicate"
+        },
+        {
+          "args": [
+            {
+              "name": "value",
+              "value": "dep_total"
+            }
+          ],
+          "predicate": "is_present",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "base_class"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        },
+        {
+          "children": [
+            {
+              "query": "surge.value{base_value}"
+            }
+          ],
+          "domain": "output",
+          "query": "classes[base_class]"
+        },
+        {
+          "children": [],
+          "domain": "output",
+          "query": "classes.*{category:}"
+        },
+        {
+          "children": [
+            {
+              "query": "value_raw{dep_value_raw}"
+            },
+            {
+              "query": "calculation_meta.counts.total{dep_total}"
+            }
+          ],
+          "domain": "output",
+          "query": "classes[category]"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "query": "enabled"
+                    },
+                    {
+                      "query": "settings"
+                    }
+                  ],
+                  "query": "rules[category].weighted_surge_adjustment"
+                }
+              ],
+              "query": "experiment"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        }
+      ],
+      "name": "weighted_adjustment",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<weighted_adjustment.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [
+            {
+              "name": "category",
+              "value": "category"
+            }
+          ],
+          "predicate": "has_rules",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "surge.value"
+            }
+          ],
+          "domain": "output",
+          "query": "classes.*{category:}"
+        },
+        {
+          "children": [
+            {
+              "query": "surge_min_bound"
+            },
+            {
+              "query": "surge_max_bound"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone.experiment.rules[category]"
+        }
+      ],
+      "name": "bound_coeffs_2",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<bound_coeffs.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [
+            {
+              "name": "value",
+              "value": "restriction"
+            }
+          ],
+          "predicate": "is_present",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [],
+          "domain": "output",
+          "query": "classes.*{category:}.surge.value"
+        },
+        {
+          "children": [],
+          "domain": "resource",
+          "query": "dynamic_config.surge_corp_limit[category]{restriction}"
+        }
+      ],
+      "name": "bound_by_corp_limit",
+      "out_bindings": [
+        {
+          "alias": "meta",
+          "query": "classes[category].calculation_meta.extra.corp_bound"
+        },
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<bound_by_corp_limit.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [
+            {
+              "name": "reason",
+              "value": "reason"
+            }
+          ],
+          "predicate": "is_linear_dependency",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "domain": "output",
+          "query": "classes.*{category:}.calculation_meta.reason"
+        },
+        {
+          "children": [
+            {
+              "query": "from_class"
+            },
+            {
+              "query": "surge_linear_coeff"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone.experiment.rules[category].linear_dependency_formula"
+        },
+        {
+          "children": [
+            {
+              "query": "value_raw{from_class_value_raw}"
+            },
+            {
+              "query": "surge.value{from_class_value}"
+            },
+            {
+              "query": "calculation_meta.smooth{from_class_smooth}"
+            }
+          ],
+          "domain": "output",
+          "query": "classes[from_class]"
+        }
+      ],
+      "name": "linear_dependency",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value_raw",
+          "query": "classes[category].value_raw"
+        },
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        },
+        {
+          "alias": "smooth",
+          "query": "classes[category].calculation_meta.smooth"
+        }
+      ],
+      "source_code": "<linear_dependency.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_linear_dependency_with_base_table_bounds_enabled",
+          "type": "predicate"
+        },
+        {
+          "args": [],
+          "predicate": "is_in_zone_experiment",
+          "type": "predicate"
+        },
+        {
+          "args": [
+            {
+              "name": "value",
+              "value": "use_base_class_table"
+            }
+          ],
+          "predicate": "is_true",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [],
+          "domain": "output",
+          "query": "classes.*{category:}.surge.value"
+        },
+        {
+          "children": [
+            {
+              "query": "linear_dependency_formula.use_base_class_table"
+            },
+            {
+              "query": "surge_min_bound"
+            },
+            {
+              "query": "surge_max_bound"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone.experiment.rules[category]"
+        }
+      ],
+      "name": "linear_dependency_with_base_table_bound_coeffs",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<linear_dependency_with_base_table_bounds.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [
+            {
+              "name": "category",
+              "value": "category"
+            }
+          ],
+          "predicate": "is_antisurge_disabled",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "domain": "output",
+          "query": "classes.*{category:}.surge.value"
+        }
+      ],
+      "name": "antisurge_bound_coeffs",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<antisurge_bound_coeffs.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_surcharge_enabled",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "base_class"
+            },
+            {
+              "children": [
+                {
+                  "query": "rules"
+                },
+                {
+                  "query": "balance.table_coef_ps"
+                }
+              ],
+              "query": "experiment"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        },
+        {
+          "domain": "output",
+          "query": "classes.*{category:}.surge.value"
+        }
+      ],
+      "name": "fill_surcharge",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        },
+        {
+          "alias": "surcharge",
+          "query": "classes[category].surge.surcharge"
+        }
+      ],
+      "source_code": "<fill_surcharge.js>"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "domain": "resource",
+          "query": "config.surge_coefficient_precision{precision}"
+        },
+        {
+          "domain": "output",
+          "query": "classes.*{category:}.surge.value"
+        }
+      ],
+      "name": "round_coeffs",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "source_code": "<round_coeffs.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_not_due",
+          "type": "predicate"
+        },
+        {
+          "args": [],
+          "predicate": "is_explicit_antisurge_enabled",
+          "type": "predicate"
+        },
+        {
+          "args": [
+            {
+              "name": "value",
+              "value": "value"
+            }
+          ],
+          "predicate": "is_explicit_antisurge_satisfied",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "experiment.explicit_antisurge_threshold{threshold}"
+            },
+            {
+              "query": "base_class"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "query": "value"
+                },
+                {
+                  "query": "surcharge"
+                }
+              ],
+              "query": "surge"
+            },
+            {
+              "children": [
+                {
+                  "query": "smooth.point_b.is_default{point_b_smooth_is_default}"
+                }
+              ],
+              "query": "calculation_meta"
+            }
+          ],
+          "domain": "output",
+          "query": "classes[base_class]"
+        }
+      ],
+      "name": "segregate_explicit_antisurge",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[base_class].surge.value"
+        },
+        {
+          "alias": "surcharge",
+          "query": "classes[base_class].surge.surcharge"
+        },
+        {
+          "alias": "explicit_antisurge",
+          "query": "classes[base_class].explicit_antisurge"
+        }
+      ],
+      "source_code": "<segregate_explicit_antisurge.js>"
+    },
+    {
+      "conditions": [
+        {
+          "args": [],
+          "predicate": "is_surcharge_enabled",
+          "type": "predicate"
+        }
+      ],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "base_class"
+            },
+            {
+              "query": "base_class{category}"
+            },
+            {
+              "children": [
+                {
+                  "query": "rules"
+                },
+                {
+                  "query": "balance.table_coef_ps"
+                }
+              ],
+              "query": "experiment"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        },
+        {
+          "domain": "output",
+          "query": "classes[category].surge.value"
+        }
+      ],
+      "name": "fill_base_class_surcharge",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[category].surge.value"
+        },
+        {
+          "alias": "surcharge",
+          "query": "classes[category].surge.surcharge"
+        }
+      ],
+      "source_code": "<fill_surcharge.js>"
+    },
+    {
+      "conditions": [],
+      "in_bindings": [
+        {
+          "children": [
+            {
+              "query": "base_class"
+            }
+          ],
+          "domain": "resource",
+          "query": "zone"
+        },
+        {
+          "domain": "resource",
+          "query": "config.surge_coefficient_precision{precision}"
+        },
+        {
+          "domain": "output",
+          "query": "classes[base_class].surge.value"
+        }
+      ],
+      "name": "round_base_class_coeffs",
+      "optional": false,
+      "out_bindings": [
+        {
+          "alias": "value",
+          "query": "classes[base_class].surge.value"
+        }
+      ],
+      "source_code": "<round_coeffs.js>"
+    }
+  ],
+  "state": "active"
+}

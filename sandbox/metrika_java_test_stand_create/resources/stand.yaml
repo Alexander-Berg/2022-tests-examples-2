@@ -1,0 +1,150 @@
+---
+labels:
+  deploy_engine: "env_controller"
+meta:
+  account_id: "abc:service:30740"
+  project_id: "metrika-java-autobetas"
+spec:
+  deploy_units:
+    DeployUnit1:
+      endpoint_sets:
+        - port: 8080
+      images_for_boxes:
+        Box1:
+          registry_host: "registry.yandex.net"
+        ClickHouse:
+          name: "clickhouse/server"
+          registry_host: "registry.yandex.net"
+          tag: "20.8.11.17"
+      logbroker_config:
+        pod_additional_resources_request:
+          vcpu_guarantee: 0
+          vcpu_limit: 0
+      network_defaults:
+        network_id: "_YMETRICTESTNETS_"
+      replica_set:
+        per_cluster_settings:
+          sas:
+            deployment_strategy:
+              max_unavailable: 1
+        replica_set_template:
+          constraints:
+            antiaffinity_constraints:
+              - key: "rack"
+                max_pods: 1
+          pod_template_spec:
+            spec:
+              disk_volume_requests:
+                - id: "metrika-java-autobetas-disk-0"
+                  labels:
+                    used_by_infra: true
+                  quota_policy:
+                    bandwidth_guarantee: 2621440
+                    bandwidth_limit: 5242880
+                    capacity: 5368709120
+                  storage_class: "hdd"
+              host_infra:
+                monitoring: {}
+              ip6_address_requests:
+                - enable_dns: true
+                  network_id: "_YMETRICTESTNETS_"
+                  vlan_id: "backbone"
+                - enable_dns: true
+                  network_id: "_YMETRICTESTNETS_"
+                  vlan_id: "fastbone"
+              pod_agent_payload:
+                spec:
+                  boxes:
+                    - id: "Box1"
+                      resolv_conf: "nat64_local"
+                      rootfs: {}
+                    - id: "Redis"
+                      rootfs:
+                        layer_refs:
+                          - "layer"
+                          - "redis-server"
+                    - id: "ClickHouse"
+                      rootfs: {}
+                  mutable_workloads:
+                    - workload_ref: "Box1-Workload1"
+                    - workload_ref: "sentinel"
+                    - workload_ref: "server"
+                    - workload_ref: "clickhouse-server"
+                  resources:
+                    layers:
+                      - checksum: "EMPTY:"
+                        id: "layer"
+                        url: "rbtorrent:c21d76a71db40e4587b21b06263d8fa963a4059e"
+                      - checksum: "EMPTY:"
+                        id: "redis-server"
+                        url: "sbr:1876430372"
+                  workloads:
+                    - box_ref: "Box1"
+                      env:
+                        - name: "JAVA_XMS"
+                          value:
+                            literal_env:
+                              value: "-Xms2G"
+                        - name: "JAVA_XMX"
+                          value:
+                            literal_env:
+                              value: "-Xmx2G"
+                        - name: "METRIKA_ENVIRONMENT"
+                          value:
+                            literal_env:
+                              value: "testing.autobetas"
+                        - name: "METRIKA_VAULT_TOKEN"
+                          value:
+                            secret_env:
+                              alias: "robot-metrika-test"
+                              id: "yav-token"
+                        - name: "BISHOP_OAUTH_TOKEN"
+                          value:
+                            secret_env:
+                              alias: "METRIKA_BISHOP_TOKEN"
+                              id: "token"
+                      id: "Box1-Workload1"
+                      liveness_check:
+                        container:
+                          command_line: "/bin/bash -c true"
+                      readiness_check:
+                        http_get:
+                          any: true
+                          path: "/readynessprobe/"
+                          port: 10100
+                      start: {}
+                      transmit_logs: true
+                    - box_ref: "Redis"
+                      id: "sentinel"
+                      readiness_check:
+                        tcp_check:
+                          port: 26379
+                      start:
+                        command_line: "/redis-server sentinel.conf --sentinel"
+                    - box_ref: "Redis"
+                      id: "server"
+                      readiness_check:
+                        tcp_check:
+                          port: 6379
+                      start:
+                        command_line: "/redis-server"
+                    - box_ref: "ClickHouse"
+                      id: "clickhouse-server"
+                      readiness_check:
+                        tcp_check:
+                          port: 9000
+                      start: {}
+              resource_requests:
+                memory_guarantee: 6442450944
+                memory_limit: 6442450944
+                vcpu_guarantee: 2500
+                vcpu_limit: 2500
+              secret_refs:
+                robot-metrika-test:
+                  secret_id: "sec-01cq6h5rtj649gg8h94zwqshc8"
+                  secret_version: "ver-01f8z3028462mxthpb8rtjpeef"
+                METRIKA_BISHOP_TOKEN:
+                  secret_id: "sec-01ek30wxc4q2djjttn0pzatqw4"
+                  secret_version: "ver-01ek314gjer7k27nvzs5hzxktq"
+      tvm_config: {}
+  revision_info: {}

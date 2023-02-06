@@ -1,0 +1,32 @@
+{%- set intervals = [60, 90, 300] %}
+{%- set keys = ['total', 'onorder_count'] %}
+{%- set cities = ['msk', 'spb', 'all']%}
+yasm_taxi_drivers:
+  {%- for interval in intervals %}
+    {%- for key in keys %}
+      {%- for city in cities %}
+  drivers_{{ city }}_{{ key }}_{{ interval }}s: 
+    signals: aver(push-taxi_drivers_{{ key }}_tvvv)
+    tags:
+      itype: taxidrivers
+      prj: taxi
+      geo: {{ city }}
+    settings:
+      type: trend_down
+      interval: {{ interval }}
+      interval_modify:
+        type: quant
+        quant: 99
+      value_modify:
+        type: aver
+        window: 600
+      crit_perc: 15
+      warn_perc: 10
+    juggler_check:
+      template: taxi_never_sleep
+      namespace: taxi.ops.prod
+    {%- endfor %}
+  {%- endfor %}
+{%- endfor %}
+
+

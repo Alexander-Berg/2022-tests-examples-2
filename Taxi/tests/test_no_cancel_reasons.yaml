@@ -1,0 +1,63 @@
+id: test_no_cancel_reasons
+title: Проверка ручки поиска по истории заказов
+
+source:
+    request:
+        url: /4.0/restapp-front/api/v1/client/orders/search
+        method: post
+        body#object:
+    expectations:
+        response:
+            status-code: 200
+            body#object:
+              - key: isSuccess
+                value: true
+              - key: meta
+                value#object:
+                  - key: count
+                    value: 3
+              - key: payload
+                value#array:
+                  - value#object:
+                      - key: externalId
+                        value: 123456-098765
+                  - value#object:
+                      - key: externalId
+                        value: 123456-098766
+                  - value#object:
+                      - key: externalId
+                        value: 123456-098767
+
+mocks:
+  - resource: backend-service-vendor-v1-client-orders-search
+    response:
+        status-code: 200
+        body#object:
+          - key: isSuccess
+            value: true
+          - key: meta
+            value#object:
+              - key: count
+                value: 3
+          - key: payload
+            value#array:
+              - value#object:
+                  - key: externalId
+                    value: 123456-098765
+              - value#object:
+                  - key: externalId
+                    value: 123456-098766
+              - value#object:
+                  - key: externalId
+                    value: 123456-098767
+    expectations:
+        call-count: 1
+        request:
+            method: post
+  - resource: eats-ordershistory-internal-v1-get-orders-list
+    response:
+        status-code: 400
+    expectations:
+        call-count: 1
+        request:
+            method: post

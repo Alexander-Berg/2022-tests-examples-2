@@ -1,0 +1,49 @@
+INSERT INTO autoaccept.driver_option (
+  id, seq, name, checked_by_default, enabled, visible, version 
+)
+VALUES
+(
+  '3f333df6-90a4-4fda-8dd3-9485d27cee36',
+  0,
+  'name0', 
+  false,
+  true,
+  true,
+  0
+),
+(
+  '0e37df36-f698-11e6-8dd4-cb9ced3df976', 
+  1,
+  'name1',
+  false,
+  true,
+  true,
+  0
+),
+(
+  'ea6dd426-cc33-40bf-a354-0c6ec7ae449a',
+  2,
+  'name2',
+  false,
+  true,
+  true,
+  0
+),
+(
+  '40e6215d-b5c6-4896-987c-f30f3678f608',
+  3,
+  'name3',
+  false,
+  true,
+  true,
+  0
+),
+(
+  '6ecd8c99-4036-403d-bf84-cf8400f67836',
+  4,
+  'name4',
+  true,
+  true,
+  false,
+  0
+);

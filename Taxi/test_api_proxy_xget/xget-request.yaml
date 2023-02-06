@@ -1,0 +1,38 @@
+default-response: resp-ok
+enabled: true
+allow-unauthorized: true
+responses:
+  - id: resp-ok
+    content-type: application/json
+    body#object:
+    # a
+      - key: /request
+        value#xget: /request
+    # b
+      - key: /request/query
+        value#xget: /request/query
+      - key: /request/headers
+        value#xget: /request/headers
+      - key: /request/body
+        value#xget: /request/body
+    # c
+      - key: /request/query/query-param-bar
+        value#xget: /request/query/query-param-bar
+      - key: /request/headers/X-TEST-HEADER
+        value#xget: /request/headers/X-TEST-HEADER
+      - key: /request/body/foo
+        value#xget: /request/body/foo
+      - key: /request/body/baz
+        value#xget: /request/body/baz
+      - key: /request/body/baz/0
+        value#xget: /request/body/baz/0
+      - key: /request/body/baz/0/k~0y
+        value#xget: /request/body/baz/0/k~0y
+      - key: not-exists
+        value#xget:
+            path: /request/body/bad-key
+            default-value#string: fallback
+      - key: out-of-bounds
+        value#xget:
+            path: /request/body/baz/11
+            default-value#string: fallback

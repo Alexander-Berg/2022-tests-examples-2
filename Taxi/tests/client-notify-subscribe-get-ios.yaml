@@ -1,0 +1,42 @@
+id: client-notify-subscribe-get-ios
+title: Тест для проверки driver-v1-partner-v1-subscribe (GET) ios
+source:
+    request:
+        method: get
+        headers:
+            Content-Type: 'application/json'
+            X-Request-Application-Version#string: '9.32'
+            X-YaTaxi-Park-Id: 'dbid'
+            X-YaTaxi-Driver-Profile-Id: 'uuid'
+        query:
+            device_id: '95FC5D7F-26F2'
+            device_type: 'ios'
+            app_name: 'ru.yandex.taximeter.flutter.ios'
+    expectations:
+        response:
+            status-code#integer: 200
+            body:
+                ts: 1510268445
+                sign: '00a1560f46a1953645c9dd9fbcba4836'
+
+mocks:
+  - resource: client-notify-v1-get-token
+    response:
+        status-code: 200
+        body:
+            token:
+                sign: '00a1560f46a1953645c9dd9fbcba4836'
+                ts: '1510268445'
+
+    expectations:
+        request:
+            body:
+                channel:
+                    name: 'xiva_websocket'
+                service: 'taximeter'
+                client:
+                    client_id: 'dbid-uuid'
+                    device_id: '95FC5D7F-26F2'
+                    device_type: 'ios'
+                    app_name: 'ru.yandex.taximeter.flutter.ios'
+        call-count: 1

@@ -1,0 +1,66 @@
+description: >
+    Настройки запросов логов по их типам.
+    Ключи всех алиасов (кроме `timestamp`) должны иметь суффикс `_fields`.
+default:
+    __default__:
+        order_id_fields: [order_id]
+        draw_id_fields: [draw_id]
+        timestamp:
+            field_type: integer
+            field_name: timestamp
+tags: []
+schema:
+    type: object
+    properties:
+        __default__:
+            description: Тип логов
+            $ref: '#/definitions/QuerySetting'
+    additionalProperties:
+        $ref: '#/definitions/QuerySetting'
+    definitions:
+        QuerySetting:
+            description: Настройки запросов
+            type: object
+            properties:
+                order_id_fields:
+                    $ref: '#/definitions/FilterFields'
+                draw_id_fields:
+                    $ref: '#/definitions/FilterFields'
+                timestamp:
+                    description: Настройка фильтрации по времени в YT таблице
+                    $ref: '#/definitions/TimestampSettings'
+            additionalProperties:
+                $ref: '#/definitions/FilterFields'
+            x-taxi-additional-properties-true-reason: >
+                Для разных сервисов могут быть разные фильтры (зависит от структуры
+                YT таблицы)
+            required:
+              - timestamp
+        FilterFields:
+            description: Поля (алиасы) фильтра
+            type: array
+            minItems: 1
+            items:
+                type: string
+        TimestampSettings:
+            description: Настройки фильтрации по времени
+            type: object
+            additionalProperties: false
+            properties:
+                field_type:
+                    description: Тип столбца времени в таблице YT
+                    type: string
+                    enum:
+                      - integer
+                      - string
+                field_name:
+                    description: Имя столбца времени в таблице YT
+                    type: string
+                field_format:
+                    description: >
+                        Формат колонки фильтрации в случае типа `строка`.
+                        Значение по умолчанию: `%Y-%m-%d %H:%M:%S`
+                    type: string
+            required:
+              - field_type
+              - field_name

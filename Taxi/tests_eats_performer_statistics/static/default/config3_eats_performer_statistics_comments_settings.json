@@ -1,0 +1,288 @@
+{
+  "configs": [
+    {
+      "clauses": [
+        {
+          "alias": "week_not_day",
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "show_week_instead_of_day"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "show_week_instead_of_day"
+                  },
+                  "type": "bool"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "not enough statistics for day but enough for week",
+          "value": {
+            "comment": "Вы собрали менее {min_items_count} SKU, поэтому мало информации для расчета показателей, вы увидите статистику в недельном разрезе.\n"
+          }
+        },
+        {
+          "alias": "not_enough_statistics",
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "not_enough_statistics"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "not_enough_statistics"
+                  },
+                  "type": "bool"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "not enough statistics",
+          "value": {
+            "comment": "Вы собрали менее {min_items_count} SKU, поэтому мало информации для расчета показателей, обратитесь к статистике на следующей неделе.\n"
+          }
+        },
+        {
+          "alias": "both_good",
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "picking_duration_per_item_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "delivery_rate_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "picking_duration_per_item_good"
+                  },
+                  "type": "bool"
+                },
+                {
+                  "init": {
+                    "arg_name": "delivery_rate_good"
+                  },
+                  "type": "bool"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "both metrics good",
+          "value": {
+            "comment": "Ваши показатели за {last_refresh_date}\nВаш показатель довозимости составляет {delivery_rate_value}, что соответствует таргету {delivery_rate_target}.\nВы в среднем собираете один товар за {picking_duration_per_item_value} минут, что соответствует целевому времени сборки по таймеру {picking_duration_per_item_target}.\nВы быстро и качественно собираете, так держать!"
+          }
+        },
+        {
+          "alias": "rate_good_time_bad",
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "picking_duration_per_item_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "delivery_rate_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "delivery_rate_good"
+                  },
+                  "type": "bool"
+                },
+                {
+                  "init": {
+                    "predicate": {
+                      "init": {
+                        "arg_name": "picking_duration_per_item_good"
+                      },
+                      "type": "bool"
+                    }
+                  },
+                  "type": "not"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "delivery_rate good, picking_time bad",
+          "value": {
+            "comment": "Ваши показатели за {last_refresh_date}\nВаш показатель довозимости составляет {delivery_rate_value}, что соответствует таргету {delivery_rate_target}.\nВы в среднем собираете один товар за {picking_duration_per_item_value} минут, что не соответствует целевому времени сборки по таймеру {picking_duration_per_item_target}.\nCоветуем вам следить за таймером, чтобы больше зарабатывать."
+          }
+        },
+        {
+          "alias": "rate_bad_time_good",
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "picking_duration_per_item_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "delivery_rate_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "picking_duration_per_item_good"
+                  },
+                  "type": "bool"
+                },
+                {
+                  "init": {
+                    "predicate": {
+                      "init": {
+                        "arg_name": "delivery_rate_good"
+                      },
+                      "type": "bool"
+                    }
+                  },
+                  "type": "not"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "delivery_rate bad, picking_time good",
+          "value": {
+            "comment": "Ваши показатели за {last_refresh_date}\nВаш показатель довозимости составляет {delivery_rate_value}, что не соответствует таргету {delivery_rate_target}.\nВы в среднем собираете один товар за {picking_duration_per_item_value} минут, что соответствует целевому времени сборки по таймеру {picking_duration_per_item_target}.\nCоветуем вам не пренебрегать заменами - посмотрите обучение по ссылке.\nС хорошими показателями довозимости вы сможете больше зарабатывать."
+          }
+        },
+        {
+          "alias": "rate_bad_time_bad",
+          "enabled": true,
+          "extension_method": "replace",
+          "is_paired_signal": false,
+          "is_signal": false,
+          "predicate": {
+            "init": {
+              "predicates": [
+                {
+                  "init": {
+                    "arg_name": "picking_duration_per_item_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "arg_name": "delivery_rate_good"
+                  },
+                  "type": "not_null"
+                },
+                {
+                  "init": {
+                    "predicate": {
+                      "init": {
+                        "arg_name": "picking_duration_per_item_good"
+                      },
+                      "type": "bool"
+                    }
+                  },
+                  "type": "not"
+                },
+                {
+                  "init": {
+                    "predicate": {
+                      "init": {
+                        "arg_name": "delivery_rate_good"
+                      },
+                      "type": "bool"
+                    }
+                  },
+                  "type": "not"
+                }
+              ]
+            },
+            "type": "all_of"
+          },
+          "title": "delivery_rate bad, picking_time bad",
+          "value": {
+            "comment": "Ваши показатели за {last_refresh_date}\nВаш показатель довозимости составляет {delivery_rate_value}, что не соответствует таргету {delivery_rate_target}.\nВы в среднем собираете один товар за {picking_duration_per_item_value} минут, что не соответствует целевому времени сборки по таймеру {picking_duration_per_item_target}.\nCоветуем вам посмотреть обучение по ссылке.\nЕсли вы будете пренебрегать показателями качества и скорости сборки - вы потеряете доступ к сервису."
+          }
+        }
+      ],
+      "created": "2021-04-20T13:25:28.857387+03:00",
+      "default_value": {
+        "comment": ""
+      },
+      "description": "Настройки показа комментариев по статистике сборщика - текст комментариев и порог минимального количества собранных позиций",
+      "enable_debug": false,
+      "last_manual_update": "2021-04-21T16:11:19.710040+03:00",
+      "last_modified_at": 464798,
+      "match": {
+        "action_time": {},
+        "consumers": [
+          {
+            "name": "eats-performer-statistics/comments-params"
+          }
+        ],
+        "enabled": true,
+        "predicate": {
+          "init": {},
+          "type": "true"
+        },
+        "schema": "type: object\nadditionalProperties: false\nrequired:\n  - comment\nproperties:\n  comment:\n      type: string\n"
+      },
+      "name": "eats_performer_statistics_comments_settings",
+      "owners": [
+        "sbunatyan",
+        "smorivan"
+      ],
+      "removed": false,
+      "self_ok": false,
+      "st_tickets": [],
+      "trait_tags": [],
+      "watchers": []
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+default: {}
+description: Параметры миграции выплат из billing-subventions
+tags: []
+schema:
+    type: object
+    properties:
+        subventions:
+            $ref: "#definitions/ConfigByState"
+        commissions:
+            $ref: "#definitions/ConfigByState"
+        promocodes:
+            $ref: "#definitions/ConfigByState"
+    additionalProperties: false
+    definitions:
+        ConfigByState:
+            type: object
+            properties:
+                enabled:
+                    $ref: "#/definitions/ConfigByZone"
+                disabled:
+                    $ref: "#/definitions/ConfigByZone"
+            additionalProperties: false
+        ConfigByZone:
+            type: object
+            additionalProperties:
+                $ref: "#/definitions/Intervals"
+        Intervals:
+            type: array
+            items:
+                $ref: "#/definitions/Interval"
+        Interval:
+            type: object
+            additionalProperties: false
+            properties:
+                first_date:
+                    type: string
+                    format: date-time
+                last_date:
+                    type: string
+                    format: date-time
+            required:
+              - first_date

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+PYTEST_DIRS="{{testsuite_pytest_dirs}}"
+result=0
+stop=""
+
+handler() {
+    stop=signal
+    result=1
+}
+
+trap handler HUP INT QUIT TERM
+
+{{testsuite_build_dir}}/taxi-env start || {
+    echo "taxi-env failed" >&2
+    exit 1
+}
+
+for service_path in ${PYTEST_DIRS//;/ }; do
+    if [ "x$stop" != "x" ]; then
+        break
+    fi
+    service_name=$(basename "$service_path")
+    report_path="{{root_build_dir}}/test-results/junit-${service_name}.xml"
+    {{testsuite_build_dir}}/runtests   -vv                              \
+        -p tests_plugins.rerunfailures --reruns 1                       \
+        --junitxml="$report_path"                                       \
+        -p no:name_of_plugin -p no:pytest-teamcity                      \
+        --no-env                                                        \
+        --service-logs-pretty-disable                                   \
+        "$service_path/testsuite" || result=1
+done
+
+{{testsuite_build_dir}}/taxi-env stop
+
+exit $result

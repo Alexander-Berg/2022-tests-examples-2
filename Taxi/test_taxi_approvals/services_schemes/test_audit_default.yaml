@@ -1,0 +1,33 @@
+rules:
+  - api_path: test_api
+    check_data_route:
+        url: check/route
+    apply_route:
+        url: apply/route
+    use_ticket_message: true
+    hosts:
+        unstable: http://unstable-host
+        testing: http://testing-host
+        production: http://production-host
+    approvements_groups:
+        all_envs:
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_man_permission
+            group_name: managers
+            is_default_group: true
+            is_audit_group: true
+          - approvals_number: 1
+            permissions:
+                any_of_permission_groups:
+                  - all_of_permissions:
+                      - permission_type: permission
+                        name: test_dev_permission
+            group_name: developers
+            disable_approval:
+                key_path: developers
+                allowed:
+                  - true

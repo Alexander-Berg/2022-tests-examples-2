@@ -1,0 +1,44 @@
+{#
+author: {name: string, link: string}
+branch?: {name: string, link: string}
+commit?: {name: string, link: string}
+platforms: [{name: string, link: string}]
+androidVersions?: [string]
+iosVersions?: [string]
+gradleProperties?: string
+testsTemplate?: string
+#}
+{%- macro join(list, delimiter=', ') %}
+    {%- for item in list -%}
+        {{ caller(item) }}{{ delimiter if not loop.last }}
+    {%- endfor %}
+{%- endmacro %}
+{%- macro linkWith(item) -%}
+    <a href="{{ item.link }}" target="_blank">{{ item.name }}</a>
+{%- endmacro %}
+{#- vvv content vvv -#}
+**Run Autotests by {{ linkWith(author) }}**
+{%- if branch %}
+**Branch:** {{ linkWith(branch) }}
+{%- endif %}
+{%- if commit %}
+**Commit:** {{ linkWith(commit) }}
+{%- endif %}
+
+**Platfroms:** {% call(item) join(platforms) %}{{ linkWith(item) }}{% endcall %}
+{%- if androidVersions %}
+**Android versions:** {% call(item) join(androidVersions) %}{{ item }}{% endcall %}
+{%- endif %}
+{%- if iosVersions %}
+**iOS versions:** {% call(item) join(iosVersions) %}{{ item }}{% endcall %}
+{%- endif %}
+{%- if gradleProperties %}
+
+**Gradle properties:**
+{{ gradleProperties }}
+{%- endif %}
+{%- if testsTemplate %}
+
+**Tests template:**
+{{ testsTemplate }}
+{%- endif %}

@@ -1,0 +1,108 @@
+COST_CENTER_TEMPLATE = {  # as config.CORP_COST_CENTERS_TEMPLATES[0]
+    'default': True,
+    'field_settings': [
+        {
+            'format': 'text',
+            'hidden': False,
+            'id': 'cost_center',
+            'required': False,
+            'services': ['taxi'],
+            'title_key': 'cost_centers.template.field_title_key',
+            'values': [],
+        },
+    ],
+    'name_key': 'cost_centers.template.name_key',
+}
+CORP_COUNTRIES_SUPPORTED = {
+    'isr': {
+        'are_tariffs_include_vat': True,
+        'balance_domain': 'com',
+        'country_code': 'IL',
+        'currency': 'ILS',
+        'currency_sign': '₪',
+        'deactivate_threshold': 0,
+        'default_language': 'en',
+        'default_phone_code': '',
+        'new_user_sms_tanker_key': 'sms.create_user_isr',
+        'root_geo_node': 'br_israel',
+        'show_tariffs': True,
+        'tz': 'Israel',
+        'utc_offset': '+03:00',
+        'vat': 0.17,
+        'web_ui_languages': ['en', 'he'],
+    },
+    'rus': {
+        'activation_sms_tanker_keys': {
+            'eats2': 'sms.eats2_service_activation_sms',
+        },
+        'balance_domain': 'ru',
+        'country_code': 'RU',
+        'currency': 'RUB',
+        'currency_sign': '₽',
+        'deactivate_threshold': 100,
+        'default_language': 'ru',
+        'new_user_sms_tanker_key': 'sms.create_user',
+        'root_geo_node': 'br_russia',
+        'show_tariffs': True,
+        'tz': 'Europe/Saratov',
+        'utc_offset': '+03:00',
+        'vat': 0.2,
+        'web_ui_languages': ['ru', 'en'],
+    },
+}
+TRANSLATIONS = {
+    'corp': {
+        'limits.default_taxi_name': {'ru': 'Регулярные поездки'},
+        'limits.default_eats2_name': {'ru': 'Регулярные заказы'},
+        'limits.default_drive_name': {'ru': 'Регулярные поездки'},
+        'limits.default_tanker_name': {'ru': 'Регулярные заправки'},
+        'cost_centers.template.field_title_key': {
+            'ru': 'Цель поездки',
+            'en': 'Ride purpose',
+        },
+        'cost_centers.template.name_key': {
+            'ru': 'Основной центр затрат',
+            'en': 'Base cost center',
+        },
+    },
+}
+
+
+GET_BOUND_PAYMENT_METHODS_RESP = [
+    {
+        'region_id': 225,
+        'payment_method': 'card',
+        'card_id': 'card-123-long',
+        'expiration_month': '12',
+        'currency': 'RUB',
+        'card_country': 'GBR',
+        'last_service_paid': 1,
+        'last_paid': 0,
+        'id': 'card-123-short',
+        'payment_system': 'MasterCard',
+        'account': '500000****3254',
+        'expiration_year': '2099',
+        'max_amount': '250000',
+        'holder': 'test',
+        'expired': False,
+        'card_bank': 'SAVINGS BANK OF THE RUSSIAN FEDERATION (SBERBANK)',
+        'system': 'MasterCard',
+    },
+    {
+        'region_id': 225,
+        'payment_method': 'card',
+        'card_id': 'card-555-long',
+        'expiration_month': '05',
+        'currency': 'RUB',
+        'card_country': 'RUS',
+        'last_service_paid': 0,
+        'last_paid': 1,
+        'id': 'card-555-short',
+        'payment_system': 'MasterCard',
+        'account': '546938****9762',
+        'expiration_year': '2022',
+        'expired': False,
+        'card_bank': 'SAVINGS BANK OF THE RUSSIAN FEDERATION (SBERBANK)',
+        'system': 'VISA_ELECTRON',
+    },
+]

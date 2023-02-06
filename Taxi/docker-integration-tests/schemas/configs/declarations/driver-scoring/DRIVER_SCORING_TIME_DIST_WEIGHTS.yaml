@@ -1,0 +1,44 @@
+description: "Веса расстояния и времени (по зонам/тарифам) для нового расчета score\
+    \ в driver-scoring: (1-alpha)*time + alpha*beta*distance + bonuses"
+default:
+    __default__:
+        __default__:
+            ALPHA: 0
+            BETA: 0
+tags: []
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/weights_by_tariff'
+    properties:
+        __default__:
+            description: Зона
+            $ref: '#/definitions/weights_by_tariff'
+    required:
+      - __default__
+    definitions:
+        weights:
+            type: object
+            additionalProperties: false
+            properties:
+                ALPHA:
+                    description: Вес расстояния
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                BETA:
+                    description: Нормировочный коэффициент
+                    type: number
+            required:
+              - ALPHA
+              - BETA
+        weights_by_tariff:
+            type: object
+            additionalProperties:
+                $ref: '#/definitions/weights'
+            properties:
+                __default__:
+                    description: Тариф
+                    $ref: '#/definitions/weights'
+            required:
+              - __default__

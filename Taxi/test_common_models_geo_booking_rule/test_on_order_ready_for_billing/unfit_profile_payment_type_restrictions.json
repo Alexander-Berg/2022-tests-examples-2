@@ -1,0 +1,235 @@
+{
+  "balances": [],
+  "event": {
+    "$order_ready_for_billing_doc": {
+      "order": {
+        "$order": {
+          "accepted_by_driver_at": {
+            "$datetime": "2018-12-15T22:59:00Z"
+          },
+          "completed_at": {
+            "$datetime": "2018-12-15T23:30:00Z"
+          },
+          "due": {
+            "$datetime": "2018-12-15T23:00:00Z"
+          },
+          "performer": {
+            "$blueprint:performer": {
+              "profile_payment_type_restrictions": {
+                "$profile_payment_type_restrictions": "cash"
+              }
+            }
+          },
+          "zone_name": "moscow"
+        }
+      }
+    }
+  },
+  "expected_event_handled": {
+    "$blueprint:rule_event_handled": {
+      "journal_entries": [
+        {
+          "$journal_entry": {
+            "agreement_id": "subvention_agreement/1/default/_id/12345678901234567890abcd",
+            "all_reasons": [],
+            "delta": {
+              "$money": "300 RUB"
+            },
+            "details": null,
+            "entity": {
+              "$entity": {
+                "external_id": "unique_driver_id/5bab4bf979b9e5513fe5ec4a",
+                "kind": "driver"
+              }
+            },
+            "event_at": {
+              "$datetime": "2018-12-15T22:59:00Z"
+            },
+            "sub_account": "income"
+          }
+        },
+        {
+          "$journal_entry": {
+            "agreement_id": "subvention_agreement/1/default/_id/12345678901234567890abcd",
+            "all_reasons": [
+              {
+                "$factory:unfit_reason": {
+                  "code": "profile_payment_type_restrictions",
+                  "details": {
+                    "allowed_values": {
+                      "$tuple": [
+                        "none",
+                        "online"
+                      ]
+                    },
+                    "value": "cash"
+                  },
+                  "sub_kind": "in"
+                }
+              }
+            ],
+            "delta": {
+              "$money": "31 XXX"
+            },
+            "details": {
+              "$journal_entry_details": {
+                "order_id": "some_order_id"
+              }
+            },
+            "entity": {
+              "$entity": {
+                "external_id": "unique_driver_id/5bab4bf979b9e5513fe5ec4a",
+                "kind": "driver"
+              }
+            },
+            "event_at": {
+              "$datetime": "2018-12-15T22:59:00Z"
+            },
+            "sub_account": "unfit/time/on_order_minutes"
+          }
+        }
+      ],
+      "shift_ended_events": [
+        {
+          "$blueprint:shift_ended": {
+            "agreement_ref": {
+              "$agreement_ref": "subvention_agreement/1/default/_id/12345678901234567890abcd"
+            },
+            "antifraud_rule": {
+              "$antifraud_rule": {
+                "days_span": 1,
+                "kind": "geo_booking",
+                "last_shift_date": {
+                  "$date": "2018-12-16"
+                },
+                "zone_name": "moscow"
+              }
+            },
+            "commission_input": null,
+            "driver": {
+              "$blueprint:driver": {}
+            },
+            "last_date": {
+              "$date": "2018-12-16"
+            },
+            "migration_time": {
+              "$datetime": "2018-12-16T00:00:00+03:00"
+            },
+            "migration_zone": "moscow",
+            "pay_after": {
+              "$datetime": "2018-12-17T04:00:00+03:00"
+            },
+            "pay_to": {
+              "$entity": {
+                "external_id": "taximeter_driver_id/some_db_id/some_uuid",
+                "kind": "driver"
+              }
+            },
+            "payment_id": "2018-12-16",
+            "possible_frauder": {
+              "$antifraud_driver": {
+                "driver_license_personal_ids": [
+                  "8hd93jdlakhf84030ejd9390z"
+                ],
+                "driver_licenses": [],
+                "unique_driver_id": {
+                  "$oid": "5bab4bf979b9e5513fe5ec4a"
+                }
+              }
+            },
+            "rule_data": {
+              "$shift_ended_rule_data": {
+                "data": {
+                  "currency": "RUB",
+                  "end": "2018-12-30T00:15:00.000000+00:00",
+                  "geoarea": "msk",
+                  "group_id": "some_group_id",
+                  "id": "12345678901234567890abcd",
+                  "min_activity_points": 80,
+                  "min_online_minutes": 0,
+                  "profile_payment_type_restrictions": "online",
+                  "profile_tariff_classes": [],
+                  "rate_free_per_minute": "15.0",
+                  "rate_on_order_per_minute": "5.5",
+                  "rule_type": "add",
+                  "tags": [],
+                  "timezone_id": "Europe/Moscow",
+                  "workshift": {
+                    "end": "00:00",
+                    "start": "00:00"
+                  },
+                  "zone_name": "moscow"
+                },
+                "subvention_type": {
+                  "$subvention_type": "booking_geo_on_top"
+                }
+              }
+            },
+            "use_stats_of": {
+              "$entity": {
+                "external_id": "unique_driver_id/5bab4bf979b9e5513fe5ec4a",
+                "kind": "driver"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "rule": {
+    "$geo_booking_rule": {
+      "data": {
+        "$geo_booking_rule_data": {
+          "agreement_ref": {
+            "$agreement_ref": "subvention_agreement/1/default/_id/12345678901234567890abcd"
+          },
+          "budget": {
+            "$budget": {
+              "id": "geo_booking_budget_id"
+            }
+          },
+          "geoarea": "msk",
+          "has_commission": false,
+          "min_online_minutes": 0,
+          "pay_currency": "RUB",
+          "profile_payment_type_restrictions": {
+            "$profile_payment_type_rule": "online"
+          },
+          "rate_free_per_minute": 15.0,
+          "rate_on_order_per_minute": 5.5,
+          "rule_type": {
+            "$payment_type": "add"
+          },
+          "status": {
+            "$rule_status": "approved"
+          },
+          "workshift": {
+            "$geo_booking_workshift": {
+              "end": "00:00",
+              "start": "00:00"
+            }
+          }
+        }
+      },
+      "identity": {
+        "$identity": {
+          "group_id": "some_group_id",
+          "id_": {
+            "$oid": "12345678901234567890abcd"
+          }
+        }
+      },
+      "matcher": {
+        "$moscow_rule_matcher": {
+          "activity_points": 80,
+          "end": {
+            "$datetime": "2018-12-30T00:15:00Z"
+          },
+          "start": {
+            "$datetime": "2018-11-30T00:00:00Z"
+          }
+        }
+      }
+    }
+  }
+}

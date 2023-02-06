@@ -1,0 +1,37 @@
+---
+host: taxi_replication_testing
+telegram: warn_default
+type: rtc
+templates:
+- template: test_forced-logrotate-count
+- template: test_taxi_strongbox
+- template: test_unispace
+- template: test_vhost-500
+- template: test_virtual-meta
+
+services:
+- service: replication-hosts-alive
+  # Проверка, что хост жив
+  # Обращаться к группе хранения и обработки данных
+  telegram: yt
+  ttl: 1200
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%
+- service: replication-secrets-daemon
+  # Проверка работоспособности таски с секретами
+  # Обращаться к группе хранения и обработки данных
+  ttl: 1200
+  flaps:
+    stable_time: 180
+    critical_time: 0
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 101%

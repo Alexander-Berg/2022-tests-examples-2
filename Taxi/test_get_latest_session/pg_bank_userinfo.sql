@@ -1,0 +1,96 @@
+INSERT INTO bank_userinfo.sessions (
+  id,
+  yandex_uid,
+  phone_id,
+  bank_uid,
+  status,
+  antifraud_info,
+  created_at,
+  updated_at,
+  app_vars,
+  locale
+)
+VALUES (
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdc1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bde1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdf1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdb1',
+  'first_session',
+  '{"device_id": "device_id",
+    "dict": {"key": "value"}}'::jsonb,
+  '2021-10-31T00:01:00+00:00',
+  '2021-10-31T00:02:00+00:00',
+  'X-Platform=fcm, app_name=sdk_example',
+  'ru'
+), (
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdc2',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bde1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdf1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdb1',
+  'second_session',
+  '{"device_id": "device_id",
+    "dict": {"key": "value"}}'::jsonb,
+  '2021-10-31T00:02:00+00:00',
+  '2021-10-31T00:05:00+00:00',
+  'X-Platform=fcm, app_name=sdk_example',
+  'ru'
+), (
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdc3',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bde1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdf1',
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdb1',
+  'latest_session',
+  '{"device_id": "device_id",
+    "dict": {"key": "value"}}'::jsonb,
+  '2021-10-31T00:03:00+00:00',
+  '2021-10-31T00:07:00+00:00',
+  'X-Platform=fcm, app_name=sdk_example',
+  'ru'
+), (
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdc4',
+  NULL,
+  NULL,
+  '024e7db5-9bd6-4f45-a1cd-2a442e15bdb2',
+  'session_few_fields',
+  '{}'::jsonb,
+  '2021-10-31T00:01:00+00:00',
+  '2021-10-31T00:02:00+00:00',
+  'X-Platform=fcm, app_name=sdk_example',
+  'ru'
+), (
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdc5',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bde3',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdf3',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdb3',
+   'latest_session',
+   '{"device_id": "device_id",
+     "dict": {"key": "value"}}'::jsonb,
+   '2021-10-31T00:03:00+00:00',
+   '2021-10-31T00:07:00+00:00',
+   'X-Platform=fcm, app_name=bad_sdk',
+   'ru'
+), (
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdc6',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bde3',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdf3',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdb3',
+   'latest_session',
+   '{"device_id": "device_id",
+     "dict": {"key": "value"}}'::jsonb,
+   '2021-10-31T00:03:00+00:00',
+   '2021-10-31T00:07:00+00:00',
+   'X-Platform=fcm, app_name=sdk_example',
+   'en'
+), (
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdc7',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bde3',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdf3',
+   '024e7db5-9bd6-4f45-a1cd-2a442e15bdb3',
+   'latest_session',
+   '{"device_id": "device_id",
+     "dict": {"key": "value"}}'::jsonb,
+   '2021-10-31T00:03:00+00:00',
+   '2021-10-31T00:07:00+00:00',
+   'X-Platform=bad_platform, app_name=sdk_example',
+   'ru'
+)

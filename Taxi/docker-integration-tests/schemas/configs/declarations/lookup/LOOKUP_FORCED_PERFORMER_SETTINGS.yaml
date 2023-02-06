@@ -1,0 +1,56 @@
+description: Forced performer settings by intent. https://wiki.yandex-team.ru/taxi/backend/architecture/lookup/#forcedperformer
+default:
+    __default__:
+        fallback_not_satisfied: true
+        whitelisted_filters: []
+        fallback_events: ["reject"]
+tags: [notfallback]
+maintainers:
+  - svetoch
+  - maximuriev
+schema:
+    type: object
+    additionalProperties:
+        $ref: '#/definitions/Settings'
+    required:
+      - __default__
+    properties:
+        __default__:
+            $ref: '#/definitions/Settings'
+    definitions:
+        Settings:
+            type: object
+            required:
+              - fallback_not_satisfied
+              - whitelisted_filters
+              - fallback_events
+            properties:
+                fallback_not_satisfied:
+                    type: boolean
+                whitelisted_filters:
+                    type: array
+                    items:
+                        type: string
+                    x-taxi-cpp-type: std::unordered_set
+                fallback_events:
+                    type: array
+                    items:
+                        type: string
+                    x-taxi-cpp-type: std::unordered_set
+                autoaccept:
+                    type: boolean
+                    default: true
+                restart_delay:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    default: 60
+                    minimum: 0
+                fallback_before_due:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 1
+                fallback_after_created:
+                    type: integer
+                    x-taxi-cpp-type: std::chrono::seconds
+                    minimum: 1
+            additionalProperties: false

@@ -1,0 +1,272 @@
+# - name: checking variables 'entityid'
+  # tags: "always"
+  # fail: msg="The variable 'ipentityid' empty. HELP file vars/main.yml"
+  # when: (entityid|length == 0)
+
+- name: Check that the extensions.conf exists TEST
+  tags: ["stat", "never"]
+  stat:
+    path: /etc/asterisk/extensions.conf
+
+- name: dsign_apiurl_apps
+  tags: ["newnode", "never", "tanya"]
+  # delegate_to: localhost
+  shell: "echo -n \"/mod.cipt-admin/API/ROUTING/APPLICATIONS/list/&_JSON_PRETTY_PRINT=1&_PARAM_WITHLOGREPORT=1&dauth=robot-cipt{{ dsign_token }}\" | sha1sum | awk '{print $1}'"
+  register: dsign_apiurl_apps
+
+- name: install packages
+  tags: ["newnode", "never"]
+  apt:
+    name: "{{ packages }}"
+    state: present
+  with_items: packages
+
+- name: Create dirs
+  tags: ["newnode", "never"]
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+    state: "{{ item.state }}"
+    recurse: False
+  with_items:
+    - { path: "/usr/lib/redis/modules/", owner: 'root', group: 'root', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/manager.d/", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/pjsip.conf.d/", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/extensions.conf.APP.d/", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/pjsip.conf.d/FSTAXI.d", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/pjsip.conf.d/TANYA.d", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/pjsip.conf.d/ITC-TRUNK.d", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/pjsip.conf.d/ITC-SBC.d", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/pjsip.conf.d/ITC-QPROC-TEST.d", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/queues.d/", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/queues.dynamic.d/", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+    - { path: "/etc/asterisk/extensions.conf.dyn.d/", owner: 'asterisk', group: 'asterisk', mode: '0755', state: 'directory' }
+  
+- name: Copy files ast config
+  tags: ["newnode","never","astcfg"]
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{item.mode}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    - {src: 'logrotate.d/asterisk', dest: '/etc/logrotate.d/asterisk', owner: 'root', group: 'root', mode: '0644' }
+    - {src: 'redis/rejson.so', dest: '/usr/lib/redis/modules/rejson.so', owner: 'root', group: 'root', mode: '0644' }
+    - {src: 'redis/redis.conf', dest: '/etc/redis/redis.conf', owner: 'root', group: 'root', mode: '0644' }
+    - {src: 'asterisk/extensions.conf.dyn.d', dest: '/etc/asterisk/', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/extensions.conf.APP.d', dest: '/etc/asterisk/', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/queues.dynamic.d', dest: '/etc/asterisk/', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_custom.conf', dest: '/etc/asterisk/cdr_custom.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr.conf', dest: '/etc/asterisk/cdr.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel_custom.conf', dest: '/etc/asterisk/cel_custom.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/extconfig.conf', dest: '/etc/asterisk/extconfig.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/logger.conf', dest: '/etc/asterisk/logger.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/manager.conf', dest: '/etc/asterisk/manager.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/modules.conf', dest: '/etc/asterisk/modules.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/musiconhold.conf', dest: '/etc/asterisk/musiconhold.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/queuerules.conf', dest: '/etc/asterisk/queuerules.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/queues.conf', dest: '/etc/asterisk/queues.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/acl.conf', dest: '/etc/asterisk/acl.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/adsi.conf', dest: '/etc/asterisk/adsi.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/agents.conf', dest: '/etc/asterisk/agents.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/alarmreceiver.conf', dest: '/etc/asterisk/alarmreceiver.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/alsa.conf', dest: '/etc/asterisk/alsa.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/amd.conf', dest: '/etc/asterisk/amd.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/app_mysql.conf', dest: '/etc/asterisk/app_mysql.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/app_skel.conf', dest: '/etc/asterisk/app_skel.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/ari.conf', dest: '/etc/asterisk/ari.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/ast_debug_tools.conf', dest: '/etc/asterisk/ast_debug_tools.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/asterisk.adsi', dest: '/etc/asterisk/asterisk.adsi', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/calendar.conf', dest: '/etc/asterisk/calendar.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/ccss.conf', dest: '/etc/asterisk/ccss.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_adaptive_odbc.conf', dest: '/etc/asterisk/cdr_adaptive_odbc.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_beanstalkd.conf', dest: '/etc/asterisk/cdr_beanstalkd.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_manager.conf', dest: '/etc/asterisk/cdr_manager.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_mysql.conf', dest: '/etc/asterisk/cdr_mysql.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_odbc.conf', dest: '/etc/asterisk/cdr_odbc.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_pgsql.conf', dest: '/etc/asterisk/cdr_pgsql.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_sqlite3_custom.conf', dest: '/etc/asterisk/cdr_sqlite3_custom.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_syslog.conf', dest: '/etc/asterisk/cdr_syslog.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cdr_tds.conf', dest: '/etc/asterisk/cdr_tds.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel_beanstalkd.conf', dest: '/etc/asterisk/cel_beanstalkd.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel.conf', dest: '/etc/asterisk/cel.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel_odbc.conf', dest: '/etc/asterisk/cel_odbc.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel_pgsql.conf', dest: '/etc/asterisk/cel_pgsql.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel_sqlite3_custom.conf', dest: '/etc/asterisk/cel_sqlite3_custom.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cel_tds.conf', dest: '/etc/asterisk/cel_tds.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/chan_dahdi.conf', dest: '/etc/asterisk/chan_dahdi.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/chan_mobile.conf', dest: '/etc/asterisk/chan_mobile.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cli_aliases.conf', dest: '/etc/asterisk/cli_aliases.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cli.conf', dest: '/etc/asterisk/cli.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/cli_permissions.conf', dest: '/etc/asterisk/cli_permissions.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/codecs.conf', dest: '/etc/asterisk/codecs.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/confbridge.conf', dest: '/etc/asterisk/confbridge.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/config_test.conf', dest: '/etc/asterisk/config_test.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/console.conf', dest: '/etc/asterisk/console.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/dbsep.conf', dest: '/etc/asterisk/dbsep.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/dnsmgr.conf', dest: '/etc/asterisk/dnsmgr.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/dsp.conf', dest: '/etc/asterisk/dsp.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/dundi.conf', dest: '/etc/asterisk/dundi.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/enum.conf', dest: '/etc/asterisk/enum.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/features.conf', dest: '/etc/asterisk/features.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/festival.conf', dest: '/etc/asterisk/festival.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/followme.conf', dest: '/etc/asterisk/followme.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/func_odbc.conf', dest: '/etc/asterisk/func_odbc.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/hep.conf', dest: '/etc/asterisk/hep.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/http.conf', dest: '/etc/asterisk/http.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/iax.conf', dest: '/etc/asterisk/iax.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/iaxprov.conf', dest: '/etc/asterisk/iaxprov.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/indications.conf', dest: '/etc/asterisk/indications.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/meetme.conf', dest: '/etc/asterisk/meetme.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/mgcp.conf', dest: '/etc/asterisk/mgcp.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/minivm.conf', dest: '/etc/asterisk/minivm.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/misdn.conf', dest: '/etc/asterisk/misdn.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/motif.conf', dest: '/etc/asterisk/motif.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/muted.conf', dest: '/etc/asterisk/muted.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/ooh323.conf', dest: '/etc/asterisk/ooh323.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/osp.conf', dest: '/etc/asterisk/osp.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/oss.conf', dest: '/etc/asterisk/oss.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/phone.conf', dest: '/etc/asterisk/phone.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/phoneprov.conf', dest: '/etc/asterisk/phoneprov.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/pjproject.conf', dest: '/etc/asterisk/pjproject.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/pjsip_notify.conf', dest: '/etc/asterisk/pjsip_notify.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/pjsip_wizard.conf', dest: '/etc/asterisk/pjsip_wizard.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_config_mysql.conf', dest: '/etc/asterisk/res_config_mysql.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_config_sqlite3.conf', dest: '/etc/asterisk/res_config_sqlite3.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_config_sqlite.conf', dest: '/etc/asterisk/res_config_sqlite.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_corosync.conf', dest: '/etc/asterisk/res_corosync.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_curl.conf', dest: '/etc/asterisk/res_curl.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_fax.conf', dest: '/etc/asterisk/res_fax.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_ldap.conf', dest: '/etc/asterisk/res_ldap.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_odbc.conf', dest: '/etc/asterisk/res_odbc.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/resolver_unbound.conf', dest: '/etc/asterisk/resolver_unbound.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_parking.conf', dest: '/etc/asterisk/res_parking.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_pgsql.conf', dest: '/etc/asterisk/res_pgsql.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_pktccops.conf', dest: '/etc/asterisk/res_pktccops.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_snmp.conf', dest: '/etc/asterisk/res_snmp.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/res_stun_monitor.conf', dest: '/etc/asterisk/res_stun_monitor.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/rtp.conf', dest: '/etc/asterisk/rtp.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/say.conf', dest: '/etc/asterisk/say.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/sip.conf', dest: '/etc/asterisk/sip.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/sip_notify.conf', dest: '/etc/asterisk/sip_notify.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/skinny.conf', dest: '/etc/asterisk/skinny.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/sla.conf', dest: '/etc/asterisk/sla.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/smdi.conf', dest: '/etc/asterisk/smdi.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/sorcery.conf', dest: '/etc/asterisk/sorcery.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/ss7.timers', dest: '/etc/asterisk/ss7.timers', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/stasis.conf', dest: '/etc/asterisk/stasis.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/statsd.conf', dest: '/etc/asterisk/statsd.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/telcordia-1.adsi', dest: '/etc/asterisk/telcordia-1.adsi', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/test_sorcery.conf', dest: '/etc/asterisk/test_sorcery.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/udptl.conf', dest: '/etc/asterisk/udptl.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/unistim.conf', dest: '/etc/asterisk/unistim.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/users.conf', dest: '/etc/asterisk/users.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/voicemail.conf', dest: '/etc/asterisk/voicemail.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/vpb.conf', dest: '/etc/asterisk/vpb.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+    - {src: 'asterisk/xmpp.conf', dest: '/etc/asterisk/xmpp.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+
+- name: copy configs via template
+  tags: ["newnode", "never"]
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    # global_configs
+    - {src: 'templates/asterisk/pjsip.conf.j2', dest: '/etc/asterisk/pjsip.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk/asterisk.conf.j2', dest: '/etc/asterisk/asterisk.conf', owner: 'asterisk', group: 'asterisk' }
+    # manager_configs
+    - {src: 'templates/asterisk/manager.d/taxi-wfe.conf.j2', dest: '/etc/asterisk/manager.d/taxi-wfe.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk/manager.d/telrtapi.conf.j2', dest: '/etc/asterisk/manager.d/telrtapi.conf', owner: 'asterisk', group: 'asterisk' }
+    # pjsip_configs
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-QPROC-TEST.conf', dest: '/etc/asterisk/pjsip.conf.d/ITC-QPROC-TEST.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-SBC.conf', dest: '/etc/asterisk/pjsip.conf.d/ITC-SBC.conf', owner: 'asterisk', group: 'asterisk' }
+    # pjsip_configs_ITC-QPROC
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-QPROC-TEST.d/taxi-qproc-test.conf.j2', dest: '/etc/asterisk/pjsip.conf.d/ITC-QPROC-TEST.d/taxi-qproc-test.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-SBC.d/taxi-sbc.conf.j2', dest: '/etc/asterisk/pjsip.conf.d/ITC-SBC.d/taxi-sbc.conf', owner: 'asterisk', group: 'asterisk' }
+    # telrtapi
+    - {src: 'templates/telrtapi/telrtapi.conf.j2', dest: '/etc/telrtapi.conf', owner: 'root', group: 'root' }
+
+- name: copy queuerouting config
+  tags: ["newnode","queuerouting","never"]
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{item.mode}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    - {src: 'asterisk_node_SPECIIFIC/test/extensions.conf.dyn.d/queuerouting.conf', dest: '/etc/asterisk/extensions.conf.dyn.d/queuerouting.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+
+- name: QPROC trunks via template
+  tags: ["newnode", "qproc_trunk", "never"]
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-QPROC.conf', dest: '/etc/asterisk/pjsip.conf.d/ITC-QPROC.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-QPROC.d/taxi-qproc.conf.j2', dest: '/etc/asterisk/pjsip.conf.d/ITC-QPROC.d/taxi-qproc.conf', owner: 'asterisk', group: 'asterisk' }
+
+- name: copy GLOBAL-PROC-STATIC config
+  tags: ["newnode", "globalrouting","never"]
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{item.mode}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    # dialplan
+    - {src: 'asterisk_node_SPECIIFIC/test/extensions.conf.dyn.d/GLOBAL-PROC-STATIC.conf', dest: '/etc/asterisk/extensions.conf.dyn.d/GLOBAL-PROC-STATIC.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+
+- name: copy extensions config
+  tags: ["newnode", "extensions","never"]
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{item.mode}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    # dialplan
+    - {src: 'asterisk/extensions.conf', dest: '/etc/asterisk/extensions.conf', owner: 'asterisk', group: 'asterisk', mode: '0644' }
+
+- name: SBC trunks via template
+  tags: ["newnode", "sbc_trunk", "never"]
+  template: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    # mode: "{{item.mode}}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-TRUNK.conf', dest: '/etc/asterisk/pjsip.conf.d/ITC-TRUNK.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk_node_SPECIIFIC/test/pjsip.conf.d/ITC-TRUNK.d/0.conf.j2', dest: '/etc/asterisk/pjsip.conf.d/ITC-TRUNK.d/0.conf', owner: 'asterisk', group: 'asterisk' }
+
+- name: TANYA trunks via template
+  tags: ["newnode", "tanya_trunk", "never"]
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    - {src: 'templates/asterisk/pjsip.conf.d/TANYA.conf', dest: '/etc/asterisk/pjsip.conf.d/TANYA.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk/pjsip.conf.d/TANYA.d/tanya-dev.conf.j2', dest: '/etc/asterisk/pjsip.conf.d/TANYA.d/tanya-dev.conf', owner: 'asterisk', group: 'asterisk' }
+
+- name: FSTAXI trunks via template
+  tags: ["newnode", "fstaxi_trunk", "never"]
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{item.owner}}"
+    group: "{{item.group}}"
+  with_items:
+    - {src: 'templates/asterisk/pjsip.conf.d/FSTAXI.conf', dest: '/etc/asterisk/pjsip.conf.d/FSTAXI.conf', owner: 'asterisk', group: 'asterisk' }
+    - {src: 'templates/asterisk/pjsip.conf.d/FSTAXI.d/fstaxi-test.conf.j2', dest: '/etc/asterisk/pjsip.conf.d/FSTAXI.d/fstaxi-prod.conf', owner: 'asterisk', group: 'asterisk' }

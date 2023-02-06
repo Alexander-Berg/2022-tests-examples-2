@@ -1,0 +1,59 @@
+project-name: yandex-taxi-billing-commissions
+short-name: billing-commissions
+wiki: https://wiki.yandex-team.ru/taxi/backend/architecture/billing-commissions/
+maintainers:
+  - Maksim Zubkov <maksimzubkov@yandex-team.ru>
+  - Ivan Kolosov <ivankolosov@yandex-team.ru>
+libraries:
+  - yandex-taxi-userver-core
+
+teamcity:
+    conductor-disabled: true
+
+docker-deploy: {}
+
+debian:
+    source_package_name: yandex-taxi-billing-commissions
+    maintainer_name: Maksim Zubkov
+    maintainer_login: maksimzubkov
+
+tvm2:
+    secdist-service-name: billing-commissions
+
+secdist:
+    testsuite:
+        values:
+            settings_override:
+                TVM_SERVICES:
+                    billing-commissions:
+                        secret: "secret"
+                        id: 2345
+
+mongo:
+    collections:
+      - tariff_settings
+      - commission_contracts
+
+uservice_unit:
+    description: Service for manage subventions and commissions rules
+
+    hostname:
+        production:
+          - billing-commissions.taxi.yandex.net
+        testing:
+          - billing-commissions.taxi.tst.yandex.net
+        unstable:
+          - billing-commissions.taxi.dev.yandex.net
+
+    grafana:
+        production: https://grafana.yandex-team.ru/d/Ygx9WhhZk/nanny_taxi_billing-commissions_stable
+        testing: https://grafana.yandex-team.ru/d/GvwEwKhWk/nanny_taxi_billing-commissions_testing
+
+
+clownductor_service_info:
+    clownductor_project: taxi-devops
+    duty_group_id: 5b69be79c5755f678048a169
+    preset:
+        name: x2nano
+    design_review: https://st.yandex-team.ru
+    critical_class: A

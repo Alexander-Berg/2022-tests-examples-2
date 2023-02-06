@@ -1,0 +1,32 @@
+emitter:
+  args:
+    balancer_host: 'logbroker-prestable.yandex.net:8999'
+    client: passport@lbc-social-bindings
+    data_port: 8999
+    ident: social-broker
+    per_host_config:
+      .*?:
+        dc: myt
+        topics:
+        - rt3.myt--social-broker--social-bindings-log
+        - rt3.man--social-broker--social-bindings-log
+    workers_count: 4
+  class: passport.backend.logbroker_client.core.consumers.simple.emitter.PartitionsCountEmitter
+  storage:
+    class: passport.backend.logbroker_client.core.runner.storages.memory.MemoryTaskStorage
+social_broker_url: https://api.social-test.yandex.ru/brokerapi/
+taxi_zalogin:
+  url: http://zalogin.taxi.tst.yandex.net
+  timeout: 3
+  retries: 2
+  use_tvm: true
+logpath: /var/log/yandex/logbroker-client/social-bindings/
+workers:
+  args:
+    handler:
+      args:
+        log_metrics: False
+        push_metrics_to_xunistater: True
+      class: passport.backend.logbroker_client.social_bindings.handler.SocialBindingsHandler
+  class: passport.backend.logbroker_client.core.consumers.simple.worker.AutoBalancedLogbrokerWorker
+  count: 4

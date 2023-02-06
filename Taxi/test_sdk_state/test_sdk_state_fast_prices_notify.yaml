@@ -1,0 +1,640 @@
+type: apitest
+version: 0
+service: taxi_plus_sweet_home
+
+mockserver:
+  - url: /fast-prices-notify/billing/user/state
+    response:
+        body:
+            activeIntervals:
+              - featureBundle: "new-plus"
+                end: "2021-01-07T18:21:26Z"
+                orderType: "native-auto-subscription"
+                some_extra_field: "date"
+            uid: 111111
+            some_extra_field: "date"
+
+  - url: /fast-prices/billing/transitions
+    response:
+        body:
+            transitions:
+              - available: true
+                product:
+                    id: "ru.yandex.plus.30min.autorenewable.native.web.notrial.debug"
+                    vendor: "YANDEX"
+                transitionType: "SUBMIT"
+
+  - url: /plus-wallet/v1/balances
+    response:
+        body:
+            balances:
+              - balance: "120.0000"
+                currency: "RUB"
+                wallet_id: "test_wallet_id"
+
+  - url: /plus/v1/subscriptions/settings
+    response:
+        body:
+            version: "1"
+            settings:
+                renew_subscription_by_plus: true
+
+marks:
+  - name: experiments3
+    kwargs:
+        filename: "experiments3_defaults.json"
+
+  - name: pgsql
+    args:
+      - plus
+    kwargs:
+        files:
+          - plus_user_settings.sql
+
+  - name: config
+    kwargs:
+        PLUS_SWEET_HOME_IGNORE_LIST_FEATURE_BUNDLES:
+          - "BadFeatureBundle"
+        PLUS_SWEET_HOME_CLIENTS_UI:
+            taxi.test:
+                sdk_menu:
+                    sections:
+                      - items:
+                          - action:
+                                type: "SETTING"
+                                setting_id: "composite_payment.enabled"
+                            lead:
+                                title_key: "sweet_home.settings.composite_payment.taxi"
+                                subtitle_key: "sweet_home.settings.composite_payment.taxi.subtitle"
+                      - style: "bordered"
+                        items:
+                          - action:
+                                type: "SETTING"
+                                setting_id: "subscription_renewal_for_points"
+        PLUS_SWEET_HOME_CLIENTS_UI_V2:
+            taxi:composite_payment:
+                list_item:
+                    action:
+                        setting_id: "composite_payment.enabled"
+                        type: "SETTING"
+                    lead:
+                        title_key: "sweet_home.settings.composite_payment.taxi"
+                type: "list_item"
+            taxi:renewal_for_points:
+                list_item:
+                    action:
+                        setting_id: "subscription_renewal_for_points"
+                        type: "SETTING"
+                type: "list_item"
+
+tests:
+  - name: bad_feature_bundle_sdk_v1
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                activeIntervals:
+                  - featureBundle: "BadFeatureBundle"
+                    end: "2021-01-07T18:21:26Z"
+                    orderType: "native-auto-subscription"
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "default"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "composite_payment.enabled"
+                        lead:
+                            type: "default"
+                            title: "Потратить на поездку"
+                            subtitle: "Баланс: 120 баллов"
+                        trail:
+                            type: "switch"
+
+  - name: bad_order_type_sdk_v1
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                activeIntervals:
+                  - featureBundle: "some_bundle"
+                    end: "2021-01-07T18:21:26Z"
+                    orderType: "bad_order_type"
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "default"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "composite_payment.enabled"
+                        lead:
+                            type: "default"
+                            title: "Потратить на поездку"
+                            subtitle: "Баланс: 120 баллов"
+                        trail:
+                            type: "switch"
+
+  - name: emtpy_activeIntervals_from_fast-prices-notify_sdk_v1
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "default"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "composite_payment.enabled"
+                        lead:
+                            type: "default"
+                            title: "Потратить на поездку"
+                            subtitle: "Баланс: 120 баллов"
+                        trail:
+                            type: "switch"
+
+  - name: user_has_not_plus_subscriptions_sdk_v1
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu:
+                action_button:
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                    action: "PLUS.BUY"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить"
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "default"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "composite_payment.enabled"
+                        lead:
+                            type: "default"
+                            title: "Потратить на поездку"
+                            subtitle: "Баланс: 120 баллов"
+                        trail:
+                            type: "switch"
+                  - style: "bordered"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "subscription_renewal_for_points"
+                        lead:
+                            type: "default"
+                            title: "Подписка за баллы"
+                        trail:
+                            type: "switch"
+
+  - name: user_has_plus_and_subscription_is_renewal_by_points_allowed_sdk_v1
+    request:
+        method: POST
+        path: /4.0/sweet-home/v1/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "default"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "composite_payment.enabled"
+                        lead:
+                            type: "default"
+                            title: "Потратить на поездку"
+                            subtitle: "Баланс: 120 баллов"
+                        trail:
+                            type: "switch"
+                  - style: "bordered"
+                    items:
+                      - action:
+                            type: "SETTING"
+                            setting_id: "subscription_renewal_for_points"
+                        lead:
+                            type: "default"
+                            title: "Подписка за баллы"
+                        trail:
+                            type: "switch"
+
+  - name: bad_feature_bundle_sdk_v2
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                activeIntervals:
+                  - featureBundle: "BadFeatureBundle"
+                    end: "2021-01-07T18:21:26Z"
+                    orderType: "native-auto-subscription"
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "bordered"
+                    type: "section"
+                    title: "Как тратить баллы"
+                    border_styles:
+                        top: "default"
+                        bottom: "rounded"
+                    items:
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Потратить на поездку"
+                            action:
+                                type: "SETTING"
+                                setting_id: "composite_payment.enabled"
+                            trail:
+                                type: "switch"
+                  - type: "separator"
+                  - type: "separator"
+
+  - name: bad_order_type_sdk_v2
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                activeIntervals:
+                  - featureBundle: "some_bundle"
+                    end: "2021-01-07T18:21:26Z"
+                    orderType: "bad_order_type"
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "bordered"
+                    type: "section"
+                    title: "Как тратить баллы"
+                    border_styles:
+                        top: "default"
+                        bottom: "rounded"
+                    items:
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Потратить на поездку"
+                            action:
+                                type: "SETTING"
+                                setting_id: "composite_payment.enabled"
+                            trail:
+                                type: "switch"
+                  - type: "separator"
+                  - type: "separator"
+
+  - name: emtpy_activeIntervals_from_fast-prices-notify_sdk_v2
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,ya-plus,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "bordered"
+                    type: "section"
+                    title: "Как тратить баллы"
+                    border_styles:
+                        top: "default"
+                        bottom: "rounded"
+                    items:
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Потратить на поездку"
+                            action:
+                                type: "SETTING"
+                                setting_id: "composite_payment.enabled"
+                            trail:
+                                type: "switch"
+                  - type: "separator"
+                  - type: "separator"
+
+  - name: user_has_not_plus_subscriptions_sdk_v2
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    mockserver:
+      - url: /fast-prices-notify/billing/user/state
+        response:
+            status: 200
+            body:
+                uid: 111111
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                action_button:
+                    title: "За 199 $SIGN$$CURRENCY$ в месяц"
+                    action: "PLUS.BUY"
+                    states:
+                      - state: "IDLE"
+                        title: "Подключить"
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "bordered"
+                    type: "section"
+                    title: "Как тратить баллы"
+                    border_styles:
+                        top: "default"
+                        bottom: "rounded"
+                    items:
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Потратить на поездку"
+                            action:
+                                type: "SETTING"
+                                setting_id: "composite_payment.enabled"
+                            trail:
+                                type: "switch"
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Подписка за баллы"
+                            action:
+                                type: "SETTING"
+                                setting_id: "subscription_renewal_for_points"
+                            trail:
+                                type: "switch"
+                  - type: "separator"
+                  - type: "separator"
+
+  - name: user_has_plus_and_subscription_is_renewal_by_points_allowed_sdk_v2
+    request:
+        method: POST
+        path: /4.0/sweet-home/v2/sdk-state
+        body:
+            include: ["menu"]
+        headers:
+            X-SDK-Client-ID: "taxi.test"
+            X-SDK-Version: "1.0.0"
+            # passport-authproxy
+            X-Yandex-UID: "111111"
+            X-YaTaxi-Pass-Flags: "portal,cashback-plus,ya-plus"
+            X-Request-Language: "ru"
+            X-Remote-IP: "185.15.98.233"
+    response:
+        status: 200
+        body:
+            menu_type: "NATIVE"
+            menu:
+                balance_badge:
+                    show_glyph: true
+                    subtitle: "ваши баллы на Плюсе"
+                currency_rules:
+                    code: "RUB"
+                    sign: "₽"
+                    template: "$VALUE$ $SIGN$$CURRENCY$"
+                    text: "руб."
+                sections:
+                  - style: "bordered"
+                    type: "section"
+                    title: "Как тратить баллы"
+                    border_styles:
+                        top: "default"
+                        bottom: "rounded"
+                    items:
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Потратить на поездку"
+                            action:
+                                type: "SETTING"
+                                setting_id: "composite_payment.enabled"
+                            trail:
+                                type: "switch"
+                      - type: "list_item"
+                        list_item:
+                            lead:
+                                type: "default"
+                                title: "Подписка за баллы"
+                            action:
+                                type: "SETTING"
+                                setting_id: "subscription_renewal_for_points"
+                            trail:
+                                type: "switch"
+                  - type: "separator"
+                  - type: "separator"

@@ -1,0 +1,50 @@
+INSERT INTO bank_applications.applications (application_id,
+                                            user_id_type,
+                                            user_id,
+                                            type,
+                                            status,
+                                            reason,
+                                            multiple_success_status_allowed,
+                                            initiator,
+                                            additional_params)
+VALUES ('7948e3a9-623c-4524-a390-9e4264d27a01',
+        'UID',
+        '111111111',
+        'REGISTRATION',
+        'PROCESSING',
+        'error',
+        FALSE,
+        '{}'::jsonb,
+        '{
+          "core_request_id": "some_core_request_id"
+        }'::jsonb),
+       ('7948e3a9-623c-4524-a390-9e4264d27a02',
+        'UID',
+        '111111112',
+        'REGISTRATION',
+        'PROCESSING',
+        'error',
+        FALSE,
+        '{}'::jsonb,
+        NULL);
+
+INSERT INTO bank_applications.registration_applications (application_id,
+                                            yandex_uid,
+                                            status_text,
+                                            reason,
+                                            initiator,
+                                            additional_params)
+VALUES ('7948e3a9-623c-4524-a390-9e4264d27a01',
+        '111111111',
+        'PROCESSING',
+        'error',
+        '{}'::jsonb,
+        '{
+          "core_request_id": "some_core_request_id"
+        }'::jsonb),
+       ('7948e3a9-623c-4524-a390-9e4264d27a02',
+        '111111112',
+        'PROCESSING',
+        'error',
+        '{}'::jsonb,
+        NULL);

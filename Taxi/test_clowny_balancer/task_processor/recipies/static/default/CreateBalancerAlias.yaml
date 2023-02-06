@@ -1,0 +1,27 @@
+data:
+    name: CreateBalancerAlias
+    provider_name: clowny-balancer
+    job_vars:
+      - service_id
+      - env
+      - fqdn
+    stages:
+      - name: AwacsCheckBalancerNotExists
+        provider_name: clowny-balancer
+        input:
+            fqdn: fqdn
+        output:
+            fqdn: fqdn
+            origin_fqdn: origin_fqdn
+      - name: InternalCubeInitBalancerAlias
+        provider_name: clowny-balancer
+        input:
+            env: env
+            service_id: service_id
+        output:
+            host: host
+      - name: DNSCreateAlias
+        provider_name: clowny-balancer
+        input:
+            alias: fqdn
+            canonical_name: host

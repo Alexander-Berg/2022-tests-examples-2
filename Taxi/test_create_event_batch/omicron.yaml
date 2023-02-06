@@ -1,0 +1,24 @@
+module: testsuite-omicron
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: omicron
+        stq-queue: testsuite_worker
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            default-keys: [handle-default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: handle-default
+            stages:
+              - id: default-stage
+                handlers:
+                  - id: requests
+                    testpoints:
+                      - testpoint-name: omicron-testpoints
+                        extra-data:
+                            payload#xget: /event/payload

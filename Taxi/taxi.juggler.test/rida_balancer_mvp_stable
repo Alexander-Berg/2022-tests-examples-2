@@ -1,0 +1,28 @@
+host: taxi_juggler_test_rida_balancer_mvp_stable
+responsible:
+- duty_taxi:60b66eb6398be3a230471cdc
+- kokokosttn
+services:
+- service: https_alive
+  # Алерт на доступность внешнего балансера и php-бэкенда сервиса Rida.
+  # Загорается, если есть проблемы с доступностью
+  # путь запроса:
+  # juggler -> rida-nginx -> rida-py3-mvp -> rida-php
+  # Обращаться к toporkovm@, @iv-ivan@
+  telegram: juggler-alerts
+  methods: phone_escalation
+  flaps:
+    stable_time: 180
+    critical_time: 900
+  active: https
+  active_kwargs:
+    port: 443
+    ok_codes: 200
+    path: /v1/checkStatus
+  children:
+  - api.rida.app
+  times:
+  - days: Mon-Sun
+    time: 0-23
+    warn: 0
+    crit: 0

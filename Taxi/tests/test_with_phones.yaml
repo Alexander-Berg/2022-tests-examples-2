@@ -1,0 +1,42 @@
+id: test_with_phones
+title: Проверка того, что запрос по эксперименту отдаёт номера телефонов
+
+source:
+    request:
+        method: post
+        body:
+            zone_name: "moscow"
+        headers:
+            content-type: application/json
+            X-Request-Application: app_brand=yango,app_name=yango_android
+    expectations:
+        response:
+            status-code: 200
+            body:
+                parks:
+                  - name: "Зиновьев Алексей Викторович"
+                    park_id: "643753730726"
+                    phone: "+79262711664"
+                    tariffs: []
+                    tariffs_url: "https://m.taxi.taxi.tst.yandex.ru/park-tariff/?parkid=643753730726"
+                    type: "taxipark"
+
+mocks:
+  - resource: taxi-3.0-pricecat
+    response:
+        status-code: 200
+        body:
+            parks:
+              - name: "Зиновьев Алексей Викторович"
+                park_id: "643753730726"
+                phone: "+79262711664"
+                tariffs: []
+                tariffs_url: "https://m.taxi.taxi.tst.yandex.ru/park-tariff/?parkid=643753730726"
+                type: "taxipark"
+        headers:
+            content-type: application/json
+
+experiments:
+    values:
+        pricecat_filter_phones:
+            enabled: true

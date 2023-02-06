@@ -1,0 +1,117 @@
+id: cashback-levels-v1-missions-notifications
+title: Тест для проверки получения уведомлений о персцелях из Уровней
+
+parameters:
+  - case:
+      - exp_enabled: false
+        expected_calls: 0
+        notifications: {}
+      - exp_enabled: true
+        expected_calls: 1
+        notifications: {"notifications": []}
+      - exp_enabled: true
+        expected_calls: 1
+        notifications: {"notifications": [{"buttons": {"action": {"title": {"items": [
+                                    {"text": "Я в деле", "type": "text"}]}, "url": "url"}},
+                    "description": {"items": [{"text": "Вы сделали первый заказ! Баллы\
+                                    \ вы можете потратить во всех сервисах Яндекса",
+                                "type": "text"}]}, "event": "start", "icon_tag": "icon_tag",
+                    "mission_id": "task_id_1", "progress": {"current": 0, "subtitle": {
+                            "items": []}, "target": 1, "title": {"items": [{"text": "Еще ",
+                                    "type": "text"}, {"text": "1", "type": "text"},
+                                {"text": " поездка", "type": "text"}]}}, "reward": {
+                        "description": {"items": []}, "subtitle": {"items": [{"text": "Быллы\
+                                        \ придут в течение суток", "type": "text"}]},
+                        "title": {"items": [{"text": "Награда", "type": "text"}]}},
+                    "title": {"items": [{"text": "Прокатитесь ", "type": "text"},
+                            {"text": "1", "type": "text"}, {"text": " раз в Комфорте",
+                                "type": "text"}]}}]}
+
+source:
+    request:
+        method: post
+        body:
+            id: 'user_id'
+        headers:
+            content-type: 'application/json'
+            X-Yandex-UID: 'yandex_uid1'
+            X-Request-Language: 'ru'
+            X-Request-Application: 'app_brand=yataxi,app_ver2=21,platform_ver1=12,app_ver1=5,app_name=iphone,app_build=release,platform_ver2=1,app_ver3=43204,platform_ver3=2'
+    expectations:
+        response:
+            status-code#integer: 200
+            body#concat-objects:
+              - value:
+                    id: 'user_id'
+                    authorized: true
+                    orders: []
+                    orders_state:
+                        orders: []
+                    client_geo_params:
+                        enabled: false
+                    typed_experiments: {}
+              - value#xget: /test-params/case/notifications
+
+taxi_config:
+    PICKUP_POINTS_ENABLED: false
+    NEW_ZONE_DEFAULT_TARIFF_SETTINGS:
+        __default__:
+            tariff_groups: []
+
+experiments:
+    values#object:
+      - key: 'cashback_levels_ntfs_launch_enabled'
+        value:
+            enabled#xget: /test-params/case/exp_enabled
+        enabled: true
+
+mocks:
+  - resource: zalogin-v1-launch-auth
+    response:
+        status-code: 200
+        body:
+            id: 'user_id'
+            authorized: true
+            phone_id: 'phone_id'
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        call-count: 1
+        request:
+            body:
+                id: 'user_id'
+            method: post
+  - resource: feedback-wanted
+    response:
+        status-code: 501
+        body: "Not implemented yet"
+        headers:
+            content-type: "text/plain"
+  - resource: taxi-3.0-launch
+    response:
+        status-code: 200
+        body:
+            typed_experiments: {}
+        headers:
+            content-type: 'application/json; charset=utf-8'
+    expectations:
+        called-after:
+          - zalogin-v1-launch-auth
+        call-count: 1
+        request:
+            method: post
+  - resource: order-v1-tc-active-orders
+    response:
+        status-code: 200
+        body:
+            orders: []
+            orders_state:
+                orders: []
+  - resource: cashback-levels-v1-missions-notifications
+    response:
+        status-code: 200
+        body#xget: /test-params/case/notifications
+    expectations:
+        call-count#xget: /test-params/case/expected_calls
+        request:
+            method: post

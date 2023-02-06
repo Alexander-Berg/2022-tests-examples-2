@@ -1,0 +1,32 @@
+module: testsuite-module
+operators:
+  - id: main
+    visibility: public
+    value#processing-queue:
+        scope: testsuite
+        queue: another
+        stq-queue: testsuite_another
+        static-event-traits:
+            is-create: true
+        keys-mapping:
+            rules: []
+            default-keys: [default]
+        event-processor:
+          - id: default-pipeline
+            conditions:
+              - key: default
+            stages:
+              - id: default-stage
+                handlers:
+                  - id: default-handler
+                    requests:
+                      - id: cached-src
+                        resource: cached-resource
+                    resources:
+                      - id: cached-resource
+                        url: $cached_resource_url
+                        method: get
+                        max-retries: 1
+                        caching-enabled: true
+                    result:
+                        cached#xget: /sources/cached-src/response/body/value
